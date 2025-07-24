@@ -69,7 +69,7 @@ export default function TopNav({ className }: { className?: string }) {
                   <Menu className="h-5 w-5" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="bg-black border border-white rounded-none w-[100px] flex flex-col items-end">
+              <DropdownMenuContent align="end" className="bg-black w-[200px]">
                 {navItems.map((item) => (
                   <DropdownMenuItem key={item.name} asChild>
                     <Link href={item.href} className="font-medium text-white">
