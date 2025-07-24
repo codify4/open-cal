@@ -1,6 +1,7 @@
 import { Spotlight } from "../ui/spotlight";
 import { Button } from "../ui/button";
 import { ArrowRight } from "lucide-react";
+import Link from "next/link";
 
 export function HeroSection() {
   return (
@@ -20,10 +21,12 @@ export function HeroSection() {
               <p className="text-sm sm:text-lg text-muted-foreground max-w-2xl font-medium leading-relaxed px-4">
                 Digit is an open-source AI calendar, offering a fresh alternative to traditional calendar applications.
               </p>
-              <Button size="lg" className="group rounded-full h-12">
-                Join the beta
-                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-all duration-300" />
-              </Button>
+              <Link href="/calendar">
+                <Button size="lg" className="group rounded-full h-12">
+                  Join the beta
+                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-all duration-300" />
+                </Button>
+              </Link>
               <div className="flex justify-center w-full max-w-4xl h-64 sm:h-80 lg:h-96 bg-white rounded-lg mx-4">
                 image
               </div>

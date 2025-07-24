@@ -194,10 +194,22 @@
 @keyframes spotlight {
   0% {
     opacity: 0;
-    transform: translate(-72%, -62%) scale(0.5);
+    transform: translate(-50%, -50%) scale(0.5);
   }
   100% {
     opacity: 1;
-    transform: translate(-50%, -40%) scale(1);
+    transform: translate(-50%, -50%) scale(1);
   }
+}
+
+/* Custom sidebar styling for neutral-900 background */
+[data-slot="sidebar-inner"] {
+  background-color: rgb(23 23 23) !important; /* neutral-900 */
+}
+
+[data-variant="inset"] [data-slot="sidebar-inner"] {
+  background-color: rgb(23 23 23) !important; /* neutral-900 */
+  border: none !important;
+  border-radius: 0;
+  margin: 0;
 }
