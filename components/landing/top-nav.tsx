@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { Menu } from "lucide-react"
+import { Github, Menu } from "lucide-react"
 import Link from "next/link"
 
 export default function TopNav({ className }: { className?: string }) {
@@ -55,9 +55,10 @@ export default function TopNav({ className }: { className?: string }) {
           </div>
 
           <div className="hidden md:flex items-center space-x-4">
-            <Link href="/dashboard">
+            <Link href="https://github.com/codify4/digit">
               <Button className="bg-white text-black hover:bg-white/90 h-9 px-6">
-                Join the beta
+                <Github className="h-4 w-4" fill="black" />
+                GitHub
               </Button>
             </Link>
           </div>
