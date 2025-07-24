@@ -1,10 +1,10 @@
 import TopNav from "@/components/landing/top-nav"
 import { HeroSection } from "@/components/landing/hero"
-// import { FeaturesSection } from "@/components/landing/features"
+import { FeaturesSection } from "@/components/landing/features"
 import { PricingSection } from "@/components/landing/pricing"
+import { Footer } from "@/components/landing/footer"
 // import { FAQSection } from "@/components/landing/faq"
 // import { FinalCTASection } from "@/components/landing/final-cta"
-// import { Footer } from "@/components/landing/footer"
 
 export default function HomePage() {
     return (
@@ -12,13 +12,12 @@ export default function HomePage() {
             <TopNav />
             <main className="bg-background">
                 <HeroSection />
+                <FeaturesSection />
                 <PricingSection />
-                {/* <FeaturesSection />
-                <FAQSection />
+                {/* <FAQSection />
                 <FinalCTASection /> */}
-                <div className="h-[1000px]"></div>
             </main>
-            {/* <Footer /> */}
+            <Footer />
         </div>
     )
 }
