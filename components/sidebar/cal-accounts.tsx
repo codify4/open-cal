@@ -117,20 +117,14 @@ export function NavCalendars({
       <SidebarMenu>
         {calendars.map((calendar) => (
           <SidebarMenuItem key={calendar.id}>
-            <SidebarMenuButton 
-              className="w-full justify-between cursor-pointer hover:bg-transparent hover:text-primary/70 focus:bg-transparent active:bg-transparent data-[state=open]:bg-transparent rounded-none focus:outline-none focus:ring-0"
-              onClick={() => onCalendarToggle(calendar.id)}
-            >
-              <div className="flex items-center gap-2">
-                <Checkbox 
-                  checked={calendar.isVisible}
-                  onCheckedChange={() => onCalendarToggle(calendar.id)}
-                  color={getColorClasses(calendar.color)}
-                  onClick={(e) => e.stopPropagation()}
-                />
-                <span className="text-sm truncate">{calendar.name}</span>
-              </div>
-            </SidebarMenuButton>
+            <div className="flex items-center gap-2 w-full px-2 py-1.5 hover:bg-primary/10 hover:text-primary rounded-sm">
+              <Checkbox 
+                checked={calendar.isVisible}
+                onCheckedChange={() => onCalendarToggle(calendar.id)}
+                color={getColorClasses(calendar.color)}
+              />
+              <span className="text-sm truncate flex-1">{calendar.name}</span>
+            </div>
           </SidebarMenuItem>
         ))}
       </SidebarMenu>

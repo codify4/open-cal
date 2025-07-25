@@ -2,7 +2,6 @@
 
 import * as React from "react"
 import {
-  Command,
   Frame,
   Map,
   PieChart,
@@ -14,11 +13,7 @@ import { NavUser } from "@/components/sidebar/nav-user"
 import {
   Sidebar,
   SidebarContent,
-  SidebarFooter,
-  SidebarHeader,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
+  SidebarFooter
 } from "@/components/ui/sidebar"
 
 const emailAccounts = [

@@ -194,10 +194,12 @@ export function Chat({
   return (
     <ChatContainer className={className}>
       {isEmpty && append && suggestions ? (
-        <PromptSuggestions
-          append={append}
-          suggestions={suggestions}
-        />
+        <div className="flex-1 flex flex-col items-center justify-center p-8">
+          <PromptSuggestions
+            append={append}
+            suggestions={suggestions}
+          />
+        </div>
       ) : null}
 
       {messages.length > 0 ? (
@@ -219,12 +221,12 @@ export function Chat({
           <MessageInput
             value={input}
             onChange={handleInputChange}
-            allowAttachments
             files={files}
             setFiles={setFiles}
             stop={handleStop}
             isGenerating={isGenerating}
             transcribeAudio={transcribeAudio}
+            className="bg-neutral-950 min-h-[80px]"
           />
         )}
       </ChatForm>
@@ -283,7 +285,7 @@ export const ChatContainer = forwardRef<
   return (
     <div
       ref={ref}
-      className={cn("grid max-h-full w-full grid-rows-[1fr_auto] min-h-[600px]", className)}
+      className={cn("flex flex-col h-full bg-black text-white", className)}
       {...props}
     />
   )
