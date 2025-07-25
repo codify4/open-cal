@@ -18,7 +18,7 @@ export default function CalendarLayout({ children }: { children: React.ReactNode
                         {children}
                     </SidebarInset>
                 </ResizablePanel>
-                <ResizableHandle withHandle />
+                <ResizableHandle withHandle className="opacity-0 hover:opacity-100 transition-opacity duration-300"/>
                 <ResizablePanel defaultSize={30} minSize={20} maxSize={50} className="bg-neutral-900 rounded-lg p-2">
                     <div className="bg-neutral-900 h-full rounded-xl shadow-sm overflow-hidden">
                         <ChatSidebar />

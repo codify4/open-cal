@@ -7,7 +7,7 @@ export function HeroSection() {
   return (
     <section id="hero" className="relative min-h-screen flex flex-col lg:flex-row items-center justify-center overflow-hidden">      
       <Spotlight
-        className="-top-40 left-0 md:-top-20 md:left-60"
+        className="-top-0 left-0 md:-top-20 md:left-60"
         fill="white"
       />
       <div className="container mx-auto px-6 lg:px-8 xl:px-12 relative z-10 w-full">

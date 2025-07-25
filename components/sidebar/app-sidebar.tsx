@@ -2,18 +2,14 @@
 
 import * as React from "react"
 import {
-  BookOpen,
   Command,
   Frame,
-  LifeBuoy,
   Map,
   PieChart,
-  Send,
-  SquareTerminal,
 } from "lucide-react"
 
-import { NavMain } from "@/components/sidebar/nav-main"
-import { NavProjects } from "@/components/sidebar/nav-projects"
+import { CalendarPicker } from "@/components/sidebar/cal-day-picker"
+import { NavCalendars } from "@/components/sidebar/nav-projects"
 import { NavUser } from "@/components/sidebar/nav-user"
 import {
   Sidebar,
@@ -25,79 +21,70 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
 
-const data = {
-  user: {
-    name: "shadcn",
-    email: "m@example.com",
-    avatar: "/avatars/shadcn.jpg",
+const emailAccounts = [
+  {
+    email: "kushta.joni@gmail.com",
+    isDefault: true,
+    color: "red" as const,
   },
-  navMain: [
-    {
-      title: "Playground",
-      url: "#",
-      icon: SquareTerminal,
-      isActive: true,
-      items: [
-        {
-          title: "History",
-          url: "#",
-        },
-        {
-          title: "Starred",
-          url: "#",
-        },
-        {
-          title: "Settings",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "Documentation",
-      url: "#",
-      icon: BookOpen,
-      items: [
-        {
-          title: "Introduction",
-          url: "#",
-        },
-        {
-          title: "Get Started",
-          url: "#",
-        },
-        {
-          title: "Tutorials",
-          url: "#",
-        },
-        {
-          title: "Changelog",
-          url: "#",
-        },
-      ],
-    },
-  ],
-  projects: [
-    {
-      name: "Design Engineering",
-      url: "#",
-      icon: Frame,
-    },
-    {
-      name: "Sales & Marketing",
-      url: "#",
-      icon: PieChart,
-    },
-    {
-      name: "Travel",
-      url: "#",
-      icon: Map,
-    },
-  ],
-}
+  {
+    email: "john.doe@gmail.com",
+    isDefault: false,
+    color: "blue" as const,
+  },
+]
+
+const calendars = [
+  {
+    id: "1",
+    name: "11B Informatike Teknike",
+    color: "blue" as const,
+    isVisible: false,
+    type: "class" as const,
+  },
+  {
+    id: "2", 
+    name: "KLASA XIB GR2",
+    color: "blue" as const,
+    isVisible: false,
+    type: "class" as const,
+  },
+  {
+    id: "3",
+    name: "Klasa 11B DB-SY",
+    color: "green" as const,
+    isVisible: false,
+    type: "class" as const,
+  },
+  {
+    id: "4",
+    name: "Programim 11B 2024-2025",
+    color: "green" as const,
+    isVisible: false,
+    type: "class" as const,
+  },
+]
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const [selectedEmail, setSelectedEmail] = React.useState("kushta.joni@gmail.com")
+  const [calendarList, setCalendarList] = React.useState(calendars)
+
+  const handleEmailChange = (email: string) => {
+    setSelectedEmail(email)
+  }
+
+  const handleCalendarToggle = (calendarId: string) => {
+    setCalendarList(prev => 
+      prev.map(cal => 
+        cal.id === calendarId 
+          ? { ...cal, isVisible: !cal.isVisible }
+          : cal
+      )
+    )
+  }
+
   return (
-    <Sidebar variant="inset" className="bg-neutral-950 border-none" {...props}>
+    <Sidebar variant="inset" className="bg-neutral-950 border-none overflow-hidden" {...props}>
       <SidebarHeader className="bg-neutral-950 border-none">
         <SidebarMenu>
           <SidebarMenuItem>
@@ -116,12 +103,43 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent className="bg-neutral-950 border-none">
-        <NavMain items={data.navMain} />
-        <NavProjects projects={data.projects} />
+        <CalendarPicker />
+        <NavCalendars 
+          emailAccounts={emailAccounts}
+          calendars={calendarList}
+          selectedEmail={selectedEmail}
+          onEmailChange={handleEmailChange}
+          onCalendarToggle={handleCalendarToggle}
+        />
       </SidebarContent>
       <SidebarFooter className="bg-neutral-950 border-none">
         <NavUser user={data.user} />
       </SidebarFooter>
     </Sidebar>
   )
+}
+
+const data = {
+  user: {
+    name: "shadcn",
+    email: "m@example.com",
+    avatar: "/avatars/shadcn.jpg",
+  },
+  projects: [
+    {
+      name: "Design Engineering",
+      url: "#",
+      icon: Frame,
+    },
+    {
+      name: "Sales & Marketing",
+      url: "#",
+      icon: PieChart,
+    },
+    {
+      name: "Travel",
+      url: "#",
+      icon: Map,
+    },
+  ],
 }
