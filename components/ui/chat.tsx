@@ -226,7 +226,7 @@ export function Chat({
             stop={handleStop}
             isGenerating={isGenerating}
             transcribeAudio={transcribeAudio}
-            className="bg-neutral-950 min-h-[80px]"
+            className="bg-neutral-950/80 min-h-[80px]"
           />
         )}
       </ChatForm>

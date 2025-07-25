@@ -63,7 +63,7 @@ export function NavCalendars({
   onEmailChange,
   onCalendarToggle,
 }: NavCalendarsProps) {
-  const { isMobile } = useSidebar()
+    const { isMobile } = useSidebar()
   const selectedAccount = emailAccounts.find(acc => acc.email === selectedEmail)
 
   return (
@@ -117,11 +117,12 @@ export function NavCalendars({
       <SidebarMenu>
         {calendars.map((calendar) => (
           <SidebarMenuItem key={calendar.id}>
-            <div className="flex items-center gap-2 w-full px-2 py-1.5 hover:bg-primary/10 hover:text-primary rounded-sm">
+            <div className="flex items-center gap-2 w-full px-2 py-1.5 hover:bg-transparent hover:text-primary rounded-sm cursor-pointer" onClick={() => onCalendarToggle(calendar.id)}>
               <Checkbox 
                 checked={calendar.isVisible}
                 onCheckedChange={() => onCalendarToggle(calendar.id)}
                 color={getColorClasses(calendar.color)}
+                className="cursor-pointer"
               />
               <span className="text-sm truncate flex-1">{calendar.name}</span>
             </div>

@@ -24,9 +24,11 @@ const getColorClasses = (color?: string) => {
 function Checkbox({
   className,
   color,
+  ref,
   ...props
 }: React.ComponentProps<typeof CheckboxPrimitive.Root> & {
   color?: string
+  ref?: React.RefObject<HTMLDivElement>
 }) {
   return (
     <CheckboxPrimitive.Root
@@ -36,6 +38,7 @@ function Checkbox({
         getColorClasses(color),
         className
       )}
+      ref={ref}
       {...props}
     >
       <CheckboxPrimitive.Indicator
