@@ -1,20 +1,17 @@
 'use client'
 
-import { SidebarTrigger } from "@/components/ui/sidebar"
 import { Button } from "@/components/ui/button"
 import { MessageSquare } from "lucide-react"
 import { useAtom } from "jotai"
 import { isChatSidebarOpenAtom } from "@/lib/atoms/chat-atom"
+import FullCalendar from "@/components/calendar/full-calendar"
 
 function CalendarPage() {
     const [isChatSidebarOpen, setIsChatSidebarOpen] = useAtom(isChatSidebarOpenAtom)
 
     return (
-        <div className="p-4">
-            <div className="flex items-center gap-2 mb-4">
-                <SidebarTrigger />
-            </div>
-            <h1>My calendar</h1>
+        <div className="p-0 h-full overflow-hidden">
+            <FullCalendar />
             
             {!isChatSidebarOpen && (
                 <Button

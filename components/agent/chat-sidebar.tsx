@@ -15,7 +15,7 @@ import { useAtom } from "jotai"
 import { isChatSidebarOpenAtom } from "@/lib/atoms/chat-atom"
 import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip"
 
-export function ChatSidebar({ className, onClose, ...props }: React.ComponentProps<"div"> & { onClose: () => void }) {
+export function ChatSidebar({ className, ...props }: React.ComponentProps<"div">) {
   const { messages, input, handleInputChange, handleSubmit, append, status, stop } = useChat()
   const isLoading = status === "submitted" || status === "streaming"
   const [, setIsChatSidebarOpen] = useAtom(isChatSidebarOpenAtom)

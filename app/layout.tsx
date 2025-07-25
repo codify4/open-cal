@@ -5,6 +5,7 @@ import { Geist } from "next/font/google";
 const geist = Geist({
   subsets: ["latin"],
   variable: "--font-geist",
+  display: "swap",
 });
 
 export const metadata: Metadata = {

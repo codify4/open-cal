@@ -197,6 +197,7 @@
 }
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
+  scrollbar-width: none;
 }
 
 @keyframes spotlight {

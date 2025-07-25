@@ -210,9 +210,7 @@ export function MessageInput({
               showFileList && "pb-16",
               className
             )}
-            {...(props.allowAttachments
-              ? omit(props, ["allowAttachments", "files", "setFiles"])
-              : omit(props, ["allowAttachments"]))}
+            {...omit(props as MessageInputWithAttachmentsProps, ["allowAttachments", "files", "setFiles"])}
           />
 
           {props.allowAttachments && (
