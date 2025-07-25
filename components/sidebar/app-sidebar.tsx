@@ -9,7 +9,7 @@ import {
 } from "lucide-react"
 
 import { CalendarPicker } from "@/components/sidebar/cal-day-picker"
-import { NavCalendars } from "@/components/sidebar/nav-projects"
+import { NavCalendars } from "@/components/sidebar/cal-accounts"
 import { NavUser } from "@/components/sidebar/nav-user"
 import {
   Sidebar,
