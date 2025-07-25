@@ -1,6 +1,6 @@
 "use client"
 
-import { Moon, Sun, User, CreditCard, Settings, Palette, LogOut } from "lucide-react"
+import { Moon, Sun, User, CreditCard, Settings, Palette, LogOut, EllipsisVertical } from "lucide-react"
 import { useTheme } from "next-themes"
 import { useState } from "react"
 
@@ -85,6 +85,7 @@ export function NavUser({
                 <span className="truncate font-medium">{user.name}</span>
                 <span className="truncate text-xs">{user.email}</span>
               </div>
+              <EllipsisVertical className="h-4 w-4" />
             </SidebarMenuButton>
           </DialogTrigger>
           <DialogContent className="w-[1000px] h-[600px] p-0 bg-neutral-950">
