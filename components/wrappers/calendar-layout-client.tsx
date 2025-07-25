@@ -6,9 +6,28 @@ import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable"
 import { useAtom } from "jotai"
 import { isChatSidebarOpenAtom } from "@/lib/atoms/chat-atom"
+import { useEffect } from "react"
 
 export function CalendarLayoutClient({ children }: { children: React.ReactNode }) {
     const [isChatSidebarOpen, setIsChatSidebarOpen] = useAtom(isChatSidebarOpenAtom)
+
+    const closeChatSidebar = () => {
+        setIsChatSidebarOpen(false);
+        localStorage.setItem('isChatSidebarOpen', 'false');
+    }
+
+    // Load localStorage value only on client side after hydration
+    useEffect(() => {
+        const storedChatSidebarState = localStorage.getItem('isChatSidebarOpen');
+        if (storedChatSidebarState !== null) {
+            setIsChatSidebarOpen(JSON.parse(storedChatSidebarState));
+        }
+    }, [setIsChatSidebarOpen]);
+
+    // Save state changes to localStorage
+    useEffect(() => {
+        localStorage.setItem('isChatSidebarOpen', JSON.stringify(isChatSidebarOpen));
+    }, [isChatSidebarOpen]);
 
     return (
         <SidebarProvider>
@@ -24,7 +43,7 @@ export function CalendarLayoutClient({ children }: { children: React.ReactNode }
                         <ResizableHandle withHandle className="opacity-0 hover:opacity-100 transition-opacity duration-300"/>
                         <ResizablePanel defaultSize={30} minSize={20} maxSize={50} className="bg-neutral-900 rounded-lg p-2">
                             <div className="bg-neutral-900 h-full rounded-xl shadow-sm overflow-hidden">
-                                <ChatSidebar />
+                                <ChatSidebar handleClose={closeChatSidebar} />
                             </div>
                         </ResizablePanel>
                     </>

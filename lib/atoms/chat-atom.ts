@@ -1,3 +1,3 @@
 import { atom } from 'jotai'
 
-export const isChatSidebarOpenAtom = atom(true) 
+export const isChatSidebarOpenAtom = atom(false) 

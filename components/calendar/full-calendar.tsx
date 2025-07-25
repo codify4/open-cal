@@ -2,7 +2,7 @@
 
 import type React from "react"
 import { useState, useRef, useEffect, useCallback } from "react"
-import { ChevronLeft, ChevronRight, Plus } from "lucide-react"
+import { ChevronLeft, ChevronRight, Plus, Sparkle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { SidebarTrigger } from "../ui/sidebar"
@@ -35,23 +35,25 @@ const ContextMenu: React.FC<ContextMenuProps> = ({ x, y, onClose, onCreateEvent,
   return (
     <div
       ref={menuRef}
-      className="fixed z-50 bg-neutral-900 border border-neutral-700 rounded-lg shadow-xl py-2 min-w-[160px]"
+      className="fixed z-50 bg-neutral-900 border border-neutral-700 rounded-lg shadow-xl p-2 min-w-[160px]"
       style={{ left: x, top: y }}
     >
-      <button
+      <Button
+        variant="ghost" 
         onClick={onCreateEvent}
-        className="w-full px-4 py-2 text-left text-neutral-100 hover:bg-neutral-800 flex items-center gap-3 transition-colors"
+        className="w-full px-4 py-2 text-left text-white hover:text-white hover:bg-neutral-800 flex items-center gap-3 transition-colors"
       >
-        <span className="w-6 h-6 bg-neutral-700 rounded flex items-center justify-center text-xs font-mono">C</span>
         Create Event
-      </button>
-      <button
+        <kbd>C</kbd>
+      </Button>
+      <Button
+        variant="ghost" 
         onClick={onAskAI}
-        className="w-full px-4 py-2 text-left text-neutral-100 hover:bg-neutral-800 flex items-center gap-3 transition-colors"
+        className="w-full px-4 py-2 text-left text-white hover:text-white hover:bg-neutral-800 flex items-center justify-start gap-3 transition-colors"
       >
-        <Plus className="w-4 h-4" />
+        <Sparkle className="w-4 h-4" />
         Ask AI
-      </button>
+      </Button>
     </div>
   )
 }
