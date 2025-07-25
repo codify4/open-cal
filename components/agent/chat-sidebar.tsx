@@ -11,10 +11,13 @@ import { Chat } from "../ui/chat"
 import { useChat } from "ai/react"
 import { Button } from "../ui/button"
 import { cn } from "@/lib/utils"
+import { useAtom } from "jotai"
+import { isChatSidebarOpenAtom } from "@/lib/atoms/chat-atom"
 
-export function ChatSidebar({ className, ...props }: React.ComponentProps<"div">) {
+export function ChatSidebar({ className, onClose, ...props }: React.ComponentProps<"div"> & { onClose: () => void }) {
   const { messages, input, handleInputChange, handleSubmit, append, status, stop } = useChat()
   const isLoading = status === "submitted" || status === "streaming"
+  const [, setIsChatSidebarOpen] = useAtom(isChatSidebarOpenAtom)
 
   return (
     <div className={cn("flex flex-col h-full text-white", className)} {...props}>
@@ -24,6 +27,7 @@ export function ChatSidebar({ className, ...props }: React.ComponentProps<"div">
             size="icon"
             variant="ghost"
             className="h-8 w-8 text-white hover:bg-neutral-800"
+            onClick={() => setIsChatSidebarOpen(false)}
           >
             <X className="h-4 w-4" />
           </Button>
