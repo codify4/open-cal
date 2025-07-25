@@ -6,6 +6,6 @@ function CalendarPage() {
             <SidebarTrigger />
             <h1>My calendar</h1>
         </div>
-    )
+    );
 }
 export default CalendarPage
