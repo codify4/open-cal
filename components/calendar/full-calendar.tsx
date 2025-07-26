@@ -10,7 +10,7 @@ import { SidebarTrigger } from "../ui/sidebar"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { Kbd } from "../ui/kbd"
 import { currentDateAtom, viewTypeAtom } from "@/lib/atoms/cal-atoms"
-import dynamic from "next/dynamic"
+import { isChatSidebarOpenAtom } from "@/lib/atoms/chat-atom"
 import AddEvent from "../event/add-event"
 import DayView from "./view-day"
 import WeekView from "./view-week"
@@ -69,14 +69,11 @@ const ContextMenu: React.FC<ContextMenuProps> = ({ x, y, onClose, onCreateEvent,
 export default function FullCalendar() {
   const [currentDate, setCurrentDate] = useAtom(currentDateAtom)
   const [viewType, setViewType] = useAtom(viewTypeAtom)
+  const [isChatSidebarOpen, setIsChatSidebarOpen] = useAtom(isChatSidebarOpenAtom)
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null)
-  const [cursorPosition, setCursorPosition] = useState<{ x: number; y: number } | null>(null)
+  const [isEventDialogOpen, setIsEventDialogOpen] = useState(false)
 
-  const gridRef = useRef<HTMLDivElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
-
-  // Generate hours array (24 hours)
-  const hours = Array.from({ length: 24 }, (_, i) => i)
 
   // Generate extended days for horizontal scrolling
   const getDaysToShow = useCallback(() => {
@@ -146,43 +143,9 @@ export default function FullCalendar() {
     }
   }, [viewType, currentDate, getDaysToShow])
 
-  const formatTime = (hour: number) => {
-    return `${hour.toString().padStart(2, "0")}:00`
-  }
-
-  const formatDate = (date: Date) => {
-    if (viewType === "day") {
-      return date.toLocaleDateString("en-US", {
-        weekday: "long",
-        month: "long",
-        day: "numeric",
-        year: "numeric",
-      })
-    }
-    return date.toLocaleDateString("en-US", {
-      weekday: "short",
-      month: "short",
-      day: "numeric",
-    })
-  }
-
   const handleContextMenu = (e: React.MouseEvent) => {
     e.preventDefault()
     setContextMenu({ x: e.clientX, y: e.clientY })
-  }
-
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (gridRef.current && viewType !== "month") {
-      const rect = gridRef.current.getBoundingClientRect()
-      setCursorPosition({
-        x: e.clientX - rect.left,
-        y: e.clientY - rect.top,
-      })
-    }
-  }
-
-  const handleMouseLeave = () => {
-    setCursorPosition(null)
   }
 
   const navigateDate = (direction: "prev" | "next") => {
@@ -225,14 +188,15 @@ export default function FullCalendar() {
     }
   }
 
-  // Calculate cell height to fit all hours in viewport
-  const cellHeight = viewType !== "month" ? "calc((100vh - 200px) / 20)" : "auto"
+  const handleCreateEvent = () => {
+    setIsEventDialogOpen(true)
+    setContextMenu(null)
+  }
 
-  // Get day column width based on view type
-  const getDayColumnWidth = () => {
-    if (viewType === "day") return "calc(100vw - 96px)" // Full width minus time column
-    if (viewType === "week") return "w-60" // Bigger for week view
-    return "w-48"
+  const handleAskAI = () => {
+    setIsChatSidebarOpen(true)
+    localStorage.setItem('isChatSidebarOpen', 'true')
+    setContextMenu(null)
   }
 
   return (
@@ -278,54 +242,46 @@ export default function FullCalendar() {
               <TabsTrigger value="week" className="capitalize w-18">Week</TabsTrigger>
               <TabsTrigger value="month" className="capitalize w-18">Month</TabsTrigger>
             </TabsList>
-            <AddEvent />
+            <AddEvent isOpen={isEventDialogOpen} onOpenChange={setIsEventDialogOpen} />
           </div>
         </div>
 
-        {/* Calendar Content */}
         <div className="flex-1 flex flex-col">
-        <TabsContent value="month" className="flex-1 h-full mt-0">
-          <MonthView
-            currentDate={currentDate}
-            setCurrentDate={setCurrentDate}
-            onContextMenu={handleContextMenu}
-          />
-        </TabsContent>
+          <TabsContent value="month" className="flex-1 h-full mt-0">
+            <MonthView
+              currentDate={currentDate}
+              setCurrentDate={setCurrentDate}
+              onContextMenu={handleContextMenu}
+            />
+          </TabsContent>
 
-        <TabsContent value="day" className="flex-1 h-full mt-0">
-          <DayView
-            currentDate={currentDate}
-            setCurrentDate={setCurrentDate}
-            onContextMenu={handleContextMenu}
-          />
-        </TabsContent>
+          <TabsContent value="day" className="flex-1 h-full mt-0">
+            <DayView
+              currentDate={currentDate}
+              setCurrentDate={setCurrentDate}
+              onContextMenu={handleContextMenu}
+            />
+          </TabsContent>
 
-        <TabsContent value="week" className="flex-1 h-full mt-0">
-          <WeekView
-            currentDate={currentDate}
-            setCurrentDate={setCurrentDate}
-            onContextMenu={handleContextMenu}
-          />
-        </TabsContent>
-      </div>
+          <TabsContent value="week" className="flex-1 h-full mt-0">
+            <WeekView
+              currentDate={currentDate}
+              setCurrentDate={setCurrentDate}
+              onContextMenu={handleContextMenu}
+            />
+          </TabsContent>
+        </div>
 
-      {/* Context Menu */}
-      {contextMenu && (
-        <ContextMenu
-          x={contextMenu.x}
-          y={contextMenu.y}
-          onClose={() => setContextMenu(null)}
-          onCreateEvent={() => {
-            console.log("Create Event clicked")
-            setContextMenu(null)
-          }}
-          onAskAI={() => {
-            console.log("Ask AI clicked")
-            setContextMenu(null)
-          }}
-        />
-      )}
-    </Card>
-  </Tabs>
+        {contextMenu && (
+          <ContextMenu
+            x={contextMenu.x}
+            y={contextMenu.y}
+            onClose={() => setContextMenu(null)}
+            onCreateEvent={handleCreateEvent}
+            onAskAI={handleAskAI}
+          />
+        )}
+      </Card>
+    </Tabs>
   )
 }
