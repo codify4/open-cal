@@ -5,7 +5,8 @@ import {
   X, 
   Maximize2,
   Plus,
-  MessageSquare
+  MessageSquare,
+  Minimize2
 } from "lucide-react"
 import { Chat } from "../ui/chat"
 import { useChat } from "ai/react"
@@ -13,12 +14,24 @@ import { Button } from "../ui/button"
 import { cn } from "@/lib/utils"
 import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip"
 
-export function ChatSidebar({ className, handleClose, ...props }: React.ComponentProps<"div"> & { handleClose: () => void }) {
+interface ChatSidebarProps {
+  isFullscreen: boolean
+  onToggleFullscreen: () => void
+}
+
+export function ChatSidebar({ className, isFullscreen, onToggleFullscreen, ...props }: React.ComponentProps<"div"> & ChatSidebarProps) {
   const { messages, input, handleInputChange, handleSubmit, append, status, stop } = useChat()
   const isLoading = status === "submitted" || status === "streaming"
 
   return (
-    <div className={cn("flex flex-col h-full text-white", className)} {...props}>
+    <div 
+      className={cn(
+        "flex flex-col h-full text-white",
+        isFullscreen ? "w-full max-w-4xl mx-auto" : "w-full",
+        className
+      )} 
+      {...props}
+    >
       <div className="flex items-center justify-between ">
         <div className="flex items-center justify-end w-full gap-3">
           <Tooltip>
@@ -27,7 +40,7 @@ export function ChatSidebar({ className, handleClose, ...props }: React.Componen
                 size="icon"
                 variant="ghost"
                 className="h-8 w-8 text-white hover:bg-neutral-800"
-                onClick={handleClose}
+                onClick={onToggleFullscreen}
               >
                 <X className="h-4 w-4" />
               </Button>
@@ -42,8 +55,9 @@ export function ChatSidebar({ className, handleClose, ...props }: React.Componen
                 size="icon"
                 variant="ghost"
                 className="h-8 w-8 text-white hover:bg-neutral-800"
+                onClick={onToggleFullscreen}
               >
-                <Maximize2 className="h-4 w-4" />
+                {isFullscreen ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
               </Button>
             </TooltipTrigger>
             <TooltipContent className="bg-neutral-950 text-white font-semibold">

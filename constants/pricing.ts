@@ -1,4 +1,12 @@
-export const plans = [
+export const plans: Array<{
+    name: string;
+    price: string;
+    period: string;
+    features: string[];
+    cta: string;
+    originalPrice?: string;
+    billingNote?: string;
+}> = [
     {
         name: "Free",
         price: "0",
@@ -20,6 +28,18 @@ export const plans = [
             "Unlimited AI messages",
             "Multiple accounts",
             "Priority support"
+        ],
+        cta: "Get started",
+    },
+    {
+        name: "Pro Yearly",
+        price: "10",
+        period: "/month",
+        features: [
+            "Everything in Free",
+            "Unlimited AI messages",
+            "Multiple accounts",
+            "Priority support",
         ],
         cta: "Get started",
     }

@@ -1,12 +1,33 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { plans } from "@/constants/pricing"
 import { Check, ArrowRight } from "lucide-react"
 import Link from "next/link"
 import { BorderBeam } from "../magicui/border-beam"
+import { useState } from "react"
 
 export function PricingSection() {
+  const [billingPeriod, setBillingPeriod] = useState<"monthly" | "yearly">("monthly")
+
+  const monthlyPlans = plans.filter(plan => plan.name !== "Pro Yearly")
+  const yearlyPlans = plans.filter(plan => plan.name !== "Pro").map(plan => {
+    if (plan.name === "Pro Yearly") {
+      return {
+        ...plan,
+        name: "Pro",
+        price: "10",
+        period: "/month",
+        originalPrice: "20",
+        billingNote: "billed yearly"
+      }
+    }
+    return plan
+  })
+
+  const currentPlans = billingPeriod === "monthly" ? monthlyPlans : yearlyPlans
+
   return (
     <section id="pricing" className="py-32 bg-black text-white relative overflow-hidden">
       <div className="container mx-auto px-6 lg:px-8 relative z-10">
@@ -19,8 +40,30 @@ export function PricingSection() {
           </p>
         </div>
 
+        <div className="flex justify-center mb-12">
+          <Tabs value={billingPeriod} onValueChange={(value) => setBillingPeriod(value as "monthly" | "yearly")} className="w-fit">
+            <TabsList className="bg-white/10 border border-white/20">
+              <TabsTrigger 
+                value="monthly" 
+                className="data-[state=active]:bg-white data-[state=active]:text-black text-white"
+              >
+                Monthly
+              </TabsTrigger>
+              <TabsTrigger 
+                value="yearly" 
+                className="data-[state=active]:bg-white data-[state=active]:text-black text-white"
+              >
+                Yearly
+                <span className="ml-2 px-2 py-0.5 text-xs bg-green-500 text-black rounded-full">
+                  Save 50%
+                </span>
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
+        </div>
+
         <div className="grid lg:grid-cols-2 gap-8 max-w-5xl mx-auto">
-          {plans.map((plan, index) => (
+          {currentPlans.map((plan, index) => (
             <div
               key={index}
               className={`relative group transition-all duration-500 hover:scale-[1.02]`}
@@ -32,10 +75,25 @@ export function PricingSection() {
                   <div className="mb-6">
                     <h3 className="text-2xl font-bold mb-2 text-white">{plan.name}</h3>
                     <div className="mb-4">
-                      <div className="flex items-center gap-2">
-                        <span className="text-5xl font-bold text-white">${plan.price}</span>
-                        <span className="text-white/60 ml-2 text-lg">{plan.period}</span>
-                      </div>
+                      {plan.originalPrice ? (
+                        <div className="space-y-2">
+                          <div className="flex items-baseline gap-2">
+                            <span className="text-5xl font-bold text-white">${plan.price}</span>
+                            <span className="text-white/60 text-xl">{plan.period}</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-white/40 line-through">${plan.originalPrice}/month</span>
+                            <span className="text-green-400 text-sm font-medium bg-green-400/10 px-2 py-1 rounded-full">
+                              {plan.billingNote}
+                            </span>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="flex items-baseline gap-2">
+                          <span className="text-5xl font-bold text-white">${plan.price}</span>
+                          <span className="text-white/60 text-xl">{plan.period}</span>
+                        </div>
+                      )}
                     </div>
                   </div>
 
