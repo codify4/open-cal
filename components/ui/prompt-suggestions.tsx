@@ -1,6 +1,5 @@
 import { ChevronRight } from "lucide-react";
 import { Button } from "./button";
-import ProgressiveBlur from "../magicui/progressive-blur";
 
 interface PromptSuggestionsProps {
   append: (message: { role: "user"; content: string }) => void
