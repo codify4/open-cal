@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { Geist } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next"
-
+import { Provider } from "jotai"
 
 const geist = Geist({
   subsets: ["latin"],
@@ -23,7 +23,9 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <body className={`${geist.variable} antialiased bg-background text-foreground`}>
-        {children}
+        <Provider>
+          {children}
+        </Provider>
         <Analytics />
       </body>
     </html>

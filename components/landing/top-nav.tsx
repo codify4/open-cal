@@ -39,7 +39,7 @@ export default function TopNav({ className }: { className?: string }) {
       <div className="container mx-auto px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           <div className="flex flex-row items-center justify-center gap-1">
-            <span className="text-2xl font-bold">Digit</span>
+            <span className="text-2xl font-bold">OpenCal</span>
           </div>
 
           <div className="hidden md:flex items-center space-x-8">

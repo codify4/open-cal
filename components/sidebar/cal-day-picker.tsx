@@ -1,15 +1,24 @@
 "use client"
 
+import { useAtom } from "jotai"
 import {
   SidebarGroup,
   SidebarGroupLabel,
   SidebarMenu
 } from "@/components/ui/sidebar"
 import { Calendar } from "../ui/calendar"
-import { useState } from "react"
+import { selectedDateAtom, updateCurrentDateAtom } from "@/lib/atoms/cal-atoms"
 
 export function CalendarPicker() {
-  const [date, setDate] = useState<Date | undefined>(undefined)
+  const [selectedDate, setSelectedDate] = useAtom(selectedDateAtom)
+  const [, updateCurrentDate] = useAtom(updateCurrentDateAtom)
+  
+  const handleDateSelect = (date: Date | undefined) => {
+    if (date) {
+      setSelectedDate(date)
+      updateCurrentDate(date)
+    }
+  }
   
   return (
     <SidebarGroup>
@@ -17,8 +26,8 @@ export function CalendarPicker() {
       <SidebarMenu>
       <Calendar
         mode="single"
-        selected={date}
-        onSelect={setDate}
+        selected={selectedDate}
+        onSelect={handleDateSelect}
         className="rounded-md bg-neutral-950"
       />
       </SidebarMenu>

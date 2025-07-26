@@ -19,7 +19,7 @@ export function PromptSuggestions({
       
       <div className="flex flex-col items-center gap-2">
         <h1 className="text-xl font-bold text-white">
-          Digit Calendar Agent
+          OpenCal Agent
         </h1>
         <p className="text-neutral-400 text-sm">
           Ask anything about your calendar

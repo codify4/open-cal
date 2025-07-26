@@ -2,12 +2,14 @@
 
 import type React from "react"
 import { useState, useRef, useEffect, useCallback } from "react"
-import { ChevronLeft, ChevronRight, Plus, Sparkle } from "lucide-react"
+import { useAtom } from "jotai"
+import { ChevronLeft, ChevronRight, Sparkle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { SidebarTrigger } from "../ui/sidebar"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { Kbd } from "../ui/kbd"
+import { currentDateAtom, viewTypeAtom } from "@/lib/atoms/cal-atoms"
 
 type ViewType = "day" | "week" | "month"
 
@@ -60,8 +62,8 @@ const ContextMenu: React.FC<ContextMenuProps> = ({ x, y, onClose, onCreateEvent,
 }
 
 export default function FullCalendar() {
-  const [currentDate, setCurrentDate] = useState(new Date())
-  const [viewType, setViewType] = useState<ViewType>("week")
+  const [currentDate, setCurrentDate] = useAtom(currentDateAtom)
+  const [viewType, setViewType] = useAtom(viewTypeAtom)
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null)
   const [cursorPosition, setCursorPosition] = useState<{ x: number; y: number } | null>(null)
 
@@ -84,10 +86,9 @@ export default function FullCalendar() {
         days.push(day)
       }
     } else if (viewType === "week") {
-      // Show 7 weeks (3 before, current, 3 after) but center on today
-      const today = new Date()
+      // Show 7 weeks (3 before, current, 3 after) but center on selected date
       for (let weekOffset = -3; weekOffset <= 3; weekOffset++) {
-        const weekStart = new Date(today)
+        const weekStart = new Date(baseDate)
         const dayOfWeek = weekStart.getDay()
         const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek
         weekStart.setDate(weekStart.getDate() + mondayOffset + weekOffset * 7)
@@ -110,24 +111,30 @@ export default function FullCalendar() {
         const container = containerRef.current
         container.scrollLeft = 0
       } else if (viewType === "day") {
-        // Center on current day (day 10 out of 21 days, so index 10)
+        // Center on selected date in day view
         const container = containerRef.current
-        const dayWidth = container.scrollWidth / 21 // 21 total days
-        const centerPosition = dayWidth * 10 // Center on the 11th day (index 10)
-        container.scrollLeft = centerPosition
+        const days = getDaysToShow()
+        
+        // Find the selected date's index in the days array
+        const selectedIndex = days.findIndex((day) => day.toDateString() === currentDate.toDateString())
+        
+        if (selectedIndex !== -1) {
+          const dayWidth = container.scrollWidth / 21 // 21 total days
+          const centerPosition = dayWidth * selectedIndex
+          container.scrollLeft = centerPosition
+        }
       } else if (viewType === "week") {
-        // Center on today's position in the week view
+        // Center on selected date in week view
         const container = containerRef.current
-        const today = new Date()
         const days = getDaysToShow()
 
-        // Find today's index in the days array
-        const todayIndex = days.findIndex((day) => day.toDateString() === today.toDateString())
+        // Find the selected date's index in the days array
+        const selectedIndex = days.findIndex((day) => day.toDateString() === currentDate.toDateString())
 
-        if (todayIndex !== -1) {
+        if (selectedIndex !== -1) {
           const dayWidth = 240 // w-60 = 240px
           const timeColumnWidth = 96 // w-24 = 96px
-          const scrollPosition = todayIndex * dayWidth - container.clientWidth / 2 + dayWidth / 2 + timeColumnWidth
+          const scrollPosition = selectedIndex * dayWidth - container.clientWidth / 2 + dayWidth / 2 + timeColumnWidth
           container.scrollLeft = Math.max(0, scrollPosition)
         }
       }
@@ -196,8 +203,7 @@ export default function FullCalendar() {
         day: "numeric",
       })
     } else if (viewType === "week") {
-      const today = new Date()
-      const startOfWeek = new Date(today)
+      const startOfWeek = new Date(currentDate)
       const dayOfWeek = startOfWeek.getDay()
       const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek
       startOfWeek.setDate(startOfWeek.getDate() + mondayOffset)
@@ -255,7 +261,10 @@ export default function FullCalendar() {
             <Button 
               variant="outline" 
               className="bg-muted rounded-sm w-20 h-8 text-sm"
-              onClick={() => setCurrentDate(new Date())}
+              onClick={() => {
+                const today = new Date()
+                setCurrentDate(today)
+              }}
             >
               Today
             </Button>
