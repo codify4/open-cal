@@ -38,8 +38,9 @@ const DayView: React.FC<DayViewProps> = ({ currentDate, setCurrentDate, onContex
       
       if (selectedIndex !== -1) {
         const dayWidth = container.scrollWidth / 730 // 730 total days
-        const centerPosition = dayWidth * selectedIndex
-        container.scrollLeft = centerPosition
+        const containerWidth = container.clientWidth
+        const centerPosition = (dayWidth * selectedIndex) - (containerWidth / 2)
+        container.scrollLeft = Math.max(0, centerPosition)
       }
     }
   }, [currentDate, getDaysToShow])
@@ -118,4 +119,4 @@ const DayView: React.FC<DayViewProps> = ({ currentDate, setCurrentDate, onContex
   )
 }
 
-export default DayView; 
+export default DayView;

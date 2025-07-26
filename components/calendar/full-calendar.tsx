@@ -11,7 +11,6 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { Kbd } from "../ui/kbd"
 import { currentDateAtom, viewTypeAtom } from "@/lib/atoms/cal-atoms"
 import dynamic from "next/dynamic"
-import { startTransition } from "react"
 import AddEvent from "../event/add-event"
 
 type ViewType = "day" | "week" | "month"
@@ -188,19 +187,17 @@ export default function FullCalendar() {
   }
 
   const navigateDate = (direction: "prev" | "next") => {
-    startTransition(() => {
-      const newDate = new Date(currentDate)
+    const newDate = new Date(currentDate)
 
-      if (viewType === "day") {
-        newDate.setDate(newDate.getDate() + (direction === "next" ? 1 : -1))
-      } else if (viewType === "week") {
-        newDate.setDate(newDate.getDate() + (direction === "next" ? 7 : -7))
-      } else if (viewType === "month") {
-        newDate.setMonth(newDate.getMonth() + (direction === "next" ? 1 : -1))
-      }
+    if (viewType === "day") {
+      newDate.setDate(newDate.getDate() + (direction === "next" ? 1 : -1))
+    } else if (viewType === "week") {
+      newDate.setDate(newDate.getDate() + (direction === "next" ? 7 : -7))
+    } else if (viewType === "month") {
+      newDate.setMonth(newDate.getMonth() + (direction === "next" ? 1 : -1))
+    }
 
-      setCurrentDate(newDate)
-    })
+    setCurrentDate(newDate)
   }
 
   const getViewTitle = () => {
@@ -241,7 +238,7 @@ export default function FullCalendar() {
 
   return (
     <Tabs value={viewType} onValueChange={(value) => setViewType(value as ViewType)} className="w-full h-full">
-      <Card className="w-full h-full bg-neutral-900 border-neutral-800 text-neutral-100 flex flex-col py-0 gap-0">
+      <Card className="w-full h-full bg-neutral-900 border-neutral-800 text-neutral-100 flex flex-col py-0 gap-0 rounded-xl">
         <div className="flex items-center justify-between px-4 py-1.5 border-b border-neutral-800">
           <div className="flex items-center gap-4">
             <SidebarTrigger />
