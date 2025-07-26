@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Github, Menu } from "lucide-react"
 import Link from "next/link"
+import Image from "next/image"
 
 export default function TopNav({ className }: { className?: string }) {
   const [isScrolled, setIsScrolled] = useState(false)
@@ -39,7 +40,8 @@ export default function TopNav({ className }: { className?: string }) {
       <div className="container mx-auto px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           <div className="flex flex-row items-center justify-center gap-1">
-            <span className="text-2xl font-bold">OpenCal</span>
+            <Image src="/open-cal.svg" alt="OpenCal" width={40} height={24} />
+            <span className="text-xl font-bold">OpenCal</span>
           </div>
 
           <div className="hidden md:flex items-center space-x-8">

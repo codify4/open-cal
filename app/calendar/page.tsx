@@ -5,6 +5,7 @@ import { MessageSquare } from "lucide-react"
 import { useAtom } from "jotai"
 import { isChatSidebarOpenAtom } from "@/lib/atoms/chat-atom"
 import FullCalendar from "@/components/calendar/full-calendar"
+import Image from "next/image"
 
 function CalendarPage() {
     const [isChatSidebarOpen, setIsChatSidebarOpen] = useAtom(isChatSidebarOpenAtom)
@@ -25,7 +26,7 @@ function CalendarPage() {
                     className="fixed bottom-4 right-4 z-50 rounded-full w-12 h-12 shadow-lg bg-neutral-800 hover:bg-neutral-700 text-white"
                     size="icon"
                 >
-                    <MessageSquare className="h-5 w-5" />
+                    <Image src="/open-cal.svg" alt="OpenCal" fill className="object-contain rounded-full" />
                 </Button>
             )}
         </div>

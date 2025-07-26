@@ -1,4 +1,5 @@
 import { Button } from "./button";
+import Image from "next/image";
 
 interface PromptSuggestionsProps {
   append: (message: { role: "user"; content: string }) => void
@@ -11,11 +12,7 @@ export function PromptSuggestions({
 }: PromptSuggestionsProps) {
   return (
     <div className="flex flex-col items-center justify-center gap-6 max-w-md">
-      <div className="flex justify-center">
-        <div className="w-16 h-16 bg-white rounded-lg flex items-center justify-center">
-          <div className="w-8 h-8 bg-black rounded-sm"></div>
-        </div>
-      </div>
+      <Image src="/open-cal.svg" alt="OpenCal" width={80} height={80} className="rounded-full" />
       
       <div className="flex flex-col items-center gap-2">
         <h1 className="text-xl font-bold text-white">
