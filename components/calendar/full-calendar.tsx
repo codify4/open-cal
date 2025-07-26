@@ -3,13 +3,15 @@
 import type React from "react"
 import { useState, useRef, useEffect, useCallback } from "react"
 import { useAtom } from "jotai"
-import { ChevronLeft, ChevronRight, Sparkle } from "lucide-react"
+import { ChevronLeft, ChevronRight, Plus, Sparkle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { SidebarTrigger } from "../ui/sidebar"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { Kbd } from "../ui/kbd"
 import { currentDateAtom, viewTypeAtom } from "@/lib/atoms/cal-atoms"
+import dynamic from "next/dynamic"
+import { startTransition } from "react"
 
 type ViewType = "day" | "week" | "month"
 
@@ -60,6 +62,10 @@ const ContextMenu: React.FC<ContextMenuProps> = ({ x, y, onClose, onCreateEvent,
     </div>
   )
 }
+
+const DayView = dynamic(() => import("@/components/calendar/view-day"), { ssr: false })
+const WeekView = dynamic(() => import("@/components/calendar/view-week"), { ssr: false })
+const MonthView = dynamic(() => import("@/components/calendar/view-month"), { ssr: false })
 
 export default function FullCalendar() {
   const [currentDate, setCurrentDate] = useAtom(currentDateAtom)
@@ -181,17 +187,19 @@ export default function FullCalendar() {
   }
 
   const navigateDate = (direction: "prev" | "next") => {
-    const newDate = new Date(currentDate)
+    startTransition(() => {
+      const newDate = new Date(currentDate)
 
-    if (viewType === "day") {
-      newDate.setDate(newDate.getDate() + (direction === "next" ? 1 : -1))
-    } else if (viewType === "week") {
-      newDate.setDate(newDate.getDate() + (direction === "next" ? 7 : -7))
-    } else if (viewType === "month") {
-      newDate.setMonth(newDate.getMonth() + (direction === "next" ? 1 : -1))
-    }
+      if (viewType === "day") {
+        newDate.setDate(newDate.getDate() + (direction === "next" ? 1 : -1))
+      } else if (viewType === "week") {
+        newDate.setDate(newDate.getDate() + (direction === "next" ? 7 : -7))
+      } else if (viewType === "month") {
+        newDate.setMonth(newDate.getMonth() + (direction === "next" ? 1 : -1))
+      }
 
-    setCurrentDate(newDate)
+      setCurrentDate(newDate)
+    })
   }
 
   const getViewTitle = () => {
@@ -273,215 +281,44 @@ export default function FullCalendar() {
               <TabsTrigger value="week" className="capitalize w-18">Week</TabsTrigger>
               <TabsTrigger value="month" className="capitalize w-18">Month</TabsTrigger>
             </TabsList>
+            <Button 
+              variant="default" 
+              className="rounded-sm w-32 h-8 text-sm"
+              onClick={() => {
+                const today = new Date()
+                setCurrentDate(today)
+              }}
+            >
+              <Plus className="w-4 h-4" />
+              New Event
+            </Button>
           </div>
         </div>
 
         {/* Calendar Content */}
         <div className="flex-1 flex flex-col">
         <TabsContent value="month" className="flex-1 h-full mt-0">
-          <div className="flex-1 h-full overflow-x-auto overflow-y-hidden scrollbar-hide">
-            <div className="flex min-w-max">
-              {Array.from({ length: 12 }, (_, monthIndex) => {
-                const currentMonth = new Date().getMonth()
-                const monthDate = new Date(currentDate.getFullYear(), (currentMonth + monthIndex) % 12, 1)
-                return (
-                  <div
-                    key={monthIndex}
-                    className="w-1/3 flex-shrink-0 border-r border-neutral-800 last:border-r-0"
-                    onContextMenu={handleContextMenu}
-                  >
-                    <div className="p-1 border-b border-neutral-800 text-center font-medium">
-                      {monthDate.toLocaleDateString("en-US", { year: "numeric", month: "long" })}
-                    </div>
-                    <div className="grid grid-cols-7 gap-px bg-neutral-800 p-px">
-                      {/* Day headers */}
-                      {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((day) => (
-                        <div
-                          key={day}
-                          className="bg-neutral-900 p-1 text-sm font-medium text-center text-neutral-400 border-b border-neutral-800"
-                        >
-                          {day}
-                        </div>
-                      ))}
-                      {/* Month days */}
-                      {Array.from({ length: 35 }, (_, index) => {
-                        const firstDay = new Date(monthDate.getFullYear(), monthDate.getMonth(), 1)
-                        const startDate = new Date(firstDay)
-                        const dayOfWeek = firstDay.getDay()
-                        const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek
-                        startDate.setDate(firstDay.getDate() + mondayOffset + index - 1)
-
-                        const isCurrentMonth = startDate.getMonth() === monthDate.getMonth()
-                        const isToday = startDate.toDateString() === new Date().toDateString()
-
-                      return (
-                        <div
-                          key={index}
-                          className={`bg-neutral-900 min-h-[120px] p-3 hover:bg-neutral-900/50 transition-colors cursor-pointer ${
-                            !isCurrentMonth ? "text-neutral-600" : ""
-                          } ${isToday ? "bg-neutral-900 border border-red-400" : ""}`}
-                          onContextMenu={handleContextMenu}
-                        >
-                          <div className={`text-sm font-medium mb-2 ${isToday ? "text-red-400" : ""}`}>
-                            {startDate.getDate()}
-                          </div>
-                        </div>
-                      )
-                      })}
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-          </div>
+          <MonthView
+            currentDate={currentDate}
+            setCurrentDate={setCurrentDate}
+            onContextMenu={handleContextMenu}
+          />
         </TabsContent>
 
         <TabsContent value="day" className="flex-1 h-full mt-0">
-          <div className="flex-1 h-full flex flex-col overflow-hidden">
-            {/* Horizontal Scrollable Container */}
-            <div
-              ref={containerRef}
-              className="flex-1 overflow-x-auto overflow-y-hidden scrollbar-hide"
-              style={{
-                scrollSnapType: "x mandatory",
-              }}
-            >
-              <div
-                ref={gridRef}
-                className="relative h-full min-w-max"
-                onContextMenu={handleContextMenu}
-                onMouseMove={handleMouseMove}
-                onMouseLeave={handleMouseLeave}
-              >
-                {/* Cursor Line */}
-                {cursorPosition && (
-                  <div
-                    className="absolute w-full h-px bg-red-400 pointer-events-none z-10"
-                    style={{ top: cursorPosition.y }}
-                  />
-                )}
-
-                {/* Grid Header */}
-                <div className="flex sticky top-0 bg-neutral-900 border-b border-neutral-800 z-20">
-                  <div className="w-16 p-2 border-r border-neutral-800 text-sm font-medium flex-shrink-0 sticky left-0 z-30 bg-neutral-900">
-                    Time
-                  </div>
-                  {getDaysToShow().map((day, index) => {
-                    const isToday = day.toDateString() === new Date().toDateString()
-                    return (
-                      <div
-                        key={index}
-                        className="flex-shrink-0 p-2 text-sm font-medium text-center"
-                        style={{
-                          width: "calc(100vw - 96px)",
-                          scrollSnapAlign: "start",
-                        }}
-                      >
-                        {formatDate(day)}
-                      </div>
-                    )
-                  })}
-                </div>
-
-                {/* Time Grid */}
-                <div className="flex flex-col h-full">
-                  {hours.map((hour) => (
-                    <div key={hour} className="flex border-b bg-neutral-900 border-neutral-800" style={{ height: cellHeight }}>
-                      <div className="w-16 p-1 text-center border-r border-neutral-800 text-sm text-neutral-400 flex items-center justify-end flex-shrink-0 sticky left-0 z-30 bg-neutral-900">
-                        {formatTime(hour)}
-                      </div>
-                      {getDaysToShow().map((day, dayIndex) => {
-                        const isToday = day.toDateString() === new Date().toDateString()
-                        return (
-                          <div
-                            key={`${hour}-${dayIndex}`}
-                            className="flex-shrink-0 border-r border-neutral-800 hover:bg-neutral-900/50 transition-colors cursor-pointer"
-                            style={{
-                              width: "calc(100vw - 96px)",
-                              scrollSnapAlign: "start",
-                            }}
-                            onContextMenu={handleContextMenu}
-                          />
-                        )
-                      })}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
+          <DayView
+            currentDate={currentDate}
+            setCurrentDate={setCurrentDate}
+            onContextMenu={handleContextMenu}
+          />
         </TabsContent>
 
         <TabsContent value="week" className="flex-1 h-full mt-0">
-          <div className="flex-1 h-full flex flex-col overflow-hidden">
-            {/* Horizontal Scrollable Container */}
-            <div
-              ref={containerRef}
-              className="flex-1 overflow-x-auto overflow-y-hidden scrollbar-hide"
-              style={{
-                scrollSnapType: "none",
-              }}
-            >
-              <div
-                ref={gridRef}
-                className="relative h-full min-w-max"
-                onContextMenu={handleContextMenu}
-                onMouseMove={handleMouseMove}
-                onMouseLeave={handleMouseLeave}
-              >
-                {/* Cursor Line */}
-                {cursorPosition && (
-                  <div
-                    className="absolute w-full h-px bg-red-400 pointer-events-none z-10"
-                    style={{ top: cursorPosition.y }}
-                  />
-                )}
-
-                {/* Grid Header */}
-                <div className="flex sticky top-0 bg-neutral-900 border-b border-neutral-800 z-20">
-                  <div className="w-16 p-2 border-r border-neutral-800 text-sm font-medium flex-shrink-0 sticky left-0 z-30 bg-neutral-900">
-                    Time
-                  </div>
-                  {getDaysToShow().map((day, index) => {
-                    const isToday = day.toDateString() === new Date().toDateString()
-                    return (
-                      <div
-                        key={index}
-                        className={`w-60 p-2 text-sm font-medium text-center flex-shrink-0 ${
-                          isToday ? "bg-neutral-900 text-amber-400" : ""
-                        }`}
-                      >
-                        {formatDate(day)}
-                      </div>
-                    )
-                  })}
-                </div>
-
-                {/* Time Grid */}
-                <div className="flex flex-col h-full">
-                  {hours.map((hour) => (
-                    <div key={hour} className="flex border-b border-neutral-800" style={{ height: cellHeight }}>
-                      <div className="w-16 p-1 text-center border-r border-neutral-800 text-sm text-neutral-400 flex items-center justify-end flex-shrink-0 sticky left-0 z-30 bg-neutral-900">
-                        {formatTime(hour)}
-                      </div>
-                      {getDaysToShow().map((day, dayIndex) => {
-                        const isToday = day.toDateString() === new Date().toDateString()
-                        return (
-                          <div
-                            key={`${hour}-${dayIndex}`}
-                            className={`w-60 border-r border-neutral-800 hover:bg-neutral-900/50 transition-colors cursor-pointer flex-shrink-0 ${
-                              isToday ? "bg-neutral-900/20" : ""
-                            }`}
-                            onContextMenu={handleContextMenu}
-                          />
-                        )
-                      })}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
+          <WeekView
+            currentDate={currentDate}
+            setCurrentDate={setCurrentDate}
+            onContextMenu={handleContextMenu}
+          />
         </TabsContent>
       </div>
 
