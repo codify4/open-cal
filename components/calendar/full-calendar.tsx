@@ -12,6 +12,9 @@ import { Kbd } from "../ui/kbd"
 import { currentDateAtom, viewTypeAtom } from "@/lib/atoms/cal-atoms"
 import dynamic from "next/dynamic"
 import AddEvent from "../event/add-event"
+import DayView from "./view-day"
+import WeekView from "./view-week"
+import MonthView from "./view-month"
 
 type ViewType = "day" | "week" | "month"
 
@@ -62,10 +65,6 @@ const ContextMenu: React.FC<ContextMenuProps> = ({ x, y, onClose, onCreateEvent,
     </div>
   )
 }
-
-const DayView = dynamic(() => import("@/components/calendar/view-day"), { ssr: false })
-const WeekView = dynamic(() => import("@/components/calendar/view-week"), { ssr: false })
-const MonthView = dynamic(() => import("@/components/calendar/view-month"), { ssr: false })
 
 export default function FullCalendar() {
   const [currentDate, setCurrentDate] = useAtom(currentDateAtom)

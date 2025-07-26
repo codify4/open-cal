@@ -1,6 +1,6 @@
 "use client"
 
-import { Moon, Sun, User, CreditCard, Settings, Palette, LogOut, EllipsisVertical } from "lucide-react"
+import { Moon, Sun, User, CreditCard, Settings, Palette, LogOut, EllipsisVertical, Zap, Plus, ExternalLink, Trash2 } from "lucide-react"
 import { useTheme } from "next-themes"
 import { useState } from "react"
 
@@ -21,6 +21,7 @@ import { Switch } from "../ui/switch"
 import { Label } from "../ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card"
 import { Badge } from "../ui/badge"
+import Image from "next/image"
 
 const SETTINGS_SECTIONS = [
   {
@@ -28,6 +29,12 @@ const SETTINGS_SECTIONS = [
     title: "Profile",
     description: "Manage your account",
     icon: User,
+  },
+  {
+    id: "integrations",
+    title: "Integrations",
+    description: "Manage your integrations",
+    icon: Zap,
   },
   {
     id: "appearance",
@@ -59,6 +66,8 @@ export function NavUser({
     switch (activeSection) {
       case "profile":
         return <ProfileSection user={user} />
+      case "integrations":
+        return <IntegrationsSection />
       case "appearance":
         return <AppearanceSection />
       case "billing":
@@ -322,6 +331,160 @@ function BillingSection() {
             <Button variant="outline" className="w-full justify-start">
               <Settings className="h-4 w-4 mr-2" />
               Cancel Subscription
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  )
+}
+
+function IntegrationsSection() {
+  const [connectedAccounts, setConnectedAccounts] = useState([
+    {
+      id: "1",
+      name: "john.doe@gmail.com",
+      type: "google",
+      status: "connected",
+      lastSync: "2 minutes ago",
+      calendarCount: 3
+    },
+    {
+      id: "2", 
+      name: "work@company.com",
+      type: "google",
+      status: "connected",
+      lastSync: "1 hour ago",
+      calendarCount: 5
+    }
+  ])
+
+  const [meetAccounts, setMeetAccounts] = useState([
+    {
+      id: "1",
+      name: "john.doe@gmail.com",
+      type: "google-meet",
+      status: "connected",
+      lastSync: "5 minutes ago",
+      meetingCount: 2
+    }
+  ])
+
+  const handleDisconnect = (accountId: string, type: string) => {
+    if (type === "google") {
+      setConnectedAccounts(prev => prev.filter(account => account.id !== accountId))
+    } else if (type === "google-meet") {
+      setMeetAccounts(prev => prev.filter(account => account.id !== accountId))
+    }
+  }
+
+  const handleConnectNew = (type: string) => {
+    // In a real app, this would open OAuth flow
+    console.log(`Connecting new ${type} account...`)
+  }
+
+  return (
+    <div className="space-y-6 max-h-[560px] overflow-y-auto scrollbar-hide scroll-smooth pr-2">
+      <div>
+        <h3 className="text-xl font-semibold mb-2 text-white">Integrations</h3>
+        <p className="text-neutral-400">Connect your accounts and services to enhance your experience.</p>
+      </div>
+
+      <div className="space-y-6">
+        <Card className="bg-neutral-900 border-neutral-800">
+          <CardHeader>
+            <CardTitle className="text-white">Google Calendar</CardTitle>
+            <CardDescription className="text-neutral-400">
+              Connect your Google Calendar accounts to sync events and manage your schedule
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {connectedAccounts.length > 0 && (
+              <div className="space-y-3">
+                {connectedAccounts.map((account) => (
+                  <div key={account.id} className="flex items-center justify-between p-3 bg-neutral-800 rounded-lg">
+                    <div className="flex items-center space-x-3">
+                      <Image src="/g-cal.svg" alt="Google Calendar" width={30} height={30} />
+                      <div>
+                        <h4 className="font-semibold text-white">{account.name}</h4>
+                        <div className="flex items-center space-x-4 text-sm text-neutral-400">
+                          <span>Last sync: {account.lastSync}</span>
+                          <span>•</span>
+                          <span>{account.calendarCount} calendars</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-red-400 hover:text-red-300"
+                        onClick={() => handleDisconnect(account.id, "google")}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <Button 
+              onClick={() => handleConnectNew("google")}
+              variant="outline" 
+              className="w-full justify-start border-dashed border-neutral-600 hover:border-neutral-500"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Connect Another Google Calendar Account
+            </Button>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-neutral-900 border-neutral-800">
+          <CardHeader>
+            <CardTitle className="text-white">Google Meet</CardTitle>
+            <CardDescription className="text-neutral-400">
+              Connect your Google Meet accounts to join meetings directly from your calendar
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {meetAccounts.length > 0 && (
+              <div className="space-y-3">
+                {meetAccounts.map((account) => (
+                  <div key={account.id} className="flex items-center justify-between p-3 bg-neutral-800 rounded-lg">
+                    <div className="flex items-center space-x-3">
+                      <Image src="/g-meet.svg" alt="Google Meet" width={20} height={20} />
+                      <div>
+                        <h4 className="font-semibold text-white">{account.name}</h4>
+                        <div className="flex items-center space-x-4 text-sm text-neutral-400">
+                          <span>Last sync: {account.lastSync}</span>
+                          <span>•</span>
+                          <span>{account.meetingCount} meetings today</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-red-400 hover:text-red-300"
+                        onClick={() => handleDisconnect(account.id, "google-meet")}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <Button 
+              onClick={() => handleConnectNew("google-meet")}
+              variant="outline" 
+              className="w-full justify-start border-dashed border-neutral-600 hover:border-neutral-500"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Connect Another Google Meet Account
             </Button>
           </CardContent>
         </Card>

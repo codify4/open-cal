@@ -56,7 +56,7 @@ const MonthView: React.FC<MonthViewProps> = ({ currentDate, setCurrentDate, onCo
             </div>
             <div className="grid grid-cols-7 gap-px bg-neutral-800 p-px">
               {/* Day headers */}
-              {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((day) => (
+              {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
                 <div key={day} className="bg-neutral-900 p-1 text-sm font-medium text-center text-neutral-400 border-b border-neutral-800">
                   {day}
                 </div>
