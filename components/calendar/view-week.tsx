@@ -80,7 +80,7 @@ const WeekView: React.FC<WeekViewProps> = ({ currentDate, setCurrentDate, onCont
         >
           {/* Grid Header */}
           <div className="flex sticky top-0 bg-neutral-900 border-b border-neutral-800 z-20">
-            <div className="w-16 p-2 border-r border-neutral-800 text-sm font-medium flex-shrink-0 sticky left-0 z-30 bg-neutral-900">
+            <div className="w-12 sm:w-16 p-1 sm:p-2 border-r border-neutral-800 text-xs sm:text-sm font-medium flex-shrink-0 sticky left-0 z-30 bg-neutral-900">
               Time
             </div>
             {getDaysToShow().map((day, index) => {
@@ -88,11 +88,17 @@ const WeekView: React.FC<WeekViewProps> = ({ currentDate, setCurrentDate, onCont
               return (
                 <div
                   key={index}
-                  className={`w-60 p-2 text-sm font-medium text-center flex-shrink-0 ${
+                  className={`w-40 sm:w-60 p-1 sm:p-2 text-xs sm:text-sm font-medium text-center flex-shrink-0 ${
                     isToday ? "bg-neutral-900 text-amber-400" : ""
                   }`}
                 >
-                  {formatDate(day)}
+                  <div className="hidden sm:block">{formatDate(day)}</div>
+                  <div className="sm:hidden">
+                    {day.toLocaleDateString("en-US", {
+                      weekday: "short",
+                      day: "numeric",
+                    })}
+                  </div>
                 </div>
               )
             })}
@@ -102,7 +108,7 @@ const WeekView: React.FC<WeekViewProps> = ({ currentDate, setCurrentDate, onCont
           <div className="flex flex-col h-full">
             {hours.map((hour) => (
               <div key={hour} className="flex border-b border-neutral-800" style={{ height: "calc((100vh - 200px) / 20)" }}>
-                <div className="w-16 p-1 text-center border-r border-neutral-800 text-sm text-neutral-400 flex items-center justify-end flex-shrink-0 sticky left-0 z-30 bg-neutral-900">
+                <div className="w-12 sm:w-16 p-1 text-center border-r border-neutral-800 text-xs sm:text-sm text-neutral-400 flex items-center justify-end flex-shrink-0 sticky left-0 z-30 bg-neutral-900">
                   {formatTime(hour)}
                 </div>
                 {getDaysToShow().map((day, dayIndex) => {
@@ -110,7 +116,7 @@ const WeekView: React.FC<WeekViewProps> = ({ currentDate, setCurrentDate, onCont
                   return (
                     <div
                       key={`${hour}-${dayIndex}`}
-                      className={`w-60 border-r border-neutral-800 hover:bg-neutral-900/50 transition-colors cursor-pointer flex-shrink-0 ${
+                      className={`w-40 sm:w-60 border-r border-neutral-800 hover:bg-neutral-900/50 transition-colors cursor-pointer flex-shrink-0 ${
                         isToday ? "bg-neutral-900/20" : ""
                       }`}
                       onContextMenu={onContextMenu}

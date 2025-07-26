@@ -37,8 +37,8 @@ export function CalendarLayoutClient({ children }: { children: React.ReactNode }
     return (
         <SidebarProvider>
             <AppSidebar className="bg-neutral-950 border-none" variant="inset" />
-            <ResizablePanelGroup direction="horizontal" className="min-h-screen p-1.5 gap-1">
-                <ResizablePanel defaultSize={isChatSidebarOpen ? 70 : 100} minSize={30} className="rounded-xl overflow-hidden p-0">
+            <ResizablePanelGroup direction="horizontal" className="min-h-screen md:p-1.5 gap-1">
+                <ResizablePanel defaultSize={isChatSidebarOpen ? 70 : 100} minSize={30} className="md:rounded-xl overflow-hidden p-0">
                     <SidebarInset className="bg-neutral-900 h-full">
                         {children}
                     </SidebarInset>

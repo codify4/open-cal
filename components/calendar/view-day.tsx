@@ -71,7 +71,7 @@ const DayView: React.FC<DayViewProps> = ({ currentDate, setCurrentDate, onContex
         >
           {/* Grid Header */}
           <div className="flex sticky top-0 bg-neutral-900 border-b border-neutral-800 z-20">
-            <div className="w-16 p-2 border-r border-neutral-800 text-sm font-medium flex-shrink-0 sticky left-0 z-30 bg-neutral-900">
+            <div className="w-12 sm:w-16 p-1 sm:p-2 border-r border-neutral-800 text-xs sm:text-sm font-medium flex-shrink-0 sticky left-0 z-30 bg-neutral-900">
               Time
             </div>
             {getDaysToShow().map((day, index) => {
@@ -79,12 +79,20 @@ const DayView: React.FC<DayViewProps> = ({ currentDate, setCurrentDate, onContex
               return (
                 <div
                   key={index}
-                  className="flex-shrink-0 p-2 text-sm font-medium text-center"
+                  className="flex-shrink-0 p-1 sm:p-2 text-xs sm:text-sm font-medium text-center"
                   style={{
-                    width: "calc(100vw - 96px)",
+                    width: "calc(100vw - 48px)",
+                    minWidth: "280px",
                   }}
                 >
-                  {formatDate(day)}
+                  <div className="hidden sm:block">{formatDate(day)}</div>
+                  <div className="sm:hidden">
+                    {day.toLocaleDateString("en-US", {
+                      weekday: "short",
+                      month: "short",
+                      day: "numeric",
+                    })}
+                  </div>
                 </div>
               )
             })}
@@ -94,7 +102,7 @@ const DayView: React.FC<DayViewProps> = ({ currentDate, setCurrentDate, onContex
           <div className="flex flex-col h-full">
             {hours.map((hour) => (
               <div key={hour} className="flex border-b bg-neutral-900 border-neutral-800" style={{ height: "calc((100vh - 200px) / 20)" }}>
-                <div className="w-16 p-1 text-center border-r border-neutral-800 text-sm text-neutral-400 flex items-center justify-end flex-shrink-0 sticky left-0 z-30 bg-neutral-900">
+                <div className="w-12 sm:w-16 p-1 text-center border-r border-neutral-800 text-xs sm:text-sm text-neutral-400 flex items-center justify-end flex-shrink-0 sticky left-0 z-30 bg-neutral-900">
                   {formatTime(hour)}
                 </div>
                 {getDaysToShow().map((day, dayIndex) => {
@@ -104,7 +112,8 @@ const DayView: React.FC<DayViewProps> = ({ currentDate, setCurrentDate, onContex
                       key={`${hour}-${dayIndex}`}
                       className="flex-shrink-0 border-r border-neutral-800 hover:bg-neutral-900/50 transition-colors cursor-pointer"
                       style={{
-                        width: "calc(100vw - 96px)",
+                        width: "calc(100vw - 48px)",
+                        minWidth: "280px",
                       }}
                       onContextMenu={onContextMenu}
                     />

@@ -164,12 +164,23 @@ export default function FullCalendar() {
 
   const getViewTitle = () => {
     if (viewType === "day") {
-      return currentDate.toLocaleDateString("en-US", {
-        weekday: "long",
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-      })
+      return (
+        <>
+          <span className="hidden sm:inline">
+            {currentDate.toLocaleDateString("en-US", {
+              weekday: "long",
+              year: "numeric",
+              month: "long",
+              day: "numeric",
+            })}
+          </span>
+          <span className="sm:hidden">
+            {currentDate.toLocaleDateString("en-US", {
+              month: "long",
+            })}
+          </span>
+        </>
+      )
     } else if (viewType === "week") {
       const startOfWeek = new Date(currentDate)
       const dayOfWeek = startOfWeek.getDay()
@@ -179,12 +190,34 @@ export default function FullCalendar() {
       const endOfWeek = new Date(startOfWeek)
       endOfWeek.setDate(startOfWeek.getDate() + 6)
 
-      return `${startOfWeek.toLocaleDateString("en-US", { month: "short", day: "numeric" })} - ${endOfWeek.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}`
+      return (
+        <>
+          <span className="hidden sm:inline">
+            {`${startOfWeek.toLocaleDateString("en-US", { month: "short", day: "numeric" })} - ${endOfWeek.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}`}
+          </span>
+          <span className="sm:hidden">
+            {currentDate.toLocaleDateString("en-US", {
+              month: "long",
+            })}
+          </span>
+        </>
+      )
     } else {
-      return currentDate.toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "long",
-      })
+      return (
+        <>
+          <span className="hidden sm:inline">
+            {currentDate.toLocaleDateString("en-US", {
+              year: "numeric",
+              month: "long",
+            })}
+          </span>
+          <span className="sm:hidden">
+            {currentDate.toLocaleDateString("en-US", {
+              month: "long",
+            })}
+          </span>
+        </>
+      )
     }
   }
 
@@ -203,44 +236,44 @@ export default function FullCalendar() {
     <Tabs value={viewType} onValueChange={(value) => setViewType(value as ViewType)} className="w-full h-full">
       <Card className="w-full h-full bg-neutral-900 border-neutral-800 text-neutral-100 flex flex-col py-0 gap-0 rounded-xl">
         <div className="flex items-center justify-between px-4 py-1.5 border-b border-neutral-800">
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 sm:gap-4">
             <SidebarTrigger />
-            <h1 className="text-xl font-semibold">{getViewTitle()}</h1>
-            <div className="flex items-center gap-2">
+            <h1 className="text-lg sm:text-xl font-semibold truncate max-w-[120px] sm:max-w-none">{getViewTitle()}</h1>
+            <div className="flex items-center gap-1 sm:gap-2">
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => navigateDate("prev")}
-                className="text-neutral-400 hover:text-neutral-100 hover:bg-neutral-800"
+                className="hidden sm:block text-neutral-400 hover:text-neutral-100 hover:bg-neutral-800 p-1 sm:p-2"
               >
-                <ChevronLeft className="w-4 h-4" />
+                <ChevronLeft className="w-3 h-3 sm:w-4 sm:h-4" />
               </Button>
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => navigateDate("next")}
-                className="text-neutral-400 hover:text-neutral-100 hover:bg-neutral-800"
+                className="hidden sm:block text-neutral-400 hover:text-neutral-100 hover:bg-neutral-800 p-1 sm:p-2"
               >
-                <ChevronRight className="w-4 h-4" />
+                <ChevronRight className="w-3 h-3 sm:w-4 sm:h-4" />
               </Button>
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3 sm:gap-2">
             <Button 
               variant="outline" 
-              className="bg-muted rounded-sm w-20 h-8 text-sm"
+              className="bg-muted rounded-sm sm:w-20 h-8 font-semibold text-xs sm:text-sm"
               onClick={() => {
                 const today = new Date()
                 setCurrentDate(today)
               }}
             >
-              Today
+              {new Date().getDate()}
             </Button>
-            <TabsList className="bg-neutral-900 border border-neutral-700">
-              <TabsTrigger value="day" className="capitalize w-18">Day</TabsTrigger>
-              <TabsTrigger value="week" className="capitalize w-18">Week</TabsTrigger>
-              <TabsTrigger value="month" className="capitalize w-18">Month</TabsTrigger>
+            <TabsList className="bg-neutral-900 border border-neutral-700 h-8">
+              <TabsTrigger value="day" className="capitalize w-12 sm:w-18 text-xs sm:text-sm">Day</TabsTrigger>
+              <TabsTrigger value="week" className="capitalize w-12 sm:w-18 text-xs sm:text-sm">Week</TabsTrigger>
+              <TabsTrigger value="month" className="capitalize w-12 sm:w-18 text-xs sm:text-sm">Month</TabsTrigger>
             </TabsList>
             <AddEvent isOpen={isEventDialogOpen} onOpenChange={setIsEventDialogOpen} />
           </div>
@@ -271,6 +304,18 @@ export default function FullCalendar() {
             />
           </TabsContent>
         </div>
+
+        {/* Mobile Today Button */}
+        <Button 
+          variant="outline" 
+          className="fixed bottom-20 right-4 z-40 bg-neutral-800 hover:bg-neutral-700 text-white rounded-full w-12 h-12 shadow-lg sm:hidden"
+          onClick={() => {
+            const today = new Date()
+            setCurrentDate(today)
+          }}
+        >
+          <span className="text-xs">Today</span>
+        </Button>
 
         {contextMenu && (
           <ContextMenu

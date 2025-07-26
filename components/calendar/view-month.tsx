@@ -50,15 +50,21 @@ const MonthView: React.FC<MonthViewProps> = ({ currentDate, setCurrentDate, onCo
     >
       <div className="flex min-w-max">
         {getMonthsToShow().map((monthDate, monthIndex) => (
-          <div key={monthIndex} className="w-1/4 flex-shrink-0 border-r border-neutral-800 last:border-r-0" onContextMenu={onContextMenu}>
-            <div className="p-1 border-b border-neutral-800 text-center font-medium">
-              {monthDate.toLocaleDateString("en-US", { year: "numeric", month: "long" })}
+          <div key={monthIndex} className="w-full sm:w-1/4 flex-shrink-0 border-r border-neutral-800 last:border-r-0" onContextMenu={onContextMenu}>
+            <div className="p-1 border-b border-neutral-800 text-center font-medium text-xs sm:text-sm">
+              <div className="hidden sm:block">
+                {monthDate.toLocaleDateString("en-US", { year: "numeric", month: "long" })}
+              </div>
+              <div className="sm:hidden">
+                {monthDate.toLocaleDateString("en-US", { year: "numeric", month: "short" })}
+              </div>
             </div>
             <div className="grid grid-cols-7 gap-px bg-neutral-800 p-px">
               {/* Day headers */}
               {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
-                <div key={day} className="bg-neutral-900 p-1 text-sm font-medium text-center text-neutral-400 border-b border-neutral-800">
-                  {day}
+                <div key={day} className="bg-neutral-900 p-1 text-xs sm:text-sm font-medium text-center text-neutral-400 border-b border-neutral-800">
+                  <div className="hidden sm:block">{day}</div>
+                  <div className="sm:hidden">{day.charAt(0)}</div>
                 </div>
               ))}
               {/* Month days */}
@@ -71,8 +77,8 @@ const MonthView: React.FC<MonthViewProps> = ({ currentDate, setCurrentDate, onCo
                 const isCurrentMonth = startDate.getMonth() === monthDate.getMonth()
                 const isToday = startDate.toDateString() === new Date().toDateString()
                 return (
-                  <div key={index} className={`bg-neutral-900 min-h-[120px] p-1 hover:bg-neutral-900/50 transition-colors cursor-pointer ${!isCurrentMonth ? "text-neutral-600" : ""} ${isToday ? "bg-neutral-900 border border-red-400" : ""}`} onContextMenu={onContextMenu}>
-                    <div className={`text-sm font-medium mb-2 ${isToday ? "text-red-400" : ""}`}>{startDate.getDate()}</div>
+                  <div key={index} className={`bg-neutral-900 min-h-[80px] sm:min-h-[120px] p-1 hover:bg-neutral-900/50 transition-colors cursor-pointer ${!isCurrentMonth ? "text-neutral-600" : ""} ${isToday ? "bg-neutral-900 border border-red-400" : ""}`} onContextMenu={onContextMenu}>
+                    <div className={`text-xs sm:text-sm font-medium mb-1 sm:mb-2 ${isToday ? "text-red-400" : ""}`}>{startDate.getDate()}</div>
                   </div>
                 )
               })}

@@ -27,10 +27,10 @@ const AddEvent = ({ isOpen, onOpenChange, trigger }: AddEventProps) => {
                 <DialogTrigger asChild>
                     <Button 
                         variant="default" 
-                        className="rounded-sm w-32 h-8 text-sm"
+                        className="rounded-sm sm:w-32 h-8 text-sm"
                     >
                         <Plus className="w-4 h-4" />
-                        New Event
+                        <span className="hidden sm:inline">New Event</span>
                     </Button>
                 </DialogTrigger>
             )}
