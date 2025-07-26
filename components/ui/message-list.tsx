@@ -4,6 +4,8 @@ import {
   type Message,
 } from "@/components/ui/chat-message"
 import { TypingIndicator } from "@/components/ui/typing-indicator"
+import { AnimatedShinyText } from "../magicui/animated-shiny-text"
+import { cn } from "@/lib/utils"
 
 type AdditionalMessageOptions = Omit<ChatMessageProps, keyof Message>
 
@@ -33,13 +35,22 @@ export function MessageList({
         return (
           <ChatMessage
             key={index}
-            showTimeStamp={showTimeStamps}
             {...message}
             {...additionalOptions}
           />
         )
       })}
-      {isTyping && <TypingIndicator />}
+      {isTyping && (
+        <div
+          className={cn(
+            "group rounded-full ",
+          )}
+        >
+          <AnimatedShinyText className="inline-flex items-center justify-center px-4 py-1 transition ease-out">
+            <span>Processing...</span>
+          </AnimatedShinyText>
+        </div>
+      )}
     </div>
   )
 }
