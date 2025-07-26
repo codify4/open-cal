@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { SidebarTrigger } from "../ui/sidebar"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
+import { Kbd } from "../ui/kbd"
 
 type ViewType = "day" | "week" | "month"
 
@@ -35,24 +36,24 @@ const ContextMenu: React.FC<ContextMenuProps> = ({ x, y, onClose, onCreateEvent,
   return (
     <div
       ref={menuRef}
-      className="fixed z-50 bg-neutral-900 border border-neutral-700 rounded-lg shadow-xl p-2 min-w-[160px]"
+      className="fixed z-50 bg-neutral-900 border border-neutral-700 rounded-md shadow-xl p-1 min-w-[160px]"
       style={{ left: x, top: y }}
     >
       <Button
         variant="ghost" 
         onClick={onCreateEvent}
-        className="w-full px-4 py-2 text-left text-white hover:text-white hover:bg-neutral-800 flex items-center gap-3 transition-colors"
+        className="w-full rounded-sm px-3 py-2 text-white hover:text-white hover:bg-neutral-800 flex items-center justify-between transition-colors"
       >
-        Create Event
-        <kbd>C</kbd>
+        <span>Create Event</span>
+        <Kbd variant={'outline'} className="bg-neutral-950 p-1 rounded-[5px] text-xs" size={'xs'}>c</Kbd>
       </Button>
       <Button
         variant="ghost" 
         onClick={onAskAI}
-        className="w-full px-4 py-2 text-left text-white hover:text-white hover:bg-neutral-800 flex items-center justify-start gap-3 transition-colors"
+        className="w-full rounded-sm px-3 py-2 text-white hover:text-white hover:bg-neutral-800 flex items-center justify-between transition-colors"
       >
-        <Sparkle className="w-4 h-4" />
-        Ask AI
+        <span>Ask Agent</span>
+        <Sparkle size={16} className="text-white" />
       </Button>
     </div>
   )
