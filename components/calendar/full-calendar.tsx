@@ -226,7 +226,7 @@ export default function FullCalendar() {
 
   return (
     <Tabs value={viewType} onValueChange={(value) => setViewType(value as ViewType)} className="w-full h-full">
-      <Card className="w-full h-full bg-neutral-950 border-neutral-800 text-neutral-100 flex flex-col py-0 gap-0">
+      <Card className="w-full h-full bg-neutral-900 border-neutral-800 text-neutral-100 flex flex-col py-0 gap-0">
         <div className="flex items-center justify-between px-4 py-1.5 border-b border-neutral-800">
           <div className="flex items-center gap-4">
             <SidebarTrigger />
@@ -289,7 +289,7 @@ export default function FullCalendar() {
                       {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((day) => (
                         <div
                           key={day}
-                          className="bg-neutral-950 p-1 text-sm font-medium text-center text-neutral-400 border-b border-neutral-800"
+                          className="bg-neutral-900 p-1 text-sm font-medium text-center text-neutral-400 border-b border-neutral-800"
                         >
                           {day}
                         </div>
@@ -308,12 +308,12 @@ export default function FullCalendar() {
                       return (
                         <div
                           key={index}
-                          className={`bg-neutral-950 min-h-[120px] p-3 hover:bg-neutral-900/50 transition-colors cursor-pointer ${
+                          className={`bg-neutral-900 min-h-[120px] p-3 hover:bg-neutral-900/50 transition-colors cursor-pointer ${
                             !isCurrentMonth ? "text-neutral-600" : ""
-                          } ${isToday ? "bg-neutral-900 border border-amber-400" : ""}`}
+                          } ${isToday ? "bg-neutral-900 border border-red-400" : ""}`}
                           onContextMenu={handleContextMenu}
                         >
-                          <div className={`text-sm font-medium mb-2 ${isToday ? "text-amber-400" : ""}`}>
+                          <div className={`text-sm font-medium mb-2 ${isToday ? "text-red-400" : ""}`}>
                             {startDate.getDate()}
                           </div>
                         </div>
@@ -347,14 +347,14 @@ export default function FullCalendar() {
                 {/* Cursor Line */}
                 {cursorPosition && (
                   <div
-                    className="absolute w-full h-px bg-amber-400 pointer-events-none z-10"
+                    className="absolute w-full h-px bg-red-400 pointer-events-none z-10"
                     style={{ top: cursorPosition.y }}
                   />
                 )}
 
                 {/* Grid Header */}
-                <div className="flex sticky top-0 bg-neutral-950 border-b border-neutral-800 z-20">
-                  <div className="w-16 p-2 border-r border-neutral-800 text-sm font-medium flex-shrink-0 sticky left-0 z-30 bg-neutral-950">
+                <div className="flex sticky top-0 bg-neutral-900 border-b border-neutral-800 z-20">
+                  <div className="w-16 p-2 border-r border-neutral-800 text-sm font-medium flex-shrink-0 sticky left-0 z-30 bg-neutral-900">
                     Time
                   </div>
                   {getDaysToShow().map((day, index) => {
@@ -362,7 +362,7 @@ export default function FullCalendar() {
                     return (
                       <div
                         key={index}
-                        className="flex-shrink-0 p-2 border-r border-neutral-800 text-sm font-medium text-center"
+                        className="flex-shrink-0 p-2 text-sm font-medium text-center"
                         style={{
                           width: "calc(100vw - 96px)",
                           scrollSnapAlign: "start",
@@ -377,8 +377,8 @@ export default function FullCalendar() {
                 {/* Time Grid */}
                 <div className="flex flex-col h-full">
                   {hours.map((hour) => (
-                    <div key={hour} className="flex border-b border-neutral-800" style={{ height: cellHeight }}>
-                      <div className="w-16 p-1 text-center border-r border-neutral-800 text-sm text-neutral-400 flex items-center justify-end flex-shrink-0 sticky left-0 z-30 bg-neutral-950">
+                    <div key={hour} className="flex border-b bg-neutral-900 border-neutral-800" style={{ height: cellHeight }}>
+                      <div className="w-16 p-1 text-center border-r border-neutral-800 text-sm text-neutral-400 flex items-center justify-end flex-shrink-0 sticky left-0 z-30 bg-neutral-900">
                         {formatTime(hour)}
                       </div>
                       {getDaysToShow().map((day, dayIndex) => {
@@ -423,14 +423,14 @@ export default function FullCalendar() {
                 {/* Cursor Line */}
                 {cursorPosition && (
                   <div
-                    className="absolute w-full h-px bg-amber-400 pointer-events-none z-10"
+                    className="absolute w-full h-px bg-red-400 pointer-events-none z-10"
                     style={{ top: cursorPosition.y }}
                   />
                 )}
 
                 {/* Grid Header */}
-                <div className="flex sticky top-0 bg-neutral-950 border-b border-neutral-800 z-20">
-                  <div className="w-16 p-2 border-r border-neutral-800 text-sm font-medium flex-shrink-0 sticky left-0 z-30 bg-neutral-950">
+                <div className="flex sticky top-0 bg-neutral-900 border-b border-neutral-800 z-20">
+                  <div className="w-16 p-2 border-r border-neutral-800 text-sm font-medium flex-shrink-0 sticky left-0 z-30 bg-neutral-900">
                     Time
                   </div>
                   {getDaysToShow().map((day, index) => {
@@ -438,7 +438,7 @@ export default function FullCalendar() {
                     return (
                       <div
                         key={index}
-                        className={`w-60 p-2 border-r border-neutral-800 text-sm font-medium text-center flex-shrink-0 ${
+                        className={`w-60 p-2 text-sm font-medium text-center flex-shrink-0 ${
                           isToday ? "bg-neutral-900 text-amber-400" : ""
                         }`}
                       >
@@ -452,7 +452,7 @@ export default function FullCalendar() {
                 <div className="flex flex-col h-full">
                   {hours.map((hour) => (
                     <div key={hour} className="flex border-b border-neutral-800" style={{ height: cellHeight }}>
-                      <div className="w-16 p-1 text-center border-r border-neutral-800 text-sm text-neutral-400 flex items-center justify-end flex-shrink-0 sticky left-0 z-30 bg-neutral-950">
+                      <div className="w-16 p-1 text-center border-r border-neutral-800 text-sm text-neutral-400 flex items-center justify-end flex-shrink-0 sticky left-0 z-30 bg-neutral-900">
                         {formatTime(hour)}
                       </div>
                       {getDaysToShow().map((day, dayIndex) => {

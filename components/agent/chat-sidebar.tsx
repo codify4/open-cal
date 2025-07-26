@@ -16,10 +16,11 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip"
 
 interface ChatSidebarProps {
   isFullscreen: boolean
+  onToggleSidebar: () => void
   onToggleFullscreen: () => void
 }
 
-export function ChatSidebar({ className, isFullscreen, onToggleFullscreen, ...props }: React.ComponentProps<"div"> & ChatSidebarProps) {
+export function ChatSidebar({ className, isFullscreen, onToggleSidebar, onToggleFullscreen, ...props }: React.ComponentProps<"div"> & ChatSidebarProps) {
   const { messages, input, handleInputChange, handleSubmit, append, status, stop } = useChat()
   const isLoading = status === "submitted" || status === "streaming"
 
@@ -40,13 +41,13 @@ export function ChatSidebar({ className, isFullscreen, onToggleFullscreen, ...pr
                 size="icon"
                 variant="ghost"
                 className="h-8 w-8 text-white hover:bg-neutral-800"
-                onClick={onToggleFullscreen}
+                onClick={isFullscreen ? onToggleFullscreen : onToggleSidebar}
               >
                 <X className="h-4 w-4" />
               </Button>
             </TooltipTrigger>
             <TooltipContent className="bg-neutral-950 text-white font-semibold">
-              <p>Close</p>
+              <p>{isFullscreen ? "Exit Fullscreen" : "Close"}</p>
             </TooltipContent>
           </Tooltip>
           <Tooltip>
@@ -61,7 +62,7 @@ export function ChatSidebar({ className, isFullscreen, onToggleFullscreen, ...pr
               </Button>
             </TooltipTrigger>
             <TooltipContent className="bg-neutral-950 text-white font-semibold">
-              <p>Fullscreen</p>
+              <p>{isFullscreen ? "Exit Fullscreen" : "Fullscreen"}</p>
             </TooltipContent>
           </Tooltip>
           <Tooltip>

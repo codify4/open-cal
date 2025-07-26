@@ -17,6 +17,10 @@ export function CalendarLayoutClient({ children }: { children: React.ReactNode }
         localStorage.setItem('isChatSidebarOpen', 'false');
     }
 
+    const toggleFullscreen = () => {
+        setIsFullscreen(!isFullscreen);
+    }
+
     // Load localStorage value only on client side after hydration
     useEffect(() => {
         const storedChatSidebarState = localStorage.getItem('isChatSidebarOpen');
@@ -44,7 +48,11 @@ export function CalendarLayoutClient({ children }: { children: React.ReactNode }
                         <ResizableHandle withHandle className="opacity-0 hover:opacity-100 transition-opacity duration-300"/>
                         <ResizablePanel defaultSize={30} minSize={20} maxSize={50} className="bg-neutral-900 rounded-lg p-2">
                             <div className="bg-neutral-900 h-full rounded-xl shadow-sm overflow-hidden">
-                                <ChatSidebar isFullscreen={isFullscreen} onToggleFullscreen={() => setIsFullscreen(!isFullscreen)} />
+                                <ChatSidebar 
+                                    isFullscreen={isFullscreen} 
+                                    onToggleSidebar={closeChatSidebar}
+                                    onToggleFullscreen={toggleFullscreen}
+                                />
                             </div>
                         </ResizablePanel>
                     </>
@@ -52,7 +60,11 @@ export function CalendarLayoutClient({ children }: { children: React.ReactNode }
             </ResizablePanelGroup>
             {isFullscreen && (
                 <div className="fixed inset-0 z-50 bg-neutral-900 p-5">
-                    <ChatSidebar isFullscreen={true} onToggleFullscreen={() => setIsFullscreen(false)} />
+                    <ChatSidebar 
+                        isFullscreen={true} 
+                        onToggleSidebar={closeChatSidebar}
+                        onToggleFullscreen={toggleFullscreen}
+                    />
                 </div>
             )}
         </SidebarProvider>
