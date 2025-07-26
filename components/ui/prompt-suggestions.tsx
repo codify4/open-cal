@@ -1,5 +1,6 @@
 import { ChevronRight } from "lucide-react";
 import { Button } from "./button";
+import ProgressiveBlur from "../magicui/progressive-blur";
 
 interface PromptSuggestionsProps {
   append: (message: { role: "user"; content: string }) => void
@@ -11,15 +12,15 @@ export function PromptSuggestions({
   suggestions,
 }: PromptSuggestionsProps) {
   return (
-    <div className="text-center space-y-6 max-w-md">
+    <div className="flex flex-col items-center justify-center gap-6 max-w-md">
       <div className="flex justify-center">
         <div className="w-16 h-16 bg-white rounded-lg flex items-center justify-center">
           <div className="w-8 h-8 bg-black rounded-sm"></div>
         </div>
       </div>
       
-      <div className="space-y-2">
-        <h1 className="text-2xl font-bold text-white">
+      <div className="flex flex-col items-center gap-2">
+        <h1 className="text-xl font-bold text-white">
           Digit Calendar Agent
         </h1>
         <p className="text-neutral-400 text-sm">
@@ -27,8 +28,10 @@ export function PromptSuggestions({
         </p>
       </div>
 
-      <div className="flex flex-col items-center gap-3 mt-8">
-        <div className="flex gap-3 overflow-x-hidden">
+      <div className="flex flex-col items-center relative">
+        <div className="absolute left-0 top-0 bottom-0 w-20 bg-gradient-to-r from-neutral-900 to-transparent pointer-events-none z-10" />
+        <div className="absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-neutral-900 to-transparent pointer-events-none z-10" />
+        <div className="flex gap-3 overflow-x-hidden mb-3">
           {suggestions.slice(0, 3).map((suggestion, index) => (
             <Button
               key={suggestion}
