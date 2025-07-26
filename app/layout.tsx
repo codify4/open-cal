@@ -11,8 +11,8 @@ const geist = Geist({
 });
 
 export const metadata: Metadata = {
-  title: "Digit",
-  description: "An open-source AI calendar, offering a fresh alternative to traditional calendar applications.",
+  title: "OpenCal",
+  description: "An open-source calendar, offering a fresh alternative to traditional calendar applications. Deeply integrated with AI Agents to help you manage your time and never miss an important event ever again.",
 };
 
 export default function RootLayout({

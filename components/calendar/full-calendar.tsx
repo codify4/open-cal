@@ -3,7 +3,7 @@
 import type React from "react"
 import { useState, useRef, useEffect, useCallback } from "react"
 import { useAtom } from "jotai"
-import { ChevronLeft, ChevronRight, Plus, Sparkle } from "lucide-react"
+import { ChevronLeft, ChevronRight, Sparkle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { SidebarTrigger } from "../ui/sidebar"
@@ -12,6 +12,7 @@ import { Kbd } from "../ui/kbd"
 import { currentDateAtom, viewTypeAtom } from "@/lib/atoms/cal-atoms"
 import dynamic from "next/dynamic"
 import { startTransition } from "react"
+import AddEvent from "../event/add-event"
 
 type ViewType = "day" | "week" | "month"
 
@@ -281,17 +282,7 @@ export default function FullCalendar() {
               <TabsTrigger value="week" className="capitalize w-18">Week</TabsTrigger>
               <TabsTrigger value="month" className="capitalize w-18">Month</TabsTrigger>
             </TabsList>
-            <Button 
-              variant="default" 
-              className="rounded-sm w-32 h-8 text-sm"
-              onClick={() => {
-                const today = new Date()
-                setCurrentDate(today)
-              }}
-            >
-              <Plus className="w-4 h-4" />
-              New Event
-            </Button>
+            <AddEvent />
           </div>
         </div>
 

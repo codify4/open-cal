@@ -1,7 +1,7 @@
 import { CalendarLayoutClient } from "@/components/wrappers/calendar-layout-client"
 
 export const metadata = {
-    title: "Digit",
+    title: "OpenCal",
     description: "An Open Source AI alternative to Google Calendar.",
 }
 
