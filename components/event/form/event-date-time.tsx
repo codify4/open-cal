@@ -1,11 +1,11 @@
 import { Clock } from "lucide-react"
-import { Button } from "../ui/button"
-import { Checkbox } from "../ui/checkbox"
-import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover"
-import { Calendar as CalendarComponent } from "../ui/calendar"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select"
+import { Button } from "../../ui/button"
+import { Checkbox } from "../../ui/checkbox"
+import { Popover, PopoverContent, PopoverTrigger } from "../../ui/popover"
+import { Calendar as CalendarComponent } from "../../ui/calendar"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../ui/select"
 import { format } from "date-fns"
-import { Label } from "../ui/label"
+import { Label } from "../../ui/label"
 
 interface EventDateTimeProps {
     startDate: Date

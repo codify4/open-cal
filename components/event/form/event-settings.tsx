@@ -1,5 +1,5 @@
 import { Video, Tag, Calendar } from "lucide-react"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../ui/select"
 import Image from "next/image"
 
 interface EventSettingsProps {

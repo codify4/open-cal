@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { Button } from "../ui/button"
+import { Button } from "../../ui/button"
 import { EventBasicInfo } from "./event-basic-info"
 import { EventDateTime } from "./event-date-time"
 import { EventLocation } from "./event-location"

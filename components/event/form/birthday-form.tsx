@@ -1,18 +1,13 @@
 import { useState } from "react"
-import { Button } from "../ui/button"
-import { Input } from "../ui/input"
-import { Label } from "../ui/label"
-import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover"
-import { Calendar as CalendarComponent } from "../ui/calendar"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select"
-import { Badge } from "../ui/badge"
-import { Clock, RefreshCw, Bell, User } from "lucide-react"
+import { Button } from "../../ui/button"
+import { Input } from "../../ui/input"
+import { Label } from "../../ui/label"
+import { Popover, PopoverContent, PopoverTrigger } from "../../ui/popover"
+import { Calendar as CalendarComponent } from "../../ui/calendar"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../ui/select"
+import { Clock, RefreshCw, User } from "lucide-react"
 import { format } from "date-fns"
 import { EventReminders } from "./event-reminders"
-
-interface BirthdayFormProps {
-    onClose: () => void
-}
 
 export const BirthdayForm = () => {
     const [birthdayData, setBirthdayData] = useState({

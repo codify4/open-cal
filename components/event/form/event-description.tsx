@@ -1,5 +1,5 @@
-import { Textarea } from "../ui/textarea"
-import { Button } from "../ui/button"
+import { Textarea } from "../../ui/textarea"
+import { Button } from "../../ui/button"
 import { Bold, Italic, Underline, List, ListOrdered, Link, Strikethrough } from "lucide-react"
 
 interface EventDescriptionProps {

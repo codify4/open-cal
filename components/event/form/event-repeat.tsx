@@ -1,5 +1,5 @@
 import { Repeat } from "lucide-react"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../ui/select"
 
 interface EventRepeatProps {
     repeat: string

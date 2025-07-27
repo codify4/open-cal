@@ -1,10 +1,11 @@
 import { useState } from "react"
-import { X, MoreHorizontal } from "lucide-react"
+import { X } from "lucide-react"
 import { Button } from "../ui/button"
-import { EventForm } from "./event-form"
-import { BirthdayForm } from "./birthday-form"
+import { EventForm } from "./form/event-form"
+import { BirthdayForm } from "./form/birthday-form"
 import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select"
+import EventActionsDropdown from "./form/event-actions"
 
 interface AddEventProps {
   onClick: () => void
@@ -33,20 +34,12 @@ const AddEventSidebar = ({ onClick }: AddEventProps) => {
         </div>
         
         <div className="flex items-center gap-3">
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                size="icon"
-                variant="ghost"
-                className="h-8 w-8 text-white hover:bg-neutral-800"
-              >
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent className="bg-neutral-950 text-white font-semibold">
-              <p>More options</p>
-            </TooltipContent>
-          </Tooltip>
+          <EventActionsDropdown
+            onCut={() => console.log("Cut event")}
+            onCopy={() => console.log("Copy event")}
+            onDuplicate={() => console.log("Duplicate event")}
+            onDelete={() => console.log("Delete event")}
+          />
           
           <Tooltip>
             <TooltipTrigger asChild>

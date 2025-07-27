@@ -1,8 +1,8 @@
 import { Users } from "lucide-react"
-import { Button } from "../ui/button"
-import { Badge } from "../ui/badge"
-import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover"
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "../ui/command"
+import { Button } from "../../ui/button"
+import { Badge } from "../../ui/badge"
+import { Popover, PopoverContent, PopoverTrigger } from "../../ui/popover"
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "../../ui/command"
 import { useState } from "react"
 import { attendeeOptions } from "@/constants/add-event"
 
