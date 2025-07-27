@@ -1,19 +1,25 @@
 import { Clock } from "lucide-react"
 import { Button } from "../ui/button"
+import { Checkbox } from "../ui/checkbox"
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover"
 import { Calendar as CalendarComponent } from "../ui/calendar"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select"
 import { format } from "date-fns"
+import { Label } from "../ui/label"
 
 interface EventDateTimeProps {
     startDate: Date
     endDate: Date
     startTime: string
     endTime: string
+    isAllDay: boolean
+    timezone: string
     onStartDateChange: (date: Date) => void
     onEndDateChange: (date: Date) => void
     onStartTimeChange: (time: string) => void
     onEndTimeChange: (time: string) => void
+    onAllDayChange: (isAllDay: boolean) => void
+    onTimezoneChange: (timezone: string) => void
 }
 
 const generateTimeOptions = () => {
@@ -51,11 +57,11 @@ const formatTime = (time: string) => {
     const hour = parseInt(hours)
     const ampm = hour >= 12 ? 'PM' : 'AM'
     const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour
-    return `${displayHour}:${minutes} ${ampm}`
+    return `${displayHour}:${minutes}${ampm.toLowerCase()}`
 }
 
 const formatDate = (date: Date) => {
-    return format(date, "MMM dd")
+    return format(date, "EEE, MMMM d")
 }
 
 export const EventDateTime = ({
@@ -63,76 +69,97 @@ export const EventDateTime = ({
     endDate,
     startTime,
     endTime,
+    isAllDay,
+    timezone,
     onStartDateChange,
     onEndDateChange,
     onStartTimeChange,
-    onEndTimeChange
+    onEndTimeChange,
+    onAllDayChange,
+    onTimezoneChange
 }: EventDateTimeProps) => {
     return (
-        <div className="flex items-center gap-2 text-sm text-neutral-300">
-            <Clock className="w-4 h-4" />
-            
-            <Popover>
-                <PopoverTrigger asChild>
-                    <Button
-                        variant="outline"
-                        className="h-8 text-sm bg-neutral-800/50 border-neutral-700 text-white hover:bg-neutral-700"
-                    >
-                        {formatTime(startTime)} - {formatTime(endTime)}
-                    </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0 bg-neutral-900 border-neutral-700" align="start">
-                    <div className="p-2 border-b border-neutral-700">
-                        <CalendarComponent
-                            mode="single"
-                            selected={startDate}
-                            onSelect={(date) => date && onStartDateChange(date)}
-                            initialFocus
-                            className="bg-neutral-900"
-                        />
-                    </div>
-                    <div className="p-3">
-                        <div className="grid grid-cols-2 gap-2">
-                            <div>
-                                <div className="text-xs text-neutral-400 mb-1">Start</div>
-                                <TimePicker 
-                                    value={startTime} 
-                                    onChange={onStartTimeChange} 
+        <div className="space-y-3">
+            <div className="flex items-center gap-2 text-sm text-neutral-300">
+                <Clock className="w-4 h-4" />
+                <div className="flex items-center gap-2">
+                    <Popover>
+                        <PopoverTrigger asChild>
+                            <Button
+                                variant="outline"
+                                className="h-8 text-sm bg-neutral-800/50 border-neutral-700 text-white hover:bg-neutral-700"
+                            >
+                                {formatDate(startDate)}
+                            </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0 bg-neutral-900 border-neutral-700" align="start">
+                            <div className="p-2 border-b border-neutral-700">
+                                <CalendarComponent
+                                    mode="single"
+                                    selected={startDate}
+                                    onSelect={(date) => date && onStartDateChange(date)}
+                                    initialFocus
+                                    className="bg-neutral-900 p-2"
                                 />
                             </div>
-                            <div>
-                                <div className="text-xs text-neutral-400 mb-1">End</div>
-                                <TimePicker 
-                                    value={endTime} 
-                                    onChange={onEndTimeChange} 
-                                />
-                            </div>
-                        </div>
-                    </div>
-                </PopoverContent>
-            </Popover>
+                        </PopoverContent>
+                    </Popover>
 
-            <span className="text-neutral-200">•</span>
-            
-            <Popover>
-                <PopoverTrigger asChild>
-                    <Button
-                        variant="outline"
-                        className="h-8 text-sm bg-neutral-800/50 border-neutral-700 text-white hover:bg-neutral-700"
-                    >
-                        {formatDate(startDate)}
-                    </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0 bg-neutral-900 border-neutral-700" align="start">
-                    <CalendarComponent
-                        mode="single"
-                        selected={startDate}
-                        onSelect={(date) => date && onStartDateChange(date)}
-                        initialFocus
-                        className="bg-neutral-900 p-2"
-                    />
-                </PopoverContent>
-            </Popover>
+                    {!isAllDay && (
+                        <>
+                            <Popover>
+                                <PopoverTrigger asChild>
+                                    <Button
+                                        variant="outline"
+                                        className="h-8 text-sm bg-neutral-800/50 border-neutral-700 text-white hover:bg-neutral-700"
+                                    >
+                                        {formatTime(startTime)}
+                                    </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-auto p-0 bg-neutral-900 border-neutral-700" align="start">
+                                    <div className="p-3">
+                                        <TimePicker 
+                                            value={startTime} 
+                                            onChange={onStartTimeChange} 
+                                        />
+                                    </div>
+                                </PopoverContent>
+                            </Popover>
+
+                            <span className="text-neutral-500">-</span>
+
+                            <Popover>
+                                <PopoverTrigger asChild>
+                                    <Button
+                                        variant="outline"
+                                        className="h-8 text-sm bg-neutral-800/50 border-neutral-700 text-white hover:bg-neutral-700"
+                                    >
+                                        {formatTime(endTime)}
+                                    </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-auto p-0 bg-neutral-900 border-neutral-700" align="start">
+                                    <div className="p-3">
+                                        <TimePicker 
+                                            value={endTime} 
+                                            onChange={onEndTimeChange} 
+                                        />
+                                    </div>
+                                </PopoverContent>
+                            </Popover>
+                        </>
+                    )}
+                </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+                <Checkbox
+                    id="all-day"
+                    checked={isAllDay}
+                    onCheckedChange={onAllDayChange}
+                    className="border-neutral-600"
+                />
+                <Label htmlFor="all-day" className="text-sm text-neutral-300">All day</Label>
+            </div>
         </div>
     )
 } 

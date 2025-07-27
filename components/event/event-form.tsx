@@ -6,10 +6,9 @@ import { EventLocation } from "./event-location"
 import { EventAttendees } from "./event-attendees"
 import { EventReminders } from "./event-reminders"
 import { EventSettings } from "./event-settings"
-
-interface EventFormProps {
-    onClose: () => void
-}
+import { EventRepeat } from "./event-repeat"
+import { EventAvailability } from "./event-availability"
+import { EventVisibility } from "./event-visibility"
 
 export const EventForm = () => {
     const [eventData, setEventData] = useState({
@@ -24,7 +23,12 @@ export const EventForm = () => {
         attendees: [] as string[],
         reminders: [] as string[],
         calendar: "",
-        color: ""
+        color: "",
+        isAllDay: false,
+        timezone: "UTC",
+        repeat: "none",
+        availability: "busy",
+        visibility: "default",
     })
 
     const handleSubmit = () => {
@@ -45,10 +49,19 @@ export const EventForm = () => {
                 endDate={eventData.endDate}
                 startTime={eventData.startTime}
                 endTime={eventData.endTime}
+                isAllDay={eventData.isAllDay}
+                timezone={eventData.timezone}
                 onStartDateChange={(date) => setEventData(prev => ({ ...prev, startDate: date }))}
                 onEndDateChange={(date) => setEventData(prev => ({ ...prev, endDate: date }))}
                 onStartTimeChange={(time) => setEventData(prev => ({ ...prev, startTime: time }))}
                 onEndTimeChange={(time) => setEventData(prev => ({ ...prev, endTime: time }))}
+                onAllDayChange={(isAllDay) => setEventData(prev => ({ ...prev, isAllDay }))}
+                onTimezoneChange={(timezone) => setEventData(prev => ({ ...prev, timezone }))}
+            />
+
+            <EventRepeat 
+                repeat={eventData.repeat}
+                onRepeatChange={(repeat) => setEventData(prev => ({ ...prev, repeat }))}
             />
 
             <div className="flex flex-col gap-2">
@@ -76,6 +89,18 @@ export const EventForm = () => {
                 onCalendarChange={(calendar) => setEventData(prev => ({ ...prev, calendar }))}
                 onColorChange={(color) => setEventData(prev => ({ ...prev, color }))}
             />
+
+           <div className="flex flex-col gap-2">
+                <EventAvailability 
+                    availability={eventData.availability}
+                    onAvailabilityChange={(availability) => setEventData(prev => ({ ...prev, availability }))}
+                />
+
+                <EventVisibility 
+                    visibility={eventData.visibility}
+                    onVisibilityChange={(visibility) => setEventData(prev => ({ ...prev, visibility }))}
+                />
+           </div>
 
             <div className="flex justify-end gap-2 pt-2">
                 <Button size="sm" onClick={handleSubmit}>Create Event</Button>

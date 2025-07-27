@@ -89,7 +89,7 @@ const WeekView: React.FC<WeekViewProps> = ({ currentDate, setCurrentDate, onCont
                 <div
                   key={index}
                   className={`w-40 sm:w-60 p-1 sm:p-2 text-xs sm:text-sm font-medium text-center flex-shrink-0 ${
-                    isToday ? "bg-neutral-900 text-amber-400" : ""
+                    isToday ? "bg-neutral-900 text-red-400" : ""
                   }`}
                 >
                   <div className="hidden sm:block">{formatDate(day)}</div>
