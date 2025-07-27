@@ -81,7 +81,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
   return (
     <Sidebar variant="inset" className="bg-neutral-950 border-none overflow-hidden" {...props}>
-      <SidebarContent className="bg-neutral-950 border-none">
+      <SidebarContent className="bg-neutral-950 border-none scrollbar-hide">
         <CalendarPicker />
         <NavCalendars 
           emailAccounts={emailAccounts}
@@ -90,11 +90,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           onEmailChange={handleEmailChange}
           onCalendarToggle={handleCalendarToggle}
         />
+        
+      </SidebarContent>
+      <SidebarFooter className="bg-neutral-950 border-none">
         <div className="mt-auto">
           <PremiumCard />
         </div>
-      </SidebarContent>
-      <SidebarFooter className="bg-neutral-950 border-none">
         <NavUser user={data.user} />
       </SidebarFooter>
     </Sidebar>

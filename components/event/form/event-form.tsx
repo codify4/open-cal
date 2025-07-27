@@ -1,5 +1,4 @@
-import { useState } from "react"
-import { Button } from "../../ui/button"
+import { useState, useEffect } from "react"
 import { EventBasicInfo } from "./event-basic-info"
 import { EventDateTime } from "./event-date-time"
 import { EventLocation } from "./event-location"
@@ -9,8 +8,15 @@ import { EventSettings } from "./event-settings"
 import { EventRepeat } from "./event-repeat"
 import { EventAvailability } from "./event-availability"
 import { EventVisibility } from "./event-visibility"
+import { Event } from "@/lib/atoms/event-atom"
 
-export const EventForm = () => {
+interface EventFormProps {
+  event?: Event | null
+  onSave?: (eventData: Partial<Event>) => void
+  onDataChange?: () => void
+}
+
+export const EventForm = ({ event, onSave, onDataChange }: EventFormProps) => {
     const [eventData, setEventData] = useState({
         title: "",
         description: "",
@@ -23,7 +29,7 @@ export const EventForm = () => {
         attendees: [] as string[],
         reminders: [] as string[],
         calendar: "",
-        color: "",
+        color: "blue",
         isAllDay: false,
         timezone: "UTC",
         repeat: "none",
@@ -31,8 +37,45 @@ export const EventForm = () => {
         visibility: "default",
     })
 
-    const handleSubmit = () => {
-        console.log("Event data:", eventData)
+    // Initialize form data when editing an event
+    useEffect(() => {
+        if (event) {
+            setEventData({
+                title: event.title || "",
+                description: event.description || "",
+                startDate: event.startDate,
+                endDate: event.endDate,
+                startTime: event.startTime || "09:00",
+                endTime: event.endTime || "10:00",
+                location: event.location || "",
+                meetingType: "",
+                attendees: event.attendees || [],
+                reminders: event.reminders || [],
+                calendar: "",
+                color: event.color || "blue",
+                isAllDay: event.isAllDay,
+                timezone: "UTC",
+                repeat: event.repeat || "none",
+                availability: event.availability || "busy",
+                visibility: event.visibility || "default",
+            })
+        }
+    }, [event])
+
+    // Auto-save functionality
+    const updateEventData = (updates: Partial<typeof eventData>) => {
+        const newData = { ...eventData, ...updates }
+        setEventData(newData)
+        
+        // Trigger auto-save
+        if (onSave) {
+            onSave(newData)
+        }
+        
+        // Notify parent of data change
+        if (onDataChange) {
+            onDataChange()
+        }
     }
 
     return (
@@ -40,8 +83,8 @@ export const EventForm = () => {
             <EventBasicInfo 
                 title={eventData.title}
                 description={eventData.description}
-                onTitleChange={(title) => setEventData(prev => ({ ...prev, title }))}
-                onDescriptionChange={(description) => setEventData(prev => ({ ...prev, description }))}
+                onTitleChange={(title) => updateEventData({ title })}
+                onDescriptionChange={(description) => updateEventData({ description })}
             />
 
             <EventDateTime 
@@ -51,33 +94,33 @@ export const EventForm = () => {
                 endTime={eventData.endTime}
                 isAllDay={eventData.isAllDay}
                 timezone={eventData.timezone}
-                onStartDateChange={(date) => setEventData(prev => ({ ...prev, startDate: date }))}
-                onEndDateChange={(date) => setEventData(prev => ({ ...prev, endDate: date }))}
-                onStartTimeChange={(time) => setEventData(prev => ({ ...prev, startTime: time }))}
-                onEndTimeChange={(time) => setEventData(prev => ({ ...prev, endTime: time }))}
-                onAllDayChange={(isAllDay) => setEventData(prev => ({ ...prev, isAllDay }))}
-                onTimezoneChange={(timezone) => setEventData(prev => ({ ...prev, timezone }))}
+                onStartDateChange={(date) => updateEventData({ startDate: date })}
+                onEndDateChange={(date) => updateEventData({ endDate: date })}
+                onStartTimeChange={(time) => updateEventData({ startTime: time })}
+                onEndTimeChange={(time) => updateEventData({ endTime: time })}
+                onAllDayChange={(isAllDay) => updateEventData({ isAllDay })}
+                onTimezoneChange={(timezone) => updateEventData({ timezone })}
             />
 
             <EventRepeat 
                 repeat={eventData.repeat}
-                onRepeatChange={(repeat) => setEventData(prev => ({ ...prev, repeat }))}
+                onRepeatChange={(repeat) => updateEventData({ repeat })}
             />
 
             <div className="flex flex-col gap-2">
                 <EventLocation 
                     location={eventData.location}
-                    onLocationChange={(location) => setEventData(prev => ({ ...prev, location }))}
+                    onLocationChange={(location) => updateEventData({ location })}
                 />
 
                 <EventAttendees 
                     attendees={eventData.attendees}
-                    onAttendeesChange={(attendees) => setEventData(prev => ({ ...prev, attendees }))}
+                    onAttendeesChange={(attendees) => updateEventData({ attendees })}
                 />
 
                 <EventReminders 
                     reminders={eventData.reminders}
-                    onRemindersChange={(reminders) => setEventData(prev => ({ ...prev, reminders }))}
+                    onRemindersChange={(reminders) => updateEventData({ reminders })}
                 />
             </div>
 
@@ -85,26 +128,22 @@ export const EventForm = () => {
                 meetingType={eventData.meetingType}
                 calendar={eventData.calendar}
                 color={eventData.color}
-                onMeetingTypeChange={(meetingType) => setEventData(prev => ({ ...prev, meetingType }))}
-                onCalendarChange={(calendar) => setEventData(prev => ({ ...prev, calendar }))}
-                onColorChange={(color) => setEventData(prev => ({ ...prev, color }))}
+                onMeetingTypeChange={(meetingType) => updateEventData({ meetingType })}
+                onCalendarChange={(calendar) => updateEventData({ calendar })}
+                onColorChange={(color) => updateEventData({ color })}
             />
 
            <div className="flex flex-col gap-2">
                 <EventAvailability 
                     availability={eventData.availability}
-                    onAvailabilityChange={(availability) => setEventData(prev => ({ ...prev, availability }))}
+                    onAvailabilityChange={(availability) => updateEventData({ availability })}
                 />
 
                 <EventVisibility 
                     visibility={eventData.visibility}
-                    onVisibilityChange={(visibility) => setEventData(prev => ({ ...prev, visibility }))}
+                    onVisibilityChange={(visibility) => updateEventData({ visibility })}
                 />
            </div>
-
-            <div className="flex justify-end gap-2 pt-2">
-                <Button size="sm" onClick={handleSubmit}>Create Event</Button>
-            </div>
         </div>
     )
 } 

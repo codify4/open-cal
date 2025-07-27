@@ -15,7 +15,13 @@ import AddEvent from "../event/add-event-sidebar"
 import DayView from "./view-day"
 import WeekView from "./view-week"
 import MonthView from "./view-month"
-import { isEventSidebarOpenAtom } from "@/lib/atoms/event-atom"
+import { 
+  isEventSidebarOpenAtom, 
+  eventCreationContextAtom,
+  eventsAtom,
+  selectedEventAtom,
+  Event 
+} from "@/lib/atoms/event-atom"
 
 type ViewType = "day" | "week" | "month"
 
@@ -73,6 +79,9 @@ export default function FullCalendar() {
   const [, setIsChatSidebarOpen] = useAtom(isChatSidebarOpenAtom)
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null)
   const [isEventSidebarOpen, setIsEventSidebarOpen] = useAtom(isEventSidebarOpenAtom)
+  const [, setEventCreationContext] = useAtom(eventCreationContextAtom)
+  const [events, setEvents] = useAtom(eventsAtom)
+  const [, setSelectedEvent] = useAtom(selectedEventAtom)
 
   const containerRef = useRef<HTMLDivElement>(null)
 
@@ -228,6 +237,18 @@ export default function FullCalendar() {
     localStorage.setItem('isEventSidebarOpen', JSON.stringify(newState));
   }
 
+  const handleCreateEvent = () => {
+    if (contextMenu) {
+      setEventCreationContext({
+        clickPosition: { x: contextMenu.x, y: contextMenu.y },
+        targetDate: currentDate
+      })
+      
+      toggleEventSidebar()
+      setContextMenu(null)
+    }
+  }
+
   const handleAskAI = () => {
     setIsChatSidebarOpen(true)
     localStorage.setItem('isChatSidebarOpen', 'true')
@@ -322,7 +343,7 @@ export default function FullCalendar() {
             x={contextMenu.x}
             y={contextMenu.y}
             onClose={() => setContextMenu(null)}
-            onCreateEvent={toggleEventSidebar}
+            onCreateEvent={handleCreateEvent}
             onAskAI={handleAskAI}
           />
         )}

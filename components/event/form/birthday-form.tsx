@@ -1,15 +1,22 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "../../ui/button"
 import { Input } from "../../ui/input"
 import { Label } from "../../ui/label"
 import { Popover, PopoverContent, PopoverTrigger } from "../../ui/popover"
 import { Calendar as CalendarComponent } from "../../ui/calendar"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../ui/select"
-import { Clock, RefreshCw, User } from "lucide-react"
+import { Clock, RefreshCw, Repeat, User } from "lucide-react"
 import { format } from "date-fns"
 import { EventReminders } from "./event-reminders"
+import { Event } from "@/lib/atoms/event-atom"
 
-export const BirthdayForm = () => {
+interface BirthdayFormProps {
+  event?: Event | null
+  onSave?: (eventData: Partial<Event>) => void
+  onDataChange?: () => void
+}
+
+export const BirthdayForm = ({ event, onSave, onDataChange }: BirthdayFormProps) => {
     const [birthdayData, setBirthdayData] = useState({
         title: "",
         date: new Date(),
@@ -18,8 +25,42 @@ export const BirthdayForm = () => {
         reminders: [] as string[]
     })
 
-    const handleSubmit = () => {
-        console.log("Birthday data:", birthdayData)
+    // Initialize form data when editing an event
+    useEffect(() => {
+        if (event) {
+            setBirthdayData({
+                title: event.title || "",
+                date: event.startDate,
+                recurrence: event.repeat || "yearly",
+                account: "",
+                reminders: event.reminders || []
+            })
+        }
+    }, [event])
+
+    // Auto-save functionality
+    const updateBirthdayData = (updates: Partial<typeof birthdayData>) => {
+        const newData = { ...birthdayData, ...updates }
+        setBirthdayData(newData)
+        
+        // Trigger auto-save
+        if (onSave) {
+            onSave({
+                title: newData.title,
+                startDate: newData.date,
+                endDate: newData.date,
+                isAllDay: true,
+                type: "birthday",
+                color: "pink",
+                repeat: newData.recurrence,
+                reminders: newData.reminders
+            })
+        }
+        
+        // Notify parent of data change
+        if (onDataChange) {
+            onDataChange()
+        }
     }
 
     const formatDate = (date: Date) => {
@@ -45,7 +86,7 @@ export const BirthdayForm = () => {
                     placeholder="Birthday" 
                     className="h-9 text-sm bg-neutral-800/50 border-neutral-700 text-white placeholder:text-neutral-400 focus-visible:ring-0 focus-visible:ring-offset-0 font-medium"
                     value={birthdayData.title}
-                    onChange={(e) => setBirthdayData(prev => ({ ...prev, title: e.target.value }))}
+                    onChange={(e) => updateBirthdayData({ title: e.target.value })}
                 />
             </div>
 
@@ -66,7 +107,7 @@ export const BirthdayForm = () => {
                                 <CalendarComponent
                                     mode="single"
                                     selected={birthdayData.date}
-                                    onSelect={(date) => date && setBirthdayData(prev => ({ ...prev, date }))}
+                                    onSelect={(date) => date && updateBirthdayData({ date })}
                                     initialFocus
                                     className="bg-neutral-900 p-2"
                                 />
@@ -76,71 +117,41 @@ export const BirthdayForm = () => {
                 </div>
 
                 <div className="flex items-center gap-2 text-sm text-neutral-300">
-                    <RefreshCw className="w-4 h-4" />
-                    <Select 
-                        value={birthdayData.recurrence} 
-                        onValueChange={(value) => setBirthdayData(prev => ({ ...prev, recurrence: value }))}
-                    >
-                        <SelectTrigger className="h-8 text-sm bg-neutral-800/50 border-neutral-700 text-white hover:bg-neutral-700 flex-1">
-                            <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent className="bg-neutral-900 border-neutral-700">
-                            <SelectItem value="yearly" className="text-white hover:bg-neutral-800">
-                                Every year
-                            </SelectItem>
-                            <SelectItem value="monthly" className="text-white hover:bg-neutral-800">
-                                Every month
-                            </SelectItem>
-                            <SelectItem value="never" className="text-white hover:bg-neutral-800">
-                                Never
-                            </SelectItem>
-                        </SelectContent>
-                    </Select>
-                    <div className="text-xs text-neutral-400">
+                    <Repeat className="w-4 h-4" />
+                    <div className="flex text-neutral-400 h-8 items-center px-2 bg-neutral-800/50 border border-neutral-700 rounded-sm">
                         {formatRecurrence(birthdayData.recurrence)}
                     </div>
                 </div>
+
+                <div className="flex items-center gap-2 text-sm text-neutral-300">
+                    <User className="w-4 h-4" />
+                    <Select 
+                        value={birthdayData.account} 
+                        onValueChange={(value) => updateBirthdayData({ account: value })}
+                    >
+                        <SelectTrigger className="h-8 text-sm bg-neutral-800/50 border-neutral-700 text-white hover:bg-neutral-700 flex-1">
+                            <SelectValue placeholder="Select account" />
+                        </SelectTrigger>
+                        <SelectContent className="bg-neutral-900 border-neutral-700">
+                            <SelectItem value="google" className="text-white hover:bg-neutral-800">
+                                Google Calendar
+                            </SelectItem>
+                            <SelectItem value="outlook" className="text-white hover:bg-neutral-800">
+                                Outlook
+                            </SelectItem>
+                            <SelectItem value="apple" className="text-white hover:bg-neutral-800">
+                                Apple Calendar
+                            </SelectItem>
+                        </SelectContent>
+                    </Select>
+                </div>
             </div>
 
-            <div className="flex items-center gap-2 text-sm text-neutral-300">
-                <User className="w-4 h-4" />
-                <Select 
-                    value={birthdayData.account} 
-                    onValueChange={(value) => setBirthdayData(prev => ({ ...prev, account: value }))}
-                >
-                    <SelectTrigger className="h-9 text-sm bg-neutral-800/50 border-neutral-700 text-white hover:bg-neutral-700 flex-1">
-                        <SelectValue placeholder="Select account" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-neutral-900 border-neutral-700">
-                        <SelectItem value="kushta.joni@gmail.com" className="text-white hover:bg-neutral-800">
-                            <div className="flex items-center gap-2">
-                                <div className="w-3 h-3 rounded-full bg-red-500" />
-                                kushta.joni@gmail.com
-                            </div>
-                        </SelectItem>
-                        <SelectItem value="work@gmail.com" className="text-white hover:bg-neutral-800">
-                            <div className="flex items-center gap-2">
-                                <div className="w-3 h-3 rounded-full bg-blue-500" />
-                                work@gmail.com
-                            </div>
-                        </SelectItem>
-                        <SelectItem value="personal@gmail.com" className="text-white hover:bg-neutral-800">
-                            <div className="flex items-center gap-2">
-                                <div className="w-3 h-3 rounded-full bg-green-500" />
-                                personal@gmail.com
-                            </div>
-                        </SelectItem>
-                    </SelectContent>
-                </Select>
-            </div>
-
-            <EventReminders 
-                reminders={birthdayData.reminders}
-                onRemindersChange={(reminders) => setBirthdayData(prev => ({ ...prev, reminders }))}
-            />
-
-            <div className="flex justify-end gap-2 pt-2">
-                <Button size="sm" onClick={handleSubmit}>Create Birthday</Button>
+            <div className="space-y-2">
+                <EventReminders 
+                    reminders={birthdayData.reminders}
+                    onRemindersChange={(reminders) => updateBirthdayData({ reminders })}
+                />
             </div>
         </div>
     )
