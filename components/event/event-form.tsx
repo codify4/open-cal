@@ -6,13 +6,12 @@ import { EventLocation } from "./event-location"
 import { EventAttendees } from "./event-attendees"
 import { EventReminders } from "./event-reminders"
 import { EventSettings } from "./event-settings"
-import { Separator } from "../ui/separator"
 
 interface EventFormProps {
     onClose: () => void
 }
 
-export const EventForm = ({ onClose }: EventFormProps) => {
+export const EventForm = () => {
     const [eventData, setEventData] = useState({
         title: "",
         description: "",
@@ -30,11 +29,10 @@ export const EventForm = ({ onClose }: EventFormProps) => {
 
     const handleSubmit = () => {
         console.log("Event data:", eventData)
-        onClose()
     }
 
     return (
-        <div className="space-y-2">
+        <div className="space-y-4">
             <EventBasicInfo 
                 title={eventData.title}
                 description={eventData.description}
@@ -53,14 +51,12 @@ export const EventForm = ({ onClose }: EventFormProps) => {
                 onEndTimeChange={(time) => setEventData(prev => ({ ...prev, endTime: time }))}
             />
 
-            <Separator />
+            <div className="flex flex-col gap-2">
+                <EventLocation 
+                    location={eventData.location}
+                    onLocationChange={(location) => setEventData(prev => ({ ...prev, location }))}
+                />
 
-            <EventLocation 
-                location={eventData.location}
-                onLocationChange={(location) => setEventData(prev => ({ ...prev, location }))}
-            />
-
-            <div className="space-y-2">
                 <EventAttendees 
                     attendees={eventData.attendees}
                     onAttendeesChange={(attendees) => setEventData(prev => ({ ...prev, attendees }))}
@@ -81,8 +77,7 @@ export const EventForm = ({ onClose }: EventFormProps) => {
                 onColorChange={(color) => setEventData(prev => ({ ...prev, color }))}
             />
 
-            <div className="flex justify-end gap-2 pt-1">
-                <Button variant="outline" size="sm" onClick={onClose}>Cancel</Button>
+            <div className="flex justify-end gap-2 pt-2">
                 <Button size="sm" onClick={handleSubmit}>Create Event</Button>
             </div>
         </div>

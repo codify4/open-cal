@@ -16,26 +16,22 @@ export const EventBasicInfo = ({
     onDescriptionChange 
 }: EventBasicInfoProps) => {
     return (
-        <>
-            <div className="space-y-1">
-                <Label className="text-sm font-medium">Event Title</Label>
-                <Input 
-                    placeholder="Enter event title" 
-                    className="h-8 text-sm"
-                    value={title}
-                    onChange={(e) => onTitleChange(e.target.value)}
-                />
-            </div>
+        <div className="space-y-2">
+            <Label className="sr-only">Event Title</Label>
+            <Input 
+                placeholder="Title" 
+                className="h-9 text-sm bg-neutral-800/50 border-neutral-700 text-white placeholder:text-neutral-400 focus-visible:ring-0 focus-visible:ring-offset-0 font-medium"
+                value={title}
+                onChange={(e) => onTitleChange(e.target.value)}
+            />
 
-            <div className="space-y-1">
-                <Label className="text-sm font-medium">Description</Label>
-                <Textarea 
-                    placeholder="Add event description..." 
-                    className="bg-muted/50 min-h-[40px] text-sm"
-                    value={description}
-                    onChange={(e) => onDescriptionChange(e.target.value)}
-                />
-            </div>
-        </>
+            <Label className="sr-only">Event Description</Label>
+            <Textarea 
+                placeholder="Add description..." 
+                className="bg-neutral-800/50 border-neutral-700 text-white placeholder:text-neutral-400 text-sm resize-none focus-visible:ring-0 focus-visible:ring-offset-0 min-h-[60px]"
+                value={description}
+                onChange={(e) => onDescriptionChange(e.target.value)}
+            />
+        </div>
     )
 } 

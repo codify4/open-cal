@@ -1,15 +1,18 @@
 'use client'
 
+import { useEffect, useState } from "react"
 import { ChatSidebar } from "@/components/agent/chat-sidebar"
 import { AppSidebar } from "@/components/sidebar/app-sidebar"
+import AddEventSidebar from "../event/add-event-sidebar"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable"
 import { useAtom } from "jotai"
 import { isChatSidebarOpenAtom } from "@/lib/atoms/chat-atom"
-import { useEffect, useState } from "react"
+import { isEventSidebarOpenAtom } from "@/lib/atoms/event-atom"
 
 export function CalendarLayoutClient({ children }: { children: React.ReactNode }) {
     const [isChatSidebarOpen, setIsChatSidebarOpen] = useAtom(isChatSidebarOpenAtom)
+    const [isEventSidebarOpen, setIsEventSidebarOpen] = useAtom(isEventSidebarOpenAtom);
     const [isFullscreen, setIsFullscreen] = useState(false);
 
     const closeChatSidebar = () => {
@@ -21,11 +24,20 @@ export function CalendarLayoutClient({ children }: { children: React.ReactNode }
         setIsFullscreen(!isFullscreen);
     }
 
+    const closeEventSidebar = () => {
+        setIsEventSidebarOpen(false);
+        localStorage.setItem('isEventSidebarOpen', 'false');
+    }
+
     // Load localStorage value only on client side after hydration
     useEffect(() => {
         const storedChatSidebarState = localStorage.getItem('isChatSidebarOpen');
         if (storedChatSidebarState !== null) {
             setIsChatSidebarOpen(JSON.parse(storedChatSidebarState));
+        }
+        const storedEventSidebarState = localStorage.getItem('isEventSidebarOpen');
+        if (storedEventSidebarState !== null) {
+            setIsEventSidebarOpen(JSON.parse(storedEventSidebarState));
         }
     }, [setIsChatSidebarOpen]);
 
@@ -33,6 +45,10 @@ export function CalendarLayoutClient({ children }: { children: React.ReactNode }
     useEffect(() => {
         localStorage.setItem('isChatSidebarOpen', JSON.stringify(isChatSidebarOpen));
     }, [isChatSidebarOpen]);
+
+    useEffect(() => {
+        localStorage.setItem('isEventSidebarOpen', JSON.stringify(isEventSidebarOpen));
+    }, [isEventSidebarOpen]);
 
     return (
         <SidebarProvider>
@@ -52,6 +68,18 @@ export function CalendarLayoutClient({ children }: { children: React.ReactNode }
                                     isFullscreen={isFullscreen} 
                                     onToggleSidebar={closeChatSidebar}
                                     onToggleFullscreen={toggleFullscreen}
+                                />
+                            </div>
+                        </ResizablePanel>
+                    </>
+                )}
+                {isEventSidebarOpen && (
+                    <>
+                        <ResizableHandle withHandle className="opacity-0 hover:opacity-100 transition-opacity duration-300"/>
+                        <ResizablePanel defaultSize={30} minSize={20} maxSize={50} className="bg-neutral-900 rounded-lg p-2">
+                            <div className="bg-neutral-900 h-full rounded-xl shadow-sm overflow-hidden">
+                                <AddEventSidebar 
+                                    onClick={closeEventSidebar}
                                 />
                             </div>
                         </ResizablePanel>

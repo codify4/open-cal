@@ -1,6 +1,5 @@
-import { Calendar } from "lucide-react"
+import { Clock } from "lucide-react"
 import { Button } from "../ui/button"
-import { Label } from "../ui/label"
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover"
 import { Calendar as CalendarComponent } from "../ui/calendar"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select"
@@ -33,12 +32,12 @@ const TimePicker = ({ value, onChange }: { value: string; onChange: (value: stri
     
     return (
         <Select value={value} onValueChange={onChange}>
-            <SelectTrigger className="w-full">
+            <SelectTrigger className="w-full h-8 text-sm bg-neutral-800/50 border-neutral-700 text-white">
                 <SelectValue placeholder="Select time" />
             </SelectTrigger>
-            <SelectContent className="max-h-[200px]">
+            <SelectContent className="max-h-[200px] bg-neutral-900 border-neutral-700">
                 {timeOptions.map((time) => (
-                    <SelectItem key={time} value={time}>
+                    <SelectItem key={time} value={time} className="text-white hover:bg-neutral-800">
                         {time}
                     </SelectItem>
                 ))}
@@ -47,8 +46,16 @@ const TimePicker = ({ value, onChange }: { value: string; onChange: (value: stri
     )
 }
 
-const formatDateTime = (date: Date, time: string) => {
-    return `${format(date, "MMM dd, yyyy")} at ${time}`
+const formatTime = (time: string) => {
+    const [hours, minutes] = time.split(':')
+    const hour = parseInt(hours)
+    const ampm = hour >= 12 ? 'PM' : 'AM'
+    const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour
+    return `${displayHour}:${minutes} ${ampm}`
+}
+
+const formatDate = (date: Date) => {
+    return format(date, "MMM dd")
 }
 
 export const EventDateTime = ({
@@ -62,77 +69,70 @@ export const EventDateTime = ({
     onEndTimeChange
 }: EventDateTimeProps) => {
     return (
-        <div className="space-y-1">
-            <div className="flex items-center gap-2 text-sm font-medium">
-                <Calendar className="w-4 h-4" />
-                Date & Time
-            </div>
-
-            <div className="grid grid-cols-2 gap-2">
-                <div className="space-y-1">
-                    <Label className="text-sm">Start</Label>
-                    <Popover>
-                        <PopoverTrigger asChild>
-                            <Button
-                                variant="outline"
-                                className="w-full justify-start text-left font-normal h-8 text-sm"
-                            >
-                                <Calendar className="mr-2 h-4 w-4" />
-                                {formatDateTime(startDate, startTime)}
-                            </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
-                            <div className="p-3 border-b">
-                                <CalendarComponent
-                                    mode="single"
-                                    selected={startDate}
-                                    onSelect={(date) => date && onStartDateChange(date)}
-                                    initialFocus
-                                />
-                            </div>
-                            <div className="p-3">
-                                <Label className="text-sm">Time</Label>
+        <div className="flex items-center gap-2 text-sm text-neutral-300">
+            <Clock className="w-4 h-4" />
+            
+            <Popover>
+                <PopoverTrigger asChild>
+                    <Button
+                        variant="outline"
+                        className="h-8 text-sm bg-neutral-800/50 border-neutral-700 text-white hover:bg-neutral-700"
+                    >
+                        {formatTime(startTime)} - {formatTime(endTime)}
+                    </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0 bg-neutral-900 border-neutral-700" align="start">
+                    <div className="p-2 border-b border-neutral-700">
+                        <CalendarComponent
+                            mode="single"
+                            selected={startDate}
+                            onSelect={(date) => date && onStartDateChange(date)}
+                            initialFocus
+                            className="bg-neutral-900"
+                        />
+                    </div>
+                    <div className="p-3">
+                        <div className="grid grid-cols-2 gap-2">
+                            <div>
+                                <div className="text-xs text-neutral-400 mb-1">Start</div>
                                 <TimePicker 
                                     value={startTime} 
                                     onChange={onStartTimeChange} 
                                 />
                             </div>
-                        </PopoverContent>
-                    </Popover>
-                </div>
-
-                <div className="space-y-1">
-                    <Label className="text-sm">End</Label>
-                    <Popover>
-                        <PopoverTrigger asChild>
-                            <Button
-                                variant="outline"
-                                className="w-full justify-start text-left font-normal h-8 text-sm"
-                            >
-                                <Calendar className="mr-2 h-4 w-4" />
-                                {formatDateTime(endDate, endTime)}
-                            </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
-                            <div className="p-3 border-b">
-                                <CalendarComponent
-                                    mode="single"
-                                    selected={endDate}
-                                    onSelect={(date) => date && onEndDateChange(date)}
-                                    initialFocus
-                                />
-                            </div>
-                            <div className="p-3">
-                                <Label className="text-sm">Time</Label>
+                            <div>
+                                <div className="text-xs text-neutral-400 mb-1">End</div>
                                 <TimePicker 
                                     value={endTime} 
                                     onChange={onEndTimeChange} 
                                 />
                             </div>
-                        </PopoverContent>
-                    </Popover>
-                </div>
-            </div>
+                        </div>
+                    </div>
+                </PopoverContent>
+            </Popover>
+
+            <span className="text-neutral-200">•</span>
+            
+            <Popover>
+                <PopoverTrigger asChild>
+                    <Button
+                        variant="outline"
+                        className="h-8 text-sm bg-neutral-800/50 border-neutral-700 text-white hover:bg-neutral-700"
+                    >
+                        {formatDate(startDate)}
+                    </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0 bg-neutral-900 border-neutral-700" align="start">
+                    <CalendarComponent
+                        mode="single"
+                        selected={startDate}
+                        onSelect={(date) => date && onStartDateChange(date)}
+                        initialFocus
+                        className="bg-neutral-900 p-2"
+                    />
+                </PopoverContent>
+            </Popover>
         </div>
     )
 } 

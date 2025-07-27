@@ -3,7 +3,7 @@
 import type React from "react"
 import { useState, useRef, useEffect, useCallback } from "react"
 import { useAtom } from "jotai"
-import { ChevronLeft, ChevronRight, Sparkle } from "lucide-react"
+import { ChevronLeft, ChevronRight, Plus, Sparkle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { SidebarTrigger } from "../ui/sidebar"
@@ -11,10 +11,11 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { Kbd } from "../ui/kbd"
 import { currentDateAtom, viewTypeAtom } from "@/lib/atoms/cal-atoms"
 import { isChatSidebarOpenAtom } from "@/lib/atoms/chat-atom"
-import AddEvent from "../event/add-event"
+import AddEvent from "../event/add-event-sidebar"
 import DayView from "./view-day"
 import WeekView from "./view-week"
 import MonthView from "./view-month"
+import { isEventSidebarOpenAtom } from "@/lib/atoms/event-atom"
 
 type ViewType = "day" | "week" | "month"
 
@@ -69,9 +70,9 @@ const ContextMenu: React.FC<ContextMenuProps> = ({ x, y, onClose, onCreateEvent,
 export default function FullCalendar() {
   const [currentDate, setCurrentDate] = useAtom(currentDateAtom)
   const [viewType, setViewType] = useAtom(viewTypeAtom)
-  const [isChatSidebarOpen, setIsChatSidebarOpen] = useAtom(isChatSidebarOpenAtom)
+  const [, setIsChatSidebarOpen] = useAtom(isChatSidebarOpenAtom)
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null)
-  const [isEventDialogOpen, setIsEventDialogOpen] = useState(false)
+  const [isEventSidebarOpen, setIsEventSidebarOpen] = useAtom(isEventSidebarOpenAtom)
 
   const containerRef = useRef<HTMLDivElement>(null)
 
@@ -221,9 +222,10 @@ export default function FullCalendar() {
     }
   }
 
-  const handleCreateEvent = () => {
-    setIsEventDialogOpen(true)
-    setContextMenu(null)
+  const toggleEventSidebar = () => {
+    const newState = !isEventSidebarOpen;
+    setIsEventSidebarOpen(newState);
+    localStorage.setItem('isEventSidebarOpen', JSON.stringify(newState));
   }
 
   const handleAskAI = () => {
@@ -262,7 +264,7 @@ export default function FullCalendar() {
           <div className="flex items-center gap-3 sm:gap-2">
             <Button 
               variant="outline" 
-              className="bg-muted rounded-sm sm:w-20 h-8 font-semibold text-xs sm:text-sm"
+              className="block sm:hidden bg-muted rounded-sm sm:w-20 h-8 font-semibold text-xs sm:text-sm"
               onClick={() => {
                 const today = new Date()
                 setCurrentDate(today)
@@ -270,12 +272,22 @@ export default function FullCalendar() {
             >
               {new Date().getDate()}
             </Button>
+            <Button 
+              variant="outline" 
+              className="hidden sm:flex bg-muted rounded-sm w-20 h-8 text-sm"
+              onClick={() => setCurrentDate(new Date())}
+            >
+              Today
+            </Button>
             <TabsList className="bg-neutral-900 border border-neutral-700 h-8">
               <TabsTrigger value="day" className="capitalize w-12 sm:w-18 text-xs sm:text-sm">Day</TabsTrigger>
               <TabsTrigger value="week" className="capitalize w-12 sm:w-18 text-xs sm:text-sm">Week</TabsTrigger>
               <TabsTrigger value="month" className="capitalize w-12 sm:w-18 text-xs sm:text-sm">Month</TabsTrigger>
             </TabsList>
-            <AddEvent isOpen={isEventDialogOpen} onOpenChange={setIsEventDialogOpen} />
+            <Button variant="default" className="rounded-sm h-8 text-xs sm:text-sm" onClick={toggleEventSidebar}>
+              <Plus className="w-4 h-4" />
+              Add Event
+            </Button>
           </div>
         </div>
 
@@ -305,24 +317,12 @@ export default function FullCalendar() {
           </TabsContent>
         </div>
 
-        {/* Mobile Today Button */}
-        <Button 
-          variant="outline" 
-          className="fixed bottom-20 right-4 z-40 bg-neutral-800 hover:bg-neutral-700 text-white rounded-full w-12 h-12 shadow-lg sm:hidden"
-          onClick={() => {
-            const today = new Date()
-            setCurrentDate(today)
-          }}
-        >
-          <span className="text-xs">Today</span>
-        </Button>
-
         {contextMenu && (
           <ContextMenu
             x={contextMenu.x}
             y={contextMenu.y}
             onClose={() => setContextMenu(null)}
-            onCreateEvent={handleCreateEvent}
+            onCreateEvent={toggleEventSidebar}
             onAskAI={handleAskAI}
           />
         )}
