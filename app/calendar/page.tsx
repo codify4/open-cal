@@ -17,7 +17,7 @@ function CalendarPage() {
     }
     
     return (
-        <div className="p-0 h-full">
+        <div>
             <FullCalendar />
             
             {!isChatSidebarOpen && (

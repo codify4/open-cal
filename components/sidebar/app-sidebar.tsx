@@ -15,6 +15,7 @@ import {
   SidebarContent,
   SidebarFooter
 } from "@/components/ui/sidebar"
+import PremiumCard from "./premium"
 
 const emailAccounts = [
   {
@@ -89,6 +90,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           onEmailChange={handleEmailChange}
           onCalendarToggle={handleCalendarToggle}
         />
+        <div className="mt-auto">
+          <PremiumCard />
+        </div>
       </SidebarContent>
       <SidebarFooter className="bg-neutral-950 border-none">
         <NavUser user={data.user} />

@@ -28,7 +28,7 @@ export function ChatSidebar({ className, isFullscreen, onToggleSidebar, onToggle
     <div 
       className={cn(
         "flex flex-col h-full text-white",
-        isFullscreen ? "w-full max-w-4xl mx-auto" : "w-full",
+        isFullscreen ? "w-full max-w-4xl mx-auto" : "",
         className
       )} 
       {...props}

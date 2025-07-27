@@ -55,15 +55,17 @@ export function CalendarLayoutClient({ children }: { children: React.ReactNode }
             <AppSidebar className="bg-neutral-950 border-none" variant="inset" />
             <ResizablePanelGroup direction="horizontal" className="min-h-screen md:p-1.5 gap-1">
                 <ResizablePanel defaultSize={isChatSidebarOpen ? 70 : 100} minSize={30} className="md:rounded-xl overflow-hidden p-0">
-                    <SidebarInset className="bg-neutral-900 h-full">
-                        {children}
+                    <SidebarInset className="md:rounded-xl bg-neutral-900 h-screen overflow-hidden">
+                        <div className="h-full overflow-y-auto scrollbar-hide">
+                            {children}
+                        </div>
                     </SidebarInset>
                 </ResizablePanel>
                 {isChatSidebarOpen && (
                     <>
                         <ResizableHandle withHandle className="opacity-0 hover:opacity-100 transition-opacity duration-300"/>
                         <ResizablePanel defaultSize={30} minSize={20} maxSize={50} className="bg-neutral-900 rounded-lg p-2">
-                            <div className="bg-neutral-900 h-full rounded-xl shadow-sm overflow-hidden">
+                            <div className="h-full rounded-xl shadow-sm overflow-hidden">
                                 <ChatSidebar 
                                     isFullscreen={isFullscreen} 
                                     onToggleSidebar={closeChatSidebar}
@@ -76,8 +78,8 @@ export function CalendarLayoutClient({ children }: { children: React.ReactNode }
                 {isEventSidebarOpen && (
                     <>
                         <ResizableHandle withHandle className="opacity-0 hover:opacity-100 transition-opacity duration-300"/>
-                        <ResizablePanel defaultSize={30} minSize={20} maxSize={50} className="bg-neutral-900 rounded-lg p-2">
-                            <div className="bg-neutral-900 h-full rounded-xl shadow-sm overflow-hidden">
+                        <ResizablePanel defaultSize={30} minSize={20} maxSize={50} className="bg-neutral-900 rounded-lg p-2 min-w-[400px]">
+                            <div className="h-full rounded-xl shadow-sm overflow-hidden">
                                 <AddEventSidebar 
                                     onClick={closeEventSidebar}
                                 />
