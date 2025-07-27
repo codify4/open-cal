@@ -57,7 +57,7 @@ export default function TopNav({ className }: { className?: string }) {
           </div>
 
           <div className="hidden md:flex items-center space-x-4">
-            <Link href="https://github.com/codify4/digit" target="_blank">
+            <Link href="/github" target="_blank">
               <Button className="bg-white text-black hover:bg-white/90 h-9 px-6">
                 <Github className="h-4 w-4" fill="black" />
                 GitHub
