@@ -1,177 +1,183 @@
 "use client"
 
-import type React from "react"
-import { useState, useRef, useEffect, useCallback } from "react"
 import { useAtom } from "jotai"
-import { ChevronLeft, ChevronRight, Plus, Sparkle } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Card } from "@/components/ui/card"
-import { SidebarTrigger } from "../ui/sidebar"
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
-import { Kbd } from "../ui/kbd"
+import FullCalendar from "@fullcalendar/react"
+import dayGridPlugin from "@fullcalendar/daygrid"
+import timeGridPlugin from "@fullcalendar/timegrid"
+import interactionPlugin from "@fullcalendar/interaction"
+import { eventsAtom, Event } from "@/lib/atoms/event-atom"
 import { currentDateAtom, viewTypeAtom } from "@/lib/atoms/cal-atoms"
-import { isChatSidebarOpenAtom } from "@/lib/atoms/chat-atom"
-import AddEvent from "../event/add-event-sidebar"
-import DayView from "./view-day"
-import WeekView from "./view-week"
-import MonthView from "./view-month"
-import { 
-  isEventSidebarOpenAtom, 
-  eventCreationContextAtom,
-  eventsAtom,
-  selectedEventAtom,
-  Event 
-} from "@/lib/atoms/event-atom"
+import { Card } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { ChevronLeft, ChevronRight } from "lucide-react"
+import { SidebarTrigger } from "../ui/sidebar"
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { useRef } from "react"
 
-type ViewType = "day" | "week" | "month"
-
-interface ContextMenuProps {
-  x: number
-  y: number
-  onClose: () => void
-  onCreateEvent: () => void
-  onAskAI: () => void
-}
-
-const ContextMenu: React.FC<ContextMenuProps> = ({ x, y, onClose, onCreateEvent, onAskAI }) => {
-  const menuRef = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
-        onClose()
-      }
-    }
-
-    document.addEventListener("mousedown", handleClickOutside)
-    return () => document.removeEventListener("mousedown", handleClickOutside)
-  }, [onClose])
-
-  return (
-    <div
-      ref={menuRef}
-      className="fixed z-50 bg-neutral-900 border border-neutral-700 rounded-md shadow-xl p-1 min-w-[160px]"
-      style={{ left: x, top: y }}
-    >
-      <Button
-        variant="ghost" 
-        onClick={onCreateEvent}
-        className="w-full rounded-sm px-3 py-2 text-white hover:text-white hover:bg-neutral-800 flex items-center justify-between transition-colors"
-      >
-        <span>Create Event</span>
-        <Kbd variant={'outline'} className="bg-neutral-950 p-1 rounded-[5px] text-xs" size={'xs'}>c</Kbd>
-      </Button>
-      <Button
-        variant="ghost" 
-        onClick={onAskAI}
-        className="w-full rounded-sm px-3 py-2 text-white hover:text-white hover:bg-neutral-800 flex items-center justify-between transition-colors"
-      >
-        <span>Ask Agent</span>
-        <Sparkle size={16} className="text-white" />
-      </Button>
-    </div>
-  )
-}
-
-export default function FullCalendar() {
+export default function StyledFullCalendar() {
+  const [events, setEvents] = useAtom(eventsAtom)
   const [currentDate, setCurrentDate] = useAtom(currentDateAtom)
   const [viewType, setViewType] = useAtom(viewTypeAtom)
-  const [, setIsChatSidebarOpen] = useAtom(isChatSidebarOpenAtom)
-  const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null)
-  const [isEventSidebarOpen, setIsEventSidebarOpen] = useAtom(isEventSidebarOpenAtom)
-  const [, setEventCreationContext] = useAtom(eventCreationContextAtom)
-  const [events, setEvents] = useAtom(eventsAtom)
-  const [, setSelectedEvent] = useAtom(selectedEventAtom)
+  const calendarRef = useRef<any>(null)
 
-  const containerRef = useRef<HTMLDivElement>(null)
-
-  // Generate extended days for horizontal scrolling
-  const getDaysToShow = useCallback(() => {
-    const days = []
-    const baseDate = new Date(currentDate)
-
-    if (viewType === "day") {
-      // Show 21 days (10 before, current, 10 after) for scrolling
-      for (let i = -10; i <= 10; i++) {
-        const day = new Date(baseDate)
-        day.setDate(baseDate.getDate() + i)
-        days.push(day)
-      }
-    } else if (viewType === "week") {
-      // Show 7 weeks (3 before, current, 3 after) but center on selected date
-      for (let weekOffset = -3; weekOffset <= 3; weekOffset++) {
-        const weekStart = new Date(baseDate)
-        const dayOfWeek = weekStart.getDay()
-        const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek
-        weekStart.setDate(weekStart.getDate() + mondayOffset + weekOffset * 7)
-
-        for (let i = 0; i < 7; i++) {
-          const day = new Date(weekStart)
-          day.setDate(weekStart.getDate() + i)
-          days.push(day)
-        }
-      }
+  // Add some sample events for testing
+  const sampleEvents = [
+    {
+      id: "1",
+      title: "Team Meeting",
+      startDate: new Date(),
+      endDate: new Date(Date.now() + 60 * 60 * 1000), // 1 hour later
+      startTime: "10:00",
+      endTime: "11:00",
+      description: "Weekly team sync",
+      location: "Conference Room A",
+      color: "blue",
+      isAllDay: false,
+      type: "event",
+      visibility: "public",
+      repeat: "weekly",
+      availability: "busy",
+      reminders: ["10 minutes before"],
+      attendees: ["John Doe", "Jane Smith"],
+    },
+    {
+      id: "2", 
+      title: "Lunch with Client",
+      startDate: new Date(Date.now() + 2 * 60 * 60 * 1000), // 2 hours later
+      endDate: new Date(Date.now() + 3 * 60 * 60 * 1000), // 3 hours later
+      startTime: "12:00",
+      endTime: "13:00",
+      description: "Discuss project requirements",
+      location: "Downtown Restaurant",
+      color: "green",
+      isAllDay: false,
+      type: "event",
+      visibility: "private",
+      repeat: "none",
+      availability: "busy",
+      reminders: ["30 minutes before"],
+      attendees: ["Client Name"],
+    },
+    {
+      id: "3",
+      title: "Birthday Party",
+      startDate: new Date(),
+      endDate: new Date(),
+      startTime: "",
+      endTime: "",
+      description: "Annual celebration",
+      location: "Home",
+      color: "pink",
+      isAllDay: true,
+      type: "birthday",
+      visibility: "public",
+      repeat: "yearly",
+      availability: "available",
+      reminders: ["1 day before"],
+      attendees: ["Family", "Friends"],
     }
+  ]
 
-    return days
-  }, [currentDate, viewType])
+  // Use sample events if no events exist
+  const displayEvents = events.length > 0 ? events : sampleEvents
 
-  useEffect(() => {
-    if (containerRef.current) {
-      if (viewType === "month") {
-        // Scroll to current month (first month is always current month, so scroll to 0)
-        const container = containerRef.current
-        container.scrollLeft = 0
-      } else if (viewType === "day") {
-        // Center on selected date in day view
-        const container = containerRef.current
-        const days = getDaysToShow()
-        
-        // Find the selected date's index in the days array
-        const selectedIndex = days.findIndex((day) => day.toDateString() === currentDate.toDateString())
-        
-        if (selectedIndex !== -1) {
-          const dayWidth = container.scrollWidth / 21 // 21 total days
-          const centerPosition = dayWidth * selectedIndex
-          container.scrollLeft = centerPosition
-        }
-      } else if (viewType === "week") {
-        // Center on selected date in week view
-        const container = containerRef.current
-        const days = getDaysToShow()
-
-        // Find the selected date's index in the days array
-        const selectedIndex = days.findIndex((day) => day.toDateString() === currentDate.toDateString())
-
-        if (selectedIndex !== -1) {
-          const dayWidth = 240 // w-60 = 240px
-          const timeColumnWidth = 96 // w-24 = 96px
-          const scrollPosition = selectedIndex * dayWidth - container.clientWidth / 2 + dayWidth / 2 + timeColumnWidth
-          container.scrollLeft = Math.max(0, scrollPosition)
-        }
-      }
+  const calendarEvents = displayEvents.map(event => ({
+    id: event.id,
+    title: event.title,
+    start: event.startDate,
+    end: event.endDate,
+    allDay: event.isAllDay,
+    backgroundColor: getEventColor(event.color),
+    borderColor: getEventColor(event.color),
+    textColor: '#ffffff',
+    extendedProps: {
+      description: event.description,
+      location: event.location,
+      attendees: event.attendees,
+      type: event.type,
+      visibility: event.visibility,
+      repeat: event.repeat,
+      availability: event.availability,
+      reminders: event.reminders,
     }
-  }, [viewType, currentDate, getDaysToShow])
+  }))
 
-  const handleContextMenu = (e: React.MouseEvent) => {
-    e.preventDefault()
-    setContextMenu({ x: e.clientX, y: e.clientY })
+  function getEventColor(color: string) {
+    const colorMap: Record<string, string> = {
+      blue: '#3b82f6',
+      green: '#10b981',
+      red: '#ef4444',
+      yellow: '#f59e0b',
+      purple: '#8b5cf6',
+      pink: '#ec4899',
+      orange: '#f97316',
+      indigo: '#6366f1',
+    }
+    return colorMap[color] || '#3b82f6'
   }
 
-  const navigateDate = (direction: "prev" | "next") => {
-    const newDate = new Date(currentDate)
-
-    if (viewType === "day") {
-      newDate.setDate(newDate.getDate() + (direction === "next" ? 1 : -1))
-    } else if (viewType === "week") {
-      newDate.setDate(newDate.getDate() + (direction === "next" ? 7 : -7))
-    } else if (viewType === "month") {
-      newDate.setMonth(newDate.getMonth() + (direction === "next" ? 1 : -1))
-    }
-
-    setCurrentDate(newDate)
+  const handleEventDrop = (info: any) => {
+    const { event } = info
+    setEvents(prev => prev.map(e => {
+      if (e.id === event.id) {
+        return {
+          ...e,
+          startDate: event.start,
+          endDate: event.end || event.start
+        }
+      }
+      return e
+    }))
   }
 
+  const handleDateSelect = (selectInfo: any) => {
+    console.log('Date selected:', selectInfo.start)
+  }
+
+  const handleEventClick = (clickInfo: any) => {
+    console.log('Event clicked:', clickInfo.event)
+  }
+
+  const getViewType = () => {
+    switch (viewType) {
+      case 'day':
+        return 'timeGridDay'
+      case 'week':
+        return 'timeGridWeek'
+      case 'month':
+        return 'dayGridMonth'
+      default:
+        return 'timeGridWeek'
+    }
+  }
+
+  const handleViewChange = (newViewType: string) => {
+    switch (newViewType) {
+      case 'timeGridDay':
+        setViewType('day')
+        break
+      case 'timeGridWeek':
+        setViewType('week')
+        break
+      case 'dayGridMonth':
+        setViewType('month')
+        break
+    }
+  }
+
+  const changeView = (newViewType: 'day' | 'week' | 'month') => {
+    setViewType(newViewType)
+    if (calendarRef.current) {
+      const calendarApi = calendarRef.current.getApi()
+      const viewMap = {
+        day: 'timeGridDay',
+        week: 'timeGridWeek',
+        month: 'dayGridMonth'
+      }
+      calendarApi.changeView(viewMap[newViewType])
+    }
+  }
+  
   const getViewTitle = () => {
     if (viewType === "day") {
       return (
@@ -231,32 +237,8 @@ export default function FullCalendar() {
     }
   }
 
-  const toggleEventSidebar = () => {
-    const newState = !isEventSidebarOpen;
-    setIsEventSidebarOpen(newState);
-    localStorage.setItem('isEventSidebarOpen', JSON.stringify(newState));
-  }
-
-  const handleCreateEvent = () => {
-    if (contextMenu) {
-      setEventCreationContext({
-        clickPosition: { x: contextMenu.x, y: contextMenu.y },
-        targetDate: currentDate
-      })
-      
-      toggleEventSidebar()
-      setContextMenu(null)
-    }
-  }
-
-  const handleAskAI = () => {
-    setIsChatSidebarOpen(true)
-    localStorage.setItem('isChatSidebarOpen', 'true')
-    setContextMenu(null)
-  }
-
   return (
-    <Tabs value={viewType} onValueChange={(value) => setViewType(value as ViewType)} className="w-full h-full">
+    <Tabs defaultValue="week" className="w-full h-full">
       <Card className="w-full h-full bg-neutral-900 border-neutral-800 text-neutral-100 flex flex-col py-0 gap-0 rounded-xl">
         <div className="flex items-center justify-between px-4 py-1.5 border-b border-neutral-800">
           <div className="flex items-center gap-2 sm:gap-4">
@@ -266,7 +248,20 @@ export default function FullCalendar() {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => navigateDate("prev")}
+                onClick={() => {
+                  const newDate = new Date(currentDate)
+                  if (viewType === 'day') {
+                    newDate.setDate(newDate.getDate() - 1)
+                  } else if (viewType === 'week') {
+                    newDate.setDate(newDate.getDate() - 7)
+                  } else if (viewType === 'month') {
+                    newDate.setMonth(newDate.getMonth() - 1)
+                  }
+                  setCurrentDate(newDate)
+                  if (calendarRef.current) {
+                    calendarRef.current.getApi().prev()
+                  }
+                }}
                 className="hidden sm:block text-neutral-400 hover:text-neutral-100 hover:bg-neutral-800 p-1 sm:p-2"
               >
                 <ChevronLeft className="w-3 h-3 sm:w-4 sm:h-4" />
@@ -274,7 +269,20 @@ export default function FullCalendar() {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => navigateDate("next")}
+                onClick={() => {
+                  const newDate = new Date(currentDate)
+                  if (viewType === 'day') {
+                    newDate.setDate(newDate.getDate() + 1)
+                  } else if (viewType === 'week') {
+                    newDate.setDate(newDate.getDate() + 7)
+                  } else if (viewType === 'month') {
+                    newDate.setMonth(newDate.getMonth() + 1)
+                  }
+                  setCurrentDate(newDate)
+                  if (calendarRef.current) {
+                    calendarRef.current.getApi().next()
+                  }
+                }}
                 className="hidden sm:block text-neutral-400 hover:text-neutral-100 hover:bg-neutral-800 p-1 sm:p-2"
               >
                 <ChevronRight className="w-3 h-3 sm:w-4 sm:h-4" />
@@ -282,13 +290,15 @@ export default function FullCalendar() {
             </div>
           </div>
 
-          <div className="flex items-center gap-3 sm:gap-2">
+          <div className="flex items-center gap-2">
             <Button 
               variant="outline" 
               className="block sm:hidden bg-muted rounded-sm sm:w-20 h-8 font-semibold text-xs sm:text-sm"
               onClick={() => {
-                const today = new Date()
-                setCurrentDate(today)
+                setCurrentDate(new Date())
+                if (calendarRef.current) {
+                  calendarRef.current.getApi().today()
+                }
               }}
             >
               {new Date().getDate()}
@@ -296,53 +306,76 @@ export default function FullCalendar() {
             <Button 
               variant="outline" 
               className="hidden sm:flex bg-muted rounded-sm w-20 h-8 text-sm"
-              onClick={() => setCurrentDate(new Date())}
+              onClick={() => {
+                setCurrentDate(new Date())
+                if (calendarRef.current) {
+                  calendarRef.current.getApi().today()
+                }
+              }}
             >
               Today
             </Button>
             <TabsList className="bg-neutral-900 border border-neutral-700 h-8">
-              <TabsTrigger value="day" className="capitalize w-12 sm:w-18 text-xs sm:text-sm">Day</TabsTrigger>
-              <TabsTrigger value="week" className="capitalize w-12 sm:w-18 text-xs sm:text-sm">Week</TabsTrigger>
-              <TabsTrigger value="month" className="capitalize w-12 sm:w-18 text-xs sm:text-sm">Month</TabsTrigger>
+              <TabsTrigger 
+                value="day"
+                className="capitalize w-12 sm:w-18 text-xs sm:text-sm"
+                onClick={() => changeView('day')}
+              >
+                Day
+              </TabsTrigger>
+              <TabsTrigger 
+                value="week"
+                className="capitalize w-12 sm:w-18 text-xs sm:text-sm"
+                onClick={() => changeView('week')}
+              >
+                Week
+              </TabsTrigger>
+              <TabsTrigger 
+                value="month"
+                className="capitalize w-12 sm:w-18 text-xs sm:text-sm"
+                onClick={() => changeView('month')}
+              >
+                Month
+              </TabsTrigger>
             </TabsList>
           </div>
         </div>
 
-        <div className="flex-1 flex flex-col">
-          <TabsContent value="month" className="flex-1 h-full mt-0">
-            <MonthView
-              currentDate={currentDate}
-              setCurrentDate={setCurrentDate}
-              onContextMenu={handleContextMenu}
-            />
-          </TabsContent>
-
-          <TabsContent value="day" className="flex-1 h-full mt-0">
-            <DayView
-              currentDate={currentDate}
-              setCurrentDate={setCurrentDate}
-              onContextMenu={handleContextMenu}
-            />
-          </TabsContent>
-
-          <TabsContent value="week" className="flex-1 h-full mt-0">
-            <WeekView
-              currentDate={currentDate}
-              setCurrentDate={setCurrentDate}
-              onContextMenu={handleContextMenu}
-            />
-          </TabsContent>
-        </div>
-
-        {contextMenu && (
-          <ContextMenu
-            x={contextMenu.x}
-            y={contextMenu.y}
-            onClose={() => setContextMenu(null)}
-            onCreateEvent={handleCreateEvent}
-            onAskAI={handleAskAI}
+        <div className="flex-1 h-full">
+          <FullCalendar
+            ref={calendarRef}
+            plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
+            initialView={getViewType()}
+            initialDate={currentDate}
+            editable={true}
+            selectable={true}
+            selectMirror={true}
+            dayMaxEvents={true}
+            weekends={true}
+            events={calendarEvents}
+            select={handleDateSelect}
+            eventClick={handleEventClick}
+            eventDrop={handleEventDrop}
+            height="100%" 
+            headerToolbar={false}
+            viewDidMount={(info) => {
+              handleViewChange(info.view.type)
+            }}
+            // Custom styling classes
+            eventClassNames="rounded-md border-0 text-xs font-medium"
+            dayCellClassNames="bg-neutral-900 border-r border-neutral-800 z-10"
+            // Custom CSS variables for dark theme
+            eventContent={(arg) => {
+              return (
+                <div className="p-1 h-full w-full overflow-hidden">
+                  <div className="font-medium text-xs truncate">
+                    {arg.event.title}
+                  </div>
+                </div>
+              )
+            }}
           />
-        )}
+        </div>
       </Card>
     </Tabs>
   )

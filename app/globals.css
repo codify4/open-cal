@@ -242,3 +242,335 @@
   border-radius: 0;
   margin: 0;
 }
+
+/* FullCalendar Clean Dark Theme */
+
+/* 1. Make AM/PM ALL CAPS */
+.fc-timegrid-slot-label,
+.fc-timegrid-axis {
+  text-transform: uppercase !important;
+  font-size: 11px !important;
+  border: none !important;
+}
+
+/* 2. Remove "all-day" text completely */
+.fc-daygrid-day-events .fc-daygrid-event-harness::before,
+.fc-daygrid-day-events .fc-daygrid-event-harness::after,
+.fc-daygrid-day-events .fc-daygrid-day-events {
+  content: none !important;
+}
+
+/* Hide the all-day section text */
+.fc-daygrid-day-events .fc-daygrid-day-events {
+  display: none !important;
+}
+
+/* Hide scrollbars */
+.fc-scroller {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+
+.fc-scroller::-webkit-scrollbar {
+  display: none !important;
+}
+
+/* Custom FullCalendar styling for clean dark theme */
+.fc-theme-standard .fc-scrollgrid {
+  border-color: rgb(38 38 38) !important; /* neutral-800 */
+}
+
+.fc-theme-standard td,
+.fc-theme-standard th,
+.fc-theme-standard .fc-scrollgrid {
+  border-color: rgb(38 38 38) !important; /* neutral-800 */
+}
+
+.fc-theme-standard .fc-scrollgrid-section-header td {
+  background-color: rgb(23 23 23) !important; /* neutral-900 */
+  color: rgb(255 255 255) !important;
+  border-color: rgb(38 38 38) !important; /* neutral-800 */
+  font-weight: 500 !important;
+}
+
+.fc-theme-standard .fc-scrollgrid-section-body td {
+  background-color: rgb(23 23 23) !important; /* neutral-900 */
+  color: rgb(255 255 255) !important;
+  border-color: rgb(38 38 38) !important; /* neutral-800 */
+}
+
+.fc-theme-standard .fc-daygrid-day {
+  background-color: rgb(23 23 23) !important; /* neutral-900 */
+}
+
+.fc-theme-standard .fc-daygrid-day-number {
+  color: rgb(255 255 255) !important;
+  font-weight: 500 !important;
+}
+
+.fc-theme-standard .fc-col-header-cell {
+  background-color: rgb(23 23 23) !important; /* neutral-900 */
+  color: rgb(255 255 255) !important;
+  border-color: rgb(38 38 38) !important; /* neutral-800 */
+  font-weight: 500 !important;
+}
+
+/* Time grid styling - remove internal borders */
+.fc-theme-standard .fc-timegrid-slot {
+  background-color: rgb(23 23 23) !important; /* neutral-900 */
+  border-color: transparent !important; /* Remove internal borders */
+}
+
+/* Add vertical borders between days in week view */
+.fc-timegrid-body .fc-timegrid-col {
+    border-right: 1px solid rgb(38 38 38) !important; /* neutral-800 or whatever color you want */
+}
+
+
+.fc-theme-standard .fc-timegrid-slot-label {
+  background-color: rgb(23 23 23) !important; /* neutral-900 */
+  color: rgb(156 163 175) !important; /* neutral-400 */
+  font-weight: 500 !important;
+  font-size: 11px !important; /* Smaller font */
+}
+
+.fc-theme-standard .fc-timegrid-axis {
+  background-color: rgb(23 23 23) !important; /* neutral-900 */
+  color: rgb(156 163 175) !important; /* neutral-400 */
+  border-color: rgb(38 38 38) !important; /* neutral-800 */
+  font-weight: 500 !important;
+  font-size: 11px !important; /* Smaller font */
+}
+
+/* Current time indicator */
+.fc-theme-standard .fc-timegrid-now-indicator-line {
+  border-color: rgb(239 68 68) !important; /* red-500 */
+}
+
+.fc-theme-standard .fc-timegrid-now-indicator-arrow {
+  border-color: rgb(239 68 68) !important; /* red-500 */
+}
+
+/* Today styling */
+.fc-theme-standard .fc-day-today {
+  background-color: rgba(239, 68, 68, 0.1) !important; /* red-500 with opacity */
+}
+
+.fc-theme-standard .fc-daygrid-day.fc-day-today {
+  background-color: rgba(239, 68, 68, 0.1) !important; /* red-500 with opacity */
+}
+
+/* All-day section styling - COMPACT */
+.fc-theme-standard .fc-daygrid-day-frame {
+  background-color: rgb(23 23 23) !important; /* neutral-900 */
+}
+
+.fc-theme-standard .fc-daygrid-day-events {
+  background-color: rgb(23 23 23) !important; /* neutral-900 */
+  border-color: rgb(38 38 38) !important; /* neutral-800 */
+  min-height: 0 !important;
+  padding: 2px !important;
+}
+
+/* Remove all-day label completely */
+.fc-theme-standard .fc-daygrid-day-events .fc-daygrid-event-harness {
+  background-color: rgb(23 23 23) !important; /* neutral-900 */
+}
+
+/* Week view day headers - format as "Mon 28" */
+.fc-theme-standard .fc-col-header-cell .fc-col-header-cell-cushion {
+  font-size: 12px !important;
+  font-weight: 500 !important;
+}
+
+.fc-timegrid-col-frame {
+  border-right-color: rgb(38 38 38) !important; /* neutral-800 */
+}
+
+.fc-theme-standard .fc-timegrid-col:last-child {
+  border-right-color: rgb(38 38 38) !important
+}
+
+/* Event styling */
+.fc-theme-standard .fc-event {
+  border-radius: 4px !important;
+  border: none !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  margin: 1px 2px !important;
+}
+
+.fc-theme-standard .fc-event-main {
+  padding: 2px 4px !important;
+}
+
+.fc-theme-standard .fc-event-time {
+  font-weight: 600 !important;
+  font-size: 11px !important;
+}
+
+.fc-theme-standard .fc-event-title {
+  font-weight: 500 !important;
+  font-size: 12px !important;
+}
+
+/* Hover effects */
+.fc-theme-standard .fc-daygrid-day:hover {
+  background-color: rgb(38 38 38) !important; /* neutral-800 */
+  border-right-color: rgb(38 38 38) !important; /* neutral-800 */
+}
+
+.fc-theme-standard .fc-timegrid-slot:hover {
+  background-color: rgb(38 38 38) !important; /* neutral-800 */
+}
+
+/* Button styling */
+.fc-button {
+  border-radius: 6px !important;
+  font-weight: 500 !important;
+  transition: all 0.2s ease !important;
+  font-size: 12px !important;
+}
+
+.fc-button:hover {
+  transform: translateY(-1px) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+}
+
+.fc-button:active {
+  transform: translateY(0) !important;
+}
+
+/* Today button styling */
+.fc-today-button {
+  background-color: rgb(239 68 68) !important; /* red-500 */
+  border-color: rgb(239 68 68) !important; /* red-500 */
+  color: rgb(255 255 255) !important;
+}
+
+.fc-today-button:hover {
+  background-color: rgb(220 38 38) !important; /* red-600 */
+  border-color: rgb(220 38 38) !important; /* red-600 */
+}
+
+/* Header styling */
+.fc-toolbar {
+  background-color: rgb(23 23 23) !important; /* neutral-900 */
+  border-bottom: 1px solid rgb(38 38 38) !important; /* neutral-800 */
+  padding: 12px 16px !important;
+}
+
+.fc-toolbar-title {
+  color: rgb(255 255 255) !important; /* neutral-100 */
+  font-weight: 600 !important;
+  font-size: 18px !important;
+}
+
+/* Event colors */
+.fc-event[data-color="blue"] {
+  background-color: rgb(59 130 246) !important; /* blue-500 */
+  border-color: rgb(59 130 246) !important; /* blue-500 */
+}
+
+.fc-event[data-color="green"] {
+  background-color: rgb(16 185 129) !important; /* green-500 */
+  border-color: rgb(16 185 129) !important; /* green-500 */
+}
+
+.fc-event[data-color="red"] {
+  background-color: rgb(239 68 68) !important; /* red-500 */
+  border-color: rgb(239 68 68) !important; /* red-500 */
+}
+
+.fc-event[data-color="yellow"] {
+  background-color: rgb(245 158 11) !important; /* yellow-500 */
+  border-color: rgb(245 158 11) !important; /* yellow-500 */
+}
+
+.fc-event[data-color="purple"] {
+  background-color: rgb(139 92 246) !important; /* purple-500 */
+  border-color: rgb(139 92 246) !important; /* purple-500 */
+}
+
+.fc-event[data-color="pink"] {
+  background-color: rgb(236 72 153) !important; /* pink-500 */
+  border-color: rgb(236 72 153) !important; /* pink-500 */
+}
+
+.fc-event[data-color="orange"] {
+  background-color: rgb(249 115 22) !important; /* orange-500 */
+  border-color: rgb(249 115 22) !important; /* orange-500 */
+}
+
+.fc-event[data-color="indigo"] {
+  background-color: rgb(99 102 241) !important; /* indigo-500 */
+  border-color: rgb(99 102 241) !important; /* indigo-500 */
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .fc-toolbar {
+    flex-direction: column !important;
+    gap: 8px !important;
+  }
+  
+  .fc-toolbar-chunk {
+    display: flex !important;
+    justify-content: center !important;
+    width: 100% !important;
+  }
+  
+  .fc-button {
+    font-size: 11px !important;
+    padding: 6px 12px !important;
+  }
+  
+  .fc-toolbar-title {
+    font-size: 16px !important;
+  }
+}
+
+/* Make each hour slot the same height as the previous subdivided slots */
+.fc-timegrid-slot {
+  height: 30px !important; /* Same height as two 30-minute slots */
+}
+
+.fc-timegrid-slot-lane {
+  height: 30px !important;
+  border-bottom-color: transparent !important;
+}
+
+.fc-timegrid-slot-label {
+  height: 30px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+/* Ensure the time labels are centered vertically */
+.fc-timegrid-slot-label-frame {
+  height: 100% !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+/* Make sure the axis (time column) has the same height */
+.fc-timegrid-axis {
+  height: 60px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.fc-timegrid-axis-frame {
+  height: 100% !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.fc-timegrid-slot-minor {
+    border-top: none !important;
+    border-bottom-color: rgb(38 38 38) !important;
+}

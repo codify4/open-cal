@@ -1,7 +1,6 @@
 'use client'
 
 import { Button } from "@/components/ui/button"
-import { MessageSquare } from "lucide-react"
 import { useAtom } from "jotai"
 import { isChatSidebarOpenAtom } from "@/lib/atoms/chat-atom"
 import FullCalendar from "@/components/calendar/full-calendar"
@@ -17,7 +16,7 @@ function CalendarPage() {
     }
     
     return (
-        <div>
+        <div className="h-full">
             <FullCalendar />
             
             {!isChatSidebarOpen && (
@@ -32,4 +31,5 @@ function CalendarPage() {
         </div>
     );
 }
-export default CalendarPage
+
+export default CalendarPage;
