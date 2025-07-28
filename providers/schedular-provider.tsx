@@ -8,6 +8,8 @@ import React, {
   ReactNode,
   Dispatch,
   useEffect,
+  useState,
+  useCallback,
 } from "react";
 import { z } from "zod";
 
@@ -94,6 +96,63 @@ export const SchedulerProvider = ({
     schedulerReducer,
     { events: initialState ?? [] } // Sets initialState or an empty array as the default
   );
+
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const [direction, setDirection] = useState<number>(0);
+
+  // Navigation handlers for unified header
+  const handleNextDay = useCallback(() => {
+    setDirection(1);
+    const nextDay = new Date(currentDate);
+    nextDay.setDate(currentDate.getDate() + 1);
+    setCurrentDate(nextDay);
+  }, [currentDate]);
+
+  const handlePrevDay = useCallback(() => {
+    setDirection(-1);
+    const prevDay = new Date(currentDate);
+    prevDay.setDate(currentDate.getDate() - 1);
+    setCurrentDate(prevDay);
+  }, [currentDate]);
+
+  const handleNextWeek = useCallback(() => {
+    setDirection(1);
+    const nextWeek = new Date(currentDate);
+    nextWeek.setDate(currentDate.getDate() + 7);
+    setCurrentDate(nextWeek);
+  }, [currentDate]);
+
+  const handlePrevWeek = useCallback(() => {
+    setDirection(-1);
+    const prevWeek = new Date(currentDate);
+    prevWeek.setDate(currentDate.getDate() - 7);
+    setCurrentDate(prevWeek);
+  }, [currentDate]);
+
+  const handleNextMonth = useCallback(() => {
+    setDirection(1);
+    const newDate = new Date(
+      currentDate.getFullYear(),
+      currentDate.getMonth() + 1,
+      1
+    );
+    setCurrentDate(newDate);
+  }, [currentDate]);
+
+  const handlePrevMonth = useCallback(() => {
+    setDirection(-1);
+    const newDate = new Date(
+      currentDate.getFullYear(),
+      currentDate.getMonth() - 1,
+      1
+    );
+    setCurrentDate(newDate);
+  }, [currentDate]);
+
+  const handleGoToToday = useCallback(() => {
+    setDirection(0);
+    setCurrentDate(new Date());
+  }, []);
 
   useEffect(() => {
     if (initialState) {
@@ -185,12 +244,18 @@ export const SchedulerProvider = ({
     return days[day];
   };
 
+  const getCurrentDate = () => currentDate;
+
+  const getDirection = () => direction;
+
   const getters: Getters = {
     getDaysInMonth,
     getEventsForDay,
     getDaysInWeek,
     getWeekNumber,
     getDayName,
+    getCurrentDate,
+    getDirection,
   };
 
   // handlers
@@ -333,6 +398,13 @@ export const SchedulerProvider = ({
     handleAddEvent,
     handleUpdateEvent,
     handleDeleteEvent,
+    handleNextDay,
+    handlePrevDay,
+    handleNextWeek,
+    handlePrevWeek,
+    handleNextMonth,
+    handlePrevMonth,
+    handleGoToToday,
   };
 
   return (

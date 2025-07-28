@@ -31,14 +31,10 @@ const pageTransitionVariants = {
 };
 
 export default function MonthView({
-  prevButton,
-  nextButton,
   CustomEventComponent,
   CustomEventModal,
   classNames,
 }: {
-  prevButton?: React.ReactNode;
-  nextButton?: React.ReactNode;
   CustomEventComponent?: React.FC<Event>;
   CustomEventModal?: CustomEventModal;
   classNames?: { prev?: string; next?: string; addEvent?: string };
@@ -46,33 +42,14 @@ export default function MonthView({
   const { getters, weekStartsOn } = useScheduler();
   const { setOpen } = useModal();
 
-  const [currentDate, setCurrentDate] = useState(new Date());
-  const [direction, setDirection] = useState<number>(0);
+  // Get current date and direction from scheduler provider
+  const currentDate = getters.getCurrentDate ? getters.getCurrentDate() : new Date();
+  const direction = getters.getDirection ? getters.getDirection() : 0;
 
   const daysInMonth = getters.getDaysInMonth(
     currentDate.getMonth(),
     currentDate.getFullYear()
   );
-
-  const handlePrevMonth = useCallback(() => {
-    setDirection(-1);
-    const newDate = new Date(
-      currentDate.getFullYear(),
-      currentDate.getMonth() - 1,
-      1
-    );
-    setCurrentDate(newDate);
-  }, [currentDate]);
-
-  const handleNextMonth = useCallback(() => {
-    setDirection(1);
-    const newDate = new Date(
-      currentDate.getFullYear(),
-      currentDate.getMonth() + 1,
-      1
-    );
-    setCurrentDate(newDate);
-  }, [currentDate]);
 
   function handleAddEvent(selectedDay: number) {
     // Create start date at 12:00 AM on the selected day
@@ -168,45 +145,6 @@ export default function MonthView({
   ).getDate();
   return (
     <div>
-      <div className="flex flex-col mb-4">
-        <motion.h2
-          key={currentDate.getMonth()}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.5 }}
-          className="text-3xl my-5 tracking-tighter font-bold"
-        >
-          {currentDate.toLocaleString("default", { month: "long" })}{" "}
-          {currentDate.getFullYear()}
-        </motion.h2>
-        <div className="flex gap-3">
-          {prevButton ? (
-            <div onClick={handlePrevMonth}>{prevButton}</div>
-          ) : (
-            <Button
-              variant="outline"
-              className={classNames?.prev}
-              onClick={handlePrevMonth}
-            >
-              <ArrowLeft />
-              Prev
-            </Button>
-          )}
-          {nextButton ? (
-            <div onClick={handleNextMonth}>{nextButton}</div>
-          ) : (
-            <Button
-              variant="outline"
-              className={classNames?.next}
-              onClick={handleNextMonth}
-            >
-              Next
-              <ArrowRight />
-            </Button>
-          )}
-        </div>
-      </div>
       <AnimatePresence initial={false} custom={direction} mode="wait">
         <motion.div
           key={`${currentDate.getFullYear()}-${currentDate.getMonth()}`}

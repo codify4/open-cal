@@ -1,10 +1,10 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Calendar as CalendarIcon, CalendarDaysIcon } from "lucide-react";
+import { Calendar as CalendarIcon, CalendarDaysIcon, ArrowLeft, ArrowRight } from "lucide-react";
 import { BsCalendarMonth, BsCalendarWeek } from "react-icons/bs";
 
 import AddEventModal from "../../_modals/add-event-modal";
@@ -12,8 +12,10 @@ import DailyView from "./day/daily-view";
 import MonthView from "./month/month-view";
 import WeeklyView from "./week/week-view";
 import { useModal } from "@/providers/modal-context";
+import { useScheduler } from "@/providers/schedular-provider";
 import { ClassNames, CustomComponents, Views } from "@/types/index";
 import { cn } from "@/lib/utils";
+import { SidebarTrigger } from "@/components/ui/sidebar";
 
 // Animation settings for Framer Motion
 const animationConfig = {
@@ -38,6 +40,7 @@ export default function SchedulerViewFilteration({
   classNames?: ClassNames;
 }) {
   const { setOpen } = useModal();
+  const { handlers, getters } = useScheduler();
   const [activeView, setActiveView] = useState<string>("day");
   const [clientSide, setClientSide] = useState(false);
 
@@ -67,61 +70,103 @@ export default function SchedulerViewFilteration({
     return () => window && window.removeEventListener("resize", handleResize);
   }, [clientSide]);
 
-  function handleAddEvent(selectedDay?: number) {
-    // Create the modal content with proper data
-    const startDate = new Date(
-      new Date().getFullYear(),
-      new Date().getMonth(),
-      selectedDay ?? new Date().getDate(),
-      0,
-      0,
-      0,
-      0
-    );
-
-    const endDate = new Date(
-      new Date().getFullYear(),
-      new Date().getMonth(),
-      selectedDay ?? new Date().getDate(),
-      23,
-      59,
-      59,
-      999
-    );
-
-    // Create a wrapper component to handle data passing
-    const ModalWrapper = () => {
-      const title =
-        CustomComponents?.CustomEventModal?.CustomAddEventModal?.title ||
-        "Add Event";
+  const getViewTitle = (viewType: string) => {
+    const currentDate = getters.getCurrentDate()
+    
+    if (viewType === "day") {
+      return (
+        <>
+          <span className="hidden sm:inline">
+            {currentDate.toLocaleDateString("en-US", {
+              weekday: "long",
+              year: "numeric",
+              month: "long",
+              day: "numeric",
+            })}
+          </span>
+          <span className="sm:hidden">
+            {currentDate.toLocaleDateString("en-US", {
+              month: "long",
+            })}
+          </span>
+        </>
+      )
+    } else if (viewType === "week") {
+      // Use the same logic as the week view to get the correct week range
+      const daysOfWeek = getters.getDaysInWeek(
+        getters.getWeekNumber(currentDate),
+        currentDate.getFullYear()
+      );
+      
+      const startOfWeek = daysOfWeek[0];
+      const endOfWeek = daysOfWeek[6];
 
       return (
-        <div>
-          <h2 className="text-xl font-semibold mb-4">{title}</h2>
-        </div>
-      );
-    };
-
-    // Open the modal with the content
-    setOpen(
-      <>
-        <AddEventModal
-          CustomAddEventModal={
-            CustomComponents?.CustomEventModal?.CustomAddEventModal?.CustomForm
-          }
-        />{" "}
-      </>
-    );
+        <>
+          <span className="hidden sm:inline">
+            {`${startOfWeek.toLocaleDateString("en-US", { month: "short", day: "numeric" })} - ${endOfWeek.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}`}
+          </span>
+          <span className="sm:hidden">
+            {currentDate.toLocaleDateString("en-US", {
+              month: "long",
+            })}
+          </span>
+        </>
+      )
+    } else {
+      return (
+        <>
+          <span className="hidden sm:inline">
+            {currentDate.toLocaleDateString("en-US", {
+              year: "numeric",
+              month: "long",
+            })}
+          </span>
+          <span className="sm:hidden">
+            {currentDate.toLocaleDateString("en-US", {
+              month: "long",
+            })}
+          </span>
+        </>
+      )
+    }
   }
 
   const viewsSelector = isMobile ? views?.mobileViews : views?.views;
 
-  // Set initial active view
   useEffect(() => {
     if (viewsSelector?.length) {
       setActiveView(viewsSelector[0]);
     }
   }, []);
+
+  const handlePrev = () => {
+    switch (activeView) {
+      case "day":
+        handlers.handlePrevDay();
+        break;
+      case "week":
+        handlers.handlePrevWeek();
+        break;
+      case "month":
+        handlers.handlePrevMonth();
+        break;
+    }
+  };
+
+  const handleNext = () => {
+    switch (activeView) {
+      case "day":
+        handlers.handleNextDay();
+        break;
+      case "week":
+        handlers.handleNextWeek();
+        break;
+      case "month":
+        handlers.handleNextMonth();
+        break;
+    }
+  };
 
   return (
     <div className="flex w-full flex-col">
@@ -132,63 +177,95 @@ export default function SchedulerViewFilteration({
             onValueChange={setActiveView}
             className={cn("w-full", classNames?.tabs)}
           >
-            <div className="flex justify-between items-center mb-4">
-              <TabsList className="grid grid-cols-3">
-                {viewsSelector?.includes("day") && (
-                  <TabsTrigger value="day">
-                    {CustomComponents?.customTabs?.CustomDayTab ? (
-                      CustomComponents.customTabs.CustomDayTab
-                    ) : (
-                      <div className="flex items-center space-x-2">
-                        <CalendarDaysIcon size={15} />
-                        <span>Day</span>
-                      </div>
-                    )}
-                  </TabsTrigger>
-                )}
+            <div className="flex justify-between items-center border-b border-border">
+              <div className="flex items-center justify-between w-full gap-4 pb-2">
+                <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 mr-2">
+                    <SidebarTrigger />
+                    <h1 className="text-lg font-semibold">
+                      {getViewTitle(activeView)}
+                    </h1>
+                  </div>
 
-                {viewsSelector?.includes("week") && (
-                  <TabsTrigger value="week">
-                    {CustomComponents?.customTabs?.CustomWeekTab ? (
-                      CustomComponents.customTabs.CustomWeekTab
+                  <div className="flex gap-2">
+                    {CustomComponents?.customButtons?.CustomPrevButton ? (
+                      <div onClick={handlePrev}>{CustomComponents.customButtons.CustomPrevButton}</div>
                     ) : (
-                      <div className="flex items-center space-x-2">
-                        <BsCalendarWeek />
-                        <span>Week</span>
-                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className={classNames?.buttons?.prev}
+                        onClick={handlePrev}
+                      >
+                        <ArrowLeft className="h-4 w-4" />
+                      </Button>
                     )}
-                  </TabsTrigger>
-                )}
-
-                {viewsSelector?.includes("month") && (
-                  <TabsTrigger value="month">
-                    {CustomComponents?.customTabs?.CustomMonthTab ? (
-                      CustomComponents.customTabs.CustomMonthTab
+                    {CustomComponents?.customButtons?.CustomNextButton ? (
+                      <div onClick={handleNext}>{CustomComponents.customButtons.CustomNextButton}</div>
                     ) : (
-                      <div className="flex items-center space-x-2">
-                        <BsCalendarMonth />
-                        <span>Month</span>
-                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className={classNames?.buttons?.next}
+                        onClick={handleNext}
+                      >
+                        <ArrowRight className="h-4 w-4" />
+                      </Button>
                     )}
-                  </TabsTrigger>
-                )}
-              </TabsList>
-
-              {/* Add Event Button */}
-              {CustomComponents?.customButtons?.CustomAddEventButton ? (
-                <div onClick={() => handleAddEvent()}>
-                  {CustomComponents?.customButtons.CustomAddEventButton}
+                  </div>
                 </div>
-              ) : (
-                <Button
-                  onClick={() => handleAddEvent()}
-                  className={classNames?.buttons?.addEvent}
-                  variant="default"
+                <div className="flex items-center gap-2">
+                <Button 
+                  variant="outline" 
+                  className="hidden sm:flex bg-muted rounded-sm w-20 h-8 text-sm"
+                  onClick={() => {
+                    handlers.handleGoToToday();
+                  }}
                 >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  Add Event
+                  Today
                 </Button>
-              )}
+                  <TabsList className="grid grid-cols-3">
+                    {viewsSelector?.includes("day") && (
+                      <TabsTrigger value="day">
+                        {CustomComponents?.customTabs?.CustomDayTab ? (
+                          CustomComponents.customTabs.CustomDayTab
+                        ) : (
+                          <div className="flex items-center space-x-2">
+                            <CalendarDaysIcon size={15} />
+                            <span>Day</span>
+                          </div>
+                        )}
+                      </TabsTrigger>
+                    )}
+
+                    {viewsSelector?.includes("week") && (
+                      <TabsTrigger value="week">
+                        {CustomComponents?.customTabs?.CustomWeekTab ? (
+                          CustomComponents.customTabs.CustomWeekTab
+                        ) : (
+                          <div className="flex items-center space-x-2">
+                            <BsCalendarWeek />
+                            <span>Week</span>
+                          </div>
+                        )}
+                      </TabsTrigger>
+                    )}
+
+                    {viewsSelector?.includes("month") && (
+                      <TabsTrigger value="month">
+                        {CustomComponents?.customTabs?.CustomMonthTab ? (
+                          CustomComponents.customTabs.CustomMonthTab
+                        ) : (
+                          <div className="flex items-center space-x-2">
+                            <BsCalendarMonth />
+                            <span>Month</span>
+                          </div>
+                        )}
+                      </TabsTrigger>
+                    )}
+                  </TabsList>
+                </div>
+              </div>
             </div>
 
             {viewsSelector?.includes("day") && (
@@ -198,12 +275,6 @@ export default function SchedulerViewFilteration({
                     <DailyView
                       stopDayEventSummary={stopDayEventSummary}
                       classNames={classNames?.buttons}
-                      prevButton={
-                        CustomComponents?.customButtons?.CustomPrevButton
-                      }
-                      nextButton={
-                        CustomComponents?.customButtons?.CustomNextButton
-                      }
                       CustomEventComponent={
                         CustomComponents?.CustomEventComponent
                       }
@@ -220,12 +291,6 @@ export default function SchedulerViewFilteration({
                   <motion.div {...animationConfig}>
                     <WeeklyView
                       classNames={classNames?.buttons}
-                      prevButton={
-                        CustomComponents?.customButtons?.CustomPrevButton
-                      }
-                      nextButton={
-                        CustomComponents?.customButtons?.CustomNextButton
-                      }
                       CustomEventComponent={
                         CustomComponents?.CustomEventComponent
                       }
@@ -242,12 +307,6 @@ export default function SchedulerViewFilteration({
                   <motion.div {...animationConfig}>
                     <MonthView
                       classNames={classNames?.buttons}
-                      prevButton={
-                        CustomComponents?.customButtons?.CustomPrevButton
-                      }
-                      nextButton={
-                        CustomComponents?.customButtons?.CustomNextButton
-                      }
                       CustomEventComponent={
                         CustomComponents?.CustomEventComponent
                       }

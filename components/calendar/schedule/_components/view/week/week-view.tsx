@@ -89,14 +89,10 @@ const pageTransitionVariants = {
 };
 
 export default function WeeklyView({
-  prevButton,
-  nextButton,
   CustomEventComponent,
   CustomEventModal,
   classNames,
 }: {
-  prevButton?: React.ReactNode;
-  nextButton?: React.ReactNode;
   CustomEventComponent?: React.FC<Event>;
   CustomEventModal?: CustomEventModal;
   classNames?: { prev?: string; next?: string; addEvent?: string };
@@ -105,11 +101,13 @@ export default function WeeklyView({
   const hoursColumnRef = useRef<HTMLDivElement>(null);
   const [detailedHour, setDetailedHour] = useState<string | null>(null);
   const [timelinePosition, setTimelinePosition] = useState<number>(0);
-  const [currentDate, setCurrentDate] = useState<Date>(new Date());
   const [colWidth, setColWidth] = useState<number[]>(Array(7).fill(1)); // Equal width columns by default
   const [isResizing, setIsResizing] = useState<boolean>(false);
-  const [direction, setDirection] = useState<number>(0);
   const { setOpen } = useModal();
+
+  // Get current date and direction from scheduler provider
+  const currentDate = getters.getCurrentDate ? getters.getCurrentDate() : new Date();
+  const direction = getters.getDirection ? getters.getDirection() : 0;
 
   const daysOfWeek = getters?.getDaysInWeek(
     getters?.getWeekNumber(currentDate),
@@ -165,20 +163,6 @@ export default function WeeklyView({
       }
     );
   }
-
-  const handleNextWeek = useCallback(() => {
-    setDirection(1);
-    const nextWeek = new Date(currentDate);
-    nextWeek.setDate(currentDate.getDate() + 7);
-    setCurrentDate(nextWeek);
-  }, [currentDate]);
-
-  const handlePrevWeek = useCallback(() => {
-    setDirection(-1);
-    const prevWeek = new Date(currentDate);
-    prevWeek.setDate(currentDate.getDate() - 7);
-    setCurrentDate(prevWeek);
-  }, [currentDate]);
 
   function handleAddEventWeek(dayIndex: number, detailedHour: string) {
     if (!detailedHour) {
@@ -306,28 +290,6 @@ export default function WeeklyView({
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex justify-between items-center mb-2">
-
-        <div className="flex ml-auto gap-3">
-          {prevButton ? (
-            <div onClick={handlePrevWeek}>{prevButton}</div>
-          ) : (
-            <Button variant="outline" className={classNames?.prev} onClick={handlePrevWeek}>
-              <ArrowLeft />
-              Prev
-            </Button>
-          )}
-          {nextButton ? (
-            <div onClick={handleNextWeek}>{nextButton}</div>
-          ) : (
-            <Button variant="outline" className={classNames?.next} onClick={handleNextWeek}>
-              Next
-              <ArrowRight />
-            </Button>
-          )}
-        </div>
-      </div>
-      
       <AnimatePresence initial={false} custom={direction} mode="wait">
         <motion.div
           key={currentDate.toISOString()}
@@ -356,7 +318,7 @@ export default function WeeklyView({
               }}
             >
               {daysOfWeek.map((day, idx) => (
-                <div key={idx} className="relative relative group flex flex-col">
+                <div key={idx} className="relative group flex flex-col">
                   <div className="sticky bg-default-100 top-0 z-20 flex-grow flex items-center justify-center">
                     <div className="text-center p-4">
                       <div className="text-lg font-semibold">

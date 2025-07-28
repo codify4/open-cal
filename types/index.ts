@@ -53,6 +53,13 @@ export interface Handlers {
   handleAddEvent: (event: Event) => void;
   handleUpdateEvent: (event: Event, id: string) => void;
   handleDeleteEvent: (id: string) => void;
+  handleNextDay: () => void;
+  handlePrevDay: () => void;
+  handleNextWeek: () => void;
+  handlePrevWeek: () => void;
+  handleNextMonth: () => void;
+  handlePrevMonth: () => void;
+  handleGoToToday: () => void;
 }
 
 // Define getters interface
@@ -65,6 +72,8 @@ export interface Getters {
   getDaysInWeek: (week: number, year: number) => Date[];
   getWeekNumber: (date: Date) => number;
   getDayName: (day: number) => string;
+  getCurrentDate: () => Date;
+  getDirection: () => number;
 }
 
 // Define the context value interface

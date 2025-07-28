@@ -145,15 +145,11 @@ const groupEventsByTimePeriod = (events: Event[] | undefined) => {
 };
 
 export default function DailyView({
-  prevButton,
-  nextButton,
   CustomEventComponent,
   CustomEventModal,
   stopDayEventSummary,
   classNames,
 }: {
-  prevButton?: React.ReactNode;
-  nextButton?: React.ReactNode;
   CustomEventComponent?: React.FC<Event>;
   CustomEventModal?: CustomEventModal;
   stopDayEventSummary?: boolean;
@@ -162,10 +158,12 @@ export default function DailyView({
   const hoursColumnRef = useRef<HTMLDivElement>(null);
   const [detailedHour, setDetailedHour] = useState<string | null>(null);
   const [timelinePosition, setTimelinePosition] = useState<number>(0);
-  const [currentDate, setCurrentDate] = useState<Date>(new Date());
-  const [direction, setDirection] = useState<number>(0);
   const { setOpen } = useModal();
   const { getters, handlers } = useScheduler();
+  
+  // Get current date and direction from scheduler provider
+  const currentDate = getters.getCurrentDate ? getters.getCurrentDate() : new Date();
+  const direction = getters.getDirection ? getters.getDirection() : 0;
 
   const handleMouseMove = useCallback(
     (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
@@ -189,11 +187,6 @@ export default function DailyView({
       setTimelinePosition(position);
     },
     []
-  );
-
-  const getFormattedDayTitle = useCallback(
-    () => currentDate.toDateString(),
-    [currentDate]
   );
 
   const dayEvents = getters.getEventsForDay(
@@ -271,54 +264,8 @@ export default function DailyView({
     });
   }
 
-  const handleNextDay = useCallback(() => {
-    setDirection(1);
-    const nextDay = new Date(currentDate);
-    nextDay.setDate(currentDate.getDate() + 1);
-    setCurrentDate(nextDay);
-  }, [currentDate]);
-
-  const handlePrevDay = useCallback(() => {
-    setDirection(-1);
-    const prevDay = new Date(currentDate);
-    prevDay.setDate(currentDate.getDate() - 1);
-    setCurrentDate(prevDay);
-  }, [currentDate]);
-
   return (
-    <div className="">
-      <div className="flex justify-between gap-3 flex-wrap mb-5">
-        <h1 className="text-3xl font-semibold mb-4">
-          {getFormattedDayTitle()}
-        </h1>
-
-        <div className="flex ml-auto  gap-3">
-          {prevButton ? (
-            <div onClick={handlePrevDay}>{prevButton}</div>
-          ) : (
-            <Button
-              variant={"outline"}
-              className={classNames?.prev}
-              onClick={handlePrevDay}
-            >
-              <ArrowLeft />
-              Prev
-            </Button>
-          )}
-          {nextButton ? (
-            <div onClick={handleNextDay}>{nextButton}</div>
-          ) : (
-            <Button
-              variant={"outline"}
-              className={classNames?.next}
-              onClick={handleNextDay}
-            >
-              Next
-              <ArrowRight />
-            </Button>
-          )}
-        </div>
-      </div>
+    <div className="mt-0">
       <AnimatePresence initial={false} custom={direction} mode="wait">
         <motion.div
           key={currentDate.toISOString()}
