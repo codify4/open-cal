@@ -94,7 +94,7 @@ export default function SchedulerViewFilteration({
     } else if (viewType === "week") {
       // Use the same logic as the week view to get the correct week range
       const daysOfWeek = getters.getDaysInWeek(
-        getters.getWeekNumber(currentDate),
+        1, // Week number is not used in the new implementation
         currentDate.getFullYear()
       );
       

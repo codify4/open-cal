@@ -12,6 +12,7 @@ import React, {
   useCallback,
 } from "react";
 import { z } from "zod";
+import { useAtom } from "jotai";
 
 import {
   Action,
@@ -22,6 +23,7 @@ import {
   startOfWeek,
 } from "@/types/index";
 import ModalProvider from "./modal-context";
+import { currentDateAtom, selectedDateAtom, autoSyncSelectedDateAtom } from "@/lib/atoms/cal-atoms";
 // Define event and state types
 
 interface SchedulerState {
@@ -97,7 +99,8 @@ export const SchedulerProvider = ({
     { events: initialState ?? [] } // Sets initialState or an empty array as the default
   );
 
-  const [currentDate, setCurrentDate] = useState(new Date());
+  const [currentDate, setCurrentDate] = useAtom(autoSyncSelectedDateAtom);
+  const [selectedDate] = useAtom(selectedDateAtom);
   const [direction, setDirection] = useState<number>(0);
 
   // Navigation handlers for unified header
@@ -106,28 +109,28 @@ export const SchedulerProvider = ({
     const nextDay = new Date(currentDate);
     nextDay.setDate(currentDate.getDate() + 1);
     setCurrentDate(nextDay);
-  }, [currentDate]);
+  }, [currentDate, setCurrentDate]);
 
   const handlePrevDay = useCallback(() => {
     setDirection(-1);
     const prevDay = new Date(currentDate);
     prevDay.setDate(currentDate.getDate() - 1);
     setCurrentDate(prevDay);
-  }, [currentDate]);
+  }, [currentDate, setCurrentDate]);
 
   const handleNextWeek = useCallback(() => {
     setDirection(1);
     const nextWeek = new Date(currentDate);
     nextWeek.setDate(currentDate.getDate() + 7);
     setCurrentDate(nextWeek);
-  }, [currentDate]);
+  }, [currentDate, setCurrentDate]);
 
   const handlePrevWeek = useCallback(() => {
     setDirection(-1);
     const prevWeek = new Date(currentDate);
     prevWeek.setDate(currentDate.getDate() - 7);
     setCurrentDate(prevWeek);
-  }, [currentDate]);
+  }, [currentDate, setCurrentDate]);
 
   const handleNextMonth = useCallback(() => {
     setDirection(1);
@@ -137,7 +140,7 @@ export const SchedulerProvider = ({
       1
     );
     setCurrentDate(newDate);
-  }, [currentDate]);
+  }, [currentDate, setCurrentDate]);
 
   const handlePrevMonth = useCallback(() => {
     setDirection(-1);
@@ -147,12 +150,13 @@ export const SchedulerProvider = ({
       1
     );
     setCurrentDate(newDate);
-  }, [currentDate]);
+  }, [currentDate, setCurrentDate]);
 
   const handleGoToToday = useCallback(() => {
     setDirection(0);
-    setCurrentDate(new Date());
-  }, []);
+    const today = new Date();
+    setCurrentDate(today);
+  }, [setCurrentDate]);
 
   useEffect(() => {
     if (initialState) {
@@ -172,23 +176,19 @@ export const SchedulerProvider = ({
   };
 
   const getDaysInWeek = (week: number, year: number) => {
-    // Determine if the week should start on Sunday (0) or Monday (1)
+    // For now, let's use a simpler approach that gets the week containing the current date
     const startDay = weekStartsOn === "sunday" ? 0 : 1;
-
-    // Get January 1st of the year
-    const janFirst = new Date(year, 0, 1);
-
-    // Calculate how many days we are offsetting from January 1st
-    const janFirstDayOfWeek = janFirst.getDay();
-
-    // Calculate the start of the week by finding the correct day in the year
-    const weekStart = new Date(janFirst);
-    weekStart.setDate(
-      janFirst.getDate() +
-        (week - 1) * 7 +
-        ((startDay - janFirstDayOfWeek + 7) % 7)
-    );
-
+    
+    // Get the current date's day of week (0 = Sunday, 1 = Monday, etc.)
+    const currentDayOfWeek = currentDate.getDay();
+    
+    // Calculate how many days to go back to get to the start of the week
+    const daysToSubtract = (currentDayOfWeek - startDay + 7) % 7;
+    
+    // Get the start of the current week
+    const weekStart = new Date(currentDate);
+    weekStart.setDate(currentDate.getDate() - daysToSubtract);
+    
     // Generate the week's days
     const days = [];
     for (let i = 0; i < 7; i++) {
@@ -196,20 +196,28 @@ export const SchedulerProvider = ({
       day.setDate(day.getDate() + i);
       days.push(day);
     }
+    
 
+    
     return days;
   };
 
   const getWeekNumber = (date: Date) => {
-    const d = new Date(
-      Date.UTC(date.getFullYear(), date.getMonth(), date.getDate())
-    );
-    d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
-    const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
-    const weekNo = Math.ceil(
-      ((d.getTime() - yearStart.getTime()) / 86400000 + 1) / 7
-    );
-    return weekNo;
+    // Use a simpler week calculation that aligns with the calendar picker
+    const startDay = weekStartsOn === "sunday" ? 0 : 1;
+    
+    // Get the start of the year
+    const yearStart = new Date(date.getFullYear(), 0, 1);
+    
+    // Calculate days since year start
+    const daysSinceYearStart = Math.floor((date.getTime() - yearStart.getTime()) / (24 * 60 * 60 * 1000));
+    
+    // Calculate the week number based on the configured start day
+    const weekNumber = Math.floor((daysSinceYearStart + yearStart.getDay() - startDay + 7) / 7);
+    
+
+    
+    return weekNumber;
   };
 
   // Helper function to filter events for a specific day

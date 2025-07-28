@@ -110,9 +110,11 @@ export default function WeeklyView({
   const direction = getters.getDirection ? getters.getDirection() : 0;
 
   const daysOfWeek = getters?.getDaysInWeek(
-    getters?.getWeekNumber(currentDate),
+    1, // Week number is not used in the new implementation
     currentDate.getFullYear()
   );
+  
+
 
   // Reset column widths when the date changes
   useEffect(() => {
