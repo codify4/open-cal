@@ -1,14 +1,27 @@
 import React, { useRef, useState, useEffect, useCallback } from "react";
 import { useScheduler } from "@/providers/schedular-provider";
 import { Badge } from "@/components/ui/badge";
-import { AnimatePresence, motion } from "framer-motion"; // Import Framer Motion
+import { AnimatePresence, motion } from "framer-motion";
 import { useModal } from "@/providers/modal-context";
 import AddEventModal from "@/components/calendar/schedule/_modals/add-event-modal";
 import EventStyled from "../event-component/event-styled";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, ArrowRight, Maximize2, ChevronLeft, Maximize } from "lucide-react";
+import { ChevronLeft, Maximize, Plus } from "lucide-react";
 import clsx from "clsx";
 import { Event, CustomEventModal } from "@/types";
+import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuTrigger,
+} from "@/components/ui/context-menu";
+import { useAtom } from "jotai";
+import { 
+  isEventSidebarOpenAtom, 
+  eventCreationContextAtom,
+  selectedEventAtom,
+  Event as SidebarEvent
+} from "@/lib/atoms/event-atom";
 
 const hours = Array.from({ length: 24 }, (_, i) => {
   const hour = i % 12 || 12;
@@ -103,7 +116,13 @@ export default function WeeklyView({
   const [timelinePosition, setTimelinePosition] = useState<number>(0);
   const [colWidth, setColWidth] = useState<number[]>(Array(7).fill(1)); // Equal width columns by default
   const [isResizing, setIsResizing] = useState<boolean>(false);
+  const [contextMenuTime, setContextMenuTime] = useState<string | null>(null);
   const { setOpen } = useModal();
+
+  // Sidebar state management
+  const [isEventSidebarOpen, setIsEventSidebarOpen] = useAtom(isEventSidebarOpenAtom);
+  const [eventCreationContext, setEventCreationContext] = useAtom(eventCreationContextAtom);
+  const [selectedEvent, setSelectedEvent] = useAtom(selectedEventAtom);
 
   // Get current date and direction from scheduler provider
   const currentDate = getters.getCurrentDate ? getters.getCurrentDate() : new Date();
@@ -133,15 +152,31 @@ export default function WeeklyView({
     // Format in 12-hour format
     const hour12 = hour % 12 || 12;
     const ampm = hour < 12 ? "AM" : "PM";
-    setDetailedHour(
-      `${hour12}:${minutes.toString().padStart(2, "0")} ${ampm}`
-    );
+    const timeString = `${hour12}:${minutes.toString().padStart(2, "0")} ${ampm}`;
+    setDetailedHour(timeString);
     
     // Ensure timelinePosition is never negative and is within bounds
     // 83px offset accounts for the header height
     const headerOffset = 83;
     const position = Math.max(0, Math.min(rect.height, Math.round(y))) + headerOffset;
     setTimelinePosition(position);
+  }, []);
+
+  const handleContextMenuOpen = useCallback((e: React.MouseEvent) => {
+    // Capture the mouse position when context menu opens
+    if (!hoursColumnRef.current) return;
+    const rect = hoursColumnRef.current.getBoundingClientRect();
+    const y = e.clientY - rect.top;
+    const hourHeight = rect.height / 24;
+    const hour = Math.max(0, Math.min(23, Math.floor(y / hourHeight)));
+    const minuteFraction = (y % hourHeight) / hourHeight;
+    const minutes = Math.floor(minuteFraction * 60);
+    
+    // Format in 12-hour format
+    const hour12 = hour % 12 || 12;
+    const ampm = hour < 12 ? "AM" : "PM";
+    const timeString = `${hour12}:${minutes.toString().padStart(2, "0")} ${ampm}`;
+    setContextMenuTime(timeString);
   }, []);
 
   function handleAddEvent(event?: Event) {
@@ -193,7 +228,7 @@ export default function WeeklyView({
       return;
     }
 
-    const date = new Date(
+    const targetDate = new Date(
       currentDate.getFullYear(),
       currentDate.getMonth(),
       chosenDay,
@@ -201,13 +236,45 @@ export default function WeeklyView({
       minutes
     );
 
-    handleAddEvent({
-      startDate: date,
-      endDate: new Date(date.getTime() + 60 * 60 * 1000), // 1-hour duration
-      title: "",
-      id: "",
-      variant: "primary",
+    // Format time for the sidebar (HH:MM format)
+    const startTime = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+    const endTime = `${(hours + 1).toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+
+    // Set the event creation context for the sidebar
+    setEventCreationContext({
+      targetDate,
+      clickPosition: {
+        x: 0, // We'll get this from the context menu event if needed
+        y: 0
+      }
     });
+
+    // Create a new event with the correct time information for the sidebar
+    const newEvent: SidebarEvent = {
+      id: `event-${Date.now()}`,
+      title: "",
+      description: "",
+      startDate: targetDate,
+      endDate: new Date(targetDate.getTime() + 60 * 60 * 1000), // 1 hour later
+      startTime: startTime,
+      endTime: endTime,
+      isAllDay: false,
+      color: "blue",
+      type: "event",
+      location: "",
+      attendees: [],
+      reminders: [],
+      repeat: "none",
+      availability: "busy",
+      visibility: "default"
+    };
+
+    // Set the selected event directly
+    setSelectedEvent(newEvent);
+
+    // Open the sidebar
+    setIsEventSidebarOpen(true);
+    localStorage.setItem('isEventSidebarOpen', 'true');
   }
 
 
@@ -567,13 +634,12 @@ export default function WeeklyView({
                   : dayEvents;
 
                 return (
-                  <div
-                    key={`day-${dayIndex}`}
-                    className="col-span-1 border-default-200 z-20 relative transition duration-300 cursor-pointer border-r border-b text-center text-sm text-muted-foreground overflow-hidden"
-                    onClick={() => {
-                      handleAddEventWeek(dayIndex, detailedHour as string);
-                    }}
-                  >
+                  <ContextMenu key={`day-${dayIndex}`}>
+                    <ContextMenuTrigger asChild>
+                      <div
+                        className="col-span-1 border-default-200 z-20 relative transition duration-300 cursor-pointer border-r border-b text-center text-sm text-muted-foreground overflow-hidden"
+                        onContextMenu={handleContextMenuOpen}
+                      >
                     <AnimatePresence initial={false}>
                       {visibleEvents?.map((event, eventIndex) => {
                         // For better spacing, consider if this event is part of a time group
@@ -689,15 +755,29 @@ export default function WeeklyView({
                         </div>
                       </div>
                     ))}
-                  </div>
+                      </div>
+                    </ContextMenuTrigger>
+                    <ContextMenuContent>
+                      <ContextMenuItem
+                        onClick={() => {
+                          // Use the captured context menu time, fallback to detailedHour, then default
+                          const timeToUse = contextMenuTime || detailedHour || "12:00 PM";
+                          handleAddEventWeek(dayIndex, timeToUse);
+                          // Clear the context menu time after use
+                          setContextMenuTime(null);
+                        }}
+                      >
+                        <Plus className="mr-2 h-4 w-4" />
+                        Add Event
+                      </ContextMenuItem>
+                    </ContextMenuContent>
+                  </ContextMenu>
                 );
               })}
             </div>
           </div>
         </motion.div>
       </AnimatePresence>
-
-   
     </div>
   );
 }
