@@ -39,9 +39,6 @@ const DayView: React.FC<DayViewProps> = ({ currentDate, setCurrentDate, onContex
   const [events, setEvents] = useAtom(eventsAtom)
   const [draggedEvent, setDraggedEvent] = useAtom(draggedEventAtom)
 
-  console.log('DayView events:', events)
-  console.log('Current date:', currentDate)
-
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
@@ -98,13 +95,10 @@ const DayView: React.FC<DayViewProps> = ({ currentDate, setCurrentDate, onContex
       const eventHour = event.startTime ? parseInt(event.startTime.split(':')[0]) : 0
       const isSameDay = eventDate.toDateString() === day.toDateString()
       const isSameHour = eventHour === hour
-      
-      console.log('Event:', event.title, 'Date:', eventDate.toDateString(), 'Day:', day.toDateString(), 'Hour:', eventHour, 'Target Hour:', hour, 'Same Day:', isSameDay, 'Same Hour:', isSameHour)
-      
+            
       return isSameDay && isSameHour
     })
     
-    console.log(`Events for ${day.toDateString()} at ${hour}:00:`, filteredEvents)
     return filteredEvents
   }
 

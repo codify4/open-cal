@@ -2,22 +2,24 @@
 
 import React from "react"
 import { useAtom } from "jotai"
-import { Clock, MapPin, Users, Edit, Trash2 } from "lucide-react"
+import { Clock, MapPin, Users, MoreHorizontal } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { selectedEventAtom, eventsAtom, Event } from "@/lib/atoms/event-atom"
 import { useDraggable } from "@dnd-kit/core"
+import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuTrigger,
+} from "@/components/ui/context-menu"
 
 interface EventCardProps {
   event: Event
-  onEdit?: () => void
-  onDelete?: () => void
   className?: string
 }
 
 export const EventCard: React.FC<EventCardProps> = ({ 
   event, 
-  onEdit, 
-  onDelete, 
   className = "" 
 }) => {
   const [, setSelectedEvent] = useAtom(selectedEventAtom)
@@ -30,12 +32,6 @@ export const EventCard: React.FC<EventCardProps> = ({
 
   const handleEdit = () => {
     setSelectedEvent(event)
-    onEdit?.()
-  }
-
-  const handleDelete = () => {
-    setEvents(prev => prev.filter(e => e.id !== event.id))
-    onDelete?.()
   }
 
   const formatTime = (time: string) => {
@@ -66,97 +62,99 @@ export const EventCard: React.FC<EventCardProps> = ({
   } : undefined
 
   return (
-    <div
-      ref={setNodeRef}
-      style={style}
-      {...listeners}
-      {...attributes}
-      className={`
-        relative group cursor-pointer rounded-md border p-2 text-xs
-        hover:shadow-md transition-all duration-200
-        ${getColorClasses(event.color)}
-        ${event.isAllDay ? 'border-l-4' : ''}
-        ${isDragging ? 'opacity-50' : ''}
-        ${className}
-      `}
-      onClick={handleEdit}
-    >
-      <div className="flex items-start justify-between mb-1">
-        <div className="flex-1 min-w-0">
-          <h4 className="font-medium text-white truncate">
-            {event.title || "Untitled Event"}
-          </h4>
+    <ContextMenu>
+      <ContextMenuTrigger>
+        <div
+          ref={setNodeRef}
+          style={style}
+          {...listeners}
+          {...attributes}
+          className={`
+            relative group cursor-pointer rounded-md border p-2 text-xs
+            hover:shadow-md transition-all duration-200
+            ${getColorClasses(event.color)}
+            ${event.isAllDay ? 'border-l-4' : ''}
+            ${isDragging ? 'opacity-50' : ''}
+            ${className}
+          `}
+          onClick={handleEdit}
+        >
+          <div className="flex items-start justify-between mb-1">
+            <div className="flex-1 min-w-0">
+              <h4 className="font-medium text-white truncate">
+                {event.title || "Untitled Event"}
+              </h4>
+            </div>
+          </div>
+
+          <div className="space-y-1">
+            {!event.isAllDay && event.startTime && (
+              <div className="flex items-center gap-1 text-white/90">
+                <Clock className="h-3 w-3" />
+                <span>
+                  {formatTime(event.startTime)}
+                  {event.endTime && ` - ${formatTime(event.endTime)}`}
+                </span>
+              </div>
+            )}
+
+            {event.isAllDay && (
+              <div className="text-white/90 font-medium">
+                All Day
+              </div>
+            )}
+
+            {event.location && (
+              <div className="flex items-center gap-1 text-white/90">
+                <MapPin className="h-3 w-3" />
+                <span className="truncate">{event.location}</span>
+              </div>
+            )}
+
+            {event.attendees && event.attendees.length > 0 && (
+              <div className="flex items-center gap-1 text-white/90">
+                <Users className="h-3 w-3" />
+                <span>{event.attendees.length} attendee{event.attendees.length !== 1 ? 's' : ''}</span>
+              </div>
+            )}
+
+            {event.description && (
+              <div className="text-white/80 truncate">
+                {event.description}
+              </div>
+            )}
+          </div>
+
+          {event.type === 'birthday' && (
+            <div className="absolute top-1 right-1">
+              <div className="w-2 h-2 bg-pink-400 rounded-full"></div>
+            </div>
+          )}
         </div>
-        
-        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-          <Button
-            size="sm"
-            variant="ghost"
-            className="h-6 w-6 p-0 text-white hover:bg-white/20"
-            onClick={(e) => {
-              e.stopPropagation()
-              handleEdit()
-            }}
-          >
-            <Edit className="h-3 w-3" />
-          </Button>
-          <Button
-            size="sm"
-            variant="ghost"
-            className="h-6 w-6 p-0 text-white hover:bg-white/20"
-            onClick={(e) => {
-              e.stopPropagation()
-              handleDelete()
-            }}
-          >
-            <Trash2 className="h-3 w-3" />
-          </Button>
-        </div>
-      </div>
-
-      <div className="space-y-1">
-        {!event.isAllDay && event.startTime && (
-          <div className="flex items-center gap-1 text-white/90">
-            <Clock className="h-3 w-3" />
-            <span>
-              {formatTime(event.startTime)}
-              {event.endTime && ` - ${formatTime(event.endTime)}`}
-            </span>
-          </div>
-        )}
-
-        {event.isAllDay && (
-          <div className="text-white/90 font-medium">
-            All Day
-          </div>
-        )}
-
-        {event.location && (
-          <div className="flex items-center gap-1 text-white/90">
-            <MapPin className="h-3 w-3" />
-            <span className="truncate">{event.location}</span>
-          </div>
-        )}
-
-        {event.attendees && event.attendees.length > 0 && (
-          <div className="flex items-center gap-1 text-white/90">
-            <Users className="h-3 w-3" />
-            <span>{event.attendees.length} attendee{event.attendees.length !== 1 ? 's' : ''}</span>
-          </div>
-        )}
-
-        {event.description && (
-          <div className="text-white/80 truncate">
-            {event.description}
-          </div>
-        )}
-      </div>
-
-      {event.type === 'birthday' && (
-        <div className="absolute top-1 right-1">
-          <div className="w-2 h-2 bg-pink-400 rounded-full"></div>
-        </div>
-      )}
-    </div>
+      </ContextMenuTrigger>
+      
+      <ContextMenuContent className="bg-neutral-900 border-neutral-700">
+        <ContextMenuItem 
+          className="text-white hover:bg-neutral-800 cursor-pointer"
+          onClick={() => console.log("Duplicate event:", event.id)}
+        >
+          Duplicate
+        </ContextMenuItem>
+        <ContextMenuItem 
+          className="text-white hover:bg-neutral-800 cursor-pointer"
+          onClick={() => console.log("Copy event:", event.id)}
+        >
+          Copy
+        </ContextMenuItem>
+        <ContextMenuItem 
+          className="text-red-400 hover:bg-red-900/20 cursor-pointer"
+          onClick={() => {
+            setEvents(prev => prev.filter(e => e.id !== event.id))
+          }}
+        >
+          Delete
+        </ContextMenuItem>
+      </ContextMenuContent>
+    </ContextMenu>
   )
 } 

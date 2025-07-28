@@ -305,10 +305,6 @@ export default function FullCalendar() {
               <TabsTrigger value="week" className="capitalize w-12 sm:w-18 text-xs sm:text-sm">Week</TabsTrigger>
               <TabsTrigger value="month" className="capitalize w-12 sm:w-18 text-xs sm:text-sm">Month</TabsTrigger>
             </TabsList>
-            <Button variant="default" className="rounded-sm h-8 text-xs sm:text-sm" onClick={toggleEventSidebar}>
-              <Plus className="w-4 h-4" />
-              Add Event
-            </Button>
           </div>
         </div>
 
