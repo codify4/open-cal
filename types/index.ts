@@ -14,7 +14,18 @@ export interface Event {
   description?: string;
   startDate: Date;
   endDate: Date;
-  variant?: Variant;
+  startTime?: string;
+  endTime?: string;
+  isAllDay: boolean;
+  color: string;
+  type: 'event' | 'birthday';
+  location?: string;
+  attendees?: string[];
+  reminders?: string[];
+  repeat?: string;
+  availability?: string;
+  visibility?: string;
+  position?: { x: number; y: number }; // For drag positioning
 }
 
 // Define the state interface for the scheduler
@@ -85,25 +96,23 @@ export interface SchedulerContextType {
   weekStartsOn: startOfWeek;
 }
 
-// Define the variant options
-export const variants = [
-  "success",
-  "primary",
-  "default",
-  "warning",
-  "danger",
-] as const;
-
-export type Variant = (typeof variants)[number];
-
 // Define Zod schema for form validation
 export const eventSchema = z.object({
   title: z.string().nonempty("Event name is required"),
   description: z.string().optional(),
   startDate: z.date(),
   endDate: z.date(),
-  variant: z.enum(["primary", "danger", "success", "warning", "default"]),
+  startTime: z.string().optional(),
+  endTime: z.string().optional(),
+  isAllDay: z.boolean(),
   color: z.string().nonempty("Color selection is required"),
+  type: z.enum(["event", "birthday"]),
+  location: z.string().optional(),
+  attendees: z.array(z.string()).optional(),
+  reminders: z.array(z.string()).optional(),
+  repeat: z.string().optional(),
+  availability: z.string().optional(),
+  visibility: z.string().optional(),
 });
 
 export type EventFormData = z.infer<typeof eventSchema>;

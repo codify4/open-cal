@@ -17,7 +17,7 @@ import { useModal } from "@/providers/modal-context";
 import SelectDate from "@/components/calendar/schedule/_components/add-event-components/select-date";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { EventFormData, eventSchema, Variant, Event } from "@/types/index";
+import { EventFormData, eventSchema, Event } from "@/types/index";
 import { useScheduler } from "@/providers/schedular-provider";
 import { v4 as uuidv4 } from "uuid"; // Use UUID to generate event IDs
 
@@ -29,7 +29,7 @@ export default function AddEventModal({
   const { setClose, data } = useModal();
 
   const [selectedColor, setSelectedColor] = useState<string>(
-    getEventColor(data?.variant || "primary")
+    getEventColor(data?.color || "blue")
   );
 
   const typedData = data as { default: Event };
@@ -49,7 +49,6 @@ export default function AddEventModal({
       description: "",
       startDate: new Date(),
       endDate: new Date(),
-      variant: data?.variant || "primary",
       color: data?.color || "blue",
     },
   });
@@ -64,7 +63,6 @@ export default function AddEventModal({
         description: eventData.description || "",
         startDate: eventData.startDate,
         endDate: eventData.endDate,
-        variant: eventData.variant || "primary",
         color: eventData.color || "blue",
       });
     }
@@ -77,15 +75,15 @@ export default function AddEventModal({
     { key: "yellow", name: "Yellow" },
   ];
 
-  function getEventColor(variant: Variant) {
-    switch (variant) {
-      case "primary":
+  function getEventColor(color: string) {
+    switch (color) {
+      case "blue":
         return "blue";
-      case "danger":
+      case "red":
         return "red";
-      case "success":
+      case "green":
         return "green";
-      case "warning":
+      case "yellow":
         return "yellow";
       default:
         return "blue";
@@ -124,12 +122,14 @@ export default function AddEventModal({
 
   const onSubmit: SubmitHandler<EventFormData> = (formData) => {
     const newEvent: Event = {
-      id: uuidv4(), // Generate a unique ID
+      id: uuidv4(),
       title: formData.title,
       startDate: formData.startDate,
       endDate: formData.endDate,
-      variant: formData.variant,
+      color: formData.color,
       description: formData.description,
+      isAllDay: formData.isAllDay,
+      type: formData.type,
     };
 
     if (!typedData?.default?.id) handlers.handleAddEvent(newEvent);
@@ -194,7 +194,7 @@ export default function AddEventModal({
                     key={color.key}
                     onClick={() => {
                       setSelectedColor(color.key);
-                      setValue("variant", getEventStatus(color.key));
+                      setValue("color", color.key);
                     }}
                   >
                     <div className="flex items-center">

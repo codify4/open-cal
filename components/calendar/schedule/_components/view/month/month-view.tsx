@@ -14,6 +14,12 @@ import AddEventModal from "@/components/calendar/schedule/_modals/add-event-moda
 import ShowMoreEventsModal from "@/components/calendar/schedule/_modals/show-more-events-modal";
 import EventStyled from "../event-component/event-styled";
 import { Event, CustomEventModal } from "@/types";
+import { useAtom } from "jotai";
+import { 
+  isEventSidebarOpenAtom, 
+  eventCreationContextAtom,
+  selectedEventAtom
+} from "@/lib/atoms/event-atom";
 
 const pageTransitionVariants = {
   enter: (direction: number) => ({
@@ -39,8 +45,13 @@ export default function MonthView({
   CustomEventModal?: CustomEventModal;
   classNames?: { prev?: string; next?: string; addEvent?: string };
 }) {
-  const { getters, weekStartsOn } = useScheduler();
+  const { getters, handlers, weekStartsOn } = useScheduler();
   const { setOpen } = useModal();
+  
+  // Sidebar state management
+  const [isEventSidebarOpen, setIsEventSidebarOpen] = useAtom(isEventSidebarOpenAtom);
+  const [eventCreationContext, setEventCreationContext] = useAtom(eventCreationContextAtom);
+  const [selectedEvent, setSelectedEvent] = useAtom(selectedEventAtom);
 
   // Get current date and direction from scheduler provider
   const currentDate = getters.getCurrentDate ? getters.getCurrentDate() : new Date();
@@ -72,22 +83,44 @@ export default function MonthView({
       59
     );
 
-    setOpen(
-      <AddEventModal
-        CustomAddEventModal={
-          CustomEventModal?.CustomAddEventModal?.CustomForm
-        }
-      />,
-      async () => {
-        return {
-          startDate,
-          endDate,
-          title: "",
-          id: "",
-          variant: "primary",
-        };
+    // Set the event creation context for the sidebar
+    setEventCreationContext({
+      targetDate: startDate,
+      clickPosition: {
+        x: 0,
+        y: 0
       }
-    );
+    });
+
+    // Create a new event with the correct time information for the sidebar
+    const newEvent: Event = {
+      id: `event-${Date.now()}`,
+      title: "",
+      description: "",
+      startDate: startDate,
+      endDate: endDate,
+      startTime: "00:00",
+      endTime: "23:59",
+      isAllDay: true,
+      color: "blue",
+      type: "event",
+      location: "",
+      attendees: [],
+      reminders: [],
+      repeat: "none",
+      availability: "busy",
+      visibility: "default"
+    };
+
+    // Add the event to the scheduler provider
+    handlers.handleAddEvent(newEvent);
+
+    // Set the selected event for editing in sidebar
+    setSelectedEvent(newEvent);
+
+    // Open the sidebar
+    setIsEventSidebarOpen(true);
+    localStorage.setItem('isEventSidebarOpen', 'true');
   }
 
   function handleShowMoreEvents(dayEvents: Event[]) {

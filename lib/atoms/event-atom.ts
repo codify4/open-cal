@@ -1,30 +1,8 @@
 import { atom } from 'jotai'
-
-// Event interface
-export interface Event {
-  id: string
-  title: string
-  description?: string
-  startDate: Date
-  endDate: Date
-  startTime?: string
-  endTime?: string
-  isAllDay: boolean
-  color: string
-  type: 'event' | 'birthday'
-  location?: string
-  attendees?: string[]
-  reminders?: string[]
-  repeat?: string
-  availability?: string
-  visibility?: string
-  position?: { x: number, y: number } // For drag positioning
-}
+import { Event } from '@/types'
 
 // Event state atoms
 export const isEventSidebarOpenAtom = atom(false)
-
-export const eventsAtom = atom<Event[]>([])
 
 export const selectedEventAtom = atom<Event | null>(null)
 

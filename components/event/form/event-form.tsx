@@ -8,7 +8,7 @@ import { EventSettings } from "./event-settings"
 import { EventRepeat } from "./event-repeat"
 import { EventAvailability } from "./event-availability"
 import { EventVisibility } from "./event-visibility"
-import { Event } from "@/lib/atoms/event-atom"
+import { Event } from "@/types"
 
 interface EventFormProps {
   event?: Event | null

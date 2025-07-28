@@ -94,10 +94,10 @@ export default function EventStyled({
     );
   }
 
-  // Get background color class based on variant
-  const getBackgroundColor = (variant: string | undefined) => {
-    const variantKey = variant as keyof typeof variantColors || "primary";
-    const colors = variantColors[variantKey] || variantColors.primary;
+  // Get background color class based on color
+  const getBackgroundColor = (color: string | undefined) => {
+    const colorKey = color as keyof typeof variantColors || "primary";
+    const colors = variantColors[colorKey] || variantColors.primary;
     return `${colors.bg} ${colors.text} ${colors.border}`;
   };
 
@@ -136,7 +136,9 @@ export default function EventStyled({
               startDate: event?.startDate,
               endDate: event?.endDate,
               description: event?.description,
-              variant: event?.variant,
+              color: event?.color,
+              isAllDay: event?.isAllDay,
+              type: event?.type,
             });
           }}
         >
@@ -152,12 +154,14 @@ export default function EventStyled({
               startDate: event?.startDate,
               endDate: event?.endDate,
               description: event?.description,
-              variant: event?.variant,
+              color: event?.color,
+              isAllDay: event?.isAllDay,
+              type: event?.type,
             });
           }}
           className={cn(
             "w-full p-2 rounded",
-            getBackgroundColor(event?.variant),
+            getBackgroundColor(event?.color),
             event?.minmized ? "flex-grow overflow-hidden" : "min-h-fit"
           )}
         >

@@ -1,20 +1,19 @@
 "use client"
 
 import { useAtom } from "jotai"
-import { eventsAtom } from "@/lib/atoms/event-atom"
 import { currentDateAtom, viewTypeAtom } from "@/lib/atoms/cal-atoms"
 import { useRef } from "react"
 import { SchedulerProvider } from "@/providers/schedular-provider"
 import SchedulerWrapper from "./schedule/_components/wrapper/schedular-wrapper"
+import { Event } from "@/types"
 
 export default function StyledFullCalendar() {
-  const [events, setEvents] = useAtom(eventsAtom)
   const [currentDate, setCurrentDate] = useAtom(currentDateAtom)
   const [viewType, setViewType] = useAtom(viewTypeAtom)
   const calendarRef = useRef<any>(null)
 
   // Add some sample events for testing
-  const sampleEvents = [
+  const sampleEvents: Event[] = [
     {
       id: "1",
       title: "Team Meeting",
@@ -27,8 +26,8 @@ export default function StyledFullCalendar() {
       color: "blue",
       isAllDay: false,
       type: "event",
-      visibility: "public",
-      repeat: "weekly",
+      visibility: "default",
+      repeat: "none",
       availability: "busy",
       reminders: ["10 minutes before"],
       attendees: ["John Doe", "Jane Smith"],
@@ -45,7 +44,7 @@ export default function StyledFullCalendar() {
       color: "green",
       isAllDay: false,
       type: "event",
-      visibility: "private",
+      visibility: "default",
       repeat: "none",
       availability: "busy",
       reminders: ["30 minutes before"],
@@ -63,16 +62,16 @@ export default function StyledFullCalendar() {
       color: "pink",
       isAllDay: true,
       type: "birthday",
-      visibility: "public",
-      repeat: "yearly",
-      availability: "available",
+      visibility: "default",
+      repeat: "none",
+      availability: "busy",
       reminders: ["1 day before"],
       attendees: ["Family", "Friends"],
     }
   ]
 
   // Use sample events if no events exist
-  const displayEvents = events.length > 0 ? events : sampleEvents
+  const displayEvents = sampleEvents
 
   const calendarEvents = displayEvents.map(event => ({
     id: event.id,
@@ -109,130 +108,9 @@ export default function StyledFullCalendar() {
     return colorMap[color] || '#3b82f6'
   }
 
-  const handleEventDrop = (info: any) => {
-    const { event } = info
-    setEvents(prev => prev.map(e => {
-      if (e.id === event.id) {
-        return {
-          ...e,
-          startDate: event.start,
-          endDate: event.end || event.start
-        }
-      }
-      return e
-    }))
-  }
-
-  const handleDateSelect = (selectInfo: any) => {
-    console.log('Date selected:', selectInfo.start)
-  }
-
-  const handleEventClick = (clickInfo: any) => {
-    console.log('Event clicked:', clickInfo.event)
-  }
-
-  const getViewType = () => {
-    switch (viewType) {
-      case 'day':
-        return 'timeGridDay'
-      case 'week':
-        return 'timeGridWeek'
-      case 'month':
-        return 'dayGridMonth'
-      default:
-        return 'timeGridWeek'
-    }
-  }
-
-  const handleViewChange = (newViewType: string) => {
-    switch (newViewType) {
-      case 'timeGridDay':
-        setViewType('day')
-        break
-      case 'timeGridWeek':
-        setViewType('week')
-        break
-      case 'dayGridMonth':
-        setViewType('month')
-        break
-    }
-  }
-
-  const changeView = (newViewType: 'day' | 'week' | 'month') => {
-    setViewType(newViewType)
-    if (calendarRef.current) {
-      const calendarApi = calendarRef.current.getApi()
-      const viewMap = {
-        day: 'timeGridDay',
-        week: 'timeGridWeek',
-        month: 'dayGridMonth'
-      }
-      calendarApi.changeView(viewMap[newViewType])
-    }
-  }
-  
-  const getViewTitle = () => {
-    if (viewType === "day") {
-      return (
-        <>
-          <span className="hidden sm:inline">
-            {currentDate.toLocaleDateString("en-US", {
-              weekday: "long",
-              year: "numeric",
-              month: "long",
-              day: "numeric",
-            })}
-          </span>
-          <span className="sm:hidden">
-            {currentDate.toLocaleDateString("en-US", {
-              month: "long",
-            })}
-          </span>
-        </>
-      )
-    } else if (viewType === "week") {
-      const startOfWeek = new Date(currentDate)
-      const dayOfWeek = startOfWeek.getDay()
-      const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek
-      startOfWeek.setDate(startOfWeek.getDate() + mondayOffset)
-
-      const endOfWeek = new Date(startOfWeek)
-      endOfWeek.setDate(startOfWeek.getDate() + 6)
-
-      return (
-        <>
-          <span className="hidden sm:inline">
-            {`${startOfWeek.toLocaleDateString("en-US", { month: "short", day: "numeric" })} - ${endOfWeek.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}`}
-          </span>
-          <span className="sm:hidden">
-            {currentDate.toLocaleDateString("en-US", {
-              month: "long",
-            })}
-          </span>
-        </>
-      )
-    } else {
-      return (
-        <>
-          <span className="hidden sm:inline">
-            {currentDate.toLocaleDateString("en-US", {
-              year: "numeric",
-              month: "long",
-            })}
-          </span>
-          <span className="sm:hidden">
-            {currentDate.toLocaleDateString("en-US", {
-              month: "long",
-            })}
-          </span>
-        </>
-      )
-    }
-  }
-
   return (
     <div className="flex flex-col gap-6 p-2">
-      <SchedulerProvider weekStartsOn="monday">
+      <SchedulerProvider weekStartsOn="monday" initialState={sampleEvents}>
         <SchedulerWrapper />
       </SchedulerProvider>
     </div>

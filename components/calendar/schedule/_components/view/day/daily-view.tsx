@@ -5,6 +5,12 @@ import { AnimatePresence, motion } from "framer-motion";
 
 import { ArrowLeft, ArrowRight } from "lucide-react";
 
+import { useAtom } from "jotai";
+import { 
+  isEventSidebarOpenAtom, 
+  eventCreationContextAtom,
+  selectedEventAtom
+} from "@/lib/atoms/event-atom";
 import { useScheduler } from "@/providers/schedular-provider";
 import { useModal } from "@/providers/modal-context";
 import AddEventModal from "@/components/calendar/schedule/_modals/add-event-modal";
@@ -161,6 +167,11 @@ export default function DailyView({
   const { setOpen } = useModal();
   const { getters, handlers } = useScheduler();
   
+  // Sidebar state management
+  const [isEventSidebarOpen, setIsEventSidebarOpen] = useAtom(isEventSidebarOpenAtom);
+  const [eventCreationContext, setEventCreationContext] = useAtom(eventCreationContextAtom);
+  const [selectedEvent, setSelectedEvent] = useAtom(selectedEventAtom);
+  
   // Get current date and direction from scheduler provider
   const currentDate = getters.getCurrentDate ? getters.getCurrentDate() : new Date();
   const direction = getters.getDirection ? getters.getDirection() : 0;
@@ -247,7 +258,7 @@ export default function DailyView({
       return;
     }
 
-    const date = new Date(
+    const targetDate = new Date(
       currentDate.getFullYear(),
       currentDate.getMonth(),
       chosenDay,
@@ -255,13 +266,48 @@ export default function DailyView({
       minutes
     );
 
-    handleAddEvent({
-      startDate: date,
-      endDate: new Date(date.getTime() + 60 * 60 * 1000), // 1-hour duration
-      title: "",
-      id: "",
-      variant: "primary",
+    // Format time for the sidebar (HH:MM format)
+    const startTime = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+    const endTime = `${(hours + 1).toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+
+    // Set the event creation context for the sidebar
+    setEventCreationContext({
+      targetDate,
+      clickPosition: {
+        x: 0, // We'll get this from the context menu event if needed
+        y: 0
+      }
     });
+
+    // Create a new event with the correct time information for the sidebar
+    const newEvent: Event = {
+      id: `event-${Date.now()}`,
+      title: "",
+      description: "",
+      startDate: targetDate,
+      endDate: new Date(targetDate.getTime() + 60 * 60 * 1000), // 1 hour later
+      startTime: startTime,
+      endTime: endTime,
+      isAllDay: false,
+      color: "blue",
+      type: "event",
+      location: "",
+      attendees: [],
+      reminders: [],
+      repeat: "none",
+      availability: "busy",
+      visibility: "default"
+    };
+
+    // Add the event to the scheduler provider
+    handlers.handleAddEvent(newEvent);
+
+    // Set the selected event for editing in sidebar
+    setSelectedEvent(newEvent);
+
+    // Open the sidebar
+    setIsEventSidebarOpen(true);
+    localStorage.setItem('isEventSidebarOpen', 'true');
   }
 
   return (

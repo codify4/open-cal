@@ -19,8 +19,7 @@ import { useAtom } from "jotai";
 import { 
   isEventSidebarOpenAtom, 
   eventCreationContextAtom,
-  selectedEventAtom,
-  Event as SidebarEvent
+  selectedEventAtom
 } from "@/lib/atoms/event-atom";
 
 const hours = Array.from({ length: 24 }, (_, i) => {
@@ -250,7 +249,7 @@ export default function WeeklyView({
     });
 
     // Create a new event with the correct time information for the sidebar
-    const newEvent: SidebarEvent = {
+    const newEvent: Event = {
       id: `event-${Date.now()}`,
       title: "",
       description: "",
@@ -269,7 +268,10 @@ export default function WeeklyView({
       visibility: "default"
     };
 
-    // Set the selected event directly
+    // Add the event to the scheduler provider
+    handlers.handleAddEvent(newEvent);
+
+    // Set the selected event for editing in sidebar
     setSelectedEvent(newEvent);
 
     // Open the sidebar
@@ -528,7 +530,7 @@ export default function WeeklyView({
                                         {dayEvents.map(event => (
                                           <div 
                                             key={event.id} 
-                                            className={`p-4 rounded-lg shadow-sm border-l-4 border-${event.variant} hover:shadow-md transition-shadow`}
+                                            className={`p-4 rounded-lg shadow-sm border-l-4 border-${event.color} hover:shadow-md transition-shadow`}
                                           >
                                             <EventStyled
                                               event={{
@@ -750,9 +752,6 @@ export default function WeeklyView({
                         key={`day-${dayIndex}-hour-${hourIndex}`}
                         className="col-span-1 border-default-200 h-[64px] relative transition duration-300 cursor-pointer border-r border-b text-center text-sm text-muted-foreground"
                       >
-                        <div className="absolute bg-accent z-40 flex items-center justify-center text-xs opacity-0 transition duration-250 hover:opacity-100 w-full h-full">
-                          Add Event
-                        </div>
                       </div>
                     ))}
                       </div>

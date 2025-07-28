@@ -30,15 +30,6 @@ interface SchedulerState {
   events: Event[];
 }
 
-// Define the variant options
-export const variants = [
-  "success",
-  "primary",
-  "default",
-  "warning",
-  "danger",
-] as const;
-
 // Initial state
 const initialState: SchedulerState = {
   events: [],

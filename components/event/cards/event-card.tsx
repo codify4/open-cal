@@ -4,14 +4,16 @@ import React from "react"
 import { useAtom } from "jotai"
 import { Clock, MapPin, Users, MoreHorizontal } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { selectedEventAtom, eventsAtom, Event } from "@/lib/atoms/event-atom"
+import { selectedEventAtom } from "@/lib/atoms/event-atom"
+import { Event } from "@/types"
 import { useDraggable } from "@dnd-kit/core"
 import {
-  ContextMenu,
-  ContextMenuContent,
-  ContextMenuItem,
-  ContextMenuTrigger,
-} from "@/components/ui/context-menu"
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { useScheduler } from "@/providers/schedular-provider"
 
 interface EventCardProps {
   event: Event
@@ -23,7 +25,7 @@ export const EventCard: React.FC<EventCardProps> = ({
   className = "" 
 }) => {
   const [, setSelectedEvent] = useAtom(selectedEventAtom)
-  const [events, setEvents] = useAtom(eventsAtom)
+  const { events, handlers } = useScheduler()
 
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: event.id,
@@ -62,8 +64,8 @@ export const EventCard: React.FC<EventCardProps> = ({
   } : undefined
 
   return (
-    <ContextMenu>
-      <ContextMenuTrigger>
+    <DropdownMenu>
+      <DropdownMenuTrigger>
         <div
           ref={setNodeRef}
           style={style}
@@ -131,30 +133,30 @@ export const EventCard: React.FC<EventCardProps> = ({
             </div>
           )}
         </div>
-      </ContextMenuTrigger>
+      </DropdownMenuTrigger>
       
-      <ContextMenuContent className="bg-neutral-900 border-neutral-700">
-        <ContextMenuItem 
+      <DropdownMenuContent className="bg-neutral-900 border-neutral-700">
+        <DropdownMenuItem 
           className="text-white hover:bg-neutral-800 cursor-pointer"
           onClick={() => console.log("Duplicate event:", event.id)}
         >
           Duplicate
-        </ContextMenuItem>
-        <ContextMenuItem 
+        </DropdownMenuItem>
+        <DropdownMenuItem 
           className="text-white hover:bg-neutral-800 cursor-pointer"
           onClick={() => console.log("Copy event:", event.id)}
         >
           Copy
-        </ContextMenuItem>
-        <ContextMenuItem 
+        </DropdownMenuItem>
+        <DropdownMenuItem 
           className="text-red-400 hover:bg-red-900/20 cursor-pointer"
           onClick={() => {
-            setEvents(prev => prev.filter(e => e.id !== event.id))
+            handlers.handleDeleteEvent(event.id)
           }}
         >
           Delete
-        </ContextMenuItem>
-      </ContextMenuContent>
-    </ContextMenu>
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   )
 } 

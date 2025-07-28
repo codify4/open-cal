@@ -9,6 +9,7 @@ import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/componen
 import { useAtom } from "jotai"
 import { isChatSidebarOpenAtom } from "@/lib/atoms/chat-atom"
 import { isEventSidebarOpenAtom } from "@/lib/atoms/event-atom"
+import { SchedulerProvider } from "@/providers/schedular-provider"
 
 export function CalendarLayoutClient({ children }: { children: React.ReactNode }) {
     const [isChatSidebarOpen, setIsChatSidebarOpen] = useAtom(isChatSidebarOpenAtom)
@@ -52,51 +53,53 @@ export function CalendarLayoutClient({ children }: { children: React.ReactNode }
 
     return (
         <SidebarProvider>
-            <AppSidebar className="bg-neutral-950 border-none" variant="inset" />
-            <ResizablePanelGroup direction="horizontal" className="min-h-screen md:p-1.5 gap-1">
-                <ResizablePanel defaultSize={isChatSidebarOpen ? 70 : 100} minSize={30} className="md:rounded-xl overflow-hidden p-0">
-                    <SidebarInset className="md:rounded-xl bg-neutral-900 h-screen overflow-hidden">
-                        <div className="h-full overflow-y-auto scrollbar-hide">
-                            {children}
-                        </div>
-                    </SidebarInset>
-                </ResizablePanel>
-                {isChatSidebarOpen && (
-                    <>
-                        <ResizableHandle withHandle className="opacity-0 hover:opacity-100 transition-opacity duration-300"/>
-                        <ResizablePanel defaultSize={30} minSize={20} maxSize={50} className="bg-neutral-900 rounded-lg p-2">
-                            <div className="h-full rounded-xl shadow-sm overflow-hidden">
-                                <ChatSidebar 
-                                    isFullscreen={isFullscreen} 
-                                    onToggleSidebar={closeChatSidebar}
-                                    onToggleFullscreen={toggleFullscreen}
-                                />
+            <SchedulerProvider>
+                <AppSidebar className="bg-neutral-950 border-none" variant="inset" />
+                <ResizablePanelGroup direction="horizontal" className="min-h-screen md:p-1.5 gap-1">
+                    <ResizablePanel defaultSize={isChatSidebarOpen ? 70 : 100} minSize={30} className="md:rounded-xl overflow-hidden p-0">
+                        <SidebarInset className="md:rounded-xl bg-neutral-900 h-screen overflow-hidden">
+                            <div className="h-full overflow-y-auto scrollbar-hide">
+                                {children}
                             </div>
-                        </ResizablePanel>
-                    </>
+                        </SidebarInset>
+                    </ResizablePanel>
+                    {isChatSidebarOpen && (
+                        <>
+                            <ResizableHandle withHandle className="opacity-0 hover:opacity-100 transition-opacity duration-300"/>
+                            <ResizablePanel defaultSize={30} minSize={20} maxSize={50} className="bg-neutral-900 rounded-lg p-2">
+                                <div className="h-full rounded-xl shadow-sm overflow-hidden">
+                                    <ChatSidebar 
+                                        isFullscreen={isFullscreen} 
+                                        onToggleSidebar={closeChatSidebar}
+                                        onToggleFullscreen={toggleFullscreen}
+                                    />
+                                </div>
+                            </ResizablePanel>
+                        </>
+                    )}
+                    {isEventSidebarOpen && (
+                        <>
+                            <ResizableHandle withHandle className="opacity-0 hover:opacity-100 transition-opacity duration-300"/>
+                            <ResizablePanel defaultSize={30} minSize={20} maxSize={50} className="bg-neutral-900 rounded-lg p-2 min-w-[400px]">
+                                <div className="h-full rounded-xl shadow-sm overflow-hidden">
+                                    <AddEventSidebar 
+                                        onClick={closeEventSidebar}
+                                    />
+                                </div>
+                            </ResizablePanel>
+                        </>
+                    )}
+                </ResizablePanelGroup>
+                {isFullscreen && (
+                    <div className="fixed inset-0 z-50 bg-neutral-900 p-5">
+                        <ChatSidebar 
+                            isFullscreen={true} 
+                            onToggleSidebar={closeChatSidebar}
+                            onToggleFullscreen={toggleFullscreen}
+                        />
+                    </div>
                 )}
-                {isEventSidebarOpen && (
-                    <>
-                        <ResizableHandle withHandle className="opacity-0 hover:opacity-100 transition-opacity duration-300"/>
-                        <ResizablePanel defaultSize={30} minSize={20} maxSize={50} className="bg-neutral-900 rounded-lg p-2 min-w-[400px]">
-                            <div className="h-full rounded-xl shadow-sm overflow-hidden">
-                                <AddEventSidebar 
-                                    onClick={closeEventSidebar}
-                                />
-                            </div>
-                        </ResizablePanel>
-                    </>
-                )}
-            </ResizablePanelGroup>
-            {isFullscreen && (
-                <div className="fixed inset-0 z-50 bg-neutral-900 p-5">
-                    <ChatSidebar 
-                        isFullscreen={true} 
-                        onToggleSidebar={closeChatSidebar}
-                        onToggleFullscreen={toggleFullscreen}
-                    />
-                </div>
-            )}
+            </SchedulerProvider>
         </SidebarProvider>
     )
 } 

@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { Clock, RefreshCw, Repeat, User } from "lucide-react"
 import { format } from "date-fns"
 import { EventReminders } from "./event-reminders"
-import { Event } from "@/lib/atoms/event-atom"
+import { Event } from "@/types"
 
 interface BirthdayFormProps {
   event?: Event | null
