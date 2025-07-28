@@ -1,18 +1,11 @@
 "use client"
 
 import { useAtom } from "jotai"
-import FullCalendar from "@fullcalendar/react"
-import dayGridPlugin from "@fullcalendar/daygrid"
-import timeGridPlugin from "@fullcalendar/timegrid"
-import interactionPlugin from "@fullcalendar/interaction"
-import { eventsAtom, Event } from "@/lib/atoms/event-atom"
+import { eventsAtom } from "@/lib/atoms/event-atom"
 import { currentDateAtom, viewTypeAtom } from "@/lib/atoms/cal-atoms"
-import { Card } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { ChevronLeft, ChevronRight } from "lucide-react"
-import { SidebarTrigger } from "../ui/sidebar"
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useRef } from "react"
+import { SchedulerProvider } from "@/providers/schedular-provider"
+import SchedulerWrapper from "./schedule/_components/wrapper/schedular-wrapper"
 
 export default function StyledFullCalendar() {
   const [events, setEvents] = useAtom(eventsAtom)
@@ -238,145 +231,10 @@ export default function StyledFullCalendar() {
   }
 
   return (
-    <Tabs defaultValue="week" className="w-full h-full">
-      <Card className="w-full h-full bg-neutral-900 border-neutral-800 text-neutral-100 flex flex-col py-0 gap-0 rounded-xl">
-        <div className="flex items-center justify-between px-4 py-1.5 border-b border-neutral-800">
-          <div className="flex items-center gap-2 sm:gap-4">
-            <SidebarTrigger />
-            <h1 className="text-lg sm:text-xl font-semibold truncate max-w-[120px] sm:max-w-none">{getViewTitle()}</h1>
-            <div className="flex items-center gap-1 sm:gap-2">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => {
-                  const newDate = new Date(currentDate)
-                  if (viewType === 'day') {
-                    newDate.setDate(newDate.getDate() - 1)
-                  } else if (viewType === 'week') {
-                    newDate.setDate(newDate.getDate() - 7)
-                  } else if (viewType === 'month') {
-                    newDate.setMonth(newDate.getMonth() - 1)
-                  }
-                  setCurrentDate(newDate)
-                  if (calendarRef.current) {
-                    calendarRef.current.getApi().prev()
-                  }
-                }}
-                className="hidden sm:block text-neutral-400 hover:text-neutral-100 hover:bg-neutral-800 p-1 sm:p-2"
-              >
-                <ChevronLeft className="w-3 h-3 sm:w-4 sm:h-4" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => {
-                  const newDate = new Date(currentDate)
-                  if (viewType === 'day') {
-                    newDate.setDate(newDate.getDate() + 1)
-                  } else if (viewType === 'week') {
-                    newDate.setDate(newDate.getDate() + 7)
-                  } else if (viewType === 'month') {
-                    newDate.setMonth(newDate.getMonth() + 1)
-                  }
-                  setCurrentDate(newDate)
-                  if (calendarRef.current) {
-                    calendarRef.current.getApi().next()
-                  }
-                }}
-                className="hidden sm:block text-neutral-400 hover:text-neutral-100 hover:bg-neutral-800 p-1 sm:p-2"
-              >
-                <ChevronRight className="w-3 h-3 sm:w-4 sm:h-4" />
-              </Button>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <Button 
-              variant="outline" 
-              className="block sm:hidden bg-muted rounded-sm sm:w-20 h-8 font-semibold text-xs sm:text-sm"
-              onClick={() => {
-                setCurrentDate(new Date())
-                if (calendarRef.current) {
-                  calendarRef.current.getApi().today()
-                }
-              }}
-            >
-              {new Date().getDate()}
-            </Button>
-            <Button 
-              variant="outline" 
-              className="hidden sm:flex bg-muted rounded-sm w-20 h-8 text-sm"
-              onClick={() => {
-                setCurrentDate(new Date())
-                if (calendarRef.current) {
-                  calendarRef.current.getApi().today()
-                }
-              }}
-            >
-              Today
-            </Button>
-            <TabsList className="bg-neutral-900 border border-neutral-700 h-8">
-              <TabsTrigger 
-                value="day"
-                className="capitalize w-12 sm:w-18 text-xs sm:text-sm"
-                onClick={() => changeView('day')}
-              >
-                Day
-              </TabsTrigger>
-              <TabsTrigger 
-                value="week"
-                className="capitalize w-12 sm:w-18 text-xs sm:text-sm"
-                onClick={() => changeView('week')}
-              >
-                Week
-              </TabsTrigger>
-              <TabsTrigger 
-                value="month"
-                className="capitalize w-12 sm:w-18 text-xs sm:text-sm"
-                onClick={() => changeView('month')}
-              >
-                Month
-              </TabsTrigger>
-            </TabsList>
-          </div>
-        </div>
-
-        <div className="flex-1 h-full">
-          <FullCalendar
-            ref={calendarRef}
-            plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
-            initialView={getViewType()}
-            initialDate={currentDate}
-            editable={true}
-            selectable={true}
-            selectMirror={true}
-            dayMaxEvents={true}
-            weekends={true}
-            events={calendarEvents}
-            select={handleDateSelect}
-            eventClick={handleEventClick}
-            eventDrop={handleEventDrop}
-            height="100%" 
-            headerToolbar={false}
-            viewDidMount={(info) => {
-              handleViewChange(info.view.type)
-            }}
-            // Custom styling classes
-            eventClassNames="rounded-md border-0 text-xs font-medium"
-            dayCellClassNames="bg-neutral-900 border-r border-neutral-800 z-10"
-            // Custom CSS variables for dark theme
-            eventContent={(arg) => {
-              return (
-                <div className="p-1 h-full w-full overflow-hidden">
-                  <div className="font-medium text-xs truncate">
-                    {arg.event.title}
-                  </div>
-                </div>
-              )
-            }}
-          />
-        </div>
-      </Card>
-    </Tabs>
+    <div className="flex flex-col gap-6 p-2">
+      <SchedulerProvider weekStartsOn="monday">
+        <SchedulerWrapper />
+      </SchedulerProvider>
+    </div>
   )
 }

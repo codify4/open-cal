@@ -23,24 +23,6 @@ importers:
       '@dnd-kit/utilities':
         specifier: ^3.2.2
         version: 3.2.2(react@19.1.0)
-      '@fullcalendar/core':
-        specifier: ^6.1.18
-        version: 6.1.18
-      '@fullcalendar/daygrid':
-        specifier: ^6.1.18
-        version: 6.1.18(@fullcalendar/core@6.1.18)
-      '@fullcalendar/interaction':
-        specifier: ^6.1.18
-        version: 6.1.18(@fullcalendar/core@6.1.18)
-      '@fullcalendar/list':
-        specifier: ^6.1.18
-        version: 6.1.18(@fullcalendar/core@6.1.18)
-      '@fullcalendar/react':
-        specifier: ^6.1.18
-        version: 6.1.18(@fullcalendar/core@6.1.18)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
-      '@fullcalendar/timegrid':
-        specifier: ^6.1.18
-        version: 6.1.18(@fullcalendar/core@6.1.18)
       '@hookform/resolvers':
         specifier: ^5.1.1
         version: 5.1.1(react-hook-form@7.61.1(react@19.1.0))
@@ -179,6 +161,9 @@ importers:
       react-hook-form:
         specifier: ^7.61.1
         version: 7.61.1(react@19.1.0)
+      react-icons:
+        specifier: ^5.5.0
+        version: 5.5.0(react@19.1.0)
       react-markdown:
         specifier: '10'
         version: 10.1.0(@types/react@19.1.8)(react@19.1.0)
@@ -203,6 +188,9 @@ importers:
       tailwind-merge:
         specifier: ^3.3.1
         version: 3.3.1
+      uuid:
+        specifier: ^11.1.0
+        version: 11.1.0
       vaul:
         specifier: ^1.1.2
         version: 1.1.2(@types/react-dom@19.1.6(@types/react@19.1.8))(@types/react@19.1.8)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
@@ -373,36 +361,6 @@ packages:
 
   '@floating-ui/utils@0.2.10':
     resolution: {integrity: sha512-aGTxbpbg8/b5JfU1HXSrbH3wXZuLPJcNEcZQFMxLs3oSzgtVu6nFPkbbGGUvBcUjKV2YyB9Wxxabo+HEH9tcRQ==}
-
-  '@fullcalendar/core@6.1.18':
-    resolution: {integrity: sha512-cD7XtZIZZ87Cg2+itnpsONCsZ89VIfLLDZ22pQX4IQVWlpYUB3bcCf878DhWkqyEen6dhi5ePtBoqYgm5K+0fQ==}
-
-  '@fullcalendar/daygrid@6.1.18':
-    resolution: {integrity: sha512-s452Zle1SdMEzZDw+pDczm8m3JLIZzS9ANMThXTnqeqJewW1gqNFYas18aHypJSgF9Fh9rDJjTSUw04BpXB/Mg==}
-    peerDependencies:
-      '@fullcalendar/core': ~6.1.18
-
-  '@fullcalendar/interaction@6.1.18':
-    resolution: {integrity: sha512-f/mD5RTjzw+Q6MGTMZrLCgIrQLIUUO9NV/58aM2J6ZBQZeRlNizDqmqldqyG+j49zj2vFhUfZibPrVKWm5yA4Q==}
-    peerDependencies:
-      '@fullcalendar/core': ~6.1.18
-
-  '@fullcalendar/list@6.1.18':
-    resolution: {integrity: sha512-XPZI50mq3HXyDQ5sT3jmqQUuwG8zQb5H14dQIUAmOHAIFRA3WpkxlzrXO0U1SrosvGySMPyyNNxvMKI1Q/jL7A==}
-    peerDependencies:
-      '@fullcalendar/core': ~6.1.18
-
-  '@fullcalendar/react@6.1.18':
-    resolution: {integrity: sha512-Jwvb+T+/1yGZKe+UYXn0id022HJm0Fq2X/PGFvVh/QRYAI/6xPMRvJrwercBkToxf6LjqYXrDO+/NhRN6IDlmg==}
-    peerDependencies:
-      '@fullcalendar/core': ~6.1.18
-      react: ^16.7.0 || ^17 || ^18 || ^19
-      react-dom: ^16.7.0 || ^17 || ^18 || ^19
-
-  '@fullcalendar/timegrid@6.1.18':
-    resolution: {integrity: sha512-T/ouhs+T1tM8JcW7Cjx+KiohL/qQWKqvRITwjol8ktJ1e1N/6noC40/obR1tyolqOxMRWHjJkYoj9fUqfoez9A==}
-    peerDependencies:
-      '@fullcalendar/core': ~6.1.18
 
   '@hookform/resolvers@5.1.1':
     resolution: {integrity: sha512-J/NVING3LMAEvexJkyTLjruSm7aOFx7QX21pzkiJfMoNG0wl5aFEjLTl7ay7IQb9EWY6AkrBy7tHL2Alijpdcg==}
@@ -2973,9 +2931,6 @@ packages:
     resolution: {integrity: sha512-3Ybi1tAuwAP9s0r1UQ2J4n5Y0G05bJkpUIO0/bI9MhwmD70S5aTWbXGBwxHrelT+XM1k6dM0pk+SwNkpTRN7Pg==}
     engines: {node: ^10 || ^12 || >=14}
 
-  preact@10.12.1:
-    resolution: {integrity: sha512-l8386ixSsBdbreOAkqtrwqHwdvR35ID8c3rKPa8lCWuO86dBi32QWHV4vfsZK1utLLFMvw+Z5Ad4XLkZzchscg==}
-
   prelude-ls@1.2.1:
     resolution: {integrity: sha512-vkcDPrRZo1QZLbn5RLGPpg/WmIQ65qoWWhcGKf/b5eplkkarX0m9z8ppCat4mlOqUsWpyNuYgO3VRyrYHSzX5g==}
     engines: {node: '>= 0.8.0'}
@@ -3009,6 +2964,11 @@ packages:
     engines: {node: '>=18.0.0'}
     peerDependencies:
       react: ^16.8.0 || ^17 || ^18 || ^19
+
+  react-icons@5.5.0:
+    resolution: {integrity: sha512-MEFcXdkP3dLo8uumGI5xN3lDFNsRtrjbOEKDLD7yv76v4wpnEq2Lt2qeHaQOr34I/wPN3s3+N08WkQ+CW37Xiw==}
+    peerDependencies:
+      react: '*'
 
   react-is@16.13.1:
     resolution: {integrity: sha512-24e6ynE2H+OKt4kqsOvNd8kBpV65zoxbA4BVsEOB3ARVWQki/DHzaUoC5KuON/BiccDaCCTZBuOcfZs70kR8bQ==}
@@ -3433,6 +3393,10 @@ packages:
     peerDependencies:
       react: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
 
+  uuid@11.1.0:
+    resolution: {integrity: sha512-0/A9rDy9P7cJ+8w1c9WD9V//9Wj15Ce2MPz8Ri6032usz+NfePxx5AcN3bN+r6ZL6jEo066/yNYB3tn4pQEx+A==}
+    hasBin: true
+
   vaul@1.1.2:
     resolution: {integrity: sha512-ZFkClGpWyI2WUQjdLJ/BaGuV6AVQiJ3uELGk3OYtP+B6yCO7Cmn9vPFXVJkRaGkOJu3m8bQMgtyzNHixULceQA==}
     peerDependencies:
@@ -3641,33 +3605,6 @@ snapshots:
       react-dom: 19.1.0(react@19.1.0)
 
   '@floating-ui/utils@0.2.10': {}
-
-  '@fullcalendar/core@6.1.18':
-    dependencies:
-      preact: 10.12.1
-
-  '@fullcalendar/daygrid@6.1.18(@fullcalendar/core@6.1.18)':
-    dependencies:
-      '@fullcalendar/core': 6.1.18
-
-  '@fullcalendar/interaction@6.1.18(@fullcalendar/core@6.1.18)':
-    dependencies:
-      '@fullcalendar/core': 6.1.18
-
-  '@fullcalendar/list@6.1.18(@fullcalendar/core@6.1.18)':
-    dependencies:
-      '@fullcalendar/core': 6.1.18
-
-  '@fullcalendar/react@6.1.18(@fullcalendar/core@6.1.18)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)':
-    dependencies:
-      '@fullcalendar/core': 6.1.18
-      react: 19.1.0
-      react-dom: 19.1.0(react@19.1.0)
-
-  '@fullcalendar/timegrid@6.1.18(@fullcalendar/core@6.1.18)':
-    dependencies:
-      '@fullcalendar/core': 6.1.18
-      '@fullcalendar/daygrid': 6.1.18(@fullcalendar/core@6.1.18)
 
   '@hookform/resolvers@5.1.1(react-hook-form@7.61.1(react@19.1.0))':
     dependencies:
@@ -6546,8 +6483,6 @@ snapshots:
       picocolors: 1.1.1
       source-map-js: 1.2.1
 
-  preact@10.12.1: {}
-
   prelude-ls@1.2.1: {}
 
   prop-types@15.8.1:
@@ -6575,6 +6510,10 @@ snapshots:
       scheduler: 0.26.0
 
   react-hook-form@7.61.1(react@19.1.0):
+    dependencies:
+      react: 19.1.0
+
+  react-icons@5.5.0(react@19.1.0):
     dependencies:
       react: 19.1.0
 
@@ -7164,6 +7103,8 @@ snapshots:
   use-sync-external-store@1.5.0(react@19.1.0):
     dependencies:
       react: 19.1.0
+
+  uuid@11.1.0: {}
 
   vaul@1.1.2(@types/react-dom@19.1.6(@types/react@19.1.8))(@types/react@19.1.8)(react-dom@19.1.0(react@19.1.0))(react@19.1.0):
     dependencies:
