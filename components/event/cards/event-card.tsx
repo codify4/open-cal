@@ -48,6 +48,20 @@ export const EventCard = ({
     return colorMap[color] || colorMap.blue
   }
 
+  const formatTime = (date: Date | string) => {
+    const dateObj = typeof date === 'string' ? new Date(date) : date
+    if (!(dateObj instanceof Date) || isNaN(dateObj.getTime())) {
+      return 'Invalid time'
+    }
+    const hours = dateObj.getHours()
+    const minutes = dateObj.getMinutes()
+    const hour12 = hours % 12 || 12
+    const ampm = hours < 12 ? 'AM' : 'PM'
+    return `${hour12}:${minutes.toString().padStart(2, '0')} ${ampm}`
+  }
+
+  const timeDisplay = `${formatTime(event.startDate)}–${formatTime(event.endDate)}`
+
   const style = transform ? {
     transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
   } : undefined
@@ -84,9 +98,9 @@ export const EventCard = ({
             </div>
           </div>
 
-          {!minimized && event.description && (
+          {!minimized && (
             <div className="text-white/80 truncate mt-1">
-              {event.description}
+              {timeDisplay}
             </div>
           )}
         </div>

@@ -23,7 +23,8 @@ const AddEventSidebar = ({ onClick }: AddEventProps) => {
     hasUnsavedChanges,
     eventCreationContext,
     updateSelectedEvent,
-    closeEventSidebar
+    closeEventSidebar,
+    saveEvent
   } = useCalendarStore((state) => state)
 
   const isEditing = !!selectedEvent && !isNewEvent
@@ -59,21 +60,45 @@ const AddEventSidebar = ({ onClick }: AddEventProps) => {
   }
 
   const handleFormDataChange = (eventData: Partial<Event>) => {
+    console.log('Form data changed:', eventData)
     currentFormData.current = { ...currentFormData.current, ...eventData }
-    updateSelectedEvent(eventData)
+    if (selectedEvent) {
+      const updatedEvent = { ...selectedEvent, ...eventData }
+      updateSelectedEvent(updatedEvent)
+    }
   }
 
   const handleManualSave = () => {
-    if (selectedEvent && currentFormData.current) {
-      const updatedEvent = { ...selectedEvent, ...currentFormData.current }
+    console.log('Save clicked:', { selectedEvent, currentFormData: currentFormData.current, isNewEvent })
+    
+    if (currentFormData.current && Object.keys(currentFormData.current).length > 0) {
+      let eventToSave: Event
       
-      if (isNewEvent) {
-        console.log("Update new event:", updatedEvent)
+      if (selectedEvent) {
+        eventToSave = { ...selectedEvent, ...currentFormData.current }
       } else {
-        console.log("Update existing event:", updatedEvent)
+        eventToSave = {
+          id: `event-${Date.now()}`,
+          title: currentFormData.current.title || "",
+          description: currentFormData.current.description || "",
+          startDate: currentFormData.current.startDate || new Date(),
+          endDate: currentFormData.current.endDate || new Date(),
+          color: currentFormData.current.color || "blue",
+          type: currentFormData.current.type || "event",
+          location: currentFormData.current.location || "",
+          attendees: currentFormData.current.attendees || [],
+          reminders: currentFormData.current.reminders || [],
+          repeat: currentFormData.current.repeat || "none",
+          visibility: currentFormData.current.visibility || "public"
+        } as Event
       }
       
-      updateSelectedEvent(updatedEvent)
+      console.log('Saving event:', eventToSave)
+      saveEvent(eventToSave)
+      closeEventSidebar()
+      onClick()
+    } else {
+      console.log('No form data to save')
     }
   }
 
@@ -111,7 +136,7 @@ const AddEventSidebar = ({ onClick }: AddEventProps) => {
                 variant="ghost"
                 className="h-8 w-8 text-white hover:bg-neutral-800"
                 onClick={handleManualSave}
-                disabled={!hasUnsavedChanges}
+                disabled={!isNewEvent && !hasUnsavedChanges}
               >
                 <Save className="h-4 w-4" />
               </Button>

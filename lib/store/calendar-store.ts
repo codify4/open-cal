@@ -29,47 +29,43 @@ export interface EventCreationContext {
 }
 
 export interface CalendarState {
-  // Chat sidebar state
+  events: Event[]
   isChatSidebarOpen: boolean
   isChatFullscreen: boolean
   
-  // Event sidebar state
   isEventSidebarOpen: boolean
   selectedEvent: Event | null
   eventCreationContext: EventCreationContext | null
   hasUnsavedChanges: boolean
   isNewEvent: boolean
   
-  // Calendar navigation state
   currentDate: Date
   selectedDate: Date
   viewType: ViewType
   navigationDirection: number
   
-  // Event colors and types
   eventColors: string[]
   eventTypes: Array<'event' | 'birthday'>
 }
 
 export interface CalendarActions {
-  // Chat sidebar actions
+  saveEvent: (event: Event) => void
+  deleteEvent: (eventId: string) => void
+  
   toggleChatSidebar: () => void
   setChatFullscreen: (fullscreen: boolean) => void
   
-  // Event sidebar actions
   openEventSidebarForNewEvent: (startDate: Date) => void
   openEventSidebarForEdit: (event: Event) => void
   closeEventSidebar: () => void
   updateSelectedEvent: (event: Partial<Event>) => void
   clearEventForm: () => void
   
-  // Calendar navigation actions
   setCurrentDate: (date: Date) => void
   setSelectedDate: (date: Date) => void
   setViewType: (viewType: ViewType) => void
   setNavigationDirection: (direction: number) => void
   
-  // Navigation helper functions
   goToToday: () => void
   goToPreviousDay: () => void
   goToNextDay: () => void
@@ -101,7 +97,8 @@ export const defaultInitState: CalendarState = {
   
   // Event colors and types
   eventColors: ['blue', 'green', 'red', 'yellow', 'purple', 'orange', 'pink', 'gray'],
-  eventTypes: ['event', 'birthday']
+  eventTypes: ['event', 'birthday'],
+  events: []
 }
 
 export const createCalendarStore = (initState: CalendarState = defaultInitState) => {
@@ -110,7 +107,24 @@ export const createCalendarStore = (initState: CalendarState = defaultInitState)
       (set, get) => ({
         ...initState,
         
-        // Chat sidebar actions
+        saveEvent: (event: Event) => set((state) => {
+          console.log('Saving event to store:', event)
+          const existingEventIndex = state.events.findIndex(e => e.id === event.id)
+          if (existingEventIndex >= 0) {
+            const updatedEvents = [...state.events]
+            updatedEvents[existingEventIndex] = event
+            console.log('Updated existing event, total events:', updatedEvents.length)
+            return { events: updatedEvents }
+          } else {
+            console.log('Added new event, total events:', state.events.length + 1)
+            return { events: [...state.events, event] }
+          }
+        }),
+        
+        deleteEvent: (eventId: string) => set((state) => ({
+          events: state.events.filter(e => e.id !== eventId)
+        })),
+        
         toggleChatSidebar: () => set((state) => ({ 
           isChatSidebarOpen: !state.isChatSidebarOpen 
         })),

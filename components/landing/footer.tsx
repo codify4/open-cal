@@ -1,4 +1,5 @@
 import Image from "next/image"
+import Link from "next/link"
 
 export function Footer() {
     return (
@@ -13,7 +14,7 @@ export function Footer() {
                     </p>
                 </div>
                 <div className="border-t border-border pt-5 text-center">
-                    <p className="text-muted-foreground text-sm">© {new Date().getFullYear()} Digit. All rights reserved.</p>
+                    <p className="text-muted-foreground text-sm">© {new Date().getFullYear()} Digit. All rights reserved. <Link href="/github" className="underline">Github</Link></p>
                 </div>
             </div>
         </footer>

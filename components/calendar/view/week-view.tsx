@@ -46,7 +46,9 @@ export default function WeeklyView() {
   const [colWidth, setColWidth] = useState<number[]>(Array(7).fill(1));
   const [isResizing, setIsResizing] = useState<boolean>(false);
   const [contextMenuTime, setContextMenuTime] = useState<string | null>(null);
-  const { toggleChatSidebar, openEventSidebarForNewEvent, currentDate, navigationDirection } = useCalendarStore((state) => state);
+  const { toggleChatSidebar, openEventSidebarForNewEvent, currentDate, navigationDirection, events } = useCalendarStore((state) => state);
+
+  console.log('Week view - total events in store:', events.length);
 
   // Use Zustand store data instead of mock data
   const direction = navigationDirection;
@@ -94,8 +96,20 @@ export default function WeeklyView() {
 
   // Function to get events for day
   const getEventsForDay = useCallback((day: number, currentDate: Date) => {
-    return mockEvents;
-  }, []);
+    console.log(`Looking for events on day ${day}, currentDate:`, currentDate)
+    console.log('All events in store:', events)
+    
+    const dayEvents = events.filter(event => {
+      const eventDate = new Date(event.startDate)
+      const matches = eventDate.getDate() === day && 
+             eventDate.getMonth() === currentDate.getMonth() && 
+             eventDate.getFullYear() === currentDate.getFullYear()
+      console.log(`Event ${event.title} on ${eventDate.toDateString()}, matches day ${day}:`, matches)
+      return matches
+    })
+    console.log(`Events for day ${day}:`, dayEvents)
+    return dayEvents
+  }, [events])
 
   // Remove the problematic useEffect that was causing the infinite loop
   // useEffect(() => {
@@ -285,18 +299,18 @@ export default function WeeklyView() {
     let maxHeight = 0;
     let eventTop = 0;
 
-    if (event.startDate instanceof Date && event.endDate instanceof Date) {
-      const startTime =
-        event.startDate.getHours() * 60 + event.startDate.getMinutes();
-      const endTime =
-        event.endDate.getHours() * 60 + event.endDate.getMinutes();
+    const startDate = event.startDate instanceof Date ? event.startDate : new Date(event.startDate);
+    const endDate = event.endDate instanceof Date ? event.endDate : new Date(event.endDate);
+
+    if (startDate && endDate && !isNaN(startDate.getTime()) && !isNaN(endDate.getTime())) {
+      const startTime = startDate.getHours() * 60 + startDate.getMinutes();
+      const endTime = endDate.getHours() * 60 + endDate.getMinutes();
 
       const diffInMinutes = endTime - startTime;
 
       eventHeight = (diffInMinutes / 60) * 64;
 
-      const eventStartHour =
-        event.startDate.getHours() + event.startDate.getMinutes() / 60;
+      const eventStartHour = startDate.getHours() + startDate.getMinutes() / 60;
 
       const dayEndHour = 24;
 
@@ -306,7 +320,15 @@ export default function WeeklyView() {
 
       eventTop = eventStartHour * 64;
     } else {
-      console.error("Invalid event or missing start/end dates.");
+      console.error("Invalid event or missing start/end dates:", event);
+      return {
+        height: '20px',
+        top: '0px',
+        zIndex: 1,
+        left: '0%',
+        maxWidth: '95%',
+        minWidth: '95%',
+      };
     }
 
     const widthPercentage = Math.min(95 / Math.max(numEventsOnHour, 1), 95);

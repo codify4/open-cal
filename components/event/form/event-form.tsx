@@ -69,16 +69,22 @@ export const EventForm = ({ event, onSave, onDataChange }: EventFormProps) => {
         const newData = { ...eventData, ...updates }
         setEventData(newData)
         
-        // Trigger auto-save with proper Event type conversion
         if (onSave) {
+            const convertTimeToDate = (date: Date, timeString: string) => {
+                const [hours, minutes] = timeString.split(':').map(Number)
+                const newDate = new Date(date)
+                newDate.setHours(hours, minutes, 0, 0)
+                return newDate
+            }
+            
             const eventData: Partial<Event> = {
                 title: newData.title,
                 description: newData.description,
-                startDate: newData.startDate,
-                endDate: newData.endDate,
+                startDate: convertTimeToDate(newData.startDate, newData.startTime),
+                endDate: convertTimeToDate(newData.endDate, newData.endTime),
                 location: newData.location,
                 attendees: newData.attendees,
-                reminders: [], // Convert string[] to Date[] or use empty array
+                reminders: [],
                 color: newData.color,
                 isAllDay: newData.isAllDay,
                 repeat: newData.repeat as RepeatType,
