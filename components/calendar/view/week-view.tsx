@@ -14,6 +14,34 @@ import {
 import { useCalendarStore } from "@/providers/calendar-store-provider";
 import { useDroppable } from "@dnd-kit/core";
 
+interface TimeSlotProps {
+  timeSlotId: string;
+  dayIndex: number;
+  hourIndex: number;
+  date: Date;
+}
+
+const TimeSlot: React.FC<TimeSlotProps> = ({ timeSlotId, dayIndex, hourIndex, date }) => {
+  const { setNodeRef, isOver } = useDroppable({
+    id: timeSlotId,
+    data: {
+      dayIndex,
+      hourIndex,
+      date
+    }
+  });
+
+  return (
+    <div
+      ref={setNodeRef}
+      className={`col-span-1 border-default-200 h-[64px] relative transition duration-300 border-r border-b text-center text-sm text-muted-foreground ${
+        isOver ? 'bg-blue-500/20' : ''
+      }`}
+    >
+    </div>
+  );
+};
+
 const hours = Array.from({ length: 24 }, (_, i) => {
   const hour = i % 12 || 12;
   const ampm = i < 12 ? "AM" : "PM";
@@ -387,7 +415,7 @@ export default function WeeklyView() {
               >
                 <Badge
                   variant="outline"
-                  className="absolute -translate-y-1/2 bg-white z-50 left-[5px] text-xs text-black"
+                  className="absolute -translate-y-1/2 bg-neutral-800 z-50 left-[5px] text-xs text-white"
                 >
                   {detailedHour}
                 </Badge>
@@ -498,24 +526,15 @@ export default function WeeklyView() {
                         
                         {Array.from({ length: 24 }, (_, hourIndex) => {
                           const timeSlotId = `day-${dayIndex}-hour-${hourIndex}`;
-                          const { setNodeRef, isOver } = useDroppable({
-                            id: timeSlotId,
-                            data: {
-                              dayIndex,
-                              hourIndex,
-                              date: daysOfWeek[dayIndex]
-                            }
-                          });
-
+                          
                           return (
-                            <div
-                              ref={setNodeRef}
+                            <TimeSlot
                               key={timeSlotId}
-                              className={`col-span-1 border-default-200 h-[64px] relative transition duration-300 border-r border-b text-center text-sm text-muted-foreground ${
-                                isOver ? 'bg-blue-500/20' : ''
-                              }`}
-                            >
-                            </div>
+                              timeSlotId={timeSlotId}
+                              dayIndex={dayIndex}
+                              hourIndex={hourIndex}
+                              date={daysOfWeek[dayIndex]}
+                            />
                           );
                         })}
                       </div>
