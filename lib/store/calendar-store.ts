@@ -51,6 +51,7 @@ export interface CalendarState {
 export interface CalendarActions {
   saveEvent: (event: Event) => void
   deleteEvent: (eventId: string) => void
+  updateEventTime: (eventId: string, newStartDate: Date, newEndDate: Date) => void
   
   toggleChatSidebar: () => void
   setChatFullscreen: (fullscreen: boolean) => void
@@ -98,7 +99,23 @@ export const defaultInitState: CalendarState = {
   // Event colors and types
   eventColors: ['blue', 'green', 'red', 'yellow', 'purple', 'orange', 'pink', 'gray'],
   eventTypes: ['event', 'birthday'],
-  events: []
+  events: [
+    {
+      id: 'test-event-1',
+      title: 'Test Meeting',
+      description: 'A test event to verify functionality',
+      startDate: new Date(new Date().setHours(10, 0, 0, 0)),
+      endDate: new Date(new Date().setHours(11, 0, 0, 0)),
+      color: 'blue',
+      type: 'event',
+      location: '',
+      attendees: [],
+      reminders: [],
+      repeat: 'none',
+      visibility: 'public',
+      isAllDay: false
+    }
+  ]
 }
 
 export const createCalendarStore = (initState: CalendarState = defaultInitState) => {
@@ -108,15 +125,12 @@ export const createCalendarStore = (initState: CalendarState = defaultInitState)
         ...initState,
         
         saveEvent: (event: Event) => set((state) => {
-          console.log('Saving event to store:', event)
           const existingEventIndex = state.events.findIndex(e => e.id === event.id)
           if (existingEventIndex >= 0) {
             const updatedEvents = [...state.events]
             updatedEvents[existingEventIndex] = event
-            console.log('Updated existing event, total events:', updatedEvents.length)
             return { events: updatedEvents }
           } else {
-            console.log('Added new event, total events:', state.events.length + 1)
             return { events: [...state.events, event] }
           }
         }),
@@ -124,6 +138,20 @@ export const createCalendarStore = (initState: CalendarState = defaultInitState)
         deleteEvent: (eventId: string) => set((state) => ({
           events: state.events.filter(e => e.id !== eventId)
         })),
+        
+        updateEventTime: (eventId: string, newStartDate: Date, newEndDate: Date) => set((state) => {
+          const eventIndex = state.events.findIndex(e => e.id === eventId)
+          if (eventIndex >= 0) {
+            const updatedEvents = [...state.events]
+            updatedEvents[eventIndex] = {
+              ...updatedEvents[eventIndex],
+              startDate: newStartDate,
+              endDate: newEndDate
+            }
+            return { events: updatedEvents }
+          }
+          return state
+        }),
         
         toggleChatSidebar: () => set((state) => ({ 
           isChatSidebarOpen: !state.isChatSidebarOpen 
@@ -273,6 +301,36 @@ export const createCalendarStore = (initState: CalendarState = defaultInitState)
             }
             if (typeof state.selectedDate === 'string') {
               state.selectedDate = new Date(state.selectedDate)
+            }
+            // Convert event dates back to Date objects
+            if (state.events) {
+              state.events = state.events.map(event => ({
+                ...event,
+                startDate: event.startDate instanceof Date ? event.startDate : new Date(event.startDate),
+                endDate: event.endDate instanceof Date ? event.endDate : new Date(event.endDate),
+                reminders: event.reminders?.map(reminder => 
+                  reminder instanceof Date ? reminder : new Date(reminder)
+                ) || []
+              }))
+            }
+            // Convert selected event dates if it exists
+            if (state.selectedEvent) {
+              state.selectedEvent = {
+                ...state.selectedEvent,
+                startDate: state.selectedEvent.startDate instanceof Date ? state.selectedEvent.startDate : new Date(state.selectedEvent.startDate),
+                endDate: state.selectedEvent.endDate instanceof Date ? state.selectedEvent.endDate : new Date(state.selectedEvent.endDate),
+                reminders: state.selectedEvent.reminders?.map(reminder => 
+                  reminder instanceof Date ? reminder : new Date(reminder)
+                ) || []
+              }
+            }
+            // Convert event creation context dates if it exists
+            if (state.eventCreationContext) {
+              state.eventCreationContext = {
+                ...state.eventCreationContext,
+                startDate: state.eventCreationContext.startDate instanceof Date ? state.eventCreationContext.startDate : new Date(state.eventCreationContext.startDate),
+                endDate: state.eventCreationContext.endDate instanceof Date ? state.eventCreationContext.endDate : new Date(state.eventCreationContext.endDate)
+              }
             }
             // Always default to week view
             state.viewType = 'week'

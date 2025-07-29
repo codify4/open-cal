@@ -48,7 +48,6 @@ const AddEventSidebar = ({ onClick }: AddEventProps) => {
         visibility: "public"
       }
       
-      console.log('Creating new event in sidebar:', newEvent)
       updateSelectedEvent(newEvent)
     }
   }, [selectedEvent, eventCreationContext])
@@ -60,7 +59,6 @@ const AddEventSidebar = ({ onClick }: AddEventProps) => {
   }
 
   const handleFormDataChange = (eventData: Partial<Event>) => {
-    console.log('Form data changed:', eventData)
     currentFormData.current = { ...currentFormData.current, ...eventData }
     if (selectedEvent) {
       const updatedEvent = { ...selectedEvent, ...eventData }
@@ -69,7 +67,6 @@ const AddEventSidebar = ({ onClick }: AddEventProps) => {
   }
 
   const handleManualSave = () => {
-    console.log('Save clicked:', { selectedEvent, currentFormData: currentFormData.current, isNewEvent })
     
     if (currentFormData.current && Object.keys(currentFormData.current).length > 0) {
       let eventToSave: Event
@@ -93,18 +90,14 @@ const AddEventSidebar = ({ onClick }: AddEventProps) => {
         } as Event
       }
       
-      console.log('Saving event:', eventToSave)
       saveEvent(eventToSave)
       closeEventSidebar()
       onClick()
-    } else {
-      console.log('No form data to save')
     }
   }
 
   const handleDelete = () => {
     if (isEditing && selectedEvent) {
-      console.log("Delete event:", selectedEvent.id)
     }
     handleClose()
   }

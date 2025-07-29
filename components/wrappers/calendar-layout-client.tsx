@@ -1,12 +1,15 @@
 'use client'
 
 import { useEffect } from "react"
+import { DndContext, DragEndEvent, DragOverlay, DragStartEvent } from "@dnd-kit/core"
 import { ChatSidebar } from "@/components/agent/chat-sidebar"
 import { AppSidebar } from "@/components/sidebar/app-sidebar"
 import AddEventSidebar from "../event/add-event-sidebar"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable"
 import { useCalendarStore } from "@/providers/calendar-store-provider"
+import { Event } from "@/lib/store/calendar-store"
+import { ensureDate } from "@/lib/utils"
 
 export function CalendarLayoutClient({ children }: { children: React.ReactNode }) {
     const {
@@ -15,7 +18,8 @@ export function CalendarLayoutClient({ children }: { children: React.ReactNode }
         isChatFullscreen,
         toggleChatSidebar,
         setChatFullscreen,
-        closeEventSidebar
+        closeEventSidebar,
+        updateEventTime
     } = useCalendarStore((state) => state)
 
     const closeChatSidebar = () => {
@@ -26,8 +30,40 @@ export function CalendarLayoutClient({ children }: { children: React.ReactNode }
         setChatFullscreen(!isChatFullscreen)
     }
 
+    const handleDragStart = (event: DragStartEvent) => {
+        console.log('Drag started:', event)
+    }
+
+    const handleDragEnd = (event: DragEndEvent) => {
+        console.log('Drag ended:', event)
+        
+        const { active, over } = event;
+        
+        if (over && active.data.current) {
+            const draggedEvent = active.data.current as Event;
+            const dropData = over.data.current as { dayIndex: number; hourIndex: number; date: Date };
+            
+            if (dropData) {
+                const newStartDate = new Date(dropData.date);
+                newStartDate.setHours(dropData.hourIndex);
+                newStartDate.setMinutes(0);
+                newStartDate.setSeconds(0);
+                newStartDate.setMilliseconds(0);
+                
+                const startDate = ensureDate(draggedEvent.startDate);
+                const endDate = ensureDate(draggedEvent.endDate);
+                
+                const duration = endDate.getTime() - startDate.getTime();
+                const newEndDate = new Date(newStartDate.getTime() + duration);
+                
+                updateEventTime(draggedEvent.id, newStartDate, newEndDate);
+            }
+        }
+    }
+
     return (
-        <SidebarProvider>
+        <DndContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+            <SidebarProvider>
                 <AppSidebar className="bg-neutral-950 border-none" variant="inset" />
                 <ResizablePanelGroup direction="horizontal" className="min-h-screen md:p-1.5 gap-1">
                     <ResizablePanel defaultSize={isChatSidebarOpen ? 70 : 100} minSize={30} className="md:rounded-xl overflow-hidden p-0">
@@ -73,6 +109,7 @@ export function CalendarLayoutClient({ children }: { children: React.ReactNode }
                         />
                     </div>
                 )}
-        </SidebarProvider>
+                </SidebarProvider>
+        </DndContext>
     )
 } 

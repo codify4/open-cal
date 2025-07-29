@@ -1,37 +1,69 @@
 "use client"
 
-import React from "react"
-import { Calendar, Cake } from "lucide-react"
+import React, { useState, useRef, useEffect } from "react"
+import { Calendar, Cake, GripVertical } from "lucide-react"
 import { Event } from "@/lib/store/calendar-store"
 import { useDraggable } from "@dnd-kit/core"
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuTrigger,
+} from "@/components/ui/context-menu"
 import { useCalendarStore } from "@/providers/calendar-store-provider"
+import { ensureDate } from "@/lib/utils"
 
 interface EventCardProps {
   event: Event
   className?: string
   minimized?: boolean
+  onResize?: (eventId: string, newStartDate: Date, newEndDate: Date) => void
 }
 
 export const EventCard = ({ 
   event, 
   className = "",
-  minimized = false
+  minimized = false,
+  onResize
 }: EventCardProps) => {
+  const [isResizing, setIsResizing] = useState(false)
+  const [resizeStartY, setResizeStartY] = useState(0)
+  const [originalStartDate, setOriginalStartDate] = useState<Date | null>(null)
+  const [originalEndDate, setOriginalEndDate] = useState<Date | null>(null)
+  const cardRef = useRef<HTMLDivElement>(null)
+  const resizeHandleRef = useRef<HTMLDivElement>(null)
+
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: event.id,
     data: event
   })
 
-  const { openEventSidebarForEdit } = useCalendarStore((state) => state)
+  const { openEventSidebarForEdit, deleteEvent, updateEventTime, saveEvent } = useCalendarStore((state) => state)
 
   const handleEdit = () => {
     openEventSidebarForEdit(event)
+  }
+
+  const handleDelete = () => {
+    deleteEvent(event.id)
+  }
+
+  const handleDuplicate = () => {
+    const startDate = ensureDate(event.startDate);
+    const endDate = ensureDate(event.endDate);
+    
+    const duplicatedEvent: Event = {
+      ...event,
+      id: `event-${Date.now()}`,
+      title: `${event.title} (Copy)`,
+      startDate: new Date(startDate.getTime() + 60 * 60 * 1000), // 1 hour later
+      endDate: new Date(endDate.getTime() + 60 * 60 * 1000)
+    }
+    saveEvent(duplicatedEvent)
+  }
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(JSON.stringify(event, null, 2))
   }
 
   const getColorClasses = (color: string) => {
@@ -66,9 +98,57 @@ export const EventCard = ({
     transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
   } : undefined
 
+  const handleResizeStart = (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsResizing(true)
+    setResizeStartY(e.clientY)
+    const startDate = ensureDate(event.startDate);
+    const endDate = ensureDate(event.endDate);
+    setOriginalStartDate(new Date(startDate))
+    setOriginalEndDate(new Date(endDate))
+  }
+
+  const handleResizeMove = (e: MouseEvent) => {
+    if (!isResizing || !originalStartDate || !originalEndDate) return
+
+    const deltaY = e.clientY - resizeStartY
+    const minutesPerPixel = 15 // 15 minutes per pixel
+    const deltaMinutes = Math.round(deltaY * minutesPerPixel / 60) * 60 * 1000 // Convert to milliseconds
+
+    const newEndDate = new Date(originalEndDate.getTime() + deltaMinutes)
+    
+    if (newEndDate > originalStartDate) {
+      updateEventTime(event.id, originalStartDate, newEndDate)
+    }
+  }
+
+  const handleResizeEnd = () => {
+    setIsResizing(false)
+    setResizeStartY(0)
+    setOriginalStartDate(null)
+    setOriginalEndDate(null)
+  }
+
+  useEffect(() => {
+    if (isResizing) {
+      document.addEventListener('mousemove', handleResizeMove)
+      document.addEventListener('mouseup', handleResizeEnd)
+      document.body.style.cursor = 'ns-resize'
+      document.body.style.userSelect = 'none'
+    }
+
+    return () => {
+      document.removeEventListener('mousemove', handleResizeMove)
+      document.removeEventListener('mouseup', handleResizeEnd)
+      document.body.style.cursor = ''
+      document.body.style.userSelect = ''
+    }
+  }, [isResizing, resizeStartY, originalStartDate, originalEndDate])
+
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger>
+    <ContextMenu>
+      <ContextMenuTrigger>
         <div
           ref={setNodeRef}
           style={style}
@@ -103,35 +183,47 @@ export const EventCard = ({
               {timeDisplay}
             </div>
           )}
+
+          {!minimized && !event.isAllDay && (
+            <div
+              ref={resizeHandleRef}
+              className="absolute bottom-0 left-0 right-0 h-1 bg-white/20 hover:bg-white/40 cursor-ns-resize rounded-b-md opacity-0 group-hover:opacity-100 transition-opacity"
+              onMouseDown={handleResizeStart}
+            >
+              <div className="flex justify-center">
+                <GripVertical className="h-2 w-2 text-white" />
+              </div>
+            </div>
+          )}
         </div>
-      </DropdownMenuTrigger>
+      </ContextMenuTrigger>
       
-      <DropdownMenuContent className="bg-neutral-900 border-neutral-700">
-        <DropdownMenuItem 
+      <ContextMenuContent className="bg-neutral-900 border-neutral-700">
+        <ContextMenuItem 
           className="text-white hover:bg-neutral-800 cursor-pointer"
           onClick={handleEdit}
         >
           Edit
-        </DropdownMenuItem>
-        <DropdownMenuItem 
+        </ContextMenuItem>
+        <ContextMenuItem 
           className="text-white hover:bg-neutral-800 cursor-pointer"
-          onClick={() => console.log("Duplicate event:", event.id)}
+          onClick={handleDuplicate}
         >
           Duplicate
-        </DropdownMenuItem>
-        <DropdownMenuItem 
+        </ContextMenuItem>
+        <ContextMenuItem 
           className="text-white hover:bg-neutral-800 cursor-pointer"
-          onClick={() => console.log("Copy event:", event.id)}
+          onClick={handleCopy}
         >
           Copy
-        </DropdownMenuItem>
-        <DropdownMenuItem 
+        </ContextMenuItem>
+        <ContextMenuItem 
           className="text-red-400 hover:bg-red-900/20 cursor-pointer"
-          onClick={() => console.log("Delete event:", event.id)}
+          onClick={handleDelete}
         >
           Delete
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+        </ContextMenuItem>
+      </ContextMenuContent>
+    </ContextMenu>
   )
 } 

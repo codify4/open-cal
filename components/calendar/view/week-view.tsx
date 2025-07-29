@@ -12,6 +12,7 @@ import {
   ContextMenuTrigger,
 } from "@/components/ui/context-menu";
 import { useCalendarStore } from "@/providers/calendar-store-provider";
+import { useDroppable } from "@dnd-kit/core";
 
 const hours = Array.from({ length: 24 }, (_, i) => {
   const hour = i % 12 || 12;
@@ -48,9 +49,6 @@ export default function WeeklyView() {
   const [contextMenuTime, setContextMenuTime] = useState<string | null>(null);
   const { toggleChatSidebar, openEventSidebarForNewEvent, currentDate, navigationDirection, events } = useCalendarStore((state) => state);
 
-  console.log('Week view - total events in store:', events.length);
-
-  // Use Zustand store data instead of mock data
   const direction = navigationDirection;
   const weekStartsOn = "monday";
 
@@ -96,18 +94,14 @@ export default function WeeklyView() {
 
   // Function to get events for day
   const getEventsForDay = useCallback((day: number, currentDate: Date) => {
-    console.log(`Looking for events on day ${day}, currentDate:`, currentDate)
-    console.log('All events in store:', events)
     
     const dayEvents = events.filter(event => {
       const eventDate = new Date(event.startDate)
       const matches = eventDate.getDate() === day && 
              eventDate.getMonth() === currentDate.getMonth() && 
              eventDate.getFullYear() === currentDate.getFullYear()
-      console.log(`Event ${event.title} on ${eventDate.toDateString()}, matches day ${day}:`, matches)
       return matches
     })
-    console.log(`Events for day ${day}:`, dayEvents)
     return dayEvents
   }, [events])
 
@@ -320,7 +314,6 @@ export default function WeeklyView() {
 
       eventTop = eventStartHour * 64;
     } else {
-      console.error("Invalid event or missing start/end dates:", event);
       return {
         height: '20px',
         top: '0px',
@@ -491,69 +484,84 @@ export default function WeeklyView() {
                   <ContextMenu key={`day-${dayIndex}`}>
                     <ContextMenuTrigger asChild>
                       <div
-                        className="col-span-1 border-default-200 z-20 relative transition duration-300 cursor-pointer border-r border-b text-center text-sm text-muted-foreground overflow-hidden"
+                        className="col-span-1 border-default-200 z-20 relative transition duration-300 border-r border-b text-center text-sm text-muted-foreground overflow-hidden"
                         onContextMenu={handleContextMenuOpen}
                       >
-                    <AnimatePresence initial={false}>
-                      {visibleEvents?.map((event, eventIndex) => {
-                        let eventsInSamePeriod = 1;
-                        let periodIndex = 0;
-                        
-                        for (let i = 0; i < timeGroups.length; i++) {
-                          const groupIndex = timeGroups[i].findIndex(e => e.id === event.id);
-                          if (groupIndex !== -1) {
-                            eventsInSamePeriod = timeGroups[i].length;
-                            periodIndex = groupIndex;
-                            break;
-                          }
-                        }
-                        
-                        const { height, left, maxWidth, minWidth, top, zIndex } =
-                          handleEventStyling(
-                            event, 
-                            dayEvents, 
-                            {
-                              eventsInSamePeriod,
-                              periodIndex,
-                              adjustForPeriod: true
+                        <AnimatePresence initial={false}>
+                          {visibleEvents?.map((event, eventIndex) => {
+                            let eventsInSamePeriod = 1;
+                            let periodIndex = 0;
+                            
+                            for (let i = 0; i < timeGroups.length; i++) {
+                              const groupIndex = timeGroups[i].findIndex(e => e.id === event.id);
+                              if (groupIndex !== -1) {
+                                eventsInSamePeriod = timeGroups[i].length;
+                                periodIndex = groupIndex;
+                                break;
+                              }
                             }
-                          );
+                            
+                            const { height, left, maxWidth, minWidth, top, zIndex } =
+                              handleEventStyling(
+                                event, 
+                                dayEvents, 
+                                {
+                                  eventsInSamePeriod,
+                                  periodIndex,
+                                  adjustForPeriod: true
+                                }
+                              );
 
-                        return (
-                          <motion.div
-                            key={event.id}
-                            style={{
-                              minHeight: height,
-                              height,
-                              top: top,
-                              left: left,
-                              maxWidth: maxWidth,
-                              minWidth: minWidth,
-                              padding: '0 2px',
-                              boxSizing: 'border-box',
-                            }}
-                            className="flex transition-all duration-1000 flex-grow flex-col z-50 absolute"
-                            initial={{ opacity: 0, scale: 0.9 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            exit={{ opacity: 0, scale: 0.9 }}
-                            transition={{ duration: 0.2 }}
-                          >
-                            <EventCard
-                              event={event}
-                              minimized={true}
-                            />
-                          </motion.div>
-                        );
-                      })}
-                    </AnimatePresence>
-                    
-                    {Array.from({ length: 24 }, (_, hourIndex) => (
-                      <div
-                        key={`day-${dayIndex}-hour-${hourIndex}`}
-                        className="col-span-1 border-default-200 h-[64px] relative transition duration-300 cursor-pointer border-r border-b text-center text-sm text-muted-foreground"
-                      >
-                      </div>
-                    ))}
+                            return (
+                              <motion.div
+                                key={event.id}
+                                style={{
+                                  minHeight: height,
+                                  height,
+                                  top: top,
+                                  left: left,
+                                  maxWidth: maxWidth,
+                                  minWidth: minWidth,
+                                  padding: '0 2px',
+                                  boxSizing: 'border-box',
+                                }}
+                                className="flex transition-all duration-1000 flex-grow flex-col z-50 absolute"
+                                initial={{ opacity: 0, scale: 0.9 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                exit={{ opacity: 0, scale: 0.9 }}
+                                transition={{ duration: 0.2 }}
+                              >
+                                <EventCard
+                                  event={event}
+                                  minimized={true}
+                                />
+                              </motion.div>
+                            );
+                          })}
+                        </AnimatePresence>
+                        
+                        {Array.from({ length: 24 }, (_, hourIndex) => {
+                          const timeSlotId = `day-${dayIndex}-hour-${hourIndex}`;
+                          const { setNodeRef, isOver } = useDroppable({
+                            id: timeSlotId,
+                            data: {
+                              dayIndex,
+                              hourIndex,
+                              date: daysOfWeek[dayIndex]
+                            }
+                          });
+
+                          return (
+                            <div
+                              ref={setNodeRef}
+                              key={timeSlotId}
+                              className={`col-span-1 border-default-200 h-[64px] relative transition duration-300 border-r border-b text-center text-sm text-muted-foreground ${
+                                isOver ? 'bg-blue-500/20' : ''
+                              }`}
+                            >
+                            </div>
+                          );
+                        })}
                       </div>
                     </ContextMenuTrigger>
                     <ContextMenuContent className="bg-neutral-950 w-40">
