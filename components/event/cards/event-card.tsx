@@ -155,7 +155,7 @@ export const EventCard = ({
           {...listeners}
           {...attributes}
           className={`
-            relative group cursor-pointer rounded-md border p-2 text-xs
+            relative group cursor-pointer rounded-sm border p-2 text-xs
             hover:shadow-md transition-all duration-200
             ${getColorClasses(event.color)}
             ${event.isAllDay ? 'border-l-4' : ''}

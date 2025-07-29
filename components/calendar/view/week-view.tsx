@@ -2,7 +2,7 @@ import React, { useRef, useState, useCallback, useMemo } from "react";
 import { Badge } from "@/components/ui/badge";
 import { AnimatePresence, motion } from "framer-motion";
 import { EventCard } from "@/components/event/cards/event-card";
-import { Maximize, Plus, Sparkles } from "lucide-react";
+import { Plus, Sparkles } from "lucide-react";
 import clsx from "clsx";
 import { Event } from "@/lib/store/calendar-store";
 import {
@@ -52,12 +52,10 @@ export default function WeeklyView() {
   const direction = navigationDirection;
   const weekStartsOn = "monday";
 
-  // Ensure currentDate is a Date object
   const date = currentDate instanceof Date ? currentDate : new Date(currentDate);
 
-  // Function to get days in week
   const getDaysInWeek = useCallback((week: number, year: number) => {
-    const startDay = weekStartsOn === "monday" ? 0 : 1;
+    const startDay = weekStartsOn === "monday" ? 1 : 0;
     const currentDayOfWeek = date.getDay();
     const daysToSubtract = (currentDayOfWeek - startDay + 7) % 7;
     const weekStart = new Date(date);
@@ -74,25 +72,21 @@ export default function WeeklyView() {
 
   const daysOfWeek = useMemo(() => getDaysInWeek(1, date.getFullYear()), [getDaysInWeek, date]);
 
-  // Function to get week number
   const getWeekNumber = useCallback((date: Date) => {
-    const startDay = weekStartsOn === "monday" ? 0 : 1;
+    const startDay = weekStartsOn === "monday" ? 1 : 0;
     const yearStart = new Date(date.getFullYear(), 0, 1);
     const daysSinceYearStart = Math.floor((date.getTime() - yearStart.getTime()) / (24 * 60 * 60 * 1000));
     const weekNumber = Math.floor((daysSinceYearStart + yearStart.getDay() - startDay + 7) / 7);
     return weekNumber;
   }, [weekStartsOn]);
 
-  // Function to get day name
   const getDayName = useCallback((day: number) => {
     const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
     return days[day];
   }, []);
 
-  // Mock events for display
   const mockEvents: Event[] = [];
 
-  // Function to get events for day
   const getEventsForDay = useCallback((day: number, currentDate: Date) => {
     
     const dayEvents = events.filter(event => {
@@ -104,11 +98,6 @@ export default function WeeklyView() {
     })
     return dayEvents
   }, [events])
-
-  // Remove the problematic useEffect that was causing the infinite loop
-  // useEffect(() => {
-  //   setColWidth(Array(7).fill(1));
-  // }, [currentDate]);
 
   const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
     if (!hoursColumnRef.current) return;
@@ -143,8 +132,6 @@ export default function WeeklyView() {
     const timeString = `${hour12}:${minutes.toString().padStart(2, "0")} ${ampm}`;
     setContextMenuTime(timeString);
   }, []);
-
-
 
   function handleAddEventWeek(dayIndex: number, detailedHour: string) {
     if (!detailedHour) {
@@ -181,7 +168,6 @@ export default function WeeklyView() {
     openEventSidebarForNewEvent(targetDate);
   }
 
-  // Group events by time period to prevent splitting spaces within same time blocks
   const groupEventsByTimePeriod = (events: Event[] | undefined) => {
     if (!events || events.length === 0) return [];
     
@@ -248,7 +234,6 @@ export default function WeeklyView() {
     return groups;
   };
 
-  // Mock event styling function
   const handleEventStyling = (
     event: Event, 
     dayEvents: Event[],
@@ -361,17 +346,15 @@ export default function WeeklyView() {
           transition={{
             opacity: { duration: 0.2 },
           }}
-          className={`grid use-automation-zoom-in grid-cols-8 gap-0`}
+          className="grid grid-cols-9 gap-0"
         >
-          <div className="sticky top-0 left-0 z-30 bg-default-100 rounded-tl-lg h-full border-0 flex items-center justify-center bg-primary/10">
-            <span className="text-xl tracking-tight font-semibold ">
-              Week {getWeekNumber(currentDate)}
-            </span>
+          <div className="col-span-1 bg-neutral-900 border-b border-r border-default-200 flex items-center justify-center py-2">
+            <span className="text-xs text-muted-foreground font-medium">Time</span>
           </div>
 
-          <div className="col-span-7 flex flex-col relative">
+          <div className="col-span-8 flex flex-col relative">
             <div 
-              className="grid gap-0 flex-grow bg-primary/10 rounded-r-lg" 
+              className="grid gap-0 flex-grow bg-neutral-900 border-b border-default-200" 
               style={{ 
                 gridTemplateColumns: colWidth.map(w => `${w}fr`).join(' '),
                 transition: isResizing ? 'none' : 'grid-template-columns 0.3s ease-in-out'
@@ -379,47 +362,20 @@ export default function WeeklyView() {
             >
               {daysOfWeek.map((day, idx) => (
                 <div key={idx} className="relative group flex flex-col">
-                  <div className="sticky bg-default-100 top-0 z-20 flex-grow flex items-center justify-center">
-                    <div className="text-center p-4">
-                      <div className="text-lg font-semibold">
-                        {getDayName(day.getDay())}
+                  <div className="bg-neutral-900 flex-grow flex items-center justify-center py-2 border-r border-default-200">
+                    <div className="text-center">
+                      <div className={clsx(
+                        "text-xs font-medium text-muted-foreground",
+                        new Date().getDate() === day.getDate() &&
+                          new Date().getMonth() === currentDate.getMonth() &&
+                          new Date().getFullYear() === currentDate.getFullYear()
+                          ? "text-red-500"
+                          : ""
+                      )}>
+                        {getDayName(day.getDay())}, {day.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                       </div>
-                      <div
-                        className={clsx(
-                          "text-lg font-semibold",
-                          new Date().getDate() === day.getDate() &&
-                            new Date().getMonth() === currentDate.getMonth() &&
-                            new Date().getFullYear() === currentDate.getFullYear()
-                            ? "text-secondary-500"
-                            : ""
-                        )}
-                      >
-                        {day.getDate()}
-                      </div>
-                      
-                      <div 
-                        className="absolute top-5 right-10 cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          
-                          const selectedDay = new Date(
-                            currentDate.getFullYear(),
-                            currentDate.getMonth(),
-                            day.getDate()
-                          );
-                          
-                          const dayEvents = getEventsForDay(
-                            day.getDate(),
-                            currentDate
-                          );
-                        }}
-                      >
-                        <Maximize size={16} className="text-muted-foreground hover:text-primary" />
-                      </div>
-                      
                     </div>
                   </div>
-                  <div className="absolute top-12 right-0 w-px h-[calc(100%-3rem)]"></div>
                 </div>
               ))}
             </div>
@@ -443,14 +399,14 @@ export default function WeeklyView() {
             ref={hoursColumnRef}
             onMouseMove={handleMouseMove}
             onMouseLeave={() => setDetailedHour(null)}
-            className="relative grid grid-cols-8 col-span-8"
+            className="relative grid grid-cols-9 col-span-9"
           >
-            <div className="col-span-1 bg-default-50 hover:bg-default-100 transition duration-400">
+            <div className="col-span-1 bg-neutral-900 border-r border-default-200">
               {hours.map((hour, index) => (
                 <motion.div
                   key={`hour-${index}`}
                   variants={itemVariants}
-                  className="cursor-pointer border-b border-default-200 p-[16px] h-[64px] text-center text-sm text-muted-foreground border-r"
+                  className="cursor-pointer border-b border-default-200 h-[64px] text-left text-xs text-muted-foreground px-1 flex items-center"
                 >
                   {hour}
                 </motion.div>
@@ -458,7 +414,7 @@ export default function WeeklyView() {
             </div>
 
             <div 
-              className="col-span-7 bg-default-50 grid h-full" 
+              className="col-span-8 bg-neutral-900 grid h-full" 
               style={{ 
                 gridTemplateColumns: colWidth.map(w => `${w}fr`).join(' '),
                 transition: isResizing ? 'none' : 'grid-template-columns 0.3s ease-in-out'
