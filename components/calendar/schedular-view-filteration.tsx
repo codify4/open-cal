@@ -7,9 +7,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CalendarDaysIcon, ArrowLeft, ArrowRight } from "lucide-react";
 import { BsCalendarMonth, BsCalendarWeek } from "react-icons/bs";
 
-import DailyView from "./day/daily-view";
-import MonthView from "./month/month-view";
-import WeeklyView from "./week/week-view";
+import DailyView from "./view/daily-view";
+import MonthView from "./view/month-view";
+import WeeklyView from "./view/week-view";
 import { cn } from "@/lib/utils";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { useCalendarStore } from "@/providers/calendar-store-provider";
@@ -180,7 +180,7 @@ export default function CalendarView({
   };
 
   return (
-    <div className="flex w-full flex-col">
+    <div className="flex flex-col gap-6 w-full">
       <div className="flex w-full">
         <div className="dayly-weekly-monthly-selection relative w-full">
           <Tabs

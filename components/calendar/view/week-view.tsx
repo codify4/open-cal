@@ -2,7 +2,7 @@ import React, { useRef, useState, useCallback, useMemo } from "react";
 import { Badge } from "@/components/ui/badge";
 import { AnimatePresence, motion } from "framer-motion";
 import { EventCard } from "@/components/event/cards/event-card";
-import { Maximize, Plus } from "lucide-react";
+import { Maximize, Plus, Sparkles } from "lucide-react";
 import clsx from "clsx";
 import { Event } from "@/lib/store/calendar-store";
 import {
@@ -46,7 +46,7 @@ export default function WeeklyView() {
   const [colWidth, setColWidth] = useState<number[]>(Array(7).fill(1));
   const [isResizing, setIsResizing] = useState<boolean>(false);
   const [contextMenuTime, setContextMenuTime] = useState<string | null>(null);
-  const { openEventSidebarForNewEvent, currentDate, navigationDirection } = useCalendarStore((state) => state);
+  const { toggleChatSidebar, openEventSidebarForNewEvent, currentDate, navigationDirection } = useCalendarStore((state) => state);
 
   // Use Zustand store data instead of mock data
   const direction = navigationDirection;
@@ -534,8 +534,9 @@ export default function WeeklyView() {
                     ))}
                       </div>
                     </ContextMenuTrigger>
-                    <ContextMenuContent>
+                    <ContextMenuContent className="bg-neutral-950 w-40">
                       <ContextMenuItem
+                        className="cursor-pointer py-2"
                         onClick={() => {
                           const timeToUse = contextMenuTime || detailedHour || "12:00 PM";
                           handleAddEventWeek(dayIndex, timeToUse);
@@ -544,6 +545,16 @@ export default function WeeklyView() {
                       >
                         <Plus className="mr-2 h-4 w-4" />
                         Add Event
+                      </ContextMenuItem>
+                      <ContextMenuItem
+                        className="cursor-pointer py-2"
+                        onClick={() => {
+                          toggleChatSidebar();
+                          setContextMenuTime(null);
+                        }}
+                      >
+                        <Sparkles className="mr-2 h-4 w-4" />
+                        Ask AI
                       </ContextMenuItem>
                     </ContextMenuContent>
                   </ContextMenu>
