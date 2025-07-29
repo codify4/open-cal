@@ -8,21 +8,20 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { Clock, RefreshCw, Repeat, User } from "lucide-react"
 import { format } from "date-fns"
 import { EventReminders } from "./event-reminders"
-import { Event } from "@/types"
+import { Event } from "@/lib/store/calendar-store"
 
 interface BirthdayFormProps {
   event?: Event | null
   onSave?: (eventData: Partial<Event>) => void
-  onDataChange?: () => void
 }
 
-export const BirthdayForm = ({ event, onSave, onDataChange }: BirthdayFormProps) => {
+export const BirthdayForm = ({ event, onSave }: BirthdayFormProps) => {
     const [birthdayData, setBirthdayData] = useState({
         title: "",
         date: new Date(),
         recurrence: "yearly",
         account: "",
-        reminders: [] as string[]
+        reminders: [] as Date[]
     })
 
     // Initialize form data when editing an event
@@ -52,14 +51,9 @@ export const BirthdayForm = ({ event, onSave, onDataChange }: BirthdayFormProps)
                 isAllDay: true,
                 type: "birthday",
                 color: "pink",
-                repeat: newData.recurrence,
+                repeat: newData.recurrence as "yearly" | "none" | "daily" | "weekly" | "monthly",
                 reminders: newData.reminders
             })
-        }
-        
-        // Notify parent of data change
-        if (onDataChange) {
-            onDataChange()
         }
     }
 

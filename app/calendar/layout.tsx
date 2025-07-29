@@ -1,3 +1,4 @@
+import { Providers } from "@/providers/providers"
 import { CalendarLayoutClient } from "@/components/wrappers/calendar-layout-client"
 
 export const metadata = {
@@ -6,5 +7,9 @@ export const metadata = {
 }
 
 export default function CalendarLayout({ children }: { children: React.ReactNode }) {
-    return <CalendarLayoutClient>{children}</CalendarLayoutClient>
+    return (
+        <Providers>
+            <CalendarLayoutClient>{children}</CalendarLayoutClient>
+        </Providers>
+    )
 }

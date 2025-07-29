@@ -9,23 +9,19 @@ export type IconSvgProps = SVGProps<SVGSVGElement> & {
 
 // Define event type
 export interface Event {
-  id: string;
-  title: string;
-  description?: string;
-  startDate: Date;
-  endDate: Date;
-  startTime?: string;
-  endTime?: string;
-  isAllDay: boolean;
-  color: string;
-  type: 'event' | 'birthday';
-  location?: string;
-  attendees?: string[];
-  reminders?: string[];
-  repeat?: string;
-  availability?: string;
-  visibility?: string;
-  position?: { x: number; y: number }; // For drag positioning
+    id: string
+    title: string
+    description?: string
+    startDate: Date
+    endDate: Date
+    color: string
+    type: 'event' | 'birthday'
+    location?: string
+    attendees?: string[]
+    reminders?: Date[]
+    repeat?: 'none' | 'daily' | 'weekly' | 'monthly' | 'yearly'
+    visibility?: 'public' | 'private'
+    isAllDay?: boolean
 }
 
 // Define the state interface for the scheduler
@@ -64,13 +60,6 @@ export interface Handlers {
   handleAddEvent: (event: Event) => void;
   handleUpdateEvent: (event: Event, id: string) => void;
   handleDeleteEvent: (id: string) => void;
-  handleNextDay: () => void;
-  handlePrevDay: () => void;
-  handleNextWeek: () => void;
-  handlePrevWeek: () => void;
-  handleNextMonth: () => void;
-  handlePrevMonth: () => void;
-  handleGoToToday: () => void;
 }
 
 // Define getters interface
@@ -83,8 +72,6 @@ export interface Getters {
   getDaysInWeek: (week: number, year: number) => Date[];
   getWeekNumber: (date: Date) => number;
   getDayName: (day: number) => string;
-  getCurrentDate: () => Date;
-  getDirection: () => number;
 }
 
 // Define the context value interface
@@ -96,23 +83,25 @@ export interface SchedulerContextType {
   weekStartsOn: startOfWeek;
 }
 
+// Define the variant options
+export const variants = [
+  "success",
+  "primary",
+  "default",
+  "warning",
+  "danger",
+] as const;
+
+export type Variant = (typeof variants)[number];
+
 // Define Zod schema for form validation
 export const eventSchema = z.object({
   title: z.string().nonempty("Event name is required"),
   description: z.string().optional(),
   startDate: z.date(),
   endDate: z.date(),
-  startTime: z.string().optional(),
-  endTime: z.string().optional(),
-  isAllDay: z.boolean(),
+  variant: z.enum(["primary", "danger", "success", "warning", "default"]),
   color: z.string().nonempty("Color selection is required"),
-  type: z.enum(["event", "birthday"]),
-  location: z.string().optional(),
-  attendees: z.array(z.string()).optional(),
-  reminders: z.array(z.string()).optional(),
-  repeat: z.string().optional(),
-  availability: z.string().optional(),
-  visibility: z.string().optional(),
 });
 
 export type EventFormData = z.infer<typeof eventSchema>;

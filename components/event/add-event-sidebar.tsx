@@ -6,14 +6,8 @@ import { BirthdayForm } from "./form/birthday-form"
 import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select"
 import EventActionsDropdown from "./form/event-actions"
-import { useAtom } from "jotai"
-import { 
-  selectedEventAtom, 
-  isEventSidebarOpenAtom,
-  eventCreationContextAtom
-} from "@/lib/atoms/event-atom"
-import { Event } from "@/types"
-import { useScheduler } from "@/providers/schedular-provider"
+import { Event } from "@/lib/store/calendar-store"
+import { useCalendarStore } from "@/providers/calendar-store-provider"
 
 interface AddEventProps {
   onClick: () => void
@@ -21,83 +15,71 @@ interface AddEventProps {
 
 const AddEventSidebar = ({ onClick }: AddEventProps) => {
   const [formType, setFormType] = useState<"event" | "birthday">("event")
-  const [selectedEvent, setSelectedEvent] = useAtom(selectedEventAtom)
-  const [isEventSidebarOpen, setIsEventSidebarOpen] = useAtom(isEventSidebarOpenAtom)
-  const [eventCreationContext] = useAtom(eventCreationContextAtom)
-  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
-  const [isNewEvent, setIsNewEvent] = useState(false)
-  const { handlers } = useScheduler()
   const currentFormData = useRef<Partial<Event>>({})
 
-  // Determine if we're editing an existing event or creating a new one
+  const {
+    selectedEvent,
+    isNewEvent,
+    hasUnsavedChanges,
+    eventCreationContext,
+    updateSelectedEvent,
+    closeEventSidebar
+  } = useCalendarStore((state) => state)
+
   const isEditing = !!selectedEvent && !isNewEvent
 
-  // Update form type based on selected event
   useEffect(() => {
     if (selectedEvent) {
       setFormType(selectedEvent.type)
-    } else if (eventCreationContext?.targetDate) {
+    } else if (eventCreationContext?.startDate && !selectedEvent) {
       const newEvent: Event = {
         id: `event-${Date.now()}`,
-        title: "",
-        description: "",
-        startDate: eventCreationContext.targetDate,
-        endDate: eventCreationContext.targetDate,
-        startTime: "09:00",
-        endTime: "10:00",
-        isAllDay: false,
-        color: "blue",
-        type: "event",
-        position: eventCreationContext.clickPosition ? {
-          x: eventCreationContext.clickPosition.x,
-          y: eventCreationContext.clickPosition.y
-        } : undefined
+        title: eventCreationContext.title || "",
+        description: eventCreationContext.description || "",
+        startDate: eventCreationContext.startDate,
+        endDate: eventCreationContext.endDate,
+        color: eventCreationContext.color || "blue",
+        type: eventCreationContext.type || "event",
+        location: "",
+        attendees: [],
+        reminders: [],
+        repeat: "none",
+        visibility: "public"
       }
       
       console.log('Creating new event in sidebar:', newEvent)
-      setSelectedEvent(newEvent)
-      setIsNewEvent(true)
-      // The scheduler provider will manage the events array
+      updateSelectedEvent(newEvent)
     }
   }, [selectedEvent, eventCreationContext])
 
   const handleClose = () => {
-    setSelectedEvent(null)
-    setIsEventSidebarOpen(false)
-    localStorage.setItem('isEventSidebarOpen', 'false')
-    setHasUnsavedChanges(false)
-    setIsNewEvent(false)
+    closeEventSidebar()
     currentFormData.current = {}
     onClick()
   }
 
   const handleFormDataChange = (eventData: Partial<Event>) => {
-    // Store the form data without saving to scheduler
     currentFormData.current = { ...currentFormData.current, ...eventData }
-    setHasUnsavedChanges(true)
+    updateSelectedEvent(eventData)
   }
 
   const handleManualSave = () => {
-    // Save the current form data to the scheduler
     if (selectedEvent && currentFormData.current) {
-      const updatedEvent = { ...selectedEvent, ...currentFormData.current } as Event
+      const updatedEvent = { ...selectedEvent, ...currentFormData.current }
       
       if (isNewEvent) {
-        // This is a new event that was just created, update it in the scheduler
-        handlers.handleUpdateEvent(updatedEvent, selectedEvent.id)
-        setIsNewEvent(false) // Mark it as no longer new
+        console.log("Update new event:", updatedEvent)
       } else {
-        // This is an existing event being edited
-        handlers.handleUpdateEvent(updatedEvent, selectedEvent.id)
+        console.log("Update existing event:", updatedEvent)
       }
       
-      setHasUnsavedChanges(false)
+      updateSelectedEvent(updatedEvent)
     }
   }
 
   const handleDelete = () => {
     if (isEditing && selectedEvent) {
-      handlers.handleDeleteEvent(selectedEvent.id)
+      console.log("Delete event:", selectedEvent.id)
     }
     handleClose()
   }
@@ -122,7 +104,6 @@ const AddEventSidebar = ({ onClick }: AddEventProps) => {
         </div>
         
         <div className="flex items-center gap-2">
-          {/* Save Button */}
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
@@ -140,7 +121,6 @@ const AddEventSidebar = ({ onClick }: AddEventProps) => {
             </TooltipContent>
           </Tooltip>
 
-          {/* Actions Dropdown */}
           {isEditing && (
             <EventActionsDropdown
               onCut={() => console.log("Cut event")}
@@ -150,7 +130,6 @@ const AddEventSidebar = ({ onClick }: AddEventProps) => {
             />
           )}
           
-          {/* Close Button */}
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
@@ -174,13 +153,11 @@ const AddEventSidebar = ({ onClick }: AddEventProps) => {
           <EventForm 
             event={selectedEvent}
             onSave={handleFormDataChange}
-            onDataChange={() => setHasUnsavedChanges(true)}
           />
         ) : (
           <BirthdayForm 
             event={selectedEvent}
             onSave={handleFormDataChange}
-            onDataChange={() => setHasUnsavedChanges(true)}
           />
         )}
       </div>

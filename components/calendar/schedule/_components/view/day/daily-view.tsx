@@ -3,21 +3,11 @@
 import React, { useRef, useState, useCallback } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 
-import { ArrowLeft, ArrowRight } from "lucide-react";
 
-import { useAtom } from "jotai";
-import { 
-  isEventSidebarOpenAtom, 
-  eventCreationContextAtom,
-  selectedEventAtom
-} from "@/lib/atoms/event-atom";
-import { useScheduler } from "@/providers/schedular-provider";
-import { useModal } from "@/providers/modal-context";
-import AddEventModal from "@/components/calendar/schedule/_modals/add-event-modal";
-import EventStyled from "../event-component/event-styled";
-import { CustomEventModal, Event } from "@/types";
-import { Button } from "@/components/ui/button";
+import { Event } from "@/lib/store/calendar-store";
 import { Badge } from "@/components/ui/badge";
+import { useCalendarStore } from "@/providers/calendar-store-provider";
+import { EventCard } from "@/components/event/cards/event-card";
 
 // Generate hours in 12-hour format
 const hours = Array.from({ length: 24 }, (_, i) => {
@@ -32,7 +22,7 @@ const containerVariants = {
   visible: {
     opacity: 1,
     transition: {
-      staggerChildren: 0.05, // Stagger effect between children
+      staggerChildren: 0.05,
     },
   },
 };
@@ -62,33 +52,26 @@ const pageTransitionVariants = {
 const groupEventsByTimePeriod = (events: Event[] | undefined) => {
   if (!events || events.length === 0) return [];
   
-  // Sort events by start time
   const sortedEvents = [...events].sort((a, b) => 
     new Date(a.startDate).getTime() - new Date(b.startDate).getTime()
   );
   
-  // Precise time overlap checking function
   const eventsOverlap = (event1: Event, event2: Event) => {
     const start1 = new Date(event1.startDate).getTime();
     const end1 = new Date(event1.endDate).getTime();
     const start2 = new Date(event2.startDate).getTime();
     const end2 = new Date(event2.endDate).getTime();
     
-    // Strict time overlap - one event starts before the other ends
     return (start1 < end2 && start2 < end1);
   };
   
-  // Use a graph-based approach to find connected components (overlapping event groups)
   const buildOverlapGraph = (events: Event[]) => {
-    // Create adjacency list
     const graph: Record<string, string[]> = {};
     
-    // Initialize graph
     events.forEach(event => {
       graph[event.id] = [];
     });
     
-    // Build connections
     for (let i = 0; i < events.length; i++) {
       for (let j = i + 1; j < events.length; j++) {
         if (eventsOverlap(events[i], events[j])) {
@@ -101,12 +84,10 @@ const groupEventsByTimePeriod = (events: Event[] | undefined) => {
     return graph;
   };
   
-  // Find connected components using DFS
   const findConnectedComponents = (graph: Record<string, string[]>, events: Event[]) => {
     const visited: Record<string, boolean> = {};
     const components: Event[][] = [];
     
-    // DFS function to traverse the graph
     const dfs = (nodeId: string, component: string[]) => {
       visited[nodeId] = true;
       component.push(nodeId);
@@ -118,63 +99,32 @@ const groupEventsByTimePeriod = (events: Event[] | undefined) => {
       }
     };
     
-    // Find all connected components
     for (const event of events) {
       if (!visited[event.id]) {
         const component: string[] = [];
         dfs(event.id, component);
-        
-        // Map IDs back to events
-        const eventGroup = component.map(id => 
-          events.find(e => e.id === id)!
-        );
-        
-        components.push(eventGroup);
+        components.push(component.map(id => events.find(e => e.id === id)!));
       }
     }
     
     return components;
   };
   
-  // Build the overlap graph
   const graph = buildOverlapGraph(sortedEvents);
-  
-  // Find connected components (groups of overlapping events)
-  const timeGroups = findConnectedComponents(graph, sortedEvents);
-  
-  // Sort events within each group by start time
-  return timeGroups.map(group => 
-    group.sort((a, b) => 
-      new Date(a.startDate).getTime() - new Date(b.startDate).getTime()
-    )
-  );
+  return findConnectedComponents(graph, sortedEvents);
 };
 
-export default function DailyView({
-  CustomEventComponent,
-  CustomEventModal,
-  stopDayEventSummary,
-  classNames,
-}: {
-  CustomEventComponent?: React.FC<Event>;
-  CustomEventModal?: CustomEventModal;
-  stopDayEventSummary?: boolean;
-  classNames?: { prev?: string; next?: string; addEvent?: string };
-}) {
+export default function DailyView({ stopDayEventSummary }: { stopDayEventSummary?: boolean }) {
   const hoursColumnRef = useRef<HTMLDivElement>(null);
   const [detailedHour, setDetailedHour] = useState<string | null>(null);
   const [timelinePosition, setTimelinePosition] = useState<number>(0);
-  const { setOpen } = useModal();
-  const { getters, handlers } = useScheduler();
-  
-  // Sidebar state management
-  const [isEventSidebarOpen, setIsEventSidebarOpen] = useAtom(isEventSidebarOpenAtom);
-  const [eventCreationContext, setEventCreationContext] = useAtom(eventCreationContextAtom);
-  const [selectedEvent, setSelectedEvent] = useAtom(selectedEventAtom);
-  
-  // Get current date and direction from scheduler provider
-  const currentDate = getters.getCurrentDate ? getters.getCurrentDate() : new Date();
-  const direction = getters.getDirection ? getters.getDirection() : 0;
+  const { currentDate, navigationDirection, openEventSidebarForNewEvent } = useCalendarStore((state) => state);
+
+  // Use Zustand store data instead of mock data
+  const direction = navigationDirection;
+
+  // Ensure currentDate is a Date object
+  const date = currentDate instanceof Date ? currentDate : new Date(currentDate);
 
   const handleMouseMove = useCallback(
     (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
@@ -186,50 +136,32 @@ export default function DailyView({
       const minuteFraction = (y % hourHeight) / hourHeight;
       const minutes = Math.floor(minuteFraction * 60);
 
-      // Format in 12-hour format
       const hour12 = hour % 12 || 12;
       const ampm = hour < 12 ? "AM" : "PM";
       setDetailedHour(
         `${hour12}:${Math.max(0, minutes).toString().padStart(2, "0")} ${ampm}`
       );
 
-      // Ensure timelinePosition is never negative and is within bounds
       const position = Math.max(0, Math.min(rect.height, Math.round(y)));
       setTimelinePosition(position);
     },
     []
   );
 
-  const dayEvents = getters.getEventsForDay(
-    currentDate?.getDate() || 0,
-    currentDate
+  // Mock events for display
+  const mockEvents: Event[] = [];
+
+  // Function to get events for day
+  const getEventsForDay = (day: number, currentDate: Date) => {
+    return mockEvents;
+  };
+
+  const dayEvents = getEventsForDay(
+    date.getDate(),
+    date
   );
   
-  // Calculate time groups once for all events
   const timeGroups = groupEventsByTimePeriod(dayEvents);
-
-  function handleAddEvent(event?: Event) {
-    // Create the modal content with the provided event data or defaults
-    const startDate = event?.startDate || new Date();
-    const endDate = event?.endDate || new Date();
-
-    // Open the modal with the content
-
-    setOpen(
-      <AddEventModal
-        CustomAddEventModal={
-          CustomEventModal?.CustomAddEventModal?.CustomForm
-        }
-      />,
-      async () => {
-        return {
-          ...event,
-          startDate,
-          endDate,
-        };
-      }
-    );
-  }
 
   function handleAddEventDay(detailedHour: string) {
     if (!detailedHour) {
@@ -237,78 +169,120 @@ export default function DailyView({
       return;
     }
 
-    // Parse the 12-hour format time
     const [timePart, ampm] = detailedHour.split(" ");
     const [hourStr, minuteStr] = timePart.split(":");
     let hours = parseInt(hourStr);
     const minutes = parseInt(minuteStr);
-
-    // Convert to 24-hour format for Date object
+    
     if (ampm === "PM" && hours < 12) {
       hours += 12;
     } else if (ampm === "AM" && hours === 12) {
       hours = 0;
     }
 
-    const chosenDay = currentDate.getDate();
-
-    // Ensure day is valid
-    if (chosenDay < 1 || chosenDay > 31) {
-      console.error("Invalid day selected:", chosenDay);
-      return;
-    }
-
     const targetDate = new Date(
-      currentDate.getFullYear(),
-      currentDate.getMonth(),
-      chosenDay,
+      date.getFullYear(),
+      date.getMonth(),
+      date.getDate(),
       hours,
       minutes
     );
 
-    // Format time for the sidebar (HH:MM format)
-    const startTime = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
-    const endTime = `${(hours + 1).toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+    openEventSidebarForNewEvent(targetDate);
+  }
 
-    // Set the event creation context for the sidebar
-    setEventCreationContext({
-      targetDate,
-      clickPosition: {
-        x: 0, // We'll get this from the context menu event if needed
-        y: 0
-      }
+  // Mock event styling function
+  const handleEventStyling = (
+    event: Event, 
+    dayEvents: Event[],
+    periodOptions?: { 
+      eventsInSamePeriod?: number; 
+      periodIndex?: number; 
+      adjustForPeriod?: boolean;
+    }
+  ) => {
+    const eventsOnHour = dayEvents.filter((e) => {
+      if (e.id === event.id) return false;
+      
+      const eStart = e.startDate instanceof Date ? e.startDate.getTime() : new Date(e.startDate).getTime();
+      const eEnd = e.endDate instanceof Date ? e.endDate.getTime() : new Date(e.endDate).getTime();
+      const eventStart = event.startDate instanceof Date ? event.startDate.getTime() : new Date(event.startDate).getTime();
+      const eventEnd = event.endDate instanceof Date ? event.endDate.getTime() : new Date(event.endDate).getTime();
+      
+      return (eStart < eventEnd && eEnd > eventStart);
     });
 
-    // Create a new event with the correct time information for the sidebar
-    const newEvent: Event = {
-      id: `event-${Date.now()}`,
-      title: "",
-      description: "",
-      startDate: targetDate,
-      endDate: new Date(targetDate.getTime() + 60 * 60 * 1000), // 1 hour later
-      startTime: startTime,
-      endTime: endTime,
-      isAllDay: false,
-      color: "blue",
-      type: "event",
-      location: "",
-      attendees: [],
-      reminders: [],
-      repeat: "none",
-      availability: "busy",
-      visibility: "default"
+    const allEventsInRange = [event, ...eventsOnHour];
+
+    allEventsInRange.sort((a, b) => {
+      const aStart = a.startDate instanceof Date ? a.startDate.getTime() : new Date(a.startDate).getTime();
+      const bStart = b.startDate instanceof Date ? b.startDate.getTime() : new Date(b.startDate).getTime();
+      return aStart - bStart;
+    });
+
+    const useCustomPeriod = periodOptions?.adjustForPeriod && 
+                           periodOptions.eventsInSamePeriod !== undefined && 
+                           periodOptions.periodIndex !== undefined;
+                           
+    let numEventsOnHour = useCustomPeriod ? periodOptions!.eventsInSamePeriod! : allEventsInRange.length;
+    let indexOnHour = useCustomPeriod ? periodOptions!.periodIndex! : allEventsInRange.indexOf(event);
+
+    if (numEventsOnHour === 0 || indexOnHour === -1) {
+      numEventsOnHour = 1;
+      indexOnHour = 0;
+    }
+
+    let eventHeight = 0;
+    let maxHeight = 0;
+    let eventTop = 0;
+
+    if (event.startDate instanceof Date && event.endDate instanceof Date) {
+      const startTime =
+        event.startDate.getHours() * 60 + event.startDate.getMinutes();
+      const endTime =
+        event.endDate.getHours() * 60 + event.endDate.getMinutes();
+
+      const diffInMinutes = endTime - startTime;
+
+      eventHeight = (diffInMinutes / 60) * 64;
+
+      const eventStartHour =
+        event.startDate.getHours() + event.startDate.getMinutes() / 60;
+
+      const dayEndHour = 24;
+
+      maxHeight = Math.max(0, (dayEndHour - eventStartHour) * 64);
+
+      eventHeight = Math.min(eventHeight, maxHeight);
+
+      eventTop = eventStartHour * 64;
+    } else {
+      console.error("Invalid event or missing start/end dates.");
+    }
+
+    const widthPercentage = Math.min(95 / Math.max(numEventsOnHour, 1), 95);
+    
+    const leftPosition = indexOnHour * (widthPercentage + 1);
+    
+    const safeLeftPosition = Math.min(leftPosition, 100 - widthPercentage);
+
+    const minimumHeight = 20;
+
+    return {
+      height: `${
+        eventHeight < minimumHeight
+          ? minimumHeight
+          : eventHeight > maxHeight
+          ? maxHeight
+          : eventHeight
+      }px`,
+      top: `${eventTop}px`,
+      zIndex: indexOnHour + 1,
+      left: `${safeLeftPosition}%`,
+      maxWidth: `${widthPercentage}%`,
+      minWidth: `${widthPercentage}%`,
     };
-
-    // Add the event to the scheduler provider
-    handlers.handleAddEvent(newEvent);
-
-    // Set the selected event for editing in sidebar
-    setSelectedEvent(newEvent);
-
-    // Open the sidebar
-    setIsEventSidebarOpen(true);
-    localStorage.setItem('isEventSidebarOpen', 'true');
-  }
+  };
 
   return (
     <div className="mt-0">
@@ -340,13 +314,8 @@ export default function DailyView({
                           transition={{ duration: 0.2 }}
                           className="mb-2"
                         >
-                          <EventStyled
-                            event={{
-                              ...event,
-                              CustomEventComponent,
-                              minmized: false,
-                            }}
-                            CustomEventModal={CustomEventModal}
+                          <EventCard 
+                            event={event}
                           />
                         </motion.div>
                       );
@@ -361,8 +330,8 @@ export default function DailyView({
               className="relative rounded-xl flex ease-in-out"
               ref={hoursColumnRef}
               variants={containerVariants}
-              initial="hidden" // Ensure initial state is hidden
-              animate="visible" // Trigger animation to visible state
+              initial="hidden"
+              animate="visible"
               onMouseMove={handleMouseMove}
               onMouseLeave={() => setDetailedHour(null)}
             >
@@ -394,7 +363,6 @@ export default function DailyView({
                 <AnimatePresence initial={false}>
                   {dayEvents && dayEvents?.length
                     ? dayEvents?.map((event, eventIndex) => {
-                        // Find which time group this event belongs to
                         let eventsInSamePeriod = 1;
                         let periodIndex = 0;
                         
@@ -414,7 +382,7 @@ export default function DailyView({
                           minWidth,
                           top,
                           zIndex,
-                        } = handlers.handleEventStyling(
+                        } = handleEventStyling(
                           event, 
                           dayEvents,
                           {
@@ -441,13 +409,8 @@ export default function DailyView({
                             exit={{ opacity: 0, scale: 0.9 }}
                             transition={{ duration: 0.2 }}
                           >
-                            <EventStyled
-                              event={{
-                                ...event,
-                                CustomEventComponent,
-                                minmized: true,
-                              }}
-                              CustomEventModal={CustomEventModal}
+                            <EventCard 
+                              event={event}
                             />
                           </motion.div>
                         );

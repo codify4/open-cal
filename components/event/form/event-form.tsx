@@ -8,7 +8,7 @@ import { EventSettings } from "./event-settings"
 import { EventRepeat } from "./event-repeat"
 import { EventAvailability } from "./event-availability"
 import { EventVisibility } from "./event-visibility"
-import { Event } from "@/types"
+import { Event } from "@/lib/store/calendar-store"
 
 interface EventFormProps {
   event?: Event | null
@@ -17,6 +17,8 @@ interface EventFormProps {
 }
 
 export const EventForm = ({ event, onSave, onDataChange }: EventFormProps) => {
+    type RepeatType = 'none' | 'daily' | 'weekly' | 'monthly' | 'yearly'
+    
     const [eventData, setEventData] = useState({
         title: "",
         description: "",
@@ -27,12 +29,12 @@ export const EventForm = ({ event, onSave, onDataChange }: EventFormProps) => {
         location: "",
         meetingType: "",
         attendees: [] as string[],
-        reminders: [] as string[],
+        reminders: [] as Date[],
         calendar: "",
         color: "blue",
         isAllDay: false,
         timezone: "UTC",
-        repeat: "none",
+        repeat: "none" as RepeatType,
         availability: "busy",
         visibility: "default",
     })
@@ -45,19 +47,19 @@ export const EventForm = ({ event, onSave, onDataChange }: EventFormProps) => {
                 description: event.description || "",
                 startDate: event.startDate,
                 endDate: event.endDate,
-                startTime: event.startTime || "09:00",
-                endTime: event.endTime || "10:00",
+                startTime: "09:00", // Default time since Event type doesn't have time
+                endTime: "10:00", // Default time since Event type doesn't have time
                 location: event.location || "",
                 meetingType: "",
                 attendees: event.attendees || [],
-                reminders: event.reminders || [],
+                reminders: [], // Convert Date[] to string[] or use empty array
                 calendar: "",
                 color: event.color || "blue",
-                isAllDay: event.isAllDay,
+                isAllDay: event.isAllDay || false,
                 timezone: "UTC",
-                repeat: event.repeat || "none",
-                availability: event.availability || "busy",
-                visibility: event.visibility || "default",
+                repeat: (event.repeat || "none") as RepeatType,
+                availability: "busy", // Default since Event type doesn't have availability
+                visibility: event.visibility || "public",
             })
         }
     }, [event])
@@ -67,15 +69,28 @@ export const EventForm = ({ event, onSave, onDataChange }: EventFormProps) => {
         const newData = { ...eventData, ...updates }
         setEventData(newData)
         
-        // Trigger auto-save
+        // Trigger auto-save with proper Event type conversion
         if (onSave) {
-            onSave(newData)
+            const eventData: Partial<Event> = {
+                title: newData.title,
+                description: newData.description,
+                startDate: newData.startDate,
+                endDate: newData.endDate,
+                location: newData.location,
+                attendees: newData.attendees,
+                reminders: [], // Convert string[] to Date[] or use empty array
+                color: newData.color,
+                isAllDay: newData.isAllDay,
+                repeat: newData.repeat as RepeatType,
+                visibility: newData.visibility as 'public' | 'private',
+                type: 'event' as const
+            }
+            onSave(eventData)
         }
-        
-        // Notify parent of data change
-        if (onDataChange) {
-            onDataChange()
-        }
+    }
+
+    const handleRepeatChange = (repeat: string) => {
+        updateEventData({ repeat: repeat as RepeatType })
     }
 
     return (
@@ -104,7 +119,7 @@ export const EventForm = ({ event, onSave, onDataChange }: EventFormProps) => {
 
             <EventRepeat 
                 repeat={eventData.repeat}
-                onRepeatChange={(repeat) => updateEventData({ repeat })}
+                onRepeatChange={handleRepeatChange}
             />
 
             <div className="flex flex-col gap-2">

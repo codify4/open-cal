@@ -1,21 +1,19 @@
 "use client";
 
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Calendar as CalendarIcon, CalendarDaysIcon, ArrowLeft, ArrowRight } from "lucide-react";
+import { CalendarDaysIcon, ArrowLeft, ArrowRight } from "lucide-react";
 import { BsCalendarMonth, BsCalendarWeek } from "react-icons/bs";
 
-import AddEventModal from "../../_modals/add-event-modal";
 import DailyView from "./day/daily-view";
 import MonthView from "./month/month-view";
 import WeeklyView from "./week/week-view";
-import { useModal } from "@/providers/modal-context";
-import { useScheduler } from "@/providers/schedular-provider";
-import { ClassNames, CustomComponents, Views } from "@/types/index";
 import { cn } from "@/lib/utils";
 import { SidebarTrigger } from "@/components/ui/sidebar";
+import { useCalendarStore } from "@/providers/calendar-store-provider";
+import { ClassNames, CustomComponents, Views } from "@/types/index";
 
 // Animation settings for Framer Motion
 const animationConfig = {
@@ -25,10 +23,10 @@ const animationConfig = {
   transition: { duration: 0.3, type: "spring", stiffness: 250 },
 };
 
-export default function SchedulerViewFilteration({
+export default function CalendarView({
   views = {
     views: ["day", "week", "month"],
-    mobileViews: ["day"],
+    mobileViews: ["day", "week", "month"],
   },
   stopDayEventSummary = false,
   CustomComponents,
@@ -39,12 +37,23 @@ export default function SchedulerViewFilteration({
   CustomComponents?: CustomComponents;
   classNames?: ClassNames;
 }) {
-  const { setOpen } = useModal();
-  const { handlers, getters } = useScheduler();
-  const [activeView, setActiveView] = useState<string>("day");
   const [clientSide, setClientSide] = useState(false);
+  const hasSetInitialView = useRef(false);
 
-  console.log("activeView", activeView);
+  const {
+    currentDate,
+    viewType,
+    setViewType,
+    goToToday,
+    goToPreviousDay,
+    goToNextDay,
+    goToPreviousWeek,
+    goToNextWeek,
+    goToPreviousMonth,
+    goToNextMonth
+  } = useCalendarStore((state) => state);
+
+  console.log("viewType", viewType);
 
   useEffect(() => {
     setClientSide(true);
@@ -70,14 +79,33 @@ export default function SchedulerViewFilteration({
     return () => window && window.removeEventListener("resize", handleResize);
   }, [clientSide]);
 
+  // Function to get days in week
+  const getDaysInWeek = (week: number, year: number) => {
+    const weekStartsOn = "sunday";
+    const startDay = weekStartsOn === "sunday" ? 0 : 1;
+    const currentDayOfWeek = currentDate.getDay();
+    const daysToSubtract = (currentDayOfWeek - startDay + 7) % 7;
+    const weekStart = new Date(currentDate);
+    weekStart.setDate(currentDate.getDate() - daysToSubtract);
+    
+    const days = [];
+    for (let i = 0; i < 7; i++) {
+      const day = new Date(weekStart);
+      day.setDate(day.getDate() + i);
+      days.push(day);
+    }
+    return days;
+  };
+
   const getViewTitle = (viewType: string) => {
-    const currentDate = getters.getCurrentDate()
+    // Ensure currentDate is a Date object
+    const date = currentDate instanceof Date ? currentDate : new Date(currentDate)
     
     if (viewType === "day") {
       return (
         <>
           <span className="hidden sm:inline">
-            {currentDate.toLocaleDateString("en-US", {
+            {date.toLocaleDateString("en-US", {
               weekday: "long",
               year: "numeric",
               month: "long",
@@ -85,18 +113,14 @@ export default function SchedulerViewFilteration({
             })}
           </span>
           <span className="sm:hidden">
-            {currentDate.toLocaleDateString("en-US", {
+            {date.toLocaleDateString("en-US", {
               month: "long",
             })}
           </span>
         </>
       )
     } else if (viewType === "week") {
-      // Use the same logic as the week view to get the correct week range
-      const daysOfWeek = getters.getDaysInWeek(
-        1, // Week number is not used in the new implementation
-        currentDate.getFullYear()
-      );
+      const daysOfWeek = getDaysInWeek(1, date.getFullYear());
       
       const startOfWeek = daysOfWeek[0];
       const endOfWeek = daysOfWeek[6];
@@ -107,7 +131,7 @@ export default function SchedulerViewFilteration({
             {`${startOfWeek.toLocaleDateString("en-US", { month: "short", day: "numeric" })} - ${endOfWeek.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}`}
           </span>
           <span className="sm:hidden">
-            {currentDate.toLocaleDateString("en-US", {
+            {date.toLocaleDateString("en-US", {
               month: "long",
             })}
           </span>
@@ -117,13 +141,13 @@ export default function SchedulerViewFilteration({
       return (
         <>
           <span className="hidden sm:inline">
-            {currentDate.toLocaleDateString("en-US", {
+            {date.toLocaleDateString("en-US", {
               year: "numeric",
               month: "long",
             })}
           </span>
           <span className="sm:hidden">
-            {currentDate.toLocaleDateString("en-US", {
+            {date.toLocaleDateString("en-US", {
               month: "long",
             })}
           </span>
@@ -135,37 +159,38 @@ export default function SchedulerViewFilteration({
   const viewsSelector = isMobile ? views?.mobileViews : views?.views;
 
   useEffect(() => {
-    if (viewsSelector?.length) {
-      setActiveView(viewsSelector[0]);
+    if (viewsSelector?.length && !hasSetInitialView.current) {
+      setViewType(viewsSelector[0] as 'day' | 'week' | 'month');
+      hasSetInitialView.current = true;
     }
-  }, []);
+  }, [viewsSelector]);
 
   const handlePrev = () => {
-    switch (activeView) {
-      case "day":
-        handlers.handlePrevDay();
-        break;
-      case "week":
-        handlers.handlePrevWeek();
-        break;
-      case "month":
-        handlers.handlePrevMonth();
-        break;
+    if (viewType === 'day') {
+      goToPreviousDay();
+    } else if (viewType === 'week') {
+      goToPreviousWeek();
+    } else if (viewType === 'month') {
+      goToPreviousMonth();
     }
   };
 
   const handleNext = () => {
-    switch (activeView) {
-      case "day":
-        handlers.handleNextDay();
-        break;
-      case "week":
-        handlers.handleNextWeek();
-        break;
-      case "month":
-        handlers.handleNextMonth();
-        break;
+    if (viewType === 'day') {
+      goToNextDay();
+    } else if (viewType === 'week') {
+      goToNextWeek();
+    } else if (viewType === 'month') {
+      goToNextMonth();
     }
+  };
+
+  const handleGoToToday = () => {
+    goToToday();
+  };
+
+  const handleViewChange = (newView: string) => {
+    setViewType(newView as 'day' | 'week' | 'month');
   };
 
   return (
@@ -173,8 +198,8 @@ export default function SchedulerViewFilteration({
       <div className="flex w-full">
         <div className="dayly-weekly-monthly-selection relative w-full">
           <Tabs
-            value={activeView}
-            onValueChange={setActiveView}
+            value={viewType}
+            onValueChange={handleViewChange}
             className={cn("w-full", classNames?.tabs)}
           >
             <div className="flex justify-between items-center border-b border-border">
@@ -183,7 +208,7 @@ export default function SchedulerViewFilteration({
                   <div className="flex items-center gap-2 mr-2">
                     <SidebarTrigger />
                     <h1 className="text-lg font-semibold">
-                      {getViewTitle(activeView)}
+                      {getViewTitle(viewType)}
                     </h1>
                   </div>
 
@@ -218,104 +243,59 @@ export default function SchedulerViewFilteration({
                 <Button 
                   variant="outline" 
                   className="hidden sm:flex bg-muted rounded-sm w-20 h-8 text-sm"
-                  onClick={() => {
-                    handlers.handleGoToToday();
-                  }}
+                  onClick={handleGoToToday}
                 >
                   Today
                 </Button>
                   <TabsList className="grid grid-cols-3">
-                    {viewsSelector?.includes("day") && (
-                      <TabsTrigger value="day">
-                        {CustomComponents?.customTabs?.CustomDayTab ? (
-                          CustomComponents.customTabs.CustomDayTab
-                        ) : (
-                          <div className="flex items-center space-x-2">
-                            <CalendarDaysIcon size={15} />
-                            <span>Day</span>
-                          </div>
-                        )}
-                      </TabsTrigger>
-                    )}
+                    <TabsTrigger value="day">
+                        <div className="flex items-center space-x-2">
+                          <CalendarDaysIcon size={15} />
+                          <span>Day</span>
+                        </div>
+                    </TabsTrigger>
+                    <TabsTrigger value="week">
+                        <div className="flex items-center space-x-2">
+                          <BsCalendarWeek />
+                          <span>Week</span>
+                        </div>
+                    </TabsTrigger>
 
-                    {viewsSelector?.includes("week") && (
-                      <TabsTrigger value="week">
-                        {CustomComponents?.customTabs?.CustomWeekTab ? (
-                          CustomComponents.customTabs.CustomWeekTab
-                        ) : (
-                          <div className="flex items-center space-x-2">
-                            <BsCalendarWeek />
-                            <span>Week</span>
-                          </div>
-                        )}
-                      </TabsTrigger>
-                    )}
-
-                    {viewsSelector?.includes("month") && (
-                      <TabsTrigger value="month">
-                        {CustomComponents?.customTabs?.CustomMonthTab ? (
-                          CustomComponents.customTabs.CustomMonthTab
-                        ) : (
-                          <div className="flex items-center space-x-2">
-                            <BsCalendarMonth />
-                            <span>Month</span>
-                          </div>
-                        )}
-                      </TabsTrigger>
-                    )}
+                    <TabsTrigger value="month">
+                      <div className="flex items-center space-x-2">
+                        <BsCalendarMonth />
+                        <span>Month</span>
+                      </div>
+                    </TabsTrigger>
                   </TabsList>
                 </div>
               </div>
             </div>
+            <TabsContent value="day">
+              <AnimatePresence mode="wait">
+                <motion.div {...animationConfig}>
+                  <DailyView
+                    stopDayEventSummary={stopDayEventSummary}
+                  />
+                </motion.div>
+              </AnimatePresence>
+            </TabsContent>
 
-            {viewsSelector?.includes("day") && (
-              <TabsContent value="day">
-                <AnimatePresence mode="wait">
-                  <motion.div {...animationConfig}>
-                    <DailyView
-                      stopDayEventSummary={stopDayEventSummary}
-                      classNames={classNames?.buttons}
-                      CustomEventComponent={
-                        CustomComponents?.CustomEventComponent
-                      }
-                      CustomEventModal={CustomComponents?.CustomEventModal}
-                    />
-                  </motion.div>
-                </AnimatePresence>
-              </TabsContent>
-            )}
+            <TabsContent value="week">
+              <AnimatePresence mode="wait">
+                <motion.div {...animationConfig}>
+                  <WeeklyView />
+                </motion.div>
+              </AnimatePresence>
+            </TabsContent>
 
-            {viewsSelector?.includes("week") && (
-              <TabsContent value="week">
-                <AnimatePresence mode="wait">
-                  <motion.div {...animationConfig}>
-                    <WeeklyView
-                      classNames={classNames?.buttons}
-                      CustomEventComponent={
-                        CustomComponents?.CustomEventComponent
-                      }
-                      CustomEventModal={CustomComponents?.CustomEventModal}
-                    />
-                  </motion.div>
-                </AnimatePresence>
-              </TabsContent>
-            )}
-
-            {viewsSelector?.includes("month") && (
-              <TabsContent value="month">
-                <AnimatePresence mode="wait">
-                  <motion.div {...animationConfig}>
-                    <MonthView
-                      classNames={classNames?.buttons}
-                      CustomEventComponent={
-                        CustomComponents?.CustomEventComponent
-                      }
-                      CustomEventModal={CustomComponents?.CustomEventModal}
-                    />
-                  </motion.div>
-                </AnimatePresence>
-              </TabsContent>
-            )}
+            <TabsContent value="month">
+              <AnimatePresence mode="wait">
+                <motion.div {...animationConfig}>
+                  <MonthView />
+                </motion.div>
+              </AnimatePresence>
+            </TabsContent>
           </Tabs>
         </div>
       </div>

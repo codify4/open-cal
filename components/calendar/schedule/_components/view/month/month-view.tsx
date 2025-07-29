@@ -1,25 +1,14 @@
 "use client";
 
-import React, { useState, useCallback } from "react";
+import React from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, ArrowRight } from "lucide-react";
 import clsx from "clsx";
 
-import { useScheduler } from "@/providers/schedular-provider";
-import { useModal } from "@/providers/modal-context";
-import AddEventModal from "@/components/calendar/schedule/_modals/add-event-modal";
-import ShowMoreEventsModal from "@/components/calendar/schedule/_modals/show-more-events-modal";
-import EventStyled from "../event-component/event-styled";
-import { Event, CustomEventModal } from "@/types";
-import { useAtom } from "jotai";
-import { 
-  isEventSidebarOpenAtom, 
-  eventCreationContextAtom,
-  selectedEventAtom
-} from "@/lib/atoms/event-atom";
+import { EventCard } from "@/components/event/cards/event-card";
+import { Event } from "@/lib/store/calendar-store";
+import { useCalendarStore } from "@/providers/calendar-store-provider";
 
 const pageTransitionVariants = {
   enter: (direction: number) => ({
@@ -36,114 +25,57 @@ const pageTransitionVariants = {
   }),
 };
 
-export default function MonthView({
-  CustomEventComponent,
-  CustomEventModal,
-  classNames,
-}: {
-  CustomEventComponent?: React.FC<Event>;
-  CustomEventModal?: CustomEventModal;
-  classNames?: { prev?: string; next?: string; addEvent?: string };
-}) {
-  const { getters, handlers, weekStartsOn } = useScheduler();
-  const { setOpen } = useModal();
+export default function MonthView() {
   
-  // Sidebar state management
-  const [isEventSidebarOpen, setIsEventSidebarOpen] = useAtom(isEventSidebarOpenAtom);
-  const [eventCreationContext, setEventCreationContext] = useAtom(eventCreationContextAtom);
-  const [selectedEvent, setSelectedEvent] = useAtom(selectedEventAtom);
+  const { currentDate, navigationDirection, openEventSidebarForNewEvent } = useCalendarStore((state) => state);
+  const direction = navigationDirection;
+  const weekStartsOn = "sunday" as "sunday" | "monday";
 
-  // Get current date and direction from scheduler provider
-  const currentDate = getters.getCurrentDate ? getters.getCurrentDate() : new Date();
-  const direction = getters.getDirection ? getters.getDirection() : 0;
+  // Ensure currentDate is a Date object
+  const date = currentDate instanceof Date ? currentDate : new Date(currentDate);
 
-  const daysInMonth = getters.getDaysInMonth(
-    currentDate.getMonth(),
-    currentDate.getFullYear()
+  // Function to get days in month
+  const getDaysInMonth = (month: number, year: number) => {
+    return Array.from(
+      { length: new Date(year, month + 1, 0).getDate() },
+      (_, index) => ({
+        day: index + 1,
+        events: [],
+      })
+    );
+  };
+
+  const daysInMonth = getDaysInMonth(
+    date.getMonth(),
+    date.getFullYear()
   );
 
+  // Function to get events for day
+  const getEventsForDay = (day: number, currentDate: Date): Event[] => {
+    return [];
+  };
+
   function handleAddEvent(selectedDay: number) {
-    // Create start date at 12:00 AM on the selected day
     const startDate = new Date(
-      currentDate.getFullYear(),
-      currentDate.getMonth(),
+      date.getFullYear(),
+      date.getMonth(),
       selectedDay,
       0,
       0,
       0
     );
 
-    // Create end date at 11:59 PM on the same day
     const endDate = new Date(
-      currentDate.getFullYear(),
-      currentDate.getMonth(),
+      date.getFullYear(),
+      date.getMonth(),
       selectedDay,
       23,
       59,
       59
     );
 
-    // Set the event creation context for the sidebar
-    setEventCreationContext({
-      targetDate: startDate,
-      clickPosition: {
-        x: 0,
-        y: 0
-      }
-    });
-
-    // Create a new event with the correct time information for the sidebar
-    const newEvent: Event = {
-      id: `event-${Date.now()}`,
-      title: "",
-      description: "",
-      startDate: startDate,
-      endDate: endDate,
-      startTime: "00:00",
-      endTime: "23:59",
-      isAllDay: true,
-      color: "blue",
-      type: "event",
-      location: "",
-      attendees: [],
-      reminders: [],
-      repeat: "none",
-      availability: "busy",
-      visibility: "default"
-    };
-
-    // Add the event to the scheduler provider
-    handlers.handleAddEvent(newEvent);
-
-    // Set the selected event for editing in sidebar
-    setSelectedEvent(newEvent);
-
-    // Open the sidebar
-    setIsEventSidebarOpen(true);
-    localStorage.setItem('isEventSidebarOpen', 'true');
+    openEventSidebarForNewEvent(startDate);
   }
-
-  function handleShowMoreEvents(dayEvents: Event[]) {
-    setOpen(
-      <ShowMoreEventsModal />,
-      async () => {
-        return {
-          dayEvents,
-        };
-      }
-    );
-  }
-
-  const containerVariants = {
-    enter: { opacity: 0 },
-    center: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.02,
-      },
-    },
-    exit: { opacity: 0 },
-  };
 
   const itemVariants = {
     enter: { opacity: 0, y: 20 },
@@ -157,18 +89,17 @@ export default function MonthView({
       : ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
   const firstDayOfMonth = new Date(
-    currentDate.getFullYear(),
-    currentDate.getMonth(),
+    date.getFullYear(),
+    date.getMonth(),
     1
   );
 
   const startOffset =
     (firstDayOfMonth.getDay() - (weekStartsOn === "monday" ? 1 : 0) + 7) % 7;
 
-  // Calculate previous month's last days for placeholders
   const prevMonth = new Date(
-    currentDate.getFullYear(),
-    currentDate.getMonth() - 1,
+    date.getFullYear(),
+    date.getMonth() - 1,
     1
   );
   const lastDateOfPrevMonth = new Date(
@@ -180,7 +111,7 @@ export default function MonthView({
     <div>
       <AnimatePresence initial={false} custom={direction} mode="wait">
         <motion.div
-          key={`${currentDate.getFullYear()}-${currentDate.getMonth()}`}
+          key={`${date.getFullYear()}-${date.getMonth()}`}
           custom={direction}
           variants={{
             ...pageTransitionVariants,
@@ -215,7 +146,7 @@ export default function MonthView({
           ))}
 
           {daysInMonth.map((dayObj) => {
-            const dayEvents = getters.getEventsForDay(dayObj.day, currentDate);
+            const dayEvents = getEventsForDay(dayObj.day, date);
 
             return (
               <motion.div
@@ -237,8 +168,8 @@ export default function MonthView({
                         ? "text-primary-600"
                         : "text-muted-foreground",
                       new Date().getDate() === dayObj.day &&
-                        new Date().getMonth() === currentDate.getMonth() &&
-                        new Date().getFullYear() === currentDate.getFullYear()
+                        new Date().getMonth() === date.getMonth() &&
+                        new Date().getFullYear() === date.getFullYear()
                         ? "text-secondary-500"
                         : ""
                     )}
@@ -247,7 +178,7 @@ export default function MonthView({
                   </div>
                   <div className="flex-grow flex flex-col gap-2 w-full">
                     <AnimatePresence mode="wait">
-                      {dayEvents?.length > 0 && (
+                      {dayEvents?.length > 0 && dayEvents[0] && (
                         <motion.div
                           key={dayEvents[0].id}
                           initial={{ opacity: 0, y: 20 }}
@@ -255,13 +186,9 @@ export default function MonthView({
                           exit={{ opacity: 0, y: -20 }}
                           transition={{ duration: 0.3 }}
                         >
-                          <EventStyled
-                            event={{
-                              ...dayEvents[0],
-                              CustomEventComponent,
-                              minmized: true,
-                            }}
-                            CustomEventModal={CustomEventModal}
+                          <EventCard
+                            event={dayEvents[0]}
+                            minimized={true}
                           />
                         </motion.div>
                       )}
@@ -270,7 +197,7 @@ export default function MonthView({
                       <Badge
                         onClick={(e) => {
                           e.stopPropagation();
-                          handleShowMoreEvents(dayEvents);
+                          // handleShowMoreEvents(dayEvents);
                         }}
                         variant="outline"
                         className="hover:bg-default-200 absolute right-2 text-xs top-2 transition duration-300"
@@ -282,7 +209,6 @@ export default function MonthView({
                     )}
                   </div>
 
-                  {/* Hover Text */}
                   {dayEvents.length === 0 && (
                     <div className="absolute inset-0 bg-primary/20 bg-opacity-50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                       <span className="text-black tracking-tighter text-lg font-semibold">

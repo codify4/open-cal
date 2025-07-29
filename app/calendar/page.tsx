@@ -1,19 +1,12 @@
 'use client'
 
 import { Button } from "@/components/ui/button"
-import { useAtom } from "jotai"
-import { isChatSidebarOpenAtom } from "@/lib/atoms/chat-atom"
 import FullCalendar from "@/components/calendar/full-calendar"
 import Image from "next/image"
+import { useCalendarStore } from "@/providers/calendar-store-provider"
 
 function CalendarPage() {
-    const [isChatSidebarOpen, setIsChatSidebarOpen] = useAtom(isChatSidebarOpenAtom)
-    
-    const toggleChatSidebar = () => {
-        const newState = !isChatSidebarOpen;
-        setIsChatSidebarOpen(newState);
-        localStorage.setItem('isChatSidebarOpen', JSON.stringify(newState));
-    }
+    const { isChatSidebarOpen, toggleChatSidebar } = useCalendarStore((state) => state)
     
     return (
         <div className="h-full">

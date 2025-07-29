@@ -1,6 +1,5 @@
 "use client"
 
-import { useAtom } from "jotai"
 import { useEffect } from "react"
 import {
   SidebarGroup,
@@ -8,23 +7,27 @@ import {
   SidebarMenu
 } from "@/components/ui/sidebar"
 import { Calendar } from "../ui/calendar"
-import { selectedDateAtom, currentDateAtom, syncSelectedDateAtom } from "@/lib/atoms/cal-atoms"
+import { useCalendarStore } from "@/providers/calendar-store-provider"
 
 export function CalendarPicker() {
-  const [selectedDate, setSelectedDate] = useAtom(selectedDateAtom)
-  const [currentDate] = useAtom(currentDateAtom)
-  const [, syncSelectedDate] = useAtom(syncSelectedDateAtom)
+    const {
+    selectedDate,
+    currentDate,
+    setSelectedDate,
+    setCurrentDate
+  } = useCalendarStore((state) => state)
   
   // Sync selected date with current date when current date changes
   useEffect(() => {
-    if (currentDate && selectedDate?.getTime() !== currentDate.getTime()) {
+    if (currentDate && (!selectedDate || selectedDate.getTime() !== currentDate.getTime())) {
       setSelectedDate(currentDate)
     }
-  }, [currentDate, selectedDate, setSelectedDate])
+  }, [currentDate, setSelectedDate])
   
   const handleDateSelect = (date: Date | undefined) => {
     if (date) {
-      syncSelectedDate(date)
+      setCurrentDate(date)
+      console.log("Date selected:", date)
     }
   }
   

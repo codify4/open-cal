@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { Geist } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next"
-import { Provider } from "jotai"
+import { ThemeProvider } from "next-themes";
 
 const geist = Geist({
   subsets: ["latin"],
@@ -25,11 +25,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="dark">
+    <html lang="en">
       <body className={`${geist.variable} antialiased bg-background text-foreground`}>
-        <Provider>
+        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
           {children}
-        </Provider>
+        </ThemeProvider>
         <Analytics />
       </body>
     </html>

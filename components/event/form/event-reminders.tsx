@@ -7,8 +7,8 @@ import { useState } from "react"
 import { reminderOptions } from "@/constants/add-event"
 
 interface EventRemindersProps {
-    reminders: string[]
-    onRemindersChange: (reminders: string[]) => void
+    reminders: Date[]
+    onRemindersChange: (reminders: Date[]) => void
 }
 
 export const EventReminders = ({ reminders, onRemindersChange }: EventRemindersProps) => {
@@ -18,7 +18,7 @@ export const EventReminders = ({ reminders, onRemindersChange }: EventRemindersP
         reminder.toLowerCase().includes(reminderSearch.toLowerCase())
     )
 
-    const handleReminderToggle = (reminder: string) => {
+    const handleReminderToggle = (reminder: Date) => {
         onRemindersChange(
             reminders.includes(reminder)
                 ? reminders.filter(r => r !== reminder)
@@ -26,7 +26,7 @@ export const EventReminders = ({ reminders, onRemindersChange }: EventRemindersP
         )
     }
 
-    const removeReminder = (reminder: string) => {
+    const removeReminder = (reminder: Date) => {
         onRemindersChange(reminders.filter(r => r !== reminder))
     }
 
@@ -57,12 +57,12 @@ export const EventReminders = ({ reminders, onRemindersChange }: EventRemindersP
                                     <CommandGroup>
                                         {filteredReminders.map((reminder) => (
                                             <CommandItem
-                                                key={reminder}
-                                                onSelect={() => handleReminderToggle(reminder)}
+                                                key={reminder.toString()}
+                                                onSelect={() => handleReminderToggle(new Date(reminder))}
                                                 className="flex items-center justify-between text-white hover:bg-neutral-800"
                                             >
-                                                <span>{reminder}</span>
-                                                {reminders.includes(reminder) && (
+                                                <span>{reminder.toLocaleString()}</span>
+                                                {reminders.includes(new Date(reminder)) && (
                                                     <div className="w-4 h-4 rounded-full bg-blue-500" />
                                                 )}
                                             </CommandItem>
@@ -78,12 +78,12 @@ export const EventReminders = ({ reminders, onRemindersChange }: EventRemindersP
                         <div className="flex flex-wrap gap-1 flex-1">
                             {reminders.map((reminder) => (
                                 <Badge 
-                                    key={reminder} 
+                                    key={reminder.toString()} 
                                     variant="default" 
                                     className="text-xs cursor-pointer text-black"
                                     onClick={() => removeReminder(reminder)}
                                 >
-                                    {reminder} ×
+                                    {reminder.toLocaleString()} ×
                                 </Badge>
                             ))}
                         </div>

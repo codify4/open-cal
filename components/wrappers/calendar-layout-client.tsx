@@ -1,59 +1,33 @@
 'use client'
 
-import { useEffect, useState } from "react"
+import { useEffect } from "react"
 import { ChatSidebar } from "@/components/agent/chat-sidebar"
 import { AppSidebar } from "@/components/sidebar/app-sidebar"
 import AddEventSidebar from "../event/add-event-sidebar"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable"
-import { useAtom } from "jotai"
-import { isChatSidebarOpenAtom } from "@/lib/atoms/chat-atom"
-import { isEventSidebarOpenAtom } from "@/lib/atoms/event-atom"
-import { SchedulerProvider } from "@/providers/schedular-provider"
+import { useCalendarStore } from "@/providers/calendar-store-provider"
 
 export function CalendarLayoutClient({ children }: { children: React.ReactNode }) {
-    const [isChatSidebarOpen, setIsChatSidebarOpen] = useAtom(isChatSidebarOpenAtom)
-    const [isEventSidebarOpen, setIsEventSidebarOpen] = useAtom(isEventSidebarOpenAtom);
-    const [isFullscreen, setIsFullscreen] = useState(false);
+    const {
+        isChatSidebarOpen,
+        isEventSidebarOpen,
+        isChatFullscreen,
+        toggleChatSidebar,
+        setChatFullscreen,
+        closeEventSidebar
+    } = useCalendarStore((state) => state)
 
     const closeChatSidebar = () => {
-        setIsChatSidebarOpen(false);
-        localStorage.setItem('isChatSidebarOpen', 'false');
+        toggleChatSidebar()
     }
 
     const toggleFullscreen = () => {
-        setIsFullscreen(!isFullscreen);
+        setChatFullscreen(!isChatFullscreen)
     }
-
-    const closeEventSidebar = () => {
-        setIsEventSidebarOpen(false);
-        localStorage.setItem('isEventSidebarOpen', 'false');
-    }
-
-    // Load localStorage value only on client side after hydration
-    useEffect(() => {
-        const storedChatSidebarState = localStorage.getItem('isChatSidebarOpen');
-        if (storedChatSidebarState !== null) {
-            setIsChatSidebarOpen(JSON.parse(storedChatSidebarState));
-        }
-        const storedEventSidebarState = localStorage.getItem('isEventSidebarOpen');
-        if (storedEventSidebarState !== null) {
-            setIsEventSidebarOpen(JSON.parse(storedEventSidebarState));
-        }
-    }, [setIsChatSidebarOpen]);
-
-    // Save state changes to localStorage
-    useEffect(() => {
-        localStorage.setItem('isChatSidebarOpen', JSON.stringify(isChatSidebarOpen));
-    }, [isChatSidebarOpen]);
-
-    useEffect(() => {
-        localStorage.setItem('isEventSidebarOpen', JSON.stringify(isEventSidebarOpen));
-    }, [isEventSidebarOpen]);
 
     return (
         <SidebarProvider>
-            <SchedulerProvider>
                 <AppSidebar className="bg-neutral-950 border-none" variant="inset" />
                 <ResizablePanelGroup direction="horizontal" className="min-h-screen md:p-1.5 gap-1">
                     <ResizablePanel defaultSize={isChatSidebarOpen ? 70 : 100} minSize={30} className="md:rounded-xl overflow-hidden p-0">
@@ -69,7 +43,7 @@ export function CalendarLayoutClient({ children }: { children: React.ReactNode }
                             <ResizablePanel defaultSize={30} minSize={20} maxSize={50} className="bg-neutral-900 rounded-lg p-2">
                                 <div className="h-full rounded-xl shadow-sm overflow-hidden">
                                     <ChatSidebar 
-                                        isFullscreen={isFullscreen} 
+                                        isFullscreen={isChatFullscreen} 
                                         onToggleSidebar={closeChatSidebar}
                                         onToggleFullscreen={toggleFullscreen}
                                     />
@@ -90,7 +64,7 @@ export function CalendarLayoutClient({ children }: { children: React.ReactNode }
                         </>
                     )}
                 </ResizablePanelGroup>
-                {isFullscreen && (
+                {isChatFullscreen && (
                     <div className="fixed inset-0 z-50 bg-neutral-900 p-5">
                         <ChatSidebar 
                             isFullscreen={true} 
@@ -99,7 +73,6 @@ export function CalendarLayoutClient({ children }: { children: React.ReactNode }
                         />
                     </div>
                 )}
-            </SchedulerProvider>
         </SidebarProvider>
     )
 } 

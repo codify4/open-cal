@@ -1,11 +1,8 @@
 "use client"
 
 import React from "react"
-import { useAtom } from "jotai"
-import { Clock, MapPin, Users, MoreHorizontal } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { selectedEventAtom } from "@/lib/atoms/event-atom"
-import { Event } from "@/types"
+import { Calendar, Cake } from "lucide-react"
+import { Event } from "@/lib/store/calendar-store"
 import { useDraggable } from "@dnd-kit/core"
 import {
   DropdownMenu,
@@ -13,36 +10,28 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { useScheduler } from "@/providers/schedular-provider"
+import { useCalendarStore } from "@/providers/calendar-store-provider"
 
 interface EventCardProps {
   event: Event
   className?: string
+  minimized?: boolean
 }
 
-export const EventCard: React.FC<EventCardProps> = ({ 
+export const EventCard = ({ 
   event, 
-  className = "" 
-}) => {
-  const [, setSelectedEvent] = useAtom(selectedEventAtom)
-  const { events, handlers } = useScheduler()
-
+  className = "",
+  minimized = false
+}: EventCardProps) => {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: event.id,
     data: event
   })
 
-  const handleEdit = () => {
-    setSelectedEvent(event)
-  }
+  const { openEventSidebarForEdit } = useCalendarStore((state) => state)
 
-  const formatTime = (time: string) => {
-    if (!time) return ""
-    const [hours, minutes] = time.split(":")
-    const hour = parseInt(hours)
-    const ampm = hour >= 12 ? "PM" : "AM"
-    const displayHour = hour % 12 || 12
-    return `${displayHour}:${minutes} ${ampm}`
+  const handleEdit = () => {
+    openEventSidebarForEdit(event)
   }
 
   const getColorClasses = (color: string) => {
@@ -77,65 +66,39 @@ export const EventCard: React.FC<EventCardProps> = ({
             ${getColorClasses(event.color)}
             ${event.isAllDay ? 'border-l-4' : ''}
             ${isDragging ? 'opacity-50' : ''}
+            ${minimized ? 'min-h-[20px] max-h-[40px] overflow-hidden' : 'min-h-[60px]'}
             ${className}
           `}
           onClick={handleEdit}
         >
-          <div className="flex items-start justify-between mb-1">
-            <div className="flex-1 min-w-0">
+          <div className="flex items-start justify-between">
+            <div className="flex-1 min-w-0 flex items-center gap-1">
+              {event.type === 'birthday' ? (
+                <Cake className="h-3 w-3 text-white" />
+              ) : (
+                <Calendar className="h-3 w-3 text-white" />
+              )}
               <h4 className="font-medium text-white truncate">
                 {event.title || "Untitled Event"}
               </h4>
             </div>
           </div>
 
-          <div className="space-y-1">
-            {!event.isAllDay && event.startTime && (
-              <div className="flex items-center gap-1 text-white/90">
-                <Clock className="h-3 w-3" />
-                <span>
-                  {formatTime(event.startTime)}
-                  {event.endTime && ` - ${formatTime(event.endTime)}`}
-                </span>
-              </div>
-            )}
-
-            {event.isAllDay && (
-              <div className="text-white/90 font-medium">
-                All Day
-              </div>
-            )}
-
-            {event.location && (
-              <div className="flex items-center gap-1 text-white/90">
-                <MapPin className="h-3 w-3" />
-                <span className="truncate">{event.location}</span>
-              </div>
-            )}
-
-            {event.attendees && event.attendees.length > 0 && (
-              <div className="flex items-center gap-1 text-white/90">
-                <Users className="h-3 w-3" />
-                <span>{event.attendees.length} attendee{event.attendees.length !== 1 ? 's' : ''}</span>
-              </div>
-            )}
-
-            {event.description && (
-              <div className="text-white/80 truncate">
-                {event.description}
-              </div>
-            )}
-          </div>
-
-          {event.type === 'birthday' && (
-            <div className="absolute top-1 right-1">
-              <div className="w-2 h-2 bg-pink-400 rounded-full"></div>
+          {!minimized && event.description && (
+            <div className="text-white/80 truncate mt-1">
+              {event.description}
             </div>
           )}
         </div>
       </DropdownMenuTrigger>
       
       <DropdownMenuContent className="bg-neutral-900 border-neutral-700">
+        <DropdownMenuItem 
+          className="text-white hover:bg-neutral-800 cursor-pointer"
+          onClick={handleEdit}
+        >
+          Edit
+        </DropdownMenuItem>
         <DropdownMenuItem 
           className="text-white hover:bg-neutral-800 cursor-pointer"
           onClick={() => console.log("Duplicate event:", event.id)}
@@ -150,9 +113,7 @@ export const EventCard: React.FC<EventCardProps> = ({
         </DropdownMenuItem>
         <DropdownMenuItem 
           className="text-red-400 hover:bg-red-900/20 cursor-pointer"
-          onClick={() => {
-            handlers.handleDeleteEvent(event.id)
-          }}
+          onClick={() => console.log("Delete event:", event.id)}
         >
           Delete
         </DropdownMenuItem>
