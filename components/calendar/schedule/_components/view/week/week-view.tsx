@@ -416,7 +416,7 @@ export default function WeeklyView() {
               >
                 <Badge
                   variant="outline"
-                  className="absolute -translate-y-1/2 bg-white z-50 left-[5px] text-xs"
+                  className="absolute -translate-y-1/2 bg-white z-50 left-[5px] text-xs text-black"
                 >
                   {detailedHour}
                 </Badge>

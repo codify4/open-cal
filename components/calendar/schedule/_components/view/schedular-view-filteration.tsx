@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -13,7 +13,7 @@ import WeeklyView from "./week/week-view";
 import { cn } from "@/lib/utils";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { useCalendarStore } from "@/providers/calendar-store-provider";
-import { ClassNames, CustomComponents, Views } from "@/types/index";
+import { ClassNames, Views } from "@/types/index";
 
 // Animation settings for Framer Motion
 const animationConfig = {
@@ -29,16 +29,13 @@ export default function CalendarView({
     mobileViews: ["day", "week", "month"],
   },
   stopDayEventSummary = false,
-  CustomComponents,
   classNames,
 }: {
   views?: Views;
   stopDayEventSummary?: boolean;
-  CustomComponents?: CustomComponents;
   classNames?: ClassNames;
 }) {
   const [clientSide, setClientSide] = useState(false);
-  const hasSetInitialView = useRef(false);
 
   const {
     currentDate,
@@ -52,8 +49,6 @@ export default function CalendarView({
     goToPreviousMonth,
     goToNextMonth
   } = useCalendarStore((state) => state);
-
-  console.log("viewType", viewType);
 
   useEffect(() => {
     setClientSide(true);
@@ -156,15 +151,6 @@ export default function CalendarView({
     }
   }
 
-  const viewsSelector = isMobile ? views?.mobileViews : views?.views;
-
-  useEffect(() => {
-    if (viewsSelector?.length && !hasSetInitialView.current) {
-      setViewType(viewsSelector[0] as 'day' | 'week' | 'month');
-      hasSetInitialView.current = true;
-    }
-  }, [viewsSelector]);
-
   const handlePrev = () => {
     if (viewType === 'day') {
       goToPreviousDay();
@@ -213,30 +199,22 @@ export default function CalendarView({
                   </div>
 
                   <div className="flex gap-2">
-                    {CustomComponents?.customButtons?.CustomPrevButton ? (
-                      <div onClick={handlePrev}>{CustomComponents.customButtons.CustomPrevButton}</div>
-                    ) : (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className={classNames?.buttons?.prev}
-                        onClick={handlePrev}
-                      >
-                        <ArrowLeft className="h-4 w-4" />
-                      </Button>
-                    )}
-                    {CustomComponents?.customButtons?.CustomNextButton ? (
-                      <div onClick={handleNext}>{CustomComponents.customButtons.CustomNextButton}</div>
-                    ) : (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className={classNames?.buttons?.next}
-                        onClick={handleNext}
-                      >
-                        <ArrowRight className="h-4 w-4" />
-                      </Button>
-                    )}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className={classNames?.buttons?.prev}
+                      onClick={handlePrev}
+                    >
+                      <ArrowLeft className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className={classNames?.buttons?.next}
+                      onClick={handleNext}
+                    >
+                      <ArrowRight className="h-4 w-4" />
+                    </Button>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">

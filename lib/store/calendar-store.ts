@@ -260,6 +260,8 @@ export const createCalendarStore = (initState: CalendarState = defaultInitState)
             if (typeof state.selectedDate === 'string') {
               state.selectedDate = new Date(state.selectedDate)
             }
+            // Always default to week view
+            state.viewType = 'week'
           }
         }
       }
