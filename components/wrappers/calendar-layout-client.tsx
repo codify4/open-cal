@@ -1,7 +1,6 @@
 'use client'
 
-import { useEffect } from "react"
-import { DndContext, DragEndEvent, DragOverlay, DragStartEvent } from "@dnd-kit/core"
+import { DndContext, DragEndEvent, DragStartEvent } from "@dnd-kit/core"
 import { ChatSidebar } from "@/components/agent/chat-sidebar"
 import { AppSidebar } from "@/components/sidebar/app-sidebar"
 import AddEventSidebar from "../event/add-event-sidebar"

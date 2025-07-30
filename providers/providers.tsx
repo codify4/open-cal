@@ -1,7 +1,6 @@
 "use client";
 
 import * as React from "react";
-import { ThemeProviderProps } from "next-themes";
 import { CalendarStoreProvider } from "./calendar-store-provider";
 
 export interface ProvidersProps {
