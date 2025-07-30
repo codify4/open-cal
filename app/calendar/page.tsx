@@ -15,10 +15,10 @@ function CalendarPage() {
             {!isChatSidebarOpen && (
                 <Button
                     onClick={toggleChatSidebar}
-                    className="fixed bottom-4 right-4 z-50 rounded-full w-12 h-12 shadow-lg bg-neutral-800 hover:bg-neutral-700 text-white"
+                    className="fixed bottom-4 right-4 z-50 rounded-full w-12 h-12 shadow-lg bg-black text-white"
                     size="icon"
                 >
-                    <Image src="/open-cal.svg" alt="OpenCal" fill className="object-contain rounded-full" />
+                    <Image src="/open-cal.svg" alt="OpenCal" width={30} height={30} />
                 </Button>
             )}
         </div>

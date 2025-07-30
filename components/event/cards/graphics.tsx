@@ -53,19 +53,20 @@ const colorVariants = {
 }
 
 export const GraphicDoodle = ({ color, size }: { color: string; size: string }) => {
+    const safeColor = colorVariants[color as keyof typeof colorVariants] ? color : 'blue'
     const graphics = {
         blue: (
             <svg className={sizeVariants[size as keyof typeof sizeVariants].graphic} viewBox="0 0 40 40" fill="none">
             {/* Ocean waves with bubbles */}
             <path
                 d="M5 25C8 22 12 22 15 25C18 28 22 28 25 25C28 22 32 22 35 25"
-                className={colorVariants[color as keyof typeof colorVariants].accent}
+                className={colorVariants[safeColor as keyof typeof colorVariants].accent}
                 strokeWidth="2"
                 strokeLinecap="round"
             />
             <path
                 d="M5 30C8 27 12 27 15 30C18 33 22 33 25 30C28 27 32 27 35 30"
-                className={colorVariants[color as keyof typeof colorVariants].accent}
+                className={colorVariants[safeColor as keyof typeof colorVariants].accent}
                 strokeWidth="2"
                 strokeLinecap="round"
             />
@@ -73,7 +74,7 @@ export const GraphicDoodle = ({ color, size }: { color: string; size: string }) 
                 cx="12"
                 cy="15"
                 r="2"
-                className={colorVariants[color as keyof typeof colorVariants].accent}
+                className={colorVariants[safeColor as keyof typeof colorVariants].accent}
                 strokeWidth="1.5"
                 fill="none"
             />
@@ -81,7 +82,7 @@ export const GraphicDoodle = ({ color, size }: { color: string; size: string }) 
                 cx="28"
                 cy="12"
                 r="1.5"
-                className={colorVariants[color as keyof typeof colorVariants].accent}
+                className={colorVariants[safeColor as keyof typeof colorVariants].accent}
                 strokeWidth="1.5"
                 fill="none"
             />
@@ -89,7 +90,7 @@ export const GraphicDoodle = ({ color, size }: { color: string; size: string }) 
                 cx="20"
                 cy="18"
                 r="1"
-                className={colorVariants[color as keyof typeof colorVariants].accent}
+                className={colorVariants[safeColor as keyof typeof colorVariants].accent}
                 strokeWidth="1.5"
                 fill="none"
             />
@@ -100,27 +101,27 @@ export const GraphicDoodle = ({ color, size }: { color: string; size: string }) 
             {/* Botanical leaves and vines */}
             <path
                 d="M15 35C15 30 18 25 22 22C26 19 30 15 30 10"
-                className={colorVariants[color as keyof typeof colorVariants].accent}
+                className={colorVariants[safeColor as keyof typeof colorVariants].accent}
                 strokeWidth="2"
                 strokeLinecap="round"
             />
             <path
                 d="M18 28C16 26 16 24 18 22C20 20 22 20 24 22"
-                className={colorVariants[color as keyof typeof colorVariants].accent}
+                className={colorVariants[safeColor as keyof typeof colorVariants].accent}
                 strokeWidth="1.5"
                 strokeLinecap="round"
                 fill="none"
             />
             <path
                 d="M25 18C23 16 23 14 25 12C27 10 29 10 31 12"
-                className={colorVariants[color as keyof typeof colorVariants].accent}
+                className={colorVariants[safeColor as keyof typeof colorVariants].accent}
                 strokeWidth="1.5"
                 strokeLinecap="round"
                 fill="none"
             />
             <path
                 d="M12 32C10 30 10 28 12 26"
-                className={colorVariants[color as keyof typeof colorVariants].accent}
+                className={colorVariants[safeColor as keyof typeof colorVariants].accent}
                 strokeWidth="1.5"
                 strokeLinecap="round"
             />
@@ -131,7 +132,7 @@ export const GraphicDoodle = ({ color, size }: { color: string; size: string }) 
             {/* Abstract flame/energy burst */}
             <path
                 d="M20 35C15 30 12 25 15 20C18 15 22 18 25 15C28 12 32 15 30 20C28 25 25 30 20 35Z"
-                className={colorVariants[color as keyof typeof colorVariants].accent}
+                className={colorVariants[safeColor as keyof typeof colorVariants].accent}
                 strokeWidth="2"
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -139,7 +140,7 @@ export const GraphicDoodle = ({ color, size }: { color: string; size: string }) 
             />
             <path
                 d="M20 28C18 25 17 22 19 20C21 18 23 19 24 17C25 15 27 16 26 18C25 20 23 22 20 28Z"
-                className={colorVariants[color as keyof typeof colorVariants].accent}
+                className={colorVariants[safeColor as keyof typeof colorVariants].accent}
                 strokeWidth="1.5"
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -149,7 +150,7 @@ export const GraphicDoodle = ({ color, size }: { color: string; size: string }) 
                 cx="22"
                 cy="12"
                 r="1.5"
-                className={colorVariants[color as keyof typeof colorVariants].accent}
+                className={colorVariants[safeColor as keyof typeof colorVariants].accent}
                 strokeWidth="1.5"
                 fill="none"
             />
@@ -160,19 +161,19 @@ export const GraphicDoodle = ({ color, size }: { color: string; size: string }) 
             {/* Mystical swirls and stars */}
             <path
                 d="M8 32C12 28 16 32 20 28C24 24 28 28 32 24"
-                className={colorVariants[color as keyof typeof colorVariants].accent}
+                className={colorVariants[safeColor as keyof typeof colorVariants].accent}
                 strokeWidth="2"
                 strokeLinecap="round"
             />
             <path
                 d="M10 20C14 16 18 20 22 16C26 12 30 16 34 12"
-                className={colorVariants[color as keyof typeof colorVariants].accent}
+                className={colorVariants[safeColor as keyof typeof colorVariants].accent}
                 strokeWidth="1.5"
                 strokeLinecap="round"
             />
             <path
                 d="M15 12L17 8L19 12L23 10L21 14L17 16L13 14L15 10Z"
-                className={colorVariants[color as keyof typeof colorVariants].accent}
+                className={colorVariants[safeColor as keyof typeof colorVariants].accent}
                 strokeWidth="1.5"
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -182,7 +183,7 @@ export const GraphicDoodle = ({ color, size }: { color: string; size: string }) 
                 cx="28"
                 cy="20"
                 r="1"
-                className={colorVariants[color as keyof typeof colorVariants].accent}
+                className={colorVariants[safeColor as keyof typeof colorVariants].accent}
                 strokeWidth="1.5"
                 fill="none"
             />
@@ -195,55 +196,55 @@ export const GraphicDoodle = ({ color, size }: { color: string; size: string }) 
                 cx="20"
                 cy="20"
                 r="6"
-                className={colorVariants[color as keyof typeof colorVariants].accent}
+                className={colorVariants[safeColor as keyof typeof colorVariants].accent}
                 strokeWidth="2"
                 fill="none"
             />
             <path
                 d="M20 8L20 4"
-                className={colorVariants[color as keyof typeof colorVariants].accent}
+                className={colorVariants[safeColor as keyof typeof colorVariants].accent}
                 strokeWidth="2"
                 strokeLinecap="round"
             />
             <path
                 d="M20 36L20 32"
-                className={colorVariants[color as keyof typeof colorVariants].accent}
+                className={colorVariants[safeColor as keyof typeof colorVariants].accent}
                 strokeWidth="2"
                 strokeLinecap="round"
             />
             <path
                 d="M32 20L36 20"
-                className={colorVariants[color as keyof typeof colorVariants].accent}
+                className={colorVariants[safeColor as keyof typeof colorVariants].accent}
                 strokeWidth="2"
                 strokeLinecap="round"
             />
             <path
                 d="M4 20L8 20"
-                className={colorVariants[color as keyof typeof colorVariants].accent}
+                className={colorVariants[safeColor as keyof typeof colorVariants].accent}
                 strokeWidth="2"
                 strokeLinecap="round"
             />
             <path
                 d="M28.28 11.72L30.71 9.29"
-                className={colorVariants[color as keyof typeof colorVariants].accent}
+                className={colorVariants[safeColor as keyof typeof colorVariants].accent}
                 strokeWidth="1.5"
                 strokeLinecap="round"
             />
             <path
                 d="M9.29 30.71L11.72 28.28"
-                className={colorVariants[color as keyof typeof colorVariants].accent}
+                className={colorVariants[safeColor as keyof typeof colorVariants].accent}
                 strokeWidth="1.5"
                 strokeLinecap="round"
             />
             <path
                 d="M28.28 28.28L30.71 30.71"
-                className={colorVariants[color as keyof typeof colorVariants].accent}
+                className={colorVariants[safeColor as keyof typeof colorVariants].accent}
                 strokeWidth="1.5"
                 strokeLinecap="round"
             />
             <path
                 d="M9.29 9.29L11.72 11.72"
-                className={colorVariants[color as keyof typeof colorVariants].accent}
+                className={colorVariants[safeColor as keyof typeof colorVariants].accent}
                 strokeWidth="1.5"
                 strokeLinecap="round"
             />
@@ -254,7 +255,7 @@ export const GraphicDoodle = ({ color, size }: { color: string; size: string }) 
             {/* Lightning bolt with sparkles */}
             <path
                 d="M25 8L15 22L20 22L15 32L25 18L20 18L25 8Z"
-                className={colorVariants[color as keyof typeof colorVariants].accent}
+                className={colorVariants[safeColor as keyof typeof colorVariants].accent}
                 strokeWidth="2"
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -262,7 +263,7 @@ export const GraphicDoodle = ({ color, size }: { color: string; size: string }) 
             />
             <path
                 d="M30 12L32 10L34 12L32 14Z"
-                className={colorVariants[color as keyof typeof colorVariants].accent}
+                className={colorVariants[safeColor as keyof typeof colorVariants].accent}
                 strokeWidth="1.5"
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -270,7 +271,7 @@ export const GraphicDoodle = ({ color, size }: { color: string; size: string }) 
             />
             <path
                 d="M8 16L10 14L12 16L10 18Z"
-                className={colorVariants[color as keyof typeof colorVariants].accent}
+                className={colorVariants[safeColor as keyof typeof colorVariants].accent}
                 strokeWidth="1.5"
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -280,7 +281,7 @@ export const GraphicDoodle = ({ color, size }: { color: string; size: string }) 
                 cx="32"
                 cy="28"
                 r="1"
-                className={colorVariants[color as keyof typeof colorVariants].accent}
+                className={colorVariants[safeColor as keyof typeof colorVariants].accent}
                 strokeWidth="1.5"
                 fill="none"
             />
@@ -288,13 +289,26 @@ export const GraphicDoodle = ({ color, size }: { color: string; size: string }) 
                 cx="8"
                 cy="30"
                 r="1"
-                className={colorVariants[color as keyof typeof colorVariants].accent}
+                className={colorVariants[safeColor as keyof typeof colorVariants].accent}
                 strokeWidth="1.5"
                 fill="none"
             />
             </svg>
         ),
+        pink: (
+            <svg className={sizeVariants[size as keyof typeof sizeVariants].graphic} viewBox="0 0 40 40" fill="none">
+            {/* Birthday cake with candles */}
+            <path
+                d="M20 35C15 30 12 25 15 20C18 15 22 18 25 15C28 12 32 15 30 20C28 25 25 30 20 35Z"
+                className={colorVariants[safeColor as keyof typeof colorVariants].accent}
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                fill="none"
+            />
+            </svg>
+        )
     }
   
-    return graphics[color as keyof typeof graphics] || graphics.purple
+    return graphics[safeColor as keyof typeof graphics] || graphics.purple
 }

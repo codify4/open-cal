@@ -12,7 +12,7 @@ export function PromptSuggestions({
 }: PromptSuggestionsProps) {
   return (
     <div className="flex flex-col items-center justify-center gap-6 max-w-md">
-      <Image src="/open-cal.svg" alt="OpenCal" width={80} height={80} className="rounded-full" />
+      <Image src="/open-cal.svg" alt="OpenCal" width={80} height={80} />
       
       <div className="flex flex-col items-center gap-2">
         <h1 className="text-xl font-bold text-white">

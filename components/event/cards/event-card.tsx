@@ -11,7 +11,7 @@ import {
   ContextMenuTrigger,
 } from "@/components/ui/context-menu"
 import { useCalendarStore } from "@/providers/calendar-store-provider"
-import { ensureDate } from "@/lib/utils"
+import { cn, ensureDate } from "@/lib/utils"
 import { GraphicDoodle } from "./graphics"
 
 interface EventCardProps {
@@ -84,6 +84,16 @@ export const EventCard = ({
       gray: "bg-gray-500/40 border-gray-600"
     }
     return colorMap[color] || colorMap.blue
+  }
+
+  const getAccountColor = (account: string) => {
+    const accountMap: Record<string, string> = {
+      "john.doe@gmail.com": "bg-red-500",
+      "jane.smith@outlook.com": "bg-blue-500",
+      "work@company.com": "bg-green-500",
+      "personal@icloud.com": "bg-purple-500",
+    }
+    return accountMap[account] || getColorClasses(event.color)
   }
 
   const formatTime = (date: Date | string) => {
@@ -176,25 +186,26 @@ export const EventCard = ({
             <GraphicDoodle color={event.color} size="md" />
           </div>
           
-          <div className="flex flex-col items-start justify-between">
-            <div className="flex-1 min-w-0 flex items-center gap-1">
-              {event.type === 'birthday' ? (
-                <Cake className="h-3 w-3 text-white" />
-              ) : (
-                <Calendar className="h-3 w-3 text-white" />
+          <div className="flex flex-row gap-2">
+            <div className={cn("min-h-[30px] w-px", event.account ? getAccountColor(event.account) : getColorClasses(event.color))}></div>
+            <div className="flex flex-col items-start justify-between">
+              <div className="flex-1 min-w-0 flex items-center gap-1">
+                {event.type === 'birthday' ? (
+                  <Cake className="h-3 w-3 text-white" />
+                ) : (
+                  <Calendar className="h-3 w-3 text-white" />
+                )}
+                <h4 className="font-medium text-white truncate">
+                  {event.title || "Untitled Event"}
+                </h4>
+              </div>
+              {!minimized && (
+                  <p className="text-white/80 truncate mt-1 text-xs">
+                      {timeDisplay}
+                  </p>
               )}
-              <h4 className="font-medium text-white truncate">
-                {event.title || "Untitled Event"}
-              </h4>
             </div>
-            {!minimized && (
-                <p className="text-white/80 truncate mt-1 text-xs">
-                    {timeDisplay}
-                </p>
-            )}
           </div>
-
-          
 
           {!minimized && !event.isAllDay && (
             <div

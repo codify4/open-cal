@@ -40,8 +40,7 @@ export default function TopNav({ className }: { className?: string }) {
       <div className="container mx-auto px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           <div className="flex flex-row items-center justify-center gap-1">
-            <Image src="/open-cal.svg" alt="OpenCal" width={40} height={24} />
-            <span className="text-xl font-bold">OpenCal</span>
+            <Image src="/logo-oc.svg" alt="OpenCal" width={100} height={50} />
           </div>
 
           <div className="hidden md:flex items-center space-x-8">

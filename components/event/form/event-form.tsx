@@ -59,7 +59,7 @@ export const EventForm = ({ event, onSave, onDataChange }: EventFormProps) => {
                 meetingType: "",
                 attendees: event.attendees || [],
                 reminders: [], // Convert Date[] to string[] or use empty array
-                calendar: "",
+                calendar: event.account || "",
                 color: event.color || "blue",
                 isAllDay: event.isAllDay || false,
                 timezone: "UTC",
@@ -92,6 +92,7 @@ export const EventForm = ({ event, onSave, onDataChange }: EventFormProps) => {
                 attendees: newData.attendees,
                 reminders: [],
                 color: newData.color,
+                account: newData.calendar,
                 isAllDay: newData.isAllDay,
                 repeat: newData.repeat as RepeatType,
                 visibility: newData.visibility as 'public' | 'private',

@@ -6,6 +6,7 @@ import {
 import { TypingIndicator } from "@/components/ui/typing-indicator"
 import { AnimatedShinyText } from "../magicui/animated-shiny-text"
 import { cn } from "@/lib/utils"
+import { TextShimmer } from "./text-shimmer"
 
 type AdditionalMessageOptions = Omit<ChatMessageProps, keyof Message>
 
@@ -46,9 +47,9 @@ export function MessageList({
             "group rounded-full ",
           )}
         >
-          <AnimatedShinyText className="inline-flex items-center justify-center px-4 py-1 transition ease-out">
-            <span>Processing...</span>
-          </AnimatedShinyText>
+          <TextShimmer className='text-sm' duration={1}>
+            Processing...
+          </TextShimmer>
         </div>
       )}
     </div>

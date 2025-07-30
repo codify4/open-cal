@@ -18,6 +18,7 @@ export interface Event {
   visibility?: 'public' | 'private'
   isAllDay?: boolean
   account?: string
+  calendar?: string
 }
 
 export interface EventCreationContext {

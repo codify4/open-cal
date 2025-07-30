@@ -1,3 +1,4 @@
+import { Github } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
 
@@ -7,14 +8,19 @@ export function Footer() {
             <div className="container mx-auto px-6 lg:px-8 py-16 flex flex-col items-center justify-center">
                 <div className="flex flex-col items-center justify-center text-center">
                     <div className="flex items-center space-x-3 mb-6">
-                        <Image src="/open-cal.svg" alt="Logo" width={50} height={50} />
+                        <Image src="/logo-oc.svg" alt="Logo" width={120} height={50} />
                     </div>
                     <p className="text-muted-foreground mb-6 max-w-md leading-relaxed">
                         An Open Source AI alternative to Google Calendar.
                     </p>
                 </div>
                 <div className="border-t border-border pt-5 text-center">
-                    <p className="text-muted-foreground text-sm">© {new Date().getFullYear()} Digit. All rights reserved. <Link href="/github" className="underline">Github</Link></p>
+                    <p className="text-muted-foreground text-sm">© {new Date().getFullYear()} Digit. All rights reserved. 
+                    <Link href="/github" className="flex items-center gap-2 py-2">
+                        <Github className="h-4 w-4" fill="white" />
+                        <span className="text-white hover:underline">GitHub</span>
+                    </Link>
+                    </p>
                 </div>
             </div>
         </footer>
