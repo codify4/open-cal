@@ -45,13 +45,15 @@ const TimePicker = ({ value, onChange }: { value: string; onChange: (value: stri
     
     return (
         <Select value={value} onValueChange={onChange}>
-            <SelectTrigger className="w-full h-8 text-sm bg-neutral-800/50 border-neutral-700 text-white">
-                <SelectValue placeholder="Select time" />
+            <SelectTrigger size="sm" className="w-25 h-8 text-sm bg-neutral-800/50 border-neutral-700 text-white hover:bg-neutral-700">
+                <SelectValue>
+                    {formatTime(value)}
+                </SelectValue>
             </SelectTrigger>
             <SelectContent className="max-h-[200px] bg-neutral-900 border-neutral-700">
                 {timeOptions.map((time) => (
                     <SelectItem key={time} value={time} className="text-white hover:bg-neutral-800">
-                        {time}
+                        {formatTime(time)}
                     </SelectItem>
                 ))}
             </SelectContent>
@@ -64,7 +66,7 @@ const formatTime = (time: string) => {
     const hour = parseInt(hours)
     const ampm = hour >= 12 ? 'PM' : 'AM'
     const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour
-    return `${displayHour}:${minutes}${ampm.toLowerCase()}`
+    return `${displayHour}:${minutes} ${ampm.toLowerCase()}`
 }
 
 const formatDate = (date: Date) => {
@@ -114,45 +116,17 @@ export const EventDateTime = ({
 
                     {!isAllDay && (
                         <>
-                            <Popover>
-                                <PopoverTrigger asChild>
-                                    <Button
-                                        variant="outline"
-                                        className="h-8 text-sm bg-neutral-800/50 border-neutral-700 text-white hover:bg-neutral-700"
-                                    >
-                                        {formatTime(startTime)}
-                                    </Button>
-                                </PopoverTrigger>
-                                <PopoverContent className="w-auto p-0 bg-neutral-900 border-neutral-700" align="start">
-                                    <div className="p-3">
-                                        <TimePicker 
-                                            value={startTime} 
-                                            onChange={onStartTimeChange} 
-                                        />
-                                    </div>
-                                </PopoverContent>
-                            </Popover>
+                            <TimePicker 
+                                value={startTime} 
+                                onChange={onStartTimeChange} 
+                            />
 
                             <span className="text-neutral-500">-</span>
 
-                            <Popover>
-                                <PopoverTrigger asChild>
-                                    <Button
-                                        variant="outline"
-                                        className="h-8 text-sm bg-neutral-800/50 border-neutral-700 text-white hover:bg-neutral-700"
-                                    >
-                                        {formatTime(endTime)}
-                                    </Button>
-                                </PopoverTrigger>
-                                <PopoverContent className="w-auto p-0 bg-neutral-900 border-neutral-700" align="start">
-                                    <div className="p-3">
-                                        <TimePicker 
-                                            value={endTime} 
-                                            onChange={onEndTimeChange} 
-                                        />
-                                    </div>
-                                </PopoverContent>
-                            </Popover>
+                            <TimePicker 
+                                value={endTime} 
+                                onChange={onEndTimeChange} 
+                            />
                         </>
                     )}
                 </div>

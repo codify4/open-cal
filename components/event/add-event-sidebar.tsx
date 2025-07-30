@@ -166,7 +166,7 @@ const AddEventSidebar = ({ onClick }: AddEventProps) => {
         </div>
       </div>
 
-      <div className="flex-1 mt-3">
+      <div className="flex-1">
         {formType === "event" ? (
           <EventForm 
             event={selectedEvent || (eventCreationContext ? {

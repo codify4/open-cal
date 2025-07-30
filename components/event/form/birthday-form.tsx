@@ -124,17 +124,45 @@ export const BirthdayForm = ({ event, onSave }: BirthdayFormProps) => {
                         onValueChange={(value) => updateBirthdayData({ account: value })}
                     >
                         <SelectTrigger className="h-8 text-sm bg-neutral-800/50 border-neutral-700 text-white hover:bg-neutral-700 flex-1">
-                            <SelectValue placeholder="Select account" />
+                            <SelectValue placeholder="Select account">
+                                {birthdayData.account && (
+                                    <div className="flex items-center gap-2">
+                                        <div className={`w-3 h-3 rounded-full ${
+                                            birthdayData.account === "john.doe@gmail.com" ? "bg-red-500" :
+                                            birthdayData.account === "jane.smith@outlook.com" ? "bg-blue-500" :
+                                            birthdayData.account === "work@company.com" ? "bg-green-500" :
+                                            birthdayData.account === "personal@icloud.com" ? "bg-purple-500" :
+                                            "bg-neutral-500"
+                                        }`}></div>
+                                        {birthdayData.account}
+                                    </div>
+                                )}
+                            </SelectValue>
                         </SelectTrigger>
                         <SelectContent className="bg-neutral-900 border-neutral-700">
-                            <SelectItem value="google" className="text-white hover:bg-neutral-800">
-                                Google Calendar
+                            <SelectItem value="john.doe@gmail.com" className="text-white hover:bg-neutral-800">
+                                <div className="flex items-center gap-2">
+                                    <div className="w-3 h-3 rounded-full bg-red-500"></div>
+                                    john.doe@gmail.com
+                                </div>
                             </SelectItem>
-                            <SelectItem value="outlook" className="text-white hover:bg-neutral-800">
-                                Outlook
+                            <SelectItem value="jane.smith@outlook.com" className="text-white hover:bg-neutral-800">
+                                <div className="flex items-center gap-2">
+                                    <div className="w-3 h-3 rounded-full bg-blue-500"></div>
+                                    jane.smith@outlook.com
+                                </div>
                             </SelectItem>
-                            <SelectItem value="apple" className="text-white hover:bg-neutral-800">
-                                Apple Calendar
+                            <SelectItem value="work@company.com" className="text-white hover:bg-neutral-800">
+                                <div className="flex items-center gap-2">
+                                    <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                                    work@company.com
+                                </div>
+                            </SelectItem>
+                            <SelectItem value="personal@icloud.com" className="text-white hover:bg-neutral-800">
+                                <div className="flex items-center gap-2">
+                                    <div className="w-3 h-3 rounded-full bg-purple-500"></div>
+                                    personal@icloud.com
+                                </div>
                             </SelectItem>
                         </SelectContent>
                     </Select>

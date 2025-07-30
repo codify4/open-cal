@@ -44,25 +44,44 @@ export const EventSettings = ({
                 <Calendar className="w-4 h-4" />
                 <Select value={calendar} onValueChange={onCalendarChange}>
                     <SelectTrigger className="h-8 text-sm bg-neutral-800/50 border-neutral-700 text-white hover:bg-neutral-700 w-full">
-                        <SelectValue placeholder="Calendar" />
+                        <SelectValue placeholder="Select email account">
+                            {calendar && (
+                                <div className="flex items-center gap-2">
+                                    <div className={`w-3 h-3 rounded-full ${
+                                        calendar === "john.doe@gmail.com" ? "bg-red-500" :
+                                        calendar === "jane.smith@outlook.com" ? "bg-blue-500" :
+                                        calendar === "work@company.com" ? "bg-green-500" :
+                                        calendar === "personal@icloud.com" ? "bg-purple-500" :
+                                        "bg-neutral-500"
+                                    }`}></div>
+                                    {calendar}
+                                </div>
+                            )}
+                        </SelectValue>
                     </SelectTrigger>
                     <SelectContent className="bg-neutral-900 border-neutral-700">
-                        <SelectItem value="primary" className="text-white hover:bg-neutral-800">
+                        <SelectItem value="john.doe@gmail.com" className="text-white hover:bg-neutral-800">
                             <div className="flex items-center gap-2">
-                                <div className="w-3 h-3 rounded-full bg-blue-500" />
-                                Primary Calendar
+                                <div className="w-3 h-3 rounded-full bg-red-500"></div>
+                                john.doe@gmail.com
                             </div>
                         </SelectItem>
-                        <SelectItem value="work" className="text-white hover:bg-neutral-800">
+                        <SelectItem value="jane.smith@outlook.com" className="text-white hover:bg-neutral-800">
                             <div className="flex items-center gap-2">
-                                <div className="w-3 h-3 rounded-full bg-green-500" />
-                                Work Calendar
+                                <div className="w-3 h-3 rounded-full bg-blue-500"></div>
+                                jane.smith@outlook.com
                             </div>
                         </SelectItem>
-                        <SelectItem value="personal" className="text-white hover:bg-neutral-800">
+                        <SelectItem value="work@company.com" className="text-white hover:bg-neutral-800">
                             <div className="flex items-center gap-2">
-                                <div className="w-3 h-3 rounded-full bg-red-500" />
-                                Personal Calendar
+                                <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                                work@company.com
+                            </div>
+                        </SelectItem>
+                        <SelectItem value="personal@icloud.com" className="text-white hover:bg-neutral-800">
+                            <div className="flex items-center gap-2">
+                                <div className="w-3 h-3 rounded-full bg-purple-500"></div>
+                                personal@icloud.com
                             </div>
                         </SelectItem>
                     </SelectContent>

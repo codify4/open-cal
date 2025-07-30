@@ -17,6 +17,7 @@ export interface Event {
   repeat?: 'none' | 'daily' | 'weekly' | 'monthly' | 'yearly'
   visibility?: 'public' | 'private'
   isAllDay?: boolean
+  account?: string
 }
 
 export interface EventCreationContext {
@@ -113,7 +114,8 @@ export const defaultInitState: CalendarState = {
       reminders: [],
       repeat: 'none',
       visibility: 'public',
-      isAllDay: false
+      isAllDay: false,
+      account: 'john.doe@gmail.com'
     }
   ]
 }
