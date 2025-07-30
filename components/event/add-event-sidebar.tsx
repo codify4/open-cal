@@ -169,7 +169,20 @@ const AddEventSidebar = ({ onClick }: AddEventProps) => {
       <div className="flex-1 mt-3">
         {formType === "event" ? (
           <EventForm 
-            event={selectedEvent}
+            event={selectedEvent || (eventCreationContext ? {
+              id: `temp-${Date.now()}`,
+              title: eventCreationContext.title || "",
+              description: eventCreationContext.description || "",
+              startDate: eventCreationContext.startDate,
+              endDate: eventCreationContext.endDate,
+              color: eventCreationContext.color || "blue",
+              type: eventCreationContext.type || "event",
+              location: "",
+              attendees: [],
+              reminders: [],
+              repeat: "none",
+              visibility: "public"
+            } : null)}
             onSave={handleFormDataChange}
           />
         ) : (

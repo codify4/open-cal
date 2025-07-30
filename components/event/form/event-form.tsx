@@ -19,6 +19,12 @@ interface EventFormProps {
 export const EventForm = ({ event, onSave, onDataChange }: EventFormProps) => {
     type RepeatType = 'none' | 'daily' | 'weekly' | 'monthly' | 'yearly'
     
+    const formatTimeFromDate = (date: Date) => {
+        const hours = date.getHours().toString().padStart(2, '0')
+        const minutes = date.getMinutes().toString().padStart(2, '0')
+        return `${hours}:${minutes}`
+    }
+
     const [eventData, setEventData] = useState({
         title: "",
         description: "",
@@ -39,7 +45,7 @@ export const EventForm = ({ event, onSave, onDataChange }: EventFormProps) => {
         visibility: "default",
     })
 
-    // Initialize form data when editing an event
+    // Initialize form data when editing an event or when event changes
     useEffect(() => {
         if (event) {
             setEventData({
@@ -47,8 +53,8 @@ export const EventForm = ({ event, onSave, onDataChange }: EventFormProps) => {
                 description: event.description || "",
                 startDate: event.startDate,
                 endDate: event.endDate,
-                startTime: "09:00", // Default time since Event type doesn't have time
-                endTime: "10:00", // Default time since Event type doesn't have time
+                startTime: formatTimeFromDate(event.startDate),
+                endTime: formatTimeFromDate(event.endDate),
                 location: event.location || "",
                 meetingType: "",
                 attendees: event.attendees || [],

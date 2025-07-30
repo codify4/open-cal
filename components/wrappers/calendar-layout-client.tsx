@@ -21,7 +21,8 @@ export function CalendarLayoutClient({ children }: { children: React.ReactNode }
         toggleChatSidebar,
         setChatFullscreen,
         closeEventSidebar,
-        updateEventTime
+        updateEventTime,
+        setCurrentDate
     } = useCalendarStore((state) => state)
 
     const closeChatSidebar = () => {
@@ -50,19 +51,27 @@ export function CalendarLayoutClient({ children }: { children: React.ReactNode }
             const dropData = over.data.current as { dayIndex: number; hourIndex: number; date: Date };
             
             if (dropData) {
+                const originalStartDate = ensureDate(draggedEvent.startDate);
+                const originalEndDate = ensureDate(draggedEvent.endDate);
+                
+                // Preserve the original time components (minutes, seconds, milliseconds)
+                const originalMinutes = originalStartDate.getMinutes();
+                const originalSeconds = originalStartDate.getSeconds();
+                const originalMilliseconds = originalStartDate.getMilliseconds();
+                
                 const newStartDate = new Date(dropData.date);
                 newStartDate.setHours(dropData.hourIndex);
-                newStartDate.setMinutes(0);
-                newStartDate.setSeconds(0);
-                newStartDate.setMilliseconds(0);
+                newStartDate.setMinutes(originalMinutes);
+                newStartDate.setSeconds(originalSeconds);
+                newStartDate.setMilliseconds(originalMilliseconds);
                 
-                const startDate = ensureDate(draggedEvent.startDate);
-                const endDate = ensureDate(draggedEvent.endDate);
-                
-                const duration = endDate.getTime() - startDate.getTime();
+                const duration = originalEndDate.getTime() - originalStartDate.getTime();
                 const newEndDate = new Date(newStartDate.getTime() + duration);
                 
                 updateEventTime(draggedEvent.id, newStartDate, newEndDate);
+                
+                // Navigate to the month where the event was dropped
+                setCurrentDate(newStartDate);
             }
         }
     }

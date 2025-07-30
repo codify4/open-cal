@@ -22,7 +22,7 @@ interface EventDateTimeProps {
     onTimezoneChange: (timezone: string) => void
 }
 
-const generateTimeOptions = () => {
+const generateTimeOptions = (currentValue?: string) => {
     const options = []
     for (let hour = 0; hour < 24; hour++) {
         for (let minute = 0; minute < 60; minute += 15) {
@@ -30,11 +30,18 @@ const generateTimeOptions = () => {
             options.push(timeString)
         }
     }
+    
+    // If we have a current value that's not in the standard 15-minute intervals, add it
+    if (currentValue && !options.includes(currentValue)) {
+        options.push(currentValue)
+        options.sort() // Keep the list sorted
+    }
+    
     return options
 }
 
 const TimePicker = ({ value, onChange }: { value: string; onChange: (value: string) => void }) => {
-    const timeOptions = generateTimeOptions()
+    const timeOptions = generateTimeOptions(value)
     
     return (
         <Select value={value} onValueChange={onChange}>
