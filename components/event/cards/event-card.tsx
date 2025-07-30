@@ -187,7 +187,7 @@ export const EventCard = ({
           </div>
           
           <div className="flex flex-row gap-2">
-            <div className={cn("min-h-[30px] w-px", event.account ? getAccountColor(event.account) : getColorClasses(event.color))}></div>
+            <div className={cn("w-px", minimized ? "max-h-[20px]" : "max-h-[40px]", event.account ? getAccountColor(event.account) : getColorClasses(event.color))}></div>
             <div className="flex flex-col items-start justify-between">
               <div className="flex-1 min-w-0 flex items-center gap-1">
                 {event.type === 'birthday' ? (
