@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef, useState, useCallback } from "react";
+import React, { useRef, useState, useCallback, useMemo } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 
 
@@ -8,6 +8,40 @@ import { Event } from "@/lib/store/calendar-store";
 import { Badge } from "@/components/ui/badge";
 import { useCalendarStore } from "@/providers/calendar-store-provider";
 import { EventCard } from "@/components/event/cards/event-card";
+import { Plus, Sparkles } from "lucide-react";
+import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuTrigger,
+} from "@/components/ui/context-menu";
+import { useDroppable } from "@dnd-kit/core";
+
+interface TimeSlotProps {
+  timeSlotId: string;
+  hourIndex: number;
+  date: Date;
+}
+
+const TimeSlot: React.FC<TimeSlotProps> = ({ timeSlotId, hourIndex, date }) => {
+  const { setNodeRef, isOver } = useDroppable({
+    id: timeSlotId,
+    data: {
+      hourIndex,
+      date
+    }
+  });
+
+  return (
+    <div
+      ref={setNodeRef}
+      className={`w-full h-[64px] relative transition duration-300 border-b border-default-200 ${
+        isOver ? 'bg-blue-500/20' : ''
+      }`}
+    >
+    </div>
+  );
+};
 
 // Generate hours in 12-hour format
 const hours = Array.from({ length: 24 }, (_, i) => {
@@ -118,7 +152,8 @@ export default function DailyView({ stopDayEventSummary }: { stopDayEventSummary
   const hoursColumnRef = useRef<HTMLDivElement>(null);
   const [detailedHour, setDetailedHour] = useState<string | null>(null);
   const [timelinePosition, setTimelinePosition] = useState<number>(0);
-  const { currentDate, navigationDirection, openEventSidebarForNewEvent } = useCalendarStore((state) => state);
+  const [contextMenuTime, setContextMenuTime] = useState<string | null>(null);
+  const { currentDate, navigationDirection, openEventSidebarForNewEvent, events, toggleChatSidebar } = useCalendarStore((state) => state);
 
   // Use Zustand store data instead of mock data
   const direction = navigationDirection;
@@ -148,13 +183,32 @@ export default function DailyView({ stopDayEventSummary }: { stopDayEventSummary
     []
   );
 
-  // Mock events for display
-  const mockEvents: Event[] = [];
+  const handleContextMenuOpen = useCallback((e: React.MouseEvent) => {
+    if (!hoursColumnRef.current) return;
+    const rect = hoursColumnRef.current.getBoundingClientRect();
+    const y = e.clientY - rect.top;
+    const hourHeight = rect.height / 24;
+    const hour = Math.max(0, Math.min(23, Math.floor(y / hourHeight)));
+    const minuteFraction = (y % hourHeight) / hourHeight;
+    const minutes = Math.floor(minuteFraction * 60);
+    
+    const hour12 = hour % 12 || 12;
+    const ampm = hour < 12 ? "AM" : "PM";
+    const timeString = `${hour12}:${minutes.toString().padStart(2, "0")} ${ampm}`;
+    setContextMenuTime(timeString);
+  }, []);
 
   // Function to get events for day
-  const getEventsForDay = (day: number, currentDate: Date) => {
-    return mockEvents;
-  };
+  const getEventsForDay = useCallback((day: number, currentDate: Date) => {
+    const dayEvents = events.filter((event: Event) => {
+      const eventDate = new Date(event.startDate)
+      const matches = eventDate.getDate() === day && 
+             eventDate.getMonth() === currentDate.getMonth() && 
+             eventDate.getFullYear() === currentDate.getFullYear()
+      return matches
+    })
+    return dayEvents
+  }, [events])
 
   const dayEvents = getEventsForDay(
     date.getDate(),
@@ -300,30 +354,6 @@ export default function DailyView({ stopDayEventSummary }: { stopDayEventSummary
           }}
           className="flex flex-col gap-4"
         >
-          {!stopDayEventSummary && (
-            <div className="all-day-events">
-              <AnimatePresence initial={false}>
-                {dayEvents && dayEvents?.length
-                  ? dayEvents?.map((event, eventIndex) => {
-                      return (
-                        <motion.div
-                          key={event.id}
-                          initial={{ opacity: 0, y: -10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, y: -10 }}
-                          transition={{ duration: 0.2 }}
-                          className="mb-2"
-                        >
-                          <EventCard 
-                            event={event}
-                          />
-                        </motion.div>
-                      );
-                    })
-                  : "No events for today"}
-              </AnimatePresence>
-            </div>
-          )}
 
           <div className="relative rounded-md bg-default-50 hover:bg-default-100 transition duration-400">
             <motion.div
@@ -347,22 +377,51 @@ export default function DailyView({ stopDayEventSummary }: { stopDayEventSummary
                 ))}
               </div>
               <div className="flex relative flex-grow flex-col ">
-                {Array.from({ length: 24 }).map((_, index) => (
-                  <div
-                    onClick={() => {
-                      handleAddEventDay(detailedHour as string);
-                    }}
-                    key={`hour-${index}`}
-                    className="cursor-pointer w-full relative border-b  hover:bg-default-200/50  transition duration-300  p-4 h-[64px] text-left text-sm text-muted-foreground border-default-200"
-                  >
-                    <div className="absolute bg-accent flex items-center justify-center text-xs opacity-0 transition left-0 top-0 duration-250 hover:opacity-100 w-full h-full">
-                      Add Event
-                    </div>
-                  </div>
-                ))}
+                {Array.from({ length: 24 }).map((_, index) => {
+                   const timeSlotId = `hour-${index}`;
+                   
+                   return (
+                     <ContextMenu key={`hour-${index}`}>
+                       <ContextMenuTrigger asChild>
+                         <div
+                           onContextMenu={handleContextMenuOpen}
+                         >
+                           <TimeSlot
+                             timeSlotId={timeSlotId}
+                             hourIndex={index}
+                             date={date}
+                           />
+                         </div>
+                       </ContextMenuTrigger>
+                       <ContextMenuContent className="bg-neutral-950 w-40">
+                         <ContextMenuItem
+                           className="cursor-pointer py-2"
+                           onClick={() => {
+                             const timeToUse = contextMenuTime || detailedHour || "12:00 PM";
+                             handleAddEventDay(timeToUse);
+                             setContextMenuTime(null);
+                           }}
+                         >
+                           <Plus className="mr-2 h-4 w-4" />
+                           Add Event
+                         </ContextMenuItem>
+                         <ContextMenuItem
+                           className="cursor-pointer py-2"
+                           onClick={() => {
+                             toggleChatSidebar();
+                             setContextMenuTime(null);
+                           }}
+                         >
+                           <Sparkles className="mr-2 h-4 w-4" />
+                           Ask AI
+                         </ContextMenuItem>
+                       </ContextMenuContent>
+                     </ContextMenu>
+                   );
+                 })}
                 <AnimatePresence initial={false}>
                   {dayEvents && dayEvents?.length
-                    ? dayEvents?.map((event, eventIndex) => {
+                    ? dayEvents?.map((event: Event, eventIndex: number) => {
                         let eventsInSamePeriod = 1;
                         let periodIndex = 0;
                         
@@ -422,12 +481,12 @@ export default function DailyView({ stopDayEventSummary }: { stopDayEventSummary
 
             {detailedHour && (
               <div
-                className="absolute left-[50px] w-[calc(100%-53px)] h-[2px] bg-primary/40 rounded-full pointer-events-none"
+                className="absolute left-[100px] w-[calc(100%-53px)] h-[2px] bg-primary/40 rounded-full pointer-events-none"
                 style={{ top: `${timelinePosition}px` }}
               >
                 <Badge
                   variant="outline"
-                  className="absolute -translate-y-1/2 bg-white z-50 left-[-20px] text-xs"
+                  className="absolute -translate-y-1/2 bg-neutral-800 z-50 left-[5px] text-xs text-white"
                 >
                   {detailedHour}
                 </Badge>

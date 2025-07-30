@@ -252,9 +252,7 @@ export default function CalendarView({
             <TabsContent value="day">
               <AnimatePresence mode="wait">
                 <motion.div {...animationConfig}>
-                  <DailyView
-                    stopDayEventSummary={stopDayEventSummary}
-                  />
+                  <DailyView />
                 </motion.div>
               </AnimatePresence>
             </TabsContent>

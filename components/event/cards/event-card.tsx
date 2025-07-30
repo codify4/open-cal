@@ -69,13 +69,13 @@ export const EventCard = ({
   const getColorClasses = (color: string) => {
     const colorMap: Record<string, string> = {
       blue: "bg-blue-500/40 border-blue-600",
-      green: "bg-green-500 border-green-600", 
-      purple: "bg-purple-500 border-purple-600",
-      orange: "bg-orange-500 border-orange-600",
-      red: "bg-red-500 border-red-600",
-      pink: "bg-pink-500 border-pink-600",
-      yellow: "bg-yellow-500 border-yellow-600",
-      gray: "bg-gray-500 border-gray-600"
+      green: "bg-green-500/40 border-green-600", 
+      purple: "bg-purple-500/40 border-purple-600",
+      orange: "bg-orange-500/40 border-orange-600",
+      red: "bg-red-500/40 border-red-600",
+      pink: "bg-pink-500/40 border-pink-600",
+      yellow: "bg-yellow-500/40 border-yellow-600",
+      gray: "bg-gray-500/40 border-gray-600"
     }
     return colorMap[color] || colorMap.blue
   }
@@ -177,10 +177,10 @@ export const EventCard = ({
               </h4>
             </div>
             {!minimized && (
-            <p className="text-white/80 truncate mt-1 text-xs">
-              {timeDisplay}
-            </p>
-          )}
+                <p className="text-white/80 truncate mt-1 text-xs">
+                    {timeDisplay}
+                </p>
+            )}
           </div>
 
           
