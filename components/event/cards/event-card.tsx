@@ -68,7 +68,7 @@ export const EventCard = ({
 
   const getColorClasses = (color: string) => {
     const colorMap: Record<string, string> = {
-      blue: "bg-blue-500 border-blue-600",
+      blue: "bg-blue-500/40 border-blue-600",
       green: "bg-green-500 border-green-600", 
       purple: "bg-purple-500 border-purple-600",
       orange: "bg-orange-500 border-orange-600",
@@ -165,7 +165,7 @@ export const EventCard = ({
           `}
           onClick={handleEdit}
         >
-          <div className="flex items-start justify-between">
+          <div className="flex flex-col items-start justify-between">
             <div className="flex-1 min-w-0 flex items-center gap-1">
               {event.type === 'birthday' ? (
                 <Cake className="h-3 w-3 text-white" />
@@ -176,13 +176,14 @@ export const EventCard = ({
                 {event.title || "Untitled Event"}
               </h4>
             </div>
+            {!minimized && (
+            <p className="text-white/80 truncate mt-1 text-xs">
+              {timeDisplay}
+            </p>
+          )}
           </div>
 
-          {!minimized && (
-            <div className="text-white/80 truncate mt-1">
-              {timeDisplay}
-            </div>
-          )}
+          
 
           {!minimized && !event.isAllDay && (
             <div

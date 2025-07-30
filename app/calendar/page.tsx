@@ -1,7 +1,7 @@
 'use client'
 
 import { Button } from "@/components/ui/button"
-import FullCalendar from "@/components/calendar/full-calendar"
+import CalendarView from "@/components/calendar/calendar-view"
 import Image from "next/image"
 import { useCalendarStore } from "@/providers/calendar-store-provider"
 
@@ -10,7 +10,7 @@ function CalendarPage() {
     
     return (
         <div className="h-full">
-            <FullCalendar />
+            <CalendarView />
             
             {!isChatSidebarOpen && (
                 <Button

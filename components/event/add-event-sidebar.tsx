@@ -103,7 +103,7 @@ const AddEventSidebar = ({ onClick }: AddEventProps) => {
   }
 
   return (
-    <div className="flex flex-col h-full text-white px-1">
+    <div className="flex flex-col gap-6 p-2 h-full text-white px-1">
       <div className="flex items-center justify-between mt-2">
         <div className="flex items-center">
           <Select value={formType} onValueChange={(value) => setFormType(value as "event" | "birthday")}>

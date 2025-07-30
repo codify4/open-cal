@@ -127,24 +127,28 @@ export default function WeeklyView() {
     return dayEvents
   }, [events])
 
-  const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
-    if (!hoursColumnRef.current) return;
-    const rect = hoursColumnRef.current.getBoundingClientRect();
-    const y = e.clientY - rect.top;
-    const hourHeight = rect.height / 24;
-    const hour = Math.max(0, Math.min(23, Math.floor(y / hourHeight)));
-    const minuteFraction = (y % hourHeight) / hourHeight;
-    const minutes = Math.floor(minuteFraction * 60);
-    
-    const hour12 = hour % 12 || 12;
-    const ampm = hour < 12 ? "AM" : "PM";
-    const timeString = `${hour12}:${minutes.toString().padStart(2, "0")} ${ampm}`;
-    setDetailedHour(timeString);
-    
-    const headerOffset = 83;
-    const position = Math.max(0, Math.min(rect.height, Math.round(y))) + headerOffset;
-    setTimelinePosition(position);
-  }, []);
+  const handleMouseMove = useCallback(
+    (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+      if (!hoursColumnRef.current) return;
+      const rect = hoursColumnRef.current.getBoundingClientRect();
+      const y = e.clientY - rect.top;
+      const hourHeight = rect.height / 24;
+      const hour = Math.max(0, Math.min(23, Math.floor(y / hourHeight)));
+      const minuteFraction = (y % hourHeight) / hourHeight;
+      const minutes = Math.floor(minuteFraction * 60);
+
+      const hour12 = hour % 12 || 12;
+      const ampm = hour < 12 ? "AM" : "PM";
+      setDetailedHour(
+        `${hour12}:${Math.max(0, minutes).toString().padStart(2, "0")} ${ampm}`
+      );
+
+      const offset = 30;
+      const position = Math.max(0, Math.min(rect.height, Math.round(y))) + offset;
+      setTimelinePosition(position);
+    },
+    []
+  );
 
   const handleContextMenuOpen = useCallback((e: React.MouseEvent) => {
     if (!hoursColumnRef.current) return;
@@ -410,7 +414,7 @@ export default function WeeklyView() {
 
             {detailedHour && (
               <div
-                className="absolute flex z-50 left-0 w-full h-[2px] bg-primary/40 rounded-full pointer-events-none"
+                className="absolute flex z-50 left-0 w-full h-[1px] bg-primary/40 rounded-full pointer-events-none"
                 style={{ top: `${timelinePosition}px` }}
               >
                 <Badge
@@ -434,7 +438,7 @@ export default function WeeklyView() {
                 <motion.div
                   key={`hour-${index}`}
                   variants={itemVariants}
-                  className="cursor-pointer border-b border-default-200 h-[64px] text-left text-xs text-muted-foreground px-1 flex items-center"
+                  className="cursor-pointer border-b border-default-200 h-[64px] text-left text-xs text-muted-foreground px-3 py-2 flex items-start justify-center"
                 >
                   {hour}
                 </motion.div>
@@ -517,7 +521,6 @@ export default function WeeklyView() {
                               >
                                 <EventCard
                                   event={event}
-                                  minimized={true}
                                 />
                               </motion.div>
                             );
