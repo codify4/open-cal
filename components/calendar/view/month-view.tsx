@@ -9,6 +9,19 @@ import clsx from "clsx";
 import { EventCard } from "@/components/event/cards/event-card";
 import { Event } from "@/lib/store/calendar-store";
 import { useCalendarStore } from "@/providers/calendar-store-provider";
+import { Plus, Sparkles } from "lucide-react";
+import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuTrigger,
+} from "@/components/ui/context-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 const pageTransitionVariants = {
   enter: (direction: number) => ({
@@ -27,7 +40,9 @@ const pageTransitionVariants = {
 
 export default function MonthView() {
   
-  const { currentDate, navigationDirection, openEventSidebarForNewEvent } = useCalendarStore((state) => state);
+  const { currentDate, navigationDirection, openEventSidebarForNewEvent, events, toggleChatSidebar } = useCalendarStore((state) => state);
+  const [selectedEvents, setSelectedEvents] = React.useState<Event[]>([]);
+  const [isEventsDialogOpen, setIsEventsDialogOpen] = React.useState(false);
   const direction = navigationDirection;
   const weekStartsOn = "sunday" as "sunday" | "monday";
 
@@ -52,7 +67,14 @@ export default function MonthView() {
 
   // Function to get events for day
   const getEventsForDay = (day: number, currentDate: Date): Event[] => {
-    return [];
+    const dayEvents = events.filter((event: Event) => {
+      const eventDate = new Date(event.startDate)
+      const matches = eventDate.getDate() === day && 
+             eventDate.getMonth() === currentDate.getMonth() && 
+             eventDate.getFullYear() === currentDate.getFullYear()
+      return matches
+    })
+    return dayEvents
   };
 
   function handleAddEvent(selectedDay: number) {
@@ -75,6 +97,24 @@ export default function MonthView() {
     );
 
     openEventSidebarForNewEvent(startDate);
+  }
+
+  function handleContextMenuAddEvent(selectedDay: number) {
+    const startDate = new Date(
+      date.getFullYear(),
+      date.getMonth(),
+      selectedDay,
+      12,
+      0,
+      0
+    );
+
+    openEventSidebarForNewEvent(startDate);
+  }
+
+  function handleShowAllEvents(events: Event[]) {
+    setSelectedEvents(events);
+    setIsEventsDialogOpen(true);
   }
 
   const itemVariants = {
@@ -149,18 +189,19 @@ export default function MonthView() {
             const dayEvents = getEventsForDay(dayObj.day, date);
 
             return (
-              <motion.div
-                className="hover:z-50 border-none h-[150px] rounded group flex flex-col"
-                key={dayObj.day}
-                variants={itemVariants}
-                initial="enter"
-                animate="center"
-                exit="exit"
-              >
-                <Card
-                  className="shadow-md cursor-pointer overflow-hidden relative flex p-4 border h-full"
-                  onClick={() => handleAddEvent(dayObj.day)}
-                >
+              <ContextMenu key={`day-${dayObj.day}`}>
+                <ContextMenuTrigger asChild>
+                  <motion.div
+                    className="hover:z-50 border-none h-[150px] rounded group flex flex-col"
+                    variants={itemVariants}
+                    initial="enter"
+                    animate="center"
+                    exit="exit"
+                  >
+                    <Card
+                      className="shadow-md cursor-pointer overflow-hidden relative flex p-4 border h-full"
+                      onClick={() => handleAddEvent(dayObj.day)}
+                    >
                   <div
                     className={clsx(
                       "font-semibold relative text-3xl mb-1",
@@ -193,35 +234,74 @@ export default function MonthView() {
                         </motion.div>
                       )}
                     </AnimatePresence>
-                    {dayEvents.length > 1 && (
-                      <Badge
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          // handleShowMoreEvents(dayEvents);
-                        }}
-                        variant="outline"
-                        className="hover:bg-default-200 absolute right-2 text-xs top-2 transition duration-300"
-                      >
-                        {dayEvents.length > 1
-                          ? `+${dayEvents.length - 1}`
-                          : " "}
-                      </Badge>
-                    )}
+                     {dayEvents.length > 1 && (
+                       <Badge
+                         onClick={(e) => {
+                           e.stopPropagation();
+                           handleShowAllEvents(dayEvents);
+                         }}
+                         variant="outline"
+                         className="hover:bg-default-200 absolute right-2 text-xs top-2 transition duration-300 cursor-pointer"
+                       >
+                         {dayEvents.length > 1
+                           ? `+${dayEvents.length - 1}`
+                           : " "}
+                       </Badge>
+                     )}
                   </div>
-
-                  {dayEvents.length === 0 && (
-                    <div className="absolute inset-0 bg-primary/20 bg-opacity-50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                      <span className="text-black tracking-tighter text-lg font-semibold">
-                        Add Event
-                      </span>
-                    </div>
-                  )}
                 </Card>
               </motion.div>
-            );
-          })}
+            </ContextMenuTrigger>
+            <ContextMenuContent className="bg-neutral-950 w-40">
+              <ContextMenuItem
+                className="cursor-pointer py-2"
+                onClick={() => {
+                  handleContextMenuAddEvent(dayObj.day);
+                }}
+              >
+                <Plus className="mr-2 h-4 w-4" />
+                Add Event
+              </ContextMenuItem>
+              <ContextMenuItem
+                className="cursor-pointer py-2"
+                onClick={() => {
+                  toggleChatSidebar();
+                }}
+              >
+                <Sparkles className="mr-2 h-4 w-4" />
+                Ask AI
+              </ContextMenuItem>
+            </ContextMenuContent>
+          </ContextMenu>
+        );
+      })}
         </motion.div>
       </AnimatePresence>
+      
+      <Dialog open={isEventsDialogOpen} onOpenChange={setIsEventsDialogOpen}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto bg-neutral-950">
+          <DialogHeader>
+            <DialogTitle>
+              Events for {selectedEvents.length > 0 && (
+                new Date(selectedEvents[0].startDate).toLocaleDateString('en-US', {
+                  weekday: 'long',
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric'
+                })
+              )}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="flex flex-col gap-2">
+            {selectedEvents.map((event) => (
+              <EventCard
+                key={event.id}
+                event={event}
+              />
+            ))}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
