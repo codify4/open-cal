@@ -22,7 +22,8 @@ export function CalendarLayoutClient({ children }: { children: React.ReactNode }
         setChatFullscreen,
         closeEventSidebar,
         updateEventTime,
-        setCurrentDate
+        setCurrentDate,
+        currentDate
     } = useCalendarStore((state) => state)
 
     const closeChatSidebar = () => {
@@ -70,8 +71,13 @@ export function CalendarLayoutClient({ children }: { children: React.ReactNode }
                 
                 updateEventTime(draggedEvent.id, newStartDate, newEndDate);
                 
-                // Navigate to the month where the event was dropped
-                setCurrentDate(newStartDate);
+                // Only navigate if the event was dropped in a different month
+                const isDifferentMonth = newStartDate.getMonth() !== currentDate.getMonth() || 
+                                       newStartDate.getFullYear() !== currentDate.getFullYear();
+                
+                if (isDifferentMonth) {
+                    setCurrentDate(newStartDate);
+                }
             }
         }
     }
