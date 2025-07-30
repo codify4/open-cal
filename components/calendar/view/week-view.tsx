@@ -34,7 +34,7 @@ const TimeSlot: React.FC<TimeSlotProps> = ({ timeSlotId, dayIndex, hourIndex, da
   return (
     <div
       ref={setNodeRef}
-      className={`col-span-1 border-default-200 h-[64px] relative transition duration-300 border-r border-b text-center text-sm text-muted-foreground ${
+      className={`col-span-1 border-default-200 h-[64px] relative transition duration-300 border-r border-b text-center text-sm text-muted-foreground z-10 ${
         isOver ? 'bg-blue-500/20' : ''
       }`}
     >
@@ -512,8 +512,9 @@ export default function WeeklyView() {
                                   minWidth: minWidth,
                                   padding: '0 2px',
                                   boxSizing: 'border-box',
+                                  zIndex: zIndex + 1000, // Ensure events are above time slots
                                 }}
-                                className="flex transition-all duration-1000 flex-grow flex-col z-50 absolute"
+                                className="flex transition-all duration-1000 flex-grow flex-col absolute"
                                 initial={{ opacity: 0, scale: 0.9 }}
                                 animate={{ opacity: 1, scale: 1 }}
                                 exit={{ opacity: 0, scale: 0.9 }}

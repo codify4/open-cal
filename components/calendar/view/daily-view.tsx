@@ -35,7 +35,7 @@ const TimeSlot: React.FC<TimeSlotProps> = ({ timeSlotId, hourIndex, date }) => {
   return (
     <div
       ref={setNodeRef}
-      className={`w-full h-[64px] relative transition duration-300 border-b border-default-200 ${
+      className={`w-full h-[64px] relative transition duration-300 border-b border-default-200 z-10 ${
         isOver ? 'bg-blue-500/20' : ''
       }`}
     >
@@ -461,8 +461,9 @@ export default function DailyView({ stopDayEventSummary }: { stopDayEventSummary
                               minWidth: minWidth,
                               padding: "0 2px",
                               boxSizing: "border-box",
+                              zIndex: zIndex + 1000, // Ensure events are above time slots
                             }}
-                            className="flex transition-all duration-1000 flex-grow flex-col z-50 absolute"
+                            className="flex transition-all duration-1000 flex-grow flex-col absolute"
                             initial={{ opacity: 0, scale: 0.9 }}
                             animate={{ opacity: 1, scale: 1 }}
                             exit={{ opacity: 0, scale: 0.9 }}

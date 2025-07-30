@@ -1,6 +1,6 @@
 'use client'
 
-import { DndContext, DragEndEvent, DragStartEvent } from "@dnd-kit/core"
+import { DndContext, DragEndEvent, DragStartEvent, DragOverlay } from "@dnd-kit/core"
 import { ChatSidebar } from "@/components/agent/chat-sidebar"
 import { AppSidebar } from "@/components/sidebar/app-sidebar"
 import AddEventSidebar from "../event/add-event-sidebar"
@@ -9,8 +9,11 @@ import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/componen
 import { useCalendarStore } from "@/providers/calendar-store-provider"
 import { Event } from "@/lib/store/calendar-store"
 import { ensureDate } from "@/lib/utils"
+import { EventCard } from "@/components/event/cards/event-card"
+import { useState } from "react"
 
 export function CalendarLayoutClient({ children }: { children: React.ReactNode }) {
+    const [activeEvent, setActiveEvent] = useState<Event | null>(null)
     const {
         isChatSidebarOpen,
         isEventSidebarOpen,
@@ -31,10 +34,14 @@ export function CalendarLayoutClient({ children }: { children: React.ReactNode }
 
     const handleDragStart = (event: DragStartEvent) => {
         console.log('Drag started:', event)
+        if (event.active.data.current) {
+            setActiveEvent(event.active.data.current as Event)
+        }
     }
 
     const handleDragEnd = (event: DragEndEvent) => {
         console.log('Drag ended:', event)
+        setActiveEvent(null)
         
         const { active, over } = event;
         
@@ -108,7 +115,14 @@ export function CalendarLayoutClient({ children }: { children: React.ReactNode }
                         />
                     </div>
                 )}
-                </SidebarProvider>
+            </SidebarProvider>
+            <DragOverlay zIndex={9999}>
+                {activeEvent ? (
+                    <div className="">
+                        <EventCard event={activeEvent} />
+                    </div>
+                ) : null}
+            </DragOverlay>
         </DndContext>
     )
 } 

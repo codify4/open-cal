@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/context-menu"
 import { useCalendarStore } from "@/providers/calendar-store-provider"
 import { ensureDate } from "@/lib/utils"
+import { GraphicDoodle } from "./graphics"
 
 interface EventCardProps {
   event: Event
@@ -32,6 +33,11 @@ export const EventCard = ({
   const [originalEndDate, setOriginalEndDate] = useState<Date | null>(null)
   const cardRef = useRef<HTMLDivElement>(null)
   const resizeHandleRef = useRef<HTMLDivElement>(null)
+  const [isClient, setIsClient] = useState(false)
+
+  useEffect(() => {
+    setIsClient(true)
+  }, [])
 
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: event.id,
@@ -150,21 +156,26 @@ export const EventCard = ({
     <ContextMenu>
       <ContextMenuTrigger>
         <div
-          ref={setNodeRef}
-          style={style}
-          {...listeners}
-          {...attributes}
+          ref={isClient ? setNodeRef : undefined}
+          style={isClient ? style : undefined}
+          {...(isClient ? listeners : {})}
+          {...(isClient ? attributes : {})}
           className={`
             relative group cursor-pointer rounded-sm border p-2 text-xs
             hover:shadow-md transition-all duration-200
             ${getColorClasses(event.color)}
             ${event.isAllDay ? 'border-l-4' : ''}
-            ${isDragging ? 'opacity-50' : ''}
+            ${isClient && isDragging ? 'opacity-50' : ''}
             ${minimized ? 'min-h-[20px] max-h-[40px] overflow-hidden' : 'min-h-[60px]'}
+            ${isDragging ? 'z-[9998]' : ''}
             ${className}
           `}
           onClick={handleEdit}
         >
+          <div className={`absolute top-0 -right-0 size-12 overflow-hidden`}>
+            <GraphicDoodle color={event.color} size="md" />
+          </div>
+          
           <div className="flex flex-col items-start justify-between">
             <div className="flex-1 min-w-0 flex items-center gap-1">
               {event.type === 'birthday' ? (
