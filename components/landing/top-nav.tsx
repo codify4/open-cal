@@ -31,6 +31,7 @@ export default function TopNav({ className }: { className?: string }) {
   const navItems = [
     { name: 'Features', href: '#features' },
     { name: 'Pricing', href: '#pricing' },
+    { name: 'Use Cases', href: '#use-cases' },
     { name: 'Blog', href: '/blog' },
   ];
 
@@ -38,9 +39,9 @@ export default function TopNav({ className }: { className?: string }) {
 
   return (
     <nav
-      className={`fixed top-0 right-0 left-0 z-50 bg-transparent transition-all duration-500 ${
+      className={`fixed top-0 left-1/2 -translate-x-1/2 z-50 bg-black transition-all duration-500 rounded-full border border-border w-2/3 self-center mt-2 ${
         isScrolled
-          ? 'border-border/10 border-b bg-black/80 backdrop-blur-xl'
+          ? 'bg-black/80 backdrop-blur-xl w-2/4'
           : 'bg-black'
       }`}
     >

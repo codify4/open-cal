@@ -9,7 +9,7 @@ export function HeroSection() {
       className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden lg:flex-row"
       id="hero"
     >
-      <Spotlight className="-top-0 md:-top-20 left-0 md:left-60" fill="white" />
+      <Spotlight className="-top-0 md:top-24 left-0 md:left-60" fill="white" />
       <div className="container relative z-10 mx-auto w-full px-6 lg:px-8 xl:px-12">
         <div className="flex flex-col items-center justify-center lg:flex-row">
           <div className="flex-1 space-y-6 lg:max-w-[45%] lg:space-y-8 xl:max-w-[50%]">

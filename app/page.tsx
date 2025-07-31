@@ -15,7 +15,7 @@ export default function HomePage() {
         <FeaturesSection />
         <PricingSection />
         {/* <FAQSection />
-                <FinalCTASection /> */}
+        <FinalCTASection /> */}
       </main>
       <Footer />
     </div>
