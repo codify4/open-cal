@@ -61,7 +61,7 @@ export const EventForm = ({ event, onSave, onDataChange }: EventFormProps) => {
         reminders: [], // Convert Date[] to string[] or use empty array
         calendar: event.account || '',
         color: event.color || 'blue',
-        isAllDay: event.isAllDay,
+        isAllDay: event.isAllDay || false,
         timezone: 'UTC',
         repeat: (event.repeat || 'none') as RepeatType,
         availability: 'busy', // Default since Event type doesn't have availability
