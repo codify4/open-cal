@@ -39,10 +39,8 @@ export default function TopNav({ className }: { className?: string }) {
 
   return (
     <nav
-      className={`fixed top-0 left-1/2 -translate-x-1/2 z-50 bg-black transition-all duration-500 rounded-full border border-border w-2/3 self-center mt-2 ${
-        isScrolled
-          ? 'bg-black/80 backdrop-blur-xl w-2/4'
-          : 'bg-black'
+      className={`-translate-x-1/2 fixed top-0 left-1/2 z-50 mt-2 w-2/3 self-center rounded-full border border-border bg-black transition-all duration-500 ${
+        isScrolled ? 'w-2/4 bg-black/80 backdrop-blur-xl' : 'bg-black'
       }`}
     >
       <div className="container mx-auto px-6 lg:px-8">

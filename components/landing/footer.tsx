@@ -1,7 +1,7 @@
-import { XIcon } from '@/lib/lucide/custom-icons';
 import { Github } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { XIcon } from '@/lib/lucide/custom-icons';
 
 export function Footer() {
   return (
@@ -16,14 +16,14 @@ export function Footer() {
           </p>
         </div>
         <div className="flex flex-col items-center border-border border-t pt-2 text-center">
-            © {new Date().getFullYear()} Digit. All rights reserved.
+          © {new Date().getFullYear()} Digit. All rights reserved.
           <p className="flex flex-row gap-5 text-muted-foreground text-sm">
             <Link className="flex items-center gap-2 py-2" href="/github">
               <Github className="h-4 w-4" fill="white" />
               <span className="text-white hover:underline">GitHub</span>
             </Link>
             <Link className="flex items-center gap-2 py-2" href="/x">
-              <XIcon key="x" className="text-white h-4 w-4" />
+              <XIcon className="h-4 w-4 text-white" key="x" />
               <span className="text-white hover:underline">X(Twitter)</span>
             </Link>
           </p>
