@@ -11,7 +11,7 @@ import {
   ContextMenuTrigger,
 } from '@/components/ui/context-menu';
 import type { Event } from '@/lib/store/calendar-store';
-import { ensureDate } from '@/lib/utils';
+import { cn, ensureDate } from '@/lib/utils';
 import { useCalendarStore } from '@/providers/calendar-store-provider';
 import { GraphicDoodle } from './graphics';
 
@@ -92,6 +92,16 @@ export const EventCard = ({
     };
     return colorMap[color] || colorMap.blue;
   };
+
+  const getAccountColor = (account: string) => {
+    const accountMap: Record<string, string> = {
+      "john.doe@gmail.com": "bg-red-500",
+      "jane.smith@outlook.com": "bg-blue-500",
+      "work@company.com": "bg-green-500",
+      "personal@icloud.com": "bg-purple-500",
+    }
+    return accountMap[account] || getColorClasses(event.color)
+  }
 
   const formatTime = (date: Date | string) => {
     const dateObj = typeof date === 'string' ? new Date(date) : date;
@@ -192,52 +202,36 @@ export const EventCard = ({
           className={`group relative cursor-pointer rounded-sm border p-2 text-xs transition-all duration-200 hover:shadow-md ${getColorClasses(event.color)} ${event.isAllDay ? 'border-l-4' : ''} ${isClient && isDragging ? 'opacity-50' : ''} ${minimized ? 'max-h-[40px] min-h-[20px] overflow-hidden' : 'min-h-[60px]'} ${isDragging ? 'z-[9998]' : ''} ${className} `}
           ref={isClient ? setNodeRef : undefined}
           style={isClient ? style : undefined}
+          {...(isClient ? listeners : {})}
+          {...(isClient ? attributes : {})}
         >
-          <div className="absolute top-2 left-2">
-            <div
-              ref={dragHandleRef}
-              {...(isClient ? listeners : {})}
-              {...(isClient ? attributes : {})}
-              className="cursor-grab"
-            >
-              <GripVertical className="h-4 w-4 text-white/80 hover:text-white" />
-            </div>
-          </div>
-
           <div className="-right-0 absolute top-0 size-12 overflow-hidden">
             <GraphicDoodle color={event.color} size="md" />
           </div>
 
-          <div className="flex flex-col items-start justify-between pl-6">
-            <div className="flex min-w-0 flex-1 items-center gap-1">
-              {event.type === 'birthday' ? (
-                <Cake className="h-3 w-3 text-white" />
-              ) : (
-                <Calendar className="h-3 w-3 text-white" />
+          <div className="flex flex-row gap-2">
+            <div className={cn("min-h-[30px] w-[2px]", event.account ? getAccountColor(event.account) : getColorClasses(event.color))}></div>
+            <div className="flex flex-col items-start justify-between">
+              <div className="flex-1 min-w-0 flex items-center gap-1">
+                {event.type === 'birthday' ? (
+                  <Cake className="h-3 w-3 text-white" />
+                ) : (
+                  <Calendar className="h-3 w-3 text-white" />
+                )}
+                <h4 className="font-medium text-white truncate">
+                  {event.title || "Untitled Event"}
+                </h4>
+              </div>
+              {!minimized && (
+                <p className="text-white/80 truncate mt-1 text-xs">
+                  {timeDisplay}
+                </p>
               )}
-              <h4 className="truncate font-medium text-white">
-                {event.title || 'Untitled Event'}
-              </h4>
             </div>
-            {!minimized && (
-              <p className="mt-1 truncate text-white/80 text-xs">
-                {isResizing && previewEndDate
-                  ? `${formatTime(event.startDate)}–${formatTime(previewEndDate)}`
-                  : timeDisplay}
-              </p>
-            )}
           </div>
 
           {!(minimized || event.isAllDay) && (
             <>
-              <div
-                className="absolute top-0 right-0 left-0 h-1 cursor-ns-resize rounded-t-md bg-white/20 opacity-0 transition-opacity hover:bg-white/40 group-hover:opacity-100"
-                onMouseDown={(e) => handleResizeStart(e, 'top')}
-              >
-                <div className="flex justify-center">
-                  <GripVertical className="h-2 w-2 text-white" />
-                </div>
-              </div>
               <div
                 className="absolute right-0 bottom-0 left-0 h-1 cursor-ns-resize rounded-b-md bg-white/20 opacity-0 transition-opacity hover:bg-white/40 group-hover:opacity-100"
                 onMouseDown={(e) => handleResizeStart(e, 'bottom')}
