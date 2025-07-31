@@ -1,27 +1,26 @@
-"use client";
+'use client';
 
-import React from "react";
-import { AnimatePresence, motion } from "framer-motion";
-import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import clsx from "clsx";
-
-import { EventCard } from "@/components/event/cards/event-card";
-import { Event } from "@/lib/store/calendar-store";
-import { useCalendarStore } from "@/providers/calendar-store-provider";
-import { Plus, Sparkles } from "lucide-react";
+import clsx from 'clsx';
+import { AnimatePresence, motion } from 'framer-motion';
+import { Plus, Sparkles } from 'lucide-react';
+import React from 'react';
+import { EventCard } from '@/components/event/cards/event-card';
+import { Badge } from '@/components/ui/badge';
+import { Card } from '@/components/ui/card';
 import {
   ContextMenu,
   ContextMenuContent,
   ContextMenuItem,
   ContextMenuTrigger,
-} from "@/components/ui/context-menu";
+} from '@/components/ui/context-menu';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
+} from '@/components/ui/dialog';
+import type { Event } from '@/lib/store/calendar-store';
+import { useCalendarStore } from '@/providers/calendar-store-provider';
 
 const pageTransitionVariants = {
   enter: (direction: number) => ({
@@ -33,21 +32,27 @@ const pageTransitionVariants = {
   exit: (direction: number) => ({
     opacity: 0,
     transition: {
-      opacity: { duration: 0.2, ease: "easeInOut" },
+      opacity: { duration: 0.2, ease: 'easeInOut' },
     },
   }),
 };
 
 export default function MonthView() {
-  
-  const { currentDate, navigationDirection, openEventSidebarForNewEvent, events, toggleChatSidebar } = useCalendarStore((state) => state);
+  const {
+    currentDate,
+    navigationDirection,
+    openEventSidebarForNewEvent,
+    events,
+    toggleChatSidebar,
+  } = useCalendarStore((state) => state);
   const [selectedEvents, setSelectedEvents] = React.useState<Event[]>([]);
   const [isEventsDialogOpen, setIsEventsDialogOpen] = React.useState(false);
   const direction = navigationDirection;
-  const weekStartsOn = "sunday" as "sunday" | "monday";
+  const weekStartsOn = 'sunday' as 'sunday' | 'monday';
 
   // Ensure currentDate is a Date object
-  const date = currentDate instanceof Date ? currentDate : new Date(currentDate);
+  const date =
+    currentDate instanceof Date ? currentDate : new Date(currentDate);
 
   // Function to get days in month
   const getDaysInMonth = (month: number, year: number) => {
@@ -60,21 +65,19 @@ export default function MonthView() {
     );
   };
 
-  const daysInMonth = getDaysInMonth(
-    date.getMonth(),
-    date.getFullYear()
-  );
+  const daysInMonth = getDaysInMonth(date.getMonth(), date.getFullYear());
 
   // Function to get events for day
   const getEventsForDay = (day: number, currentDate: Date): Event[] => {
     const dayEvents = events.filter((event: Event) => {
-      const eventDate = new Date(event.startDate)
-      const matches = eventDate.getDate() === day && 
-             eventDate.getMonth() === currentDate.getMonth() && 
-             eventDate.getFullYear() === currentDate.getFullYear()
-      return matches
-    })
-    return dayEvents
+      const eventDate = new Date(event.startDate);
+      const matches =
+        eventDate.getDate() === day &&
+        eventDate.getMonth() === currentDate.getMonth() &&
+        eventDate.getFullYear() === currentDate.getFullYear();
+      return matches;
+    });
+    return dayEvents;
   };
 
   function handleAddEvent(selectedDay: number) {
@@ -124,24 +127,16 @@ export default function MonthView() {
   };
 
   const daysOfWeek =
-    weekStartsOn === "monday"
-      ? ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
-      : ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+    weekStartsOn === 'monday'
+      ? ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+      : ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
-  const firstDayOfMonth = new Date(
-    date.getFullYear(),
-    date.getMonth(),
-    1
-  );
+  const firstDayOfMonth = new Date(date.getFullYear(), date.getMonth(), 1);
 
   const startOffset =
-    (firstDayOfMonth.getDay() - (weekStartsOn === "monday" ? 1 : 0) + 7) % 7;
+    (firstDayOfMonth.getDay() - (weekStartsOn === 'monday' ? 1 : 0) + 7) % 7;
 
-  const prevMonth = new Date(
-    date.getFullYear(),
-    date.getMonth() - 1,
-    1
-  );
+  const prevMonth = new Date(date.getFullYear(), date.getMonth() - 1, 1);
   const lastDateOfPrevMonth = new Date(
     prevMonth.getFullYear(),
     prevMonth.getMonth() + 1,
@@ -149,10 +144,14 @@ export default function MonthView() {
   ).getDate();
   return (
     <div>
-      <AnimatePresence initial={false} custom={direction} mode="wait">
+      <AnimatePresence custom={direction} initial={false} mode="wait">
         <motion.div
-          key={`${date.getFullYear()}-${date.getMonth()}`}
+          animate="center"
+          className="grid grid-cols-7 gap-1 sm:gap-2"
           custom={direction}
+          exit="exit"
+          initial="enter"
+          key={`${date.getFullYear()}-${date.getMonth()}`}
           variants={{
             ...pageTransitionVariants,
             center: {
@@ -163,23 +162,19 @@ export default function MonthView() {
               },
             },
           }}
-          initial="enter"
-          animate="center"
-          exit="exit"
-          className="grid grid-cols-7 gap-1 sm:gap-2"
         >
           {daysOfWeek.map((day, idx) => (
             <div
+              className="my-8 text-left font-medium text-4xl tracking-tighter"
               key={idx}
-              className="text-left my-8 text-4xl tracking-tighter font-medium"
             >
               {day}
             </div>
           ))}
 
           {Array.from({ length: startOffset }).map((_, idx) => (
-            <div key={`offset-${idx}`} className="h-[150px] opacity-50">
-              <div className={clsx("font-semibold relative text-3xl mb-1")}>
+            <div className="h-[150px] opacity-50" key={`offset-${idx}`}>
+              <div className={clsx('relative mb-1 font-semibold text-3xl')}>
                 {lastDateOfPrevMonth - startOffset + idx + 1}
               </div>
             </div>
@@ -192,112 +187,112 @@ export default function MonthView() {
               <ContextMenu key={`day-${dayObj.day}`}>
                 <ContextMenuTrigger asChild>
                   <motion.div
-                    className="hover:z-50 border-none h-[150px] rounded group flex flex-col"
-                    variants={itemVariants}
-                    initial="enter"
                     animate="center"
+                    className="group flex h-[150px] flex-col rounded border-none hover:z-50"
                     exit="exit"
+                    initial="enter"
+                    variants={itemVariants}
                   >
                     <Card
-                      className="shadow-md cursor-pointer overflow-hidden relative flex p-4 border h-full"
+                      className="relative flex h-full cursor-pointer overflow-hidden border p-4 shadow-md"
                       onClick={() => handleAddEvent(dayObj.day)}
                     >
-                  <div
-                    className={clsx(
-                      "font-semibold relative text-3xl mb-1",
-                      dayEvents.length > 0
-                        ? "text-primary-600"
-                        : "text-muted-foreground",
-                      new Date().getDate() === dayObj.day &&
-                        new Date().getMonth() === date.getMonth() &&
-                        new Date().getFullYear() === date.getFullYear()
-                        ? "text-secondary-500"
-                        : ""
-                    )}
+                      <div
+                        className={clsx(
+                          'relative mb-1 font-semibold text-3xl',
+                          dayEvents.length > 0
+                            ? 'text-primary-600'
+                            : 'text-muted-foreground',
+                          new Date().getDate() === dayObj.day &&
+                            new Date().getMonth() === date.getMonth() &&
+                            new Date().getFullYear() === date.getFullYear()
+                            ? 'text-secondary-500'
+                            : ''
+                        )}
+                      >
+                        {dayObj.day}
+                      </div>
+                      <div className="flex w-full flex-grow flex-col gap-2">
+                        <AnimatePresence mode="wait">
+                          {dayEvents?.length > 0 && dayEvents[0] && (
+                            <motion.div
+                              animate={{ opacity: 1, y: 0 }}
+                              exit={{ opacity: 0, y: -20 }}
+                              initial={{ opacity: 0, y: 20 }}
+                              key={dayEvents[0].id}
+                              transition={{ duration: 0.3 }}
+                            >
+                              <EventCard
+                                event={dayEvents[0]}
+                                minimized={true}
+                              />
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                        {dayEvents.length > 1 && (
+                          <Badge
+                            className="absolute top-2 right-2 cursor-pointer text-xs transition duration-300 hover:bg-default-200"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleShowAllEvents(dayEvents);
+                            }}
+                            variant="outline"
+                          >
+                            {dayEvents.length > 1
+                              ? `+${dayEvents.length - 1}`
+                              : ' '}
+                          </Badge>
+                        )}
+                      </div>
+                    </Card>
+                  </motion.div>
+                </ContextMenuTrigger>
+                <ContextMenuContent className="w-40 bg-neutral-950">
+                  <ContextMenuItem
+                    className="cursor-pointer py-2"
+                    onClick={() => {
+                      handleContextMenuAddEvent(dayObj.day);
+                    }}
                   >
-                    {dayObj.day}
-                  </div>
-                  <div className="flex-grow flex flex-col gap-2 w-full">
-                    <AnimatePresence mode="wait">
-                      {dayEvents?.length > 0 && dayEvents[0] && (
-                        <motion.div
-                          key={dayEvents[0].id}
-                          initial={{ opacity: 0, y: 20 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, y: -20 }}
-                          transition={{ duration: 0.3 }}
-                        >
-                          <EventCard
-                            event={dayEvents[0]}
-                            minimized={true}
-                          />
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                     {dayEvents.length > 1 && (
-                       <Badge
-                         onClick={(e) => {
-                           e.stopPropagation();
-                           handleShowAllEvents(dayEvents);
-                         }}
-                         variant="outline"
-                         className="hover:bg-default-200 absolute right-2 text-xs top-2 transition duration-300 cursor-pointer"
-                       >
-                         {dayEvents.length > 1
-                           ? `+${dayEvents.length - 1}`
-                           : " "}
-                       </Badge>
-                     )}
-                  </div>
-                </Card>
-              </motion.div>
-            </ContextMenuTrigger>
-            <ContextMenuContent className="bg-neutral-950 w-40">
-              <ContextMenuItem
-                className="cursor-pointer py-2"
-                onClick={() => {
-                  handleContextMenuAddEvent(dayObj.day);
-                }}
-              >
-                <Plus className="mr-2 h-4 w-4" />
-                Add Event
-              </ContextMenuItem>
-              <ContextMenuItem
-                className="cursor-pointer py-2"
-                onClick={() => {
-                  toggleChatSidebar();
-                }}
-              >
-                <Sparkles className="mr-2 h-4 w-4" />
-                Ask AI
-              </ContextMenuItem>
-            </ContextMenuContent>
-          </ContextMenu>
-        );
-      })}
+                    <Plus className="mr-2 h-4 w-4" />
+                    Add Event
+                  </ContextMenuItem>
+                  <ContextMenuItem
+                    className="cursor-pointer py-2"
+                    onClick={() => {
+                      toggleChatSidebar();
+                    }}
+                  >
+                    <Sparkles className="mr-2 h-4 w-4" />
+                    Ask AI
+                  </ContextMenuItem>
+                </ContextMenuContent>
+              </ContextMenu>
+            );
+          })}
         </motion.div>
       </AnimatePresence>
-      
-      <Dialog open={isEventsDialogOpen} onOpenChange={setIsEventsDialogOpen}>
-        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto bg-neutral-950">
+
+      <Dialog onOpenChange={setIsEventsDialogOpen} open={isEventsDialogOpen}>
+        <DialogContent className="max-h-[80vh] max-w-2xl overflow-y-auto bg-neutral-950">
           <DialogHeader>
             <DialogTitle>
-              Events for {selectedEvents.length > 0 && (
-                new Date(selectedEvents[0].startDate).toLocaleDateString('en-US', {
-                  weekday: 'long',
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric'
-                })
-              )}
+              Events for{' '}
+              {selectedEvents.length > 0 &&
+                new Date(selectedEvents[0].startDate).toLocaleDateString(
+                  'en-US',
+                  {
+                    weekday: 'long',
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                  }
+                )}
             </DialogTitle>
           </DialogHeader>
           <div className="flex flex-col gap-2">
             {selectedEvents.map((event) => (
-              <EventCard
-                key={event.id}
-                event={event}
-              />
+              <EventCard event={event} key={event.id} />
             ))}
           </div>
         </DialogContent>

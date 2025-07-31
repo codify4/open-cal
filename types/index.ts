@@ -1,5 +1,5 @@
-import { Dispatch, SVGProps } from "react";
-import { z } from "zod";
+import type { Dispatch, SVGProps } from 'react';
+import { z } from 'zod';
 
 export type IconSvgProps = SVGProps<SVGSVGElement> & {
   size?: number;
@@ -9,19 +9,19 @@ export type IconSvgProps = SVGProps<SVGSVGElement> & {
 
 // Define event type
 export interface Event {
-    id: string
-    title: string
-    description?: string
-    startDate: Date
-    endDate: Date
-    color: string
-    type: 'event' | 'birthday'
-    location?: string
-    attendees?: string[]
-    reminders?: Date[]
-    repeat?: 'none' | 'daily' | 'weekly' | 'monthly' | 'yearly'
-    visibility?: 'public' | 'private'
-    isAllDay?: boolean
+  id: string;
+  title: string;
+  description?: string;
+  startDate: Date;
+  endDate: Date;
+  color: string;
+  type: 'event' | 'birthday';
+  location?: string;
+  attendees?: string[];
+  reminders?: Date[];
+  repeat?: 'none' | 'daily' | 'weekly' | 'monthly' | 'yearly';
+  visibility?: 'public' | 'private';
+  isAllDay?: boolean;
 }
 
 // Define the state interface for the scheduler
@@ -31,22 +31,19 @@ export interface SchedulerState {
 
 // Define actions for reducer
 export type Action =
-  | { type: "ADD_EVENT"; payload: Event }
-  | { type: "REMOVE_EVENT"; payload: { id: string } }
-  | { type: "UPDATE_EVENT"; payload: Event }
-  | { type: "SET_EVENTS"; payload: Event[] };
-
-
-  
+  | { type: 'ADD_EVENT'; payload: Event }
+  | { type: 'REMOVE_EVENT'; payload: { id: string } }
+  | { type: 'UPDATE_EVENT'; payload: Event }
+  | { type: 'SET_EVENTS'; payload: Event[] };
 
 // Define handlers interface
 export interface Handlers {
   handleEventStyling: (
     event: Event,
     dayEvents: Event[],
-    periodOptions?: { 
-      eventsInSamePeriod?: number; 
-      periodIndex?: number; 
+    periodOptions?: {
+      eventsInSamePeriod?: number;
+      periodIndex?: number;
       adjustForPeriod?: boolean;
     }
   ) => {
@@ -85,23 +82,23 @@ export interface SchedulerContextType {
 
 // Define the variant options
 export const variants = [
-  "success",
-  "primary",
-  "default",
-  "warning",
-  "danger",
+  'success',
+  'primary',
+  'default',
+  'warning',
+  'danger',
 ] as const;
 
 export type Variant = (typeof variants)[number];
 
 // Define Zod schema for form validation
 export const eventSchema = z.object({
-  title: z.string().nonempty("Event name is required"),
+  title: z.string().nonempty('Event name is required'),
   description: z.string().optional(),
   startDate: z.date(),
   endDate: z.date(),
-  variant: z.enum(["primary", "danger", "success", "warning", "default"]),
-  color: z.string().nonempty("Color selection is required"),
+  variant: z.enum(['primary', 'danger', 'success', 'warning', 'default']),
+  color: z.string().nonempty('Color selection is required'),
 });
 
 export type EventFormData = z.infer<typeof eventSchema>;
@@ -111,7 +108,7 @@ export type Views = {
   views?: string[];
 };
 
-export type startOfWeek = "sunday" | "monday";
+export type startOfWeek = 'sunday' | 'monday';
 
 export interface CustomEventModal {
   CustomAddEventModal?: {

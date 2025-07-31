@@ -1,18 +1,19 @@
-import React, { useRef, useState, useCallback, useMemo } from "react";
-import { Badge } from "@/components/ui/badge";
-import { AnimatePresence, motion } from "framer-motion";
-import { EventCard } from "@/components/event/cards/event-card";
-import { Plus, Sparkles } from "lucide-react";
-import clsx from "clsx";
-import { Event } from "@/lib/store/calendar-store";
+import { useDroppable } from '@dnd-kit/core';
+import clsx from 'clsx';
+import { AnimatePresence, motion } from 'framer-motion';
+import { Plus, Sparkles } from 'lucide-react';
+import type React from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
+import { EventCard } from '@/components/event/cards/event-card';
+import { Badge } from '@/components/ui/badge';
 import {
   ContextMenu,
   ContextMenuContent,
   ContextMenuItem,
   ContextMenuTrigger,
-} from "@/components/ui/context-menu";
-import { useCalendarStore } from "@/providers/calendar-store-provider";
-import { useDroppable } from "@dnd-kit/core";
+} from '@/components/ui/context-menu';
+import type { Event } from '@/lib/store/calendar-store';
+import { useCalendarStore } from '@/providers/calendar-store-provider';
 
 interface TimeSlotProps {
   timeSlotId: string;
@@ -21,30 +22,32 @@ interface TimeSlotProps {
   date: Date;
 }
 
-const TimeSlot: React.FC<TimeSlotProps> = ({ timeSlotId, dayIndex, hourIndex, date }) => {
+const TimeSlot: React.FC<TimeSlotProps> = ({
+  timeSlotId,
+  dayIndex,
+  hourIndex,
+  date,
+}) => {
   const { setNodeRef, isOver } = useDroppable({
     id: timeSlotId,
     data: {
       dayIndex,
       hourIndex,
-      date
-    }
+      date,
+    },
   });
 
   return (
     <div
+      className={`relative z-10 col-span-1 h-[64px] border-default-200 border-r border-b text-center text-muted-foreground text-sm transition duration-300 ${isOver ? 'bg-blue-500/20' : ''}`}
       ref={setNodeRef}
-      className={`col-span-1 border-default-200 h-[64px] relative transition duration-300 border-r border-b text-center text-sm text-muted-foreground z-10 ${
-        isOver ? 'bg-blue-500/20' : ''
-      }`}
-    >
-    </div>
+    ></div>
   );
 };
 
 const hours = Array.from({ length: 24 }, (_, i) => {
   const hour = i % 12 || 12;
-  const ampm = i < 12 ? "AM" : "PM";
+  const ampm = i < 12 ? 'AM' : 'PM';
   return `${hour}:00 ${ampm}`;
 });
 
@@ -63,7 +66,7 @@ const pageTransitionVariants = {
   exit: (direction: number) => ({
     opacity: 0,
     transition: {
-      opacity: { duration: 0.2, ease: "easeInOut" },
+      opacity: { duration: 0.2, ease: 'easeInOut' },
     },
   }),
 };
@@ -75,57 +78,79 @@ export default function WeeklyView() {
   const [colWidth, setColWidth] = useState<number[]>(Array(7).fill(1));
   const [isResizing, setIsResizing] = useState<boolean>(false);
   const [contextMenuTime, setContextMenuTime] = useState<string | null>(null);
-  const { toggleChatSidebar, openEventSidebarForNewEvent, currentDate, navigationDirection, events } = useCalendarStore((state) => state);
+  const {
+    toggleChatSidebar,
+    openEventSidebarForNewEvent,
+    currentDate,
+    navigationDirection,
+    events,
+    updateEventTime,
+  } = useCalendarStore((state) => state);
 
   const direction = navigationDirection;
-  const weekStartsOn = "monday";
+  const weekStartsOn = 'monday';
 
-  const date = currentDate instanceof Date ? currentDate : new Date(currentDate);
+  const date =
+    currentDate instanceof Date ? currentDate : new Date(currentDate);
 
-  const getDaysInWeek = useCallback((week: number, year: number) => {
-    const startDay = weekStartsOn === "monday" ? 1 : 0;
-    const currentDayOfWeek = date.getDay();
-    const daysToSubtract = (currentDayOfWeek - startDay + 7) % 7;
-    const weekStart = new Date(date);
-    weekStart.setDate(date.getDate() - daysToSubtract);
-    
-    const days = [];
-    for (let i = 0; i < 7; i++) {
-      const day = new Date(weekStart);
-      day.setDate(day.getDate() + i);
-      days.push(day);
-    }
-    return days;
-  }, [date]);
+  const getDaysInWeek = useCallback(
+    (week: number, year: number) => {
+      const startDay = weekStartsOn === 'monday' ? 1 : 0;
+      const currentDayOfWeek = date.getDay();
+      const daysToSubtract = (currentDayOfWeek - startDay + 7) % 7;
+      const weekStart = new Date(date);
+      weekStart.setDate(date.getDate() - daysToSubtract);
 
-  const daysOfWeek = useMemo(() => getDaysInWeek(1, date.getFullYear()), [getDaysInWeek, date]);
+      const days = [];
+      for (let i = 0; i < 7; i++) {
+        const day = new Date(weekStart);
+        day.setDate(day.getDate() + i);
+        days.push(day);
+      }
+      return days;
+    },
+    [date]
+  );
 
-  const getWeekNumber = useCallback((date: Date) => {
-    const startDay = weekStartsOn === "monday" ? 1 : 0;
-    const yearStart = new Date(date.getFullYear(), 0, 1);
-    const daysSinceYearStart = Math.floor((date.getTime() - yearStart.getTime()) / (24 * 60 * 60 * 1000));
-    const weekNumber = Math.floor((daysSinceYearStart + yearStart.getDay() - startDay + 7) / 7);
-    return weekNumber;
-  }, [weekStartsOn]);
+  const daysOfWeek = useMemo(
+    () => getDaysInWeek(1, date.getFullYear()),
+    [getDaysInWeek, date]
+  );
+
+  const getWeekNumber = useCallback(
+    (date: Date) => {
+      const startDay = weekStartsOn === 'monday' ? 1 : 0;
+      const yearStart = new Date(date.getFullYear(), 0, 1);
+      const daysSinceYearStart = Math.floor(
+        (date.getTime() - yearStart.getTime()) / (24 * 60 * 60 * 1000)
+      );
+      const weekNumber = Math.floor(
+        (daysSinceYearStart + yearStart.getDay() - startDay + 7) / 7
+      );
+      return weekNumber;
+    },
+    [weekStartsOn]
+  );
 
   const getDayName = useCallback((day: number) => {
-    const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
     return days[day];
   }, []);
 
-  const mockEvents: Event[] = [];
-
-  const getEventsForDay = useCallback((day: number, currentDate: Date) => {
-    
-    const dayEvents = events.filter(event => {
-      const eventDate = new Date(event.startDate)
-      const matches = eventDate.getDate() === day && 
-             eventDate.getMonth() === currentDate.getMonth() && 
-             eventDate.getFullYear() === currentDate.getFullYear()
-      return matches
-    })
-    return dayEvents
-  }, [events])
+  const getEventsForDay = useCallback(
+    (day: number, currentDate: Date) => {
+      const dayEvents = events.filter((event) => {
+        const eventDate = new Date(event.startDate);
+        const matches =
+          eventDate.getDate() === day &&
+          eventDate.getMonth() === currentDate.getMonth() &&
+          eventDate.getFullYear() === currentDate.getFullYear();
+        return matches;
+      });
+      return dayEvents;
+    },
+    [events]
+  );
 
   const handleMouseMove = useCallback(
     (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
@@ -138,13 +163,14 @@ export default function WeeklyView() {
       const minutes = Math.floor(minuteFraction * 60);
 
       const hour12 = hour % 12 || 12;
-      const ampm = hour < 12 ? "AM" : "PM";
+      const ampm = hour < 12 ? 'AM' : 'PM';
       setDetailedHour(
-        `${hour12}:${Math.max(0, minutes).toString().padStart(2, "0")} ${ampm}`
+        `${hour12}:${Math.max(0, minutes).toString().padStart(2, '0')} ${ampm}`
       );
 
       const offset = 30;
-      const position = Math.max(0, Math.min(rect.height, Math.round(y))) + offset;
+      const position =
+        Math.max(0, Math.min(rect.height, Math.round(y))) + offset;
       setTimelinePosition(position);
     },
     []
@@ -158,34 +184,34 @@ export default function WeeklyView() {
     const hour = Math.max(0, Math.min(23, Math.floor(y / hourHeight)));
     const minuteFraction = (y % hourHeight) / hourHeight;
     const minutes = Math.floor(minuteFraction * 60);
-    
+
     const hour12 = hour % 12 || 12;
-    const ampm = hour < 12 ? "AM" : "PM";
-    const timeString = `${hour12}:${minutes.toString().padStart(2, "0")} ${ampm}`;
+    const ampm = hour < 12 ? 'AM' : 'PM';
+    const timeString = `${hour12}:${minutes.toString().padStart(2, '0')} ${ampm}`;
     setContextMenuTime(timeString);
   }, []);
 
   function handleAddEventWeek(dayIndex: number, detailedHour: string) {
     if (!detailedHour) {
-      console.error("Detailed hour not provided.");
+      console.error('Detailed hour not provided.');
       return;
     }
 
-    const [timePart, ampm] = detailedHour.split(" ");
-    const [hourStr, minuteStr] = timePart.split(":");
-    let hours = parseInt(hourStr);
-    const minutes = parseInt(minuteStr);
-    
-    if (ampm === "PM" && hours < 12) {
+    const [timePart, ampm] = detailedHour.split(' ');
+    const [hourStr, minuteStr] = timePart.split(':');
+    let hours = Number.parseInt(hourStr);
+    const minutes = Number.parseInt(minuteStr);
+
+    if (ampm === 'PM' && hours < 12) {
       hours += 12;
-    } else if (ampm === "AM" && hours === 12) {
+    } else if (ampm === 'AM' && hours === 12) {
       hours = 0;
     }
 
     const chosenDay = daysOfWeek[dayIndex % 7].getDate();
 
     if (chosenDay < 1 || chosenDay > 31) {
-      console.error("Invalid day selected:", chosenDay);
+      console.error('Invalid day selected:', chosenDay);
       return;
     }
 
@@ -202,26 +228,27 @@ export default function WeeklyView() {
 
   const groupEventsByTimePeriod = (events: Event[] | undefined) => {
     if (!events || events.length === 0) return [];
-    
-    const sortedEvents = [...events].sort((a, b) => 
-      new Date(a.startDate).getTime() - new Date(b.startDate).getTime()
+
+    const sortedEvents = [...events].sort(
+      (a, b) =>
+        new Date(a.startDate).getTime() - new Date(b.startDate).getTime()
     );
-    
+
     const eventsOverlap = (event1: Event, event2: Event) => {
       const start1 = new Date(event1.startDate).getTime();
       const end1 = new Date(event1.endDate).getTime();
       const start2 = new Date(event2.startDate).getTime();
       const end2 = new Date(event2.endDate).getTime();
-      
-      return (start1 < end2 && start2 < end1);
+
+      return start1 < end2 && start2 < end1;
     };
-    
+
     const graph: Record<string, Set<string>> = {};
-    
+
     for (const event of sortedEvents) {
       graph[event.id] = new Set<string>();
     }
-    
+
     for (let i = 0; i < sortedEvents.length; i++) {
       for (let j = i + 1; j < sortedEvents.length; j++) {
         if (eventsOverlap(sortedEvents[i], sortedEvents[j])) {
@@ -230,23 +257,23 @@ export default function WeeklyView() {
         }
       }
     }
-    
+
     const visited = new Set<string>();
     const groups: Event[][] = [];
-    
+
     for (const event of sortedEvents) {
       if (!visited.has(event.id)) {
         const group: Event[] = [];
         const stack: Event[] = [event];
         visited.add(event.id);
-        
+
         while (stack.length > 0) {
           const current = stack.pop()!;
           group.push(current);
-          
+
           for (const neighborId of graph[current.id]) {
             if (!visited.has(neighborId)) {
-              const neighbor = sortedEvents.find(e => e.id === neighborId);
+              const neighbor = sortedEvents.find((e) => e.id === neighborId);
               if (neighbor) {
                 stack.push(neighbor);
                 visited.add(neighborId);
@@ -254,52 +281,76 @@ export default function WeeklyView() {
             }
           }
         }
-        
-        group.sort((a, b) => 
-          new Date(a.startDate).getTime() - new Date(b.startDate).getTime()
+
+        group.sort(
+          (a, b) =>
+            new Date(a.startDate).getTime() - new Date(b.startDate).getTime()
         );
-        
+
         groups.push(group);
       }
     }
-    
+
     return groups;
   };
 
   const handleEventStyling = (
-    event: Event, 
+    event: Event,
     dayEvents: Event[],
-    periodOptions?: { 
-      eventsInSamePeriod?: number; 
-      periodIndex?: number; 
+    periodOptions?: {
+      eventsInSamePeriod?: number;
+      periodIndex?: number;
       adjustForPeriod?: boolean;
     }
   ) => {
     const eventsOnHour = dayEvents.filter((e) => {
       if (e.id === event.id) return false;
-      
-      const eStart = e.startDate instanceof Date ? e.startDate.getTime() : new Date(e.startDate).getTime();
-      const eEnd = e.endDate instanceof Date ? e.endDate.getTime() : new Date(e.endDate).getTime();
-      const eventStart = event.startDate instanceof Date ? event.startDate.getTime() : new Date(event.startDate).getTime();
-      const eventEnd = event.endDate instanceof Date ? event.endDate.getTime() : new Date(event.endDate).getTime();
-      
-      return (eStart < eventEnd && eEnd > eventStart);
+
+      const eStart =
+        e.startDate instanceof Date
+          ? e.startDate.getTime()
+          : new Date(e.startDate).getTime();
+      const eEnd =
+        e.endDate instanceof Date
+          ? e.endDate.getTime()
+          : new Date(e.endDate).getTime();
+      const eventStart =
+        event.startDate instanceof Date
+          ? event.startDate.getTime()
+          : new Date(event.startDate).getTime();
+      const eventEnd =
+        event.endDate instanceof Date
+          ? event.endDate.getTime()
+          : new Date(event.endDate).getTime();
+
+      return eStart < eventEnd && eEnd > eventStart;
     });
 
     const allEventsInRange = [event, ...eventsOnHour];
 
     allEventsInRange.sort((a, b) => {
-      const aStart = a.startDate instanceof Date ? a.startDate.getTime() : new Date(a.startDate).getTime();
-      const bStart = b.startDate instanceof Date ? b.startDate.getTime() : new Date(b.startDate).getTime();
+      const aStart =
+        a.startDate instanceof Date
+          ? a.startDate.getTime()
+          : new Date(a.startDate).getTime();
+      const bStart =
+        b.startDate instanceof Date
+          ? b.startDate.getTime()
+          : new Date(b.startDate).getTime();
       return aStart - bStart;
     });
 
-    const useCustomPeriod = periodOptions?.adjustForPeriod && 
-                           periodOptions.eventsInSamePeriod !== undefined && 
-                           periodOptions.periodIndex !== undefined;
-                           
-    let numEventsOnHour = useCustomPeriod ? periodOptions!.eventsInSamePeriod! : allEventsInRange.length;
-    let indexOnHour = useCustomPeriod ? periodOptions!.periodIndex! : allEventsInRange.indexOf(event);
+    const useCustomPeriod =
+      periodOptions?.adjustForPeriod &&
+      periodOptions.eventsInSamePeriod !== undefined &&
+      periodOptions.periodIndex !== undefined;
+
+    let numEventsOnHour = useCustomPeriod
+      ? periodOptions!.eventsInSamePeriod!
+      : allEventsInRange.length;
+    let indexOnHour = useCustomPeriod
+      ? periodOptions!.periodIndex!
+      : allEventsInRange.indexOf(event);
 
     if (numEventsOnHour === 0 || indexOnHour === -1) {
       numEventsOnHour = 1;
@@ -310,10 +361,19 @@ export default function WeeklyView() {
     let maxHeight = 0;
     let eventTop = 0;
 
-    const startDate = event.startDate instanceof Date ? event.startDate : new Date(event.startDate);
-    const endDate = event.endDate instanceof Date ? event.endDate : new Date(event.endDate);
+    const startDate =
+      event.startDate instanceof Date
+        ? event.startDate
+        : new Date(event.startDate);
+    const endDate =
+      event.endDate instanceof Date ? event.endDate : new Date(event.endDate);
 
-    if (startDate && endDate && !isNaN(startDate.getTime()) && !isNaN(endDate.getTime())) {
+    if (
+      startDate &&
+      endDate &&
+      !isNaN(startDate.getTime()) &&
+      !isNaN(endDate.getTime())
+    ) {
       const startTime = startDate.getHours() * 60 + startDate.getMinutes();
       const endTime = endDate.getHours() * 60 + endDate.getMinutes();
 
@@ -342,9 +402,9 @@ export default function WeeklyView() {
     }
 
     const widthPercentage = Math.min(95 / Math.max(numEventsOnHour, 1), 95);
-    
+
     const leftPosition = indexOnHour * (widthPercentage + 1);
-    
+
     const safeLeftPosition = Math.min(leftPosition, 100 - widthPercentage);
 
     const minimumHeight = 20;
@@ -354,8 +414,8 @@ export default function WeeklyView() {
         eventHeight < minimumHeight
           ? minimumHeight
           : eventHeight > maxHeight
-          ? maxHeight
-          : eventHeight
+            ? maxHeight
+            : eventHeight
       }px`,
       top: `${eventTop}px`,
       zIndex: indexOnHour + 1,
@@ -367,44 +427,55 @@ export default function WeeklyView() {
 
   return (
     <div className="flex flex-col gap-4">
-      <AnimatePresence initial={false} custom={direction} mode="wait">
+      <AnimatePresence custom={direction} initial={false} mode="wait">
         <motion.div
-          key={currentDate.toISOString()}
-          custom={direction}
-          variants={pageTransitionVariants}
-          initial="enter"
           animate="center"
+          className="grid grid-cols-9 gap-0"
+          custom={direction}
           exit="exit"
+          initial="enter"
+          key={currentDate.toISOString()}
           transition={{
             opacity: { duration: 0.2 },
           }}
-          className="grid grid-cols-9 gap-0"
+          variants={pageTransitionVariants}
         >
-          <div className="col-span-1 bg-neutral-900 border-b border-r border-default-200 flex items-center justify-center py-2">
-            <span className="text-xs text-muted-foreground font-medium">Time</span>
+          <div className="col-span-1 flex items-center justify-center border-default-200 border-r border-b bg-neutral-900 py-2">
+            <span className="font-medium text-muted-foreground text-xs">
+              Time
+            </span>
           </div>
 
-          <div className="col-span-8 flex flex-col relative">
-            <div 
-              className="grid gap-0 flex-grow bg-neutral-900 border-b border-default-200" 
-              style={{ 
-                gridTemplateColumns: colWidth.map(w => `${w}fr`).join(' '),
-                transition: isResizing ? 'none' : 'grid-template-columns 0.3s ease-in-out'
+          <div className="relative col-span-8 flex flex-col">
+            <div
+              className="grid flex-grow gap-0 border-default-200 border-b bg-neutral-900"
+              style={{
+                gridTemplateColumns: colWidth.map((w) => `${w}fr`).join(' '),
+                transition: isResizing
+                  ? 'none'
+                  : 'grid-template-columns 0.3s ease-in-out',
               }}
             >
               {daysOfWeek.map((day, idx) => (
-                <div key={idx} className="relative group flex flex-col">
-                  <div className="bg-neutral-900 flex-grow flex items-center justify-center py-2 border-r border-default-200">
+                <div className="group relative flex flex-col" key={idx}>
+                  <div className="flex flex-grow items-center justify-center border-default-200 border-r bg-neutral-900 py-2">
                     <div className="text-center">
-                      <div className={clsx(
-                        "text-xs font-medium text-muted-foreground",
-                        new Date().getDate() === day.getDate() &&
-                          new Date().getMonth() === currentDate.getMonth() &&
-                          new Date().getFullYear() === currentDate.getFullYear()
-                          ? "text-red-500"
-                          : ""
-                      )}>
-                        {getDayName(day.getDay())}, {day.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                      <div
+                        className={clsx(
+                          'font-medium text-muted-foreground text-xs',
+                          new Date().getDate() === day.getDate() &&
+                            new Date().getMonth() === currentDate.getMonth() &&
+                            new Date().getFullYear() ===
+                              currentDate.getFullYear()
+                            ? 'text-red-500'
+                            : ''
+                        )}
+                      >
+                        {getDayName(day.getDay())},{' '}
+                        {day.toLocaleDateString('en-US', {
+                          month: 'short',
+                          day: 'numeric',
+                        })}
                       </div>
                     </div>
                   </div>
@@ -414,12 +485,12 @@ export default function WeeklyView() {
 
             {detailedHour && (
               <div
-                className="absolute flex z-50 left-0 w-full h-[1px] bg-primary/40 rounded-full pointer-events-none"
+                className="pointer-events-none absolute left-0 z-50 flex h-[1px] w-full rounded-full bg-primary/40"
                 style={{ top: `${timelinePosition}px` }}
               >
                 <Badge
+                  className="-translate-y-1/2 absolute left-[5px] z-50 bg-neutral-800 text-white text-xs"
                   variant="outline"
-                  className="absolute -translate-y-1/2 bg-neutral-800 z-50 left-[5px] text-xs text-white"
                 >
                   {detailedHour}
                 </Badge>
@@ -428,28 +499,30 @@ export default function WeeklyView() {
           </div>
 
           <div
-            ref={hoursColumnRef}
-            onMouseMove={handleMouseMove}
+            className="relative col-span-9 grid grid-cols-9"
             onMouseLeave={() => setDetailedHour(null)}
-            className="relative grid grid-cols-9 col-span-9"
+            onMouseMove={handleMouseMove}
+            ref={hoursColumnRef}
           >
-            <div className="col-span-1 bg-neutral-900 border-r border-default-200">
+            <div className="col-span-1 border-default-200 border-r bg-neutral-900">
               {hours.map((hour, index) => (
                 <motion.div
+                  className="flex h-[64px] cursor-pointer items-start justify-center border-default-200 border-b px-3 py-2 text-left text-muted-foreground text-xs"
                   key={`hour-${index}`}
                   variants={itemVariants}
-                  className="cursor-pointer border-b border-default-200 h-[64px] text-left text-xs text-muted-foreground px-3 py-2 flex items-start justify-center"
                 >
                   {hour}
                 </motion.div>
               ))}
             </div>
 
-            <div 
-              className="col-span-8 bg-neutral-900 grid h-full" 
-              style={{ 
-                gridTemplateColumns: colWidth.map(w => `${w}fr`).join(' '),
-                transition: isResizing ? 'none' : 'grid-template-columns 0.3s ease-in-out'
+            <div
+              className="col-span-8 grid h-full bg-neutral-900"
+              style={{
+                gridTemplateColumns: colWidth.map((w) => `${w}fr`).join(' '),
+                transition: isResizing
+                  ? 'none'
+                  : 'grid-template-columns 0.3s ease-in-out',
               }}
             >
               {Array.from({ length: 7 }, (_, dayIndex) => {
@@ -459,95 +532,111 @@ export default function WeeklyView() {
                 );
 
                 const timeGroups = groupEventsByTimePeriod(dayEvents);
-                
+
                 const eventsCount = dayEvents?.length || 0;
                 const maxEventsToShow = 10;
                 const hasMoreEvents = eventsCount > maxEventsToShow;
-                
-                const visibleEvents = hasMoreEvents 
-                  ? dayEvents?.slice(0, maxEventsToShow - 1) 
+
+                const visibleEvents = hasMoreEvents
+                  ? dayEvents?.slice(0, maxEventsToShow - 1)
                   : dayEvents;
 
                 return (
                   <ContextMenu key={`day-${dayIndex}`}>
                     <ContextMenuTrigger asChild>
                       <div
-                        className="col-span-1 border-default-200 z-20 relative transition duration-300 border-r border-b text-center text-sm text-muted-foreground overflow-hidden"
+                        className="relative z-20 col-span-1 overflow-hidden border-default-200 border-r border-b text-center text-muted-foreground text-sm transition duration-300"
                         onContextMenu={handleContextMenuOpen}
                       >
                         <AnimatePresence initial={false}>
                           {visibleEvents?.map((event, eventIndex) => {
                             let eventsInSamePeriod = 1;
                             let periodIndex = 0;
-                            
+
                             for (let i = 0; i < timeGroups.length; i++) {
-                              const groupIndex = timeGroups[i].findIndex(e => e.id === event.id);
+                              const groupIndex = timeGroups[i].findIndex(
+                                (e) => e.id === event.id
+                              );
                               if (groupIndex !== -1) {
                                 eventsInSamePeriod = timeGroups[i].length;
                                 periodIndex = groupIndex;
                                 break;
                               }
                             }
-                            
-                            const { height, left, maxWidth, minWidth, top, zIndex } =
-                              handleEventStyling(
-                                event, 
-                                dayEvents, 
-                                {
-                                  eventsInSamePeriod,
-                                  periodIndex,
-                                  adjustForPeriod: true
-                                }
-                              );
+
+                            const {
+                              height,
+                              left,
+                              maxWidth,
+                              minWidth,
+                              top,
+                              zIndex,
+                            } = handleEventStyling(event, dayEvents, {
+                              eventsInSamePeriod,
+                              periodIndex,
+                              adjustForPeriod: true,
+                            });
 
                             return (
                               <motion.div
+                                animate={{ opacity: 1, scale: 1 }}
+                                className="absolute flex flex-grow flex-col transition-all duration-1000"
+                                exit={{ opacity: 0, scale: 0.9 }}
+                                initial={{ opacity: 0, scale: 0.9 }}
                                 key={event.id}
                                 style={{
                                   minHeight: height,
                                   height,
-                                  top: top,
-                                  left: left,
-                                  maxWidth: maxWidth,
-                                  minWidth: minWidth,
+                                  top,
+                                  left,
+                                  maxWidth,
+                                  minWidth,
                                   padding: '0 2px',
                                   boxSizing: 'border-box',
-                                  zIndex: zIndex + 1000, // Ensure events are above time slots
+                                  zIndex: zIndex + 1000,
                                 }}
-                                className="flex transition-all duration-1000 flex-grow flex-col absolute"
-                                initial={{ opacity: 0, scale: 0.9 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                                exit={{ opacity: 0, scale: 0.9 }}
                                 transition={{ duration: 0.2 }}
                               >
                                 <EventCard
                                   event={event}
+                                  onResize={(
+                                    eventId,
+                                    newStartDate,
+                                    newEndDate
+                                  ) => {
+                                    updateEventTime(
+                                      eventId,
+                                      newStartDate,
+                                      newEndDate
+                                    );
+                                  }}
                                 />
                               </motion.div>
                             );
                           })}
                         </AnimatePresence>
-                        
+
                         {Array.from({ length: 24 }, (_, hourIndex) => {
                           const timeSlotId = `day-${dayIndex}-hour-${hourIndex}`;
-                          
+
                           return (
                             <TimeSlot
-                              key={timeSlotId}
-                              timeSlotId={timeSlotId}
+                              date={daysOfWeek[dayIndex]}
                               dayIndex={dayIndex}
                               hourIndex={hourIndex}
-                              date={daysOfWeek[dayIndex]}
+                              key={timeSlotId}
+                              timeSlotId={timeSlotId}
                             />
                           );
                         })}
                       </div>
                     </ContextMenuTrigger>
-                    <ContextMenuContent className="bg-neutral-950 w-40">
+                    <ContextMenuContent className="w-40 bg-neutral-950">
                       <ContextMenuItem
                         className="cursor-pointer py-2"
                         onClick={() => {
-                          const timeToUse = contextMenuTime || detailedHour || "12:00 PM";
+                          const timeToUse =
+                            contextMenuTime || detailedHour || '12:00 PM';
                           handleAddEventWeek(dayIndex, timeToUse);
                           setContextMenuTime(null);
                         }}

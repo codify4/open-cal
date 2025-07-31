@@ -1,47 +1,49 @@
-'use client'
+'use client';
 
-import { type ReactNode, createContext, useRef, useContext } from 'react'
-import { useStore } from 'zustand'
+import { createContext, type ReactNode, useContext, useRef } from 'react';
+import { useStore } from 'zustand';
 
 import {
   type CalendarStore,
   createCalendarStore,
-  defaultInitState
-} from '@/lib/store/calendar-store'
+  defaultInitState,
+} from '@/lib/store/calendar-store';
 
-export type CalendarStoreApi = ReturnType<typeof createCalendarStore>
+export type CalendarStoreApi = ReturnType<typeof createCalendarStore>;
 
 export const CalendarStoreContext = createContext<CalendarStoreApi | undefined>(
-  undefined,
-)
+  undefined
+);
 
 export interface CalendarStoreProviderProps {
-  children: ReactNode
+  children: ReactNode;
 }
 
 export const CalendarStoreProvider = ({
   children,
 }: CalendarStoreProviderProps) => {
-  const storeRef = useRef<CalendarStoreApi | null>(null)
+  const storeRef = useRef<CalendarStoreApi | null>(null);
   if (storeRef.current === null) {
-    storeRef.current = createCalendarStore(defaultInitState)
+    storeRef.current = createCalendarStore(defaultInitState);
   }
 
   return (
     <CalendarStoreContext.Provider value={storeRef.current}>
       {children}
     </CalendarStoreContext.Provider>
-  )
-}
+  );
+};
 
 export const useCalendarStore = <T,>(
-  selector: (store: CalendarStore) => T,
+  selector: (store: CalendarStore) => T
 ): T => {
-  const calendarStoreContext = useContext(CalendarStoreContext)
+  const calendarStoreContext = useContext(CalendarStoreContext);
 
   if (!calendarStoreContext) {
-    throw new Error(`useCalendarStore must be used within CalendarStoreProvider`)
+    throw new Error(
+      'useCalendarStore must be used within CalendarStoreProvider'
+    );
   }
 
-  return useStore(calendarStoreContext, selector)
-} 
+  return useStore(calendarStoreContext, selector);
+};

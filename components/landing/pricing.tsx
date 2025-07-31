@@ -1,60 +1,73 @@
-"use client"
+'use client';
 
-import { Button } from "@/components/ui/button"
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
-import { plans } from "@/constants/pricing"
-import { Check, ArrowRight } from "lucide-react"
-import Link from "next/link"
-import { BorderBeam } from "../magicui/border-beam"
-import { useState } from "react"
+import { ArrowRight, Check } from 'lucide-react';
+import Link from 'next/link';
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { plans } from '@/constants/pricing';
+import { BorderBeam } from '../magicui/border-beam';
 
 export function PricingSection() {
-  const [billingPeriod, setBillingPeriod] = useState<"monthly" | "yearly">("monthly")
+  const [billingPeriod, setBillingPeriod] = useState<'monthly' | 'yearly'>(
+    'monthly'
+  );
 
-  const monthlyPlans = plans.filter(plan => plan.name !== "Pro Yearly")
-  const yearlyPlans = plans.filter(plan => plan.name !== "Pro").map(plan => {
-    if (plan.name === "Pro Yearly") {
-      return {
-        ...plan,
-        name: "Pro",
-        price: "10",
-        period: "/month",
-        originalPrice: "20",
-        billingNote: "billed yearly"
+  const monthlyPlans = plans.filter((plan) => plan.name !== 'Pro Yearly');
+  const yearlyPlans = plans
+    .filter((plan) => plan.name !== 'Pro')
+    .map((plan) => {
+      if (plan.name === 'Pro Yearly') {
+        return {
+          ...plan,
+          name: 'Pro',
+          price: '10',
+          period: '/month',
+          originalPrice: '20',
+          billingNote: 'billed yearly',
+        };
       }
-    }
-    return plan
-  })
+      return plan;
+    });
 
-  const currentPlans = billingPeriod === "monthly" ? monthlyPlans : yearlyPlans
+  const currentPlans = billingPeriod === 'monthly' ? monthlyPlans : yearlyPlans;
 
   return (
-    <section id="pricing" className="py-32 bg-black text-white relative overflow-hidden">
-      <div className="container mx-auto px-6 lg:px-8 relative z-10">
-        <div className="text-center mb-10">
-          <h2 className="text-5xl lg:text-6xl font-bold mb-4 tracking-tight leading-tight">
+    <section
+      className="relative overflow-hidden bg-black py-32 text-white"
+      id="pricing"
+    >
+      <div className="container relative z-10 mx-auto px-6 lg:px-8">
+        <div className="mb-10 text-center">
+          <h2 className="mb-4 font-bold text-5xl leading-tight tracking-tight lg:text-6xl">
             Pricing
           </h2>
-          <p className="text-xl text-white/70 max-w-2xl mx-auto leading-relaxed font-light">
+          <p className="mx-auto max-w-2xl font-light text-white/70 text-xl leading-relaxed">
             Choose the perfect plan for your AI calendar
           </p>
         </div>
 
-        <div className="flex justify-center mb-12">
-          <Tabs value={billingPeriod} onValueChange={(value) => setBillingPeriod(value as "monthly" | "yearly")} className="w-fit">
-            <TabsList className="bg-white/10 border border-white/20">
-              <TabsTrigger 
-                value="monthly" 
-                className="data-[state=active]:bg-white data-[state=active]:text-black text-white"
+        <div className="mb-12 flex justify-center">
+          <Tabs
+            className="w-fit"
+            onValueChange={(value) =>
+              setBillingPeriod(value as 'monthly' | 'yearly')
+            }
+            value={billingPeriod}
+          >
+            <TabsList className="border border-white/20 bg-white/10">
+              <TabsTrigger
+                className="text-white data-[state=active]:bg-white data-[state=active]:text-black"
+                value="monthly"
               >
                 Monthly
               </TabsTrigger>
-              <TabsTrigger 
-                value="yearly" 
-                className="data-[state=active]:bg-white data-[state=active]:text-black text-white"
+              <TabsTrigger
+                className="text-white data-[state=active]:bg-white data-[state=active]:text-black"
+                value="yearly"
               >
                 Yearly
-                <span className="ml-2 px-2 py-0.5 text-xs bg-green-500 text-black rounded-full">
+                <span className="ml-2 rounded-full bg-green-500 px-2 py-0.5 text-black text-xs">
                   Save 50%
                 </span>
               </TabsTrigger>
@@ -62,48 +75,64 @@ export function PricingSection() {
           </Tabs>
         </div>
 
-        <div className="grid lg:grid-cols-2 gap-8 max-w-5xl mx-auto">
+        <div className="mx-auto grid max-w-5xl gap-8 lg:grid-cols-2">
           {currentPlans.map((plan, index) => (
             <div
+              className={
+                'group relative transition-all duration-500 hover:scale-[1.02]'
+              }
               key={index}
-              className={`relative group transition-all duration-500 hover:scale-[1.02]`}
-            > 
+            >
               <div
-                className={`flex flex-col justify-between relative bg-black border rounded-xl p-8 h-full transition-all duration-300 border-white/50 hover:border-white/70`}
+                className={
+                  'relative flex h-full flex-col justify-between rounded-xl border border-white/50 bg-black p-8 transition-all duration-300 hover:border-white/70'
+                }
               >
                 <div className="flex flex-col justify-start">
                   <div className="mb-6">
-                    <h3 className="text-2xl font-bold mb-2 text-white">{plan.name}</h3>
+                    <h3 className="mb-2 font-bold text-2xl text-white">
+                      {plan.name}
+                    </h3>
                     <div className="mb-4">
                       {plan.originalPrice ? (
                         <div className="space-y-2">
                           <div className="flex items-baseline gap-2">
-                            <span className="text-5xl font-bold text-white">${plan.price}</span>
-                            <span className="text-white/60 text-xl">{plan.period}</span>
+                            <span className="font-bold text-5xl text-white">
+                              ${plan.price}
+                            </span>
+                            <span className="text-white/60 text-xl">
+                              {plan.period}
+                            </span>
                           </div>
                           <div className="flex items-center gap-2">
-                            <span className="text-white/40 line-through">${plan.originalPrice}/month</span>
-                            <span className="text-green-400 text-sm font-medium bg-green-400/10 px-2 py-1 rounded-full">
+                            <span className="text-white/40 line-through">
+                              ${plan.originalPrice}/month
+                            </span>
+                            <span className="rounded-full bg-green-400/10 px-2 py-1 font-medium text-green-400 text-sm">
                               {plan.billingNote}
                             </span>
                           </div>
                         </div>
                       ) : (
                         <div className="flex items-baseline gap-2">
-                          <span className="text-5xl font-bold text-white">${plan.price}</span>
-                          <span className="text-white/60 text-xl">{plan.period}</span>
+                          <span className="font-bold text-5xl text-white">
+                            ${plan.price}
+                          </span>
+                          <span className="text-white/60 text-xl">
+                            {plan.period}
+                          </span>
                         </div>
                       )}
                     </div>
                   </div>
 
-                  <ul className="space-y-4 mb-8">
+                  <ul className="mb-8 space-y-4">
                     {plan.features.map((feature, featureIndex) => (
-                      <li key={featureIndex} className="flex items-start">
-                        <div className="flex-shrink-0 w-5 h-5 rounded-full bg-white/10 flex items-center justify-center mr-3 mt-0.5">
+                      <li className="flex items-start" key={featureIndex}>
+                        <div className="mt-0.5 mr-3 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-white/10">
                           <Check className="h-3 w-3 text-white transition-colors duration-200" />
                         </div>
-                        <span className="text-white/80 leading-relaxed group-hover:text-white transition-colors duration-200">
+                        <span className="text-white/80 leading-relaxed transition-colors duration-200 group-hover:text-white">
                           {feature}
                         </span>
                       </li>
@@ -112,30 +141,31 @@ export function PricingSection() {
                 </div>
 
                 <div className="mt-auto">
-                  <Button 
-                    className="w-full py-5 rounded-full group"
-                    asChild
-                  >
-                    <Link href={plan.cta === "Contact sales" ? "/contact" : "/signup"}>
+                  <Button asChild className="group w-full rounded-full py-5">
+                    <Link
+                      href={
+                        plan.cta === 'Contact sales' ? '/contact' : '/signup'
+                      }
+                    >
                       {plan.cta}
-                      <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-all duration-300" />
+                      <ArrowRight className="ml-2 h-4 w-4 transition-all duration-300 group-hover:translate-x-1" />
                     </Link>
                   </Button>
                 </div>
               </div>
-              {plan.name === "Pro" && (
+              {plan.name === 'Pro' && (
                 <>
                   <BorderBeam
+                    className="from-[#ffaa40] via-[#9c40ff] to-transparent"
                     duration={6}
                     size={400}
-                    className="from-[#ffaa40] via-[#9c40ff] to-transparent"
                   />
                   <BorderBeam
-                    duration={6}
-                    delay={3}
-                    size={400}
                     borderWidth={2}
                     className="from-[] via-[#9c40ff] to-transparent"
+                    delay={3}
+                    duration={6}
+                    size={400}
                   />
                 </>
               )}
@@ -144,5 +174,5 @@ export function PricingSection() {
         </div>
       </div>
     </section>
-  )
+  );
 }

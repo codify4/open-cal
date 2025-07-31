@@ -1,118 +1,130 @@
-'use client'
+'use client';
 
-import * as React from "react"
-import { 
-  X, 
-  Maximize2,
-  Plus,
-  MessageSquare,
-  Minimize2
-} from "lucide-react"
-import { Chat } from "../ui/chat"
-import { useChat } from "ai/react"
-import { Button } from "../ui/button"
-import { cn } from "@/lib/utils"
-import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip"
+import { useChat } from 'ai/react';
+import { Maximize2, MessageSquare, Minimize2, Plus, X } from 'lucide-react';
+import type * as React from 'react';
+import { cn } from '@/lib/utils';
+import { Button } from '../ui/button';
+import { Chat } from '../ui/chat';
+import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip';
 
 interface ChatSidebarProps {
-  isFullscreen: boolean
-  onToggleSidebar: () => void
-  onToggleFullscreen: () => void
+  isFullscreen: boolean;
+  onToggleSidebar: () => void;
+  onToggleFullscreen: () => void;
 }
 
-export function ChatSidebar({ className, isFullscreen, onToggleSidebar, onToggleFullscreen, ...props }: React.ComponentProps<"div"> & ChatSidebarProps) {
-  const { messages, input, handleInputChange, handleSubmit, append, status, stop } = useChat()
-  const isLoading = status === "submitted" || status === "streaming"
+export function ChatSidebar({
+  className,
+  isFullscreen,
+  onToggleSidebar,
+  onToggleFullscreen,
+  ...props
+}: React.ComponentProps<'div'> & ChatSidebarProps) {
+  const {
+    messages,
+    input,
+    handleInputChange,
+    handleSubmit,
+    append,
+    status,
+    stop,
+  } = useChat();
+  const isLoading = status === 'submitted' || status === 'streaming';
 
   return (
-    <div 
+    <div
       className={cn(
-        "flex flex-col h-full text-white",
-        isFullscreen ? "w-full max-w-4xl mx-auto" : "",
+        'flex h-full flex-col text-white',
+        isFullscreen ? 'mx-auto w-full max-w-4xl' : '',
         className
-      )} 
+      )}
       {...props}
     >
       <div className="flex items-center justify-between ">
-        <div className="flex items-center justify-end w-full gap-3">
+        <div className="flex w-full items-center justify-end gap-3">
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
-                size="icon"
-                variant="ghost"
                 className="h-8 w-8 text-white hover:bg-neutral-800"
                 onClick={isFullscreen ? onToggleFullscreen : onToggleSidebar}
+                size="icon"
+                variant="ghost"
               >
                 <X className="h-4 w-4" />
               </Button>
             </TooltipTrigger>
-            <TooltipContent className="bg-neutral-950 text-white font-semibold">
-              <p>{isFullscreen ? "Exit Fullscreen" : "Close"}</p>
+            <TooltipContent className="bg-neutral-950 font-semibold text-white">
+              <p>{isFullscreen ? 'Exit Fullscreen' : 'Close'}</p>
             </TooltipContent>
           </Tooltip>
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
-                size="icon"
-                variant="ghost"
                 className="h-8 w-8 text-white hover:bg-neutral-800"
                 onClick={onToggleFullscreen}
+                size="icon"
+                variant="ghost"
               >
-                {isFullscreen ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
+                {isFullscreen ? (
+                  <Minimize2 className="h-4 w-4" />
+                ) : (
+                  <Maximize2 className="h-4 w-4" />
+                )}
               </Button>
             </TooltipTrigger>
-            <TooltipContent className="bg-neutral-950 text-white font-semibold">
-              <p>{isFullscreen ? "Exit Fullscreen" : "Fullscreen"}</p>
+            <TooltipContent className="bg-neutral-950 font-semibold text-white">
+              <p>{isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}</p>
             </TooltipContent>
           </Tooltip>
           <Tooltip>
             <TooltipTrigger asChild>
-              <div className="flex items-center gap-2 px-2 py-1 bg-neutral-800 rounded-md">
+              <div className="flex items-center gap-2 rounded-md bg-neutral-800 px-2 py-1">
                 <MessageSquare className="h-4 w-4 text-white" />
                 <span className="text-sm text-white">0</span>
               </div>
             </TooltipTrigger>
-            <TooltipContent className="bg-neutral-950 text-white font-semibold">
+            <TooltipContent className="bg-neutral-950 font-semibold text-white">
               <p>Messages left</p>
             </TooltipContent>
           </Tooltip>
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
+                className="h-8 w-8 text-white hover:bg-neutral-800"
                 size="icon"
                 variant="ghost"
-                className="h-8 w-8 text-white hover:bg-neutral-800"
               >
                 <Plus className="h-4 w-4" />
               </Button>
             </TooltipTrigger>
-            <TooltipContent className="bg-neutral-950 text-white font-semibold">
+            <TooltipContent className="bg-neutral-950 font-semibold text-white">
               <p>Add</p>
             </TooltipContent>
           </Tooltip>
         </div>
       </div>
 
-      <div className="flex-1 mt-3">
+      <div className="mt-3 flex-1">
         <Chat
-          messages={messages}
-          input={input}
+          append={append}
+          className="h-full bg-transparent"
           handleInputChange={handleInputChange}
           handleSubmit={handleSubmit}
+          input={input}
           isGenerating={isLoading}
+          messages={messages}
           stop={stop}
-          append={append}
           suggestions={[
-            "free time for coffee",
-            "work meetings",
-            "add a new task",
-            "meeting with Mike",
-            "pr review",
+            'free time for coffee',
+            'work meetings',
+            'add a new task',
+            'meeting with Mike',
+            'pr review',
             "mom's birthday",
           ]}
-          className="h-full bg-transparent"
         />
       </div>
     </div>
-  )
+  );
 }

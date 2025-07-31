@@ -1,37 +1,37 @@
-import { Input } from "../../ui/input"
-import { Textarea } from "../../ui/textarea"
-import { Label } from "../../ui/label"
+import { Input } from '../../ui/input';
+import { Label } from '../../ui/label';
+import { Textarea } from '../../ui/textarea';
 
 interface EventBasicInfoProps {
-    title: string
-    description: string
-    onTitleChange: (title: string) => void
-    onDescriptionChange: (description: string) => void
+  title: string;
+  description: string;
+  onTitleChange: (title: string) => void;
+  onDescriptionChange: (description: string) => void;
 }
 
-export const EventBasicInfo = ({ 
-    title, 
-    description, 
-    onTitleChange, 
-    onDescriptionChange 
+export const EventBasicInfo = ({
+  title,
+  description,
+  onTitleChange,
+  onDescriptionChange,
 }: EventBasicInfoProps) => {
-    return (
-        <div className="space-y-2">
-            <Label className="sr-only">Event Title</Label>
-            <Input 
-                placeholder="Title" 
-                className="h-9 text-sm bg-neutral-800/50 border-neutral-700 text-white placeholder:text-neutral-400 focus-visible:ring-0 focus-visible:ring-offset-0 font-medium"
-                value={title}
-                onChange={(e) => onTitleChange(e.target.value)}
-            />
+  return (
+    <div className="space-y-2">
+      <Label className="sr-only">Event Title</Label>
+      <Input
+        className="h-9 border-neutral-700 bg-neutral-800/50 font-medium text-sm text-white placeholder:text-neutral-400 focus-visible:ring-0 focus-visible:ring-offset-0"
+        onChange={(e) => onTitleChange(e.target.value)}
+        placeholder="Title"
+        value={title}
+      />
 
-            <Label className="sr-only">Event Description</Label>
-            <Textarea 
-                placeholder="Add description..." 
-                className="bg-neutral-800/50 border-neutral-700 text-white placeholder:text-neutral-400 text-sm resize-none focus-visible:ring-0 focus-visible:ring-offset-0 min-h-[60px]"
-                value={description}
-                onChange={(e) => onDescriptionChange(e.target.value)}
-            />
-        </div>
-    )
-} 
+      <Label className="sr-only">Event Description</Label>
+      <Textarea
+        className="min-h-[60px] resize-none border-neutral-700 bg-neutral-800/50 text-sm text-white placeholder:text-neutral-400 focus-visible:ring-0 focus-visible:ring-offset-0"
+        onChange={(e) => onDescriptionChange(e.target.value)}
+        placeholder="Add description..."
+        value={description}
+      />
+    </div>
+  );
+};

@@ -1,81 +1,100 @@
-"use client"
-
-import { Moon, Sun, User, CreditCard, Settings, Palette, LogOut, EllipsisVertical, Zap, Plus, ExternalLink, Trash2 } from "lucide-react"
-import { useTheme } from "next-themes"
-import { useState } from "react"
+'use client';
 
 import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from "@/components/ui/avatar"
-import { Button } from "@/components/ui/button"
+  CreditCard,
+  EllipsisVertical,
+  ExternalLink,
+  LogOut,
+  Moon,
+  Palette,
+  Plus,
+  Settings,
+  Sun,
+  Trash2,
+  User,
+  Zap,
+} from 'lucide-react';
+import Image from 'next/image';
+import { useTheme } from 'next-themes';
+import { useState } from 'react';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
 import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-} from "@/components/ui/sidebar"
-import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "../ui/dialog"
-import { Separator } from "../ui/separator"
-import { Switch } from "../ui/switch"
-import { Label } from "../ui/label"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card"
-import { Badge } from "../ui/badge"
-import Image from "next/image"
+} from '@/components/ui/sidebar';
+import { Badge } from '../ui/badge';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '../ui/card';
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  DialogTrigger,
+} from '../ui/dialog';
+import { Label } from '../ui/label';
+import { Separator } from '../ui/separator';
+import { Switch } from '../ui/switch';
 
 const SETTINGS_SECTIONS = [
   {
-    id: "profile",
-    title: "Profile",
-    description: "Manage your account",
+    id: 'profile',
+    title: 'Profile',
+    description: 'Manage your account',
     icon: User,
   },
   {
-    id: "integrations",
-    title: "Integrations",
-    description: "Manage your integrations",
+    id: 'integrations',
+    title: 'Integrations',
+    description: 'Manage your integrations',
     icon: Zap,
   },
   {
-    id: "appearance",
-    title: "Appearance",
-    description: "Customize your theme",
+    id: 'appearance',
+    title: 'Appearance',
+    description: 'Customize your theme',
     icon: Palette,
   },
   {
-    id: "billing",
-    title: "Billing",
-    description: "Manage your subscription",
+    id: 'billing',
+    title: 'Billing',
+    description: 'Manage your subscription',
     icon: CreditCard,
   },
-]
+];
 
 export function NavUser({
   user,
 }: {
   user: {
-    name: string
-    email: string
-    avatar: string
-  }
+    name: string;
+    email: string;
+    avatar: string;
+  };
 }) {
-  const { theme, setTheme } = useTheme()
-  const [activeSection, setActiveSection] = useState("profile")
+  const { theme, setTheme } = useTheme();
+  const [activeSection, setActiveSection] = useState('profile');
 
   const renderSectionContent = () => {
     switch (activeSection) {
-      case "profile":
-        return <ProfileSection user={user} />
-      case "integrations":
-        return <IntegrationsSection />
-      case "appearance":
-        return <AppearanceSection />
-      case "billing":
-        return <BillingSection />
+      case 'profile':
+        return <ProfileSection user={user} />;
+      case 'integrations':
+        return <IntegrationsSection />;
+      case 'appearance':
+        return <AppearanceSection />;
+      case 'billing':
+        return <BillingSection />;
       default:
-        return <ProfileSection user={user} />
+        return <ProfileSection user={user} />;
     }
-  }
+  };
 
   return (
     <SidebarMenu>
@@ -83,11 +102,11 @@ export function NavUser({
         <Dialog>
           <DialogTrigger asChild>
             <SidebarMenuButton
+              className="cursor-pointer data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
               size="lg"
-              className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground cursor-pointer"
             >
               <Avatar className="h-8 w-8 rounded-lg">
-                <AvatarImage src={user.avatar} alt={user.name} />
+                <AvatarImage alt={user.name} src={user.avatar} />
                 <AvatarFallback className="rounded-lg">CN</AvatarFallback>
               </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight">
@@ -97,39 +116,45 @@ export function NavUser({
               <EllipsisVertical className="h-4 w-4" />
             </SidebarMenuButton>
           </DialogTrigger>
-          <DialogContent className="w-[1000px] h-[600px] p-0 bg-neutral-950">
+          <DialogContent className="h-[600px] w-[1000px] bg-neutral-950 p-0">
             <div className="flex h-full">
-              <div className="w-1/4 border-r border-neutral-800 py-4 px-3">
+              <div className="w-1/4 border-neutral-800 border-r px-3 py-4">
                 <div className="mb-6">
-                  <DialogTitle className="text-lg font-semibold text-white">Settings</DialogTitle>
-                  <p className="text-sm text-neutral-400">Manage your account preferences</p>
+                  <DialogTitle className="font-semibold text-lg text-white">
+                    Settings
+                  </DialogTitle>
+                  <p className="text-neutral-400 text-sm">
+                    Manage your account preferences
+                  </p>
                 </div>
-                
+
                 <nav className="space-y-2">
                   {SETTINGS_SECTIONS.map((section) => {
-                    const Icon = section.icon
+                    const Icon = section.icon;
                     return (
                       <button
+                        className={`flex w-full cursor-pointer items-center space-x-3 rounded-lg p-2 text-sm transition-colors ${
+                          activeSection === section.id
+                            ? 'bg-neutral-800 text-white'
+                            : 'text-neutral-400 hover:bg-neutral-800/50 hover:text-white'
+                        }`}
                         key={section.id}
                         onClick={() => setActiveSection(section.id)}
-                        className={`w-full flex items-center space-x-3 p-2 rounded-lg text-sm transition-colors cursor-pointer ${
-                          activeSection === section.id
-                            ? "bg-neutral-800 text-white"
-                            : "text-neutral-400 hover:text-white hover:bg-neutral-800/50"
-                        }`}
                       >
                         <Icon className="h-4 w-4" />
                         <div className="text-left">
                           <div className="font-medium">{section.title}</div>
-                          <div className="text-xs text-neutral-500">{section.description}</div>
+                          <div className="text-neutral-500 text-xs">
+                            {section.description}
+                          </div>
                         </div>
                       </button>
-                    )
+                    );
                   })}
                 </nav>
               </div>
 
-              <div className="w-3/4 p-6 overflow-y-auto">
+              <div className="w-3/4 overflow-y-auto p-6">
                 {renderSectionContent()}
               </div>
             </div>
@@ -137,87 +162,99 @@ export function NavUser({
         </Dialog>
       </SidebarMenuItem>
     </SidebarMenu>
-  )
+  );
 }
 
-function ProfileSection({ user }: { user: { name: string; email: string; avatar: string } }) {
+function ProfileSection({
+  user,
+}: {
+  user: { name: string; email: string; avatar: string };
+}) {
   return (
     <div className="space-y-6">
       <div>
-        <h3 className="text-xl font-semibold text-white mb-2">Profile</h3>
-        <p className="text-neutral-400">Your account information and preferences.</p>
+        <h3 className="mb-2 font-semibold text-white text-xl">Profile</h3>
+        <p className="text-neutral-400">
+          Your account information and preferences.
+        </p>
       </div>
 
-      <Card className="bg-neutral-900 border-neutral-800">
-          <CardHeader>
-            <CardTitle className="text-white">Account Information</CardTitle>
-            <CardDescription className="text-neutral-400">
-              Your profile details and preferences
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
+      <Card className="border-neutral-800 bg-neutral-900">
+        <CardHeader>
+          <CardTitle className="text-white">Account Information</CardTitle>
+          <CardDescription className="text-neutral-400">
+            Your profile details and preferences
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="flex items-center space-x-4">
             <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-4">
-                <Avatar className="h-16 w-16">
-                  <AvatarImage src={user.avatar} alt={user.name} />
-                  <AvatarFallback className="text-lg bg-neutral-800">{user.name.charAt(0)}</AvatarFallback>
-                </Avatar>
-              </div>
-
-              <div className="grid grid-cols-2">
-                <div className="space-y-2">
-                  <Label className="text-white text-sm font-medium">Name</Label>
-                  <p className="text-neutral-300">{user.name}</p>
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-white text-sm font-medium">Email</Label>
-                  <p className="text-neutral-300">{user.email}</p>
-                </div>
-              </div>
+              <Avatar className="h-16 w-16">
+                <AvatarImage alt={user.name} src={user.avatar} />
+                <AvatarFallback className="bg-neutral-800 text-lg">
+                  {user.name.charAt(0)}
+                </AvatarFallback>
+              </Avatar>
             </div>
 
-            <Separator className="bg-neutral-800" />
-
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="space-y-1">
-                  <Label className="text-white">Email Notifications</Label>
-                  <p className="text-sm text-neutral-400">Receive email updates about your account</p>
-                </div>
-                <Switch defaultChecked className="cursor-pointer" />
+            <div className="grid grid-cols-2">
+              <div className="space-y-2">
+                <Label className="font-medium text-sm text-white">Name</Label>
+                <p className="text-neutral-300">{user.name}</p>
+              </div>
+              <div className="space-y-2">
+                <Label className="font-medium text-sm text-white">Email</Label>
+                <p className="text-neutral-300">{user.email}</p>
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
 
-        <div className="flex justify-end">
-          <Button className="text-red-500 bg-red-500/10 hover:bg-red-500/20 rounded-sm">
-            <LogOut className="h-4 w-4 mr-2" />
-            Logout
-          </Button>
-        </div>
+          <Separator className="bg-neutral-800" />
+
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="space-y-1">
+                <Label className="text-white">Email Notifications</Label>
+                <p className="text-neutral-400 text-sm">
+                  Receive email updates about your account
+                </p>
+              </div>
+              <Switch className="cursor-pointer" defaultChecked />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <div className="flex justify-end">
+        <Button className="rounded-sm bg-red-500/10 text-red-500 hover:bg-red-500/20">
+          <LogOut className="mr-2 h-4 w-4" />
+          Logout
+        </Button>
       </div>
-    )
-  }
+    </div>
+  );
+}
 
 function AppearanceSection() {
-  const { theme, setTheme } = useTheme()
-  const [selectedTheme, setSelectedTheme] = useState(theme || "system")
+  const { theme, setTheme } = useTheme();
+  const [selectedTheme, setSelectedTheme] = useState(theme || 'system');
 
   const handleThemeChange = (newTheme: string) => {
-    setSelectedTheme(newTheme)
-    setTheme(newTheme)
-  }
+    setSelectedTheme(newTheme);
+    setTheme(newTheme);
+  };
 
   return (
     <div className="space-y-6">
       <div>
-        <h3 className="text-xl font-semibold text-white mb-2">Appearance</h3>
-        <p className="text-neutral-400">Customize how the application looks and feels.</p>
+        <h3 className="mb-2 font-semibold text-white text-xl">Appearance</h3>
+        <p className="text-neutral-400">
+          Customize how the application looks and feels.
+        </p>
       </div>
 
       <div className="space-y-6">
-        <Card className="bg-neutral-900 border-neutral-800">
+        <Card className="border-neutral-800 bg-neutral-900">
           <CardHeader>
             <CardTitle className="text-white">Theme</CardTitle>
             <CardDescription className="text-neutral-400">
@@ -227,67 +264,71 @@ function AppearanceSection() {
           <CardContent className="space-y-4">
             <div className="grid grid-cols-3 gap-4">
               <button
-                onClick={() => handleThemeChange("light")}
-                className={`p-4 rounded-lg border-2 transition-all cursor-pointer ${
-                  selectedTheme === "light"
-                    ? "border-blue-500 bg-blue-500/10"
-                    : "border-neutral-700 hover:border-neutral-600"
+                className={`cursor-pointer rounded-lg border-2 p-4 transition-all ${
+                  selectedTheme === 'light'
+                    ? 'border-blue-500 bg-blue-500/10'
+                    : 'border-neutral-700 hover:border-neutral-600'
                 }`}
+                onClick={() => handleThemeChange('light')}
               >
-                <div className="flex items-center space-x-2 mb-2">
+                <div className="mb-2 flex items-center space-x-2">
                   <Sun className="h-4 w-4" />
                   <span className="font-medium text-white">Light</span>
                 </div>
-                <div className="h-8 bg-white rounded border-2 border-gray-200"></div>
+                <div className="h-8 rounded border-2 border-gray-200 bg-white" />
               </button>
 
               <button
-                onClick={() => handleThemeChange("dark")}
-                className={`p-4 rounded-lg border-2 transition-all cursor-pointer ${
-                  selectedTheme === "dark"
-                    ? "border-blue-500 bg-blue-500/10"
-                    : "border-neutral-700 hover:border-neutral-600"
+                className={`cursor-pointer rounded-lg border-2 p-4 transition-all ${
+                  selectedTheme === 'dark'
+                    ? 'border-blue-500 bg-blue-500/10'
+                    : 'border-neutral-700 hover:border-neutral-600'
                 }`}
+                onClick={() => handleThemeChange('dark')}
               >
-                <div className="flex items-center space-x-2 mb-2">
+                <div className="mb-2 flex items-center space-x-2">
                   <Moon className="h-4 w-4" />
                   <span className="font-medium text-white">Dark</span>
                 </div>
-                <div className="h-8 bg-neutral-900 rounded border-2 border-neutral-700"></div>
+                <div className="h-8 rounded border-2 border-neutral-700 bg-neutral-900" />
               </button>
 
               <button
-                onClick={() => handleThemeChange("system")}
-                className={`p-4 rounded-lg border-2 transition-all cursor-pointer ${
-                  selectedTheme === "system"
-                    ? "border-blue-500 bg-blue-500/10"
-                    : "border-neutral-700 hover:border-neutral-600"
+                className={`cursor-pointer rounded-lg border-2 p-4 transition-all ${
+                  selectedTheme === 'system'
+                    ? 'border-blue-500 bg-blue-500/10'
+                    : 'border-neutral-700 hover:border-neutral-600'
                 }`}
+                onClick={() => handleThemeChange('system')}
               >
-                <div className="flex items-center space-x-2 mb-2">
+                <div className="mb-2 flex items-center space-x-2">
                   <Settings className="h-4 w-4" />
                   <span className="font-medium text-white">System</span>
                 </div>
-                <div className="h-8 bg-gradient-to-r from-white to-neutral-900 rounded border-2 border-gray-200"></div>
+                <div className="h-8 rounded border-2 border-gray-200 bg-gradient-to-r from-white to-neutral-900" />
               </button>
             </div>
           </CardContent>
         </Card>
       </div>
     </div>
-  )
+  );
 }
 
 function BillingSection() {
   return (
     <div className="space-y-6">
       <div>
-        <h3 className="text-xl font-semibold text-white mb-2">Billing & Subscription</h3>
-        <p className="text-neutral-400">Manage your subscription and payment methods.</p>
+        <h3 className="mb-2 font-semibold text-white text-xl">
+          Billing & Subscription
+        </h3>
+        <p className="text-neutral-400">
+          Manage your subscription and payment methods.
+        </p>
       </div>
 
       <div className="space-y-6">
-        <Card className="bg-neutral-900 border-neutral-800">
+        <Card className="border-neutral-800 bg-neutral-900">
           <CardHeader>
             <CardTitle className="text-white">Current Plan</CardTitle>
             <CardDescription className="text-neutral-400">
@@ -295,28 +336,31 @@ function BillingSection() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="flex items-center justify-between p-4 bg-neutral-800 rounded-lg">
+            <div className="flex items-center justify-between rounded-lg bg-neutral-800 p-4">
               <div className="flex items-center space-x-3">
-                <div className="h-10 w-10 bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg flex items-center justify-center">
-                  <span className="text-white font-semibold">P</span>
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-r from-blue-500 to-purple-500">
+                  <span className="font-semibold text-white">P</span>
                 </div>
                 <div>
                   <h4 className="font-semibold text-white">Pro Plan</h4>
-                  <p className="text-sm text-neutral-400">$29/month</p>
+                  <p className="text-neutral-400 text-sm">$29/month</p>
                 </div>
               </div>
-              <Badge variant="secondary" className="bg-green-500/20 text-green-400">
+              <Badge
+                className="bg-green-500/20 text-green-400"
+                variant="secondary"
+              >
                 Active
               </Badge>
             </div>
-            <div className="text-sm text-neutral-400">
+            <div className="text-neutral-400 text-sm">
               <p>Next billing date: January 15, 2024</p>
               <p>Billed monthly • Auto-renewal enabled</p>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-neutral-900 border-neutral-800">
+        <Card className="border-neutral-800 bg-neutral-900">
           <CardHeader>
             <CardTitle className="text-white">Subscription Actions</CardTitle>
             <CardDescription className="text-neutral-400">
@@ -324,90 +368,107 @@ function BillingSection() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
-            <Button variant="outline" className="w-full justify-start">
-              <CreditCard className="h-4 w-4 mr-2" />
+            <Button className="w-full justify-start" variant="outline">
+              <CreditCard className="mr-2 h-4 w-4" />
               Change Plan
             </Button>
-            <Button variant="outline" className="w-full justify-start">
-              <Settings className="h-4 w-4 mr-2" />
+            <Button className="w-full justify-start" variant="outline">
+              <Settings className="mr-2 h-4 w-4" />
               Cancel Subscription
             </Button>
           </CardContent>
         </Card>
       </div>
     </div>
-  )
+  );
 }
 
 function IntegrationsSection() {
   const [connectedAccounts, setConnectedAccounts] = useState([
     {
-      id: "1",
-      name: "john.doe@gmail.com",
-      type: "google",
-      status: "connected",
-      lastSync: "2 minutes ago",
-      calendarCount: 3
+      id: '1',
+      name: 'john.doe@gmail.com',
+      type: 'google',
+      status: 'connected',
+      lastSync: '2 minutes ago',
+      calendarCount: 3,
     },
     {
-      id: "2", 
-      name: "work@company.com",
-      type: "google",
-      status: "connected",
-      lastSync: "1 hour ago",
-      calendarCount: 5
-    }
-  ])
+      id: '2',
+      name: 'work@company.com',
+      type: 'google',
+      status: 'connected',
+      lastSync: '1 hour ago',
+      calendarCount: 5,
+    },
+  ]);
 
   const [meetAccounts, setMeetAccounts] = useState([
     {
-      id: "1",
-      name: "john.doe@gmail.com",
-      type: "google-meet",
-      status: "connected",
-      lastSync: "5 minutes ago",
-      meetingCount: 2
-    }
-  ])
+      id: '1',
+      name: 'john.doe@gmail.com',
+      type: 'google-meet',
+      status: 'connected',
+      lastSync: '5 minutes ago',
+      meetingCount: 2,
+    },
+  ]);
 
   const handleDisconnect = (accountId: string, type: string) => {
-    if (type === "google") {
-      setConnectedAccounts(prev => prev.filter(account => account.id !== accountId))
-    } else if (type === "google-meet") {
-      setMeetAccounts(prev => prev.filter(account => account.id !== accountId))
+    if (type === 'google') {
+      setConnectedAccounts((prev) =>
+        prev.filter((account) => account.id !== accountId)
+      );
+    } else if (type === 'google-meet') {
+      setMeetAccounts((prev) =>
+        prev.filter((account) => account.id !== accountId)
+      );
     }
-  }
+  };
 
   const handleConnectNew = (type: string) => {
     // In a real app, this would open OAuth flow
-    console.log(`Connecting new ${type} account...`)
-  }
+    console.log(`Connecting new ${type} account...`);
+  };
 
   return (
-    <div className="space-y-6 max-h-[560px] overflow-y-auto scrollbar-hide scroll-smooth pr-2">
+    <div className="scrollbar-hide max-h-[560px] space-y-6 overflow-y-auto scroll-smooth pr-2">
       <div>
-        <h3 className="text-xl font-semibold mb-2 text-white">Integrations</h3>
-        <p className="text-neutral-400">Connect your accounts and services to enhance your experience.</p>
+        <h3 className="mb-2 font-semibold text-white text-xl">Integrations</h3>
+        <p className="text-neutral-400">
+          Connect your accounts and services to enhance your experience.
+        </p>
       </div>
 
       <div className="space-y-6">
-        <Card className="bg-neutral-900 border-neutral-800">
+        <Card className="border-neutral-800 bg-neutral-900">
           <CardHeader>
             <CardTitle className="text-white">Google Calendar</CardTitle>
             <CardDescription className="text-neutral-400">
-              Connect your Google Calendar accounts to sync events and manage your schedule
+              Connect your Google Calendar accounts to sync events and manage
+              your schedule
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             {connectedAccounts.length > 0 && (
               <div className="space-y-3">
                 {connectedAccounts.map((account) => (
-                  <div key={account.id} className="flex items-center justify-between p-3 bg-neutral-800 rounded-lg">
+                  <div
+                    className="flex items-center justify-between rounded-lg bg-neutral-800 p-3"
+                    key={account.id}
+                  >
                     <div className="flex items-center space-x-3">
-                      <Image src="/g-cal.svg" alt="Google Calendar" width={30} height={30} />
+                      <Image
+                        alt="Google Calendar"
+                        height={30}
+                        src="/g-cal.svg"
+                        width={30}
+                      />
                       <div>
-                        <h4 className="font-semibold text-white">{account.name}</h4>
-                        <div className="flex items-center space-x-4 text-sm text-neutral-400">
+                        <h4 className="font-semibold text-white">
+                          {account.name}
+                        </h4>
+                        <div className="flex items-center space-x-4 text-neutral-400 text-sm">
                           <span>Last sync: {account.lastSync}</span>
                           <span>•</span>
                           <span>{account.calendarCount} calendars</span>
@@ -416,10 +477,10 @@ function IntegrationsSection() {
                     </div>
                     <div className="flex items-center space-x-2">
                       <Button
-                        variant="ghost"
-                        size="sm"
                         className="text-red-400 hover:text-red-300"
-                        onClick={() => handleDisconnect(account.id, "google")}
+                        onClick={() => handleDisconnect(account.id, 'google')}
+                        size="sm"
+                        variant="ghost"
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
@@ -429,34 +490,45 @@ function IntegrationsSection() {
               </div>
             )}
 
-            <Button 
-              onClick={() => handleConnectNew("google")}
-              variant="outline" 
-              className="w-full justify-start border-dashed border-neutral-600 hover:border-neutral-500"
+            <Button
+              className="w-full justify-start border-neutral-600 border-dashed hover:border-neutral-500"
+              onClick={() => handleConnectNew('google')}
+              variant="outline"
             >
-              <Plus className="h-4 w-4 mr-2" />
+              <Plus className="mr-2 h-4 w-4" />
               Connect Another Google Calendar Account
             </Button>
           </CardContent>
         </Card>
 
-        <Card className="bg-neutral-900 border-neutral-800">
+        <Card className="border-neutral-800 bg-neutral-900">
           <CardHeader>
             <CardTitle className="text-white">Google Meet</CardTitle>
             <CardDescription className="text-neutral-400">
-              Connect your Google Meet accounts to join meetings directly from your calendar
+              Connect your Google Meet accounts to join meetings directly from
+              your calendar
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             {meetAccounts.length > 0 && (
               <div className="space-y-3">
                 {meetAccounts.map((account) => (
-                  <div key={account.id} className="flex items-center justify-between p-3 bg-neutral-800 rounded-lg">
+                  <div
+                    className="flex items-center justify-between rounded-lg bg-neutral-800 p-3"
+                    key={account.id}
+                  >
                     <div className="flex items-center space-x-3">
-                      <Image src="/g-meet.svg" alt="Google Meet" width={20} height={20} />
+                      <Image
+                        alt="Google Meet"
+                        height={20}
+                        src="/g-meet.svg"
+                        width={20}
+                      />
                       <div>
-                        <h4 className="font-semibold text-white">{account.name}</h4>
-                        <div className="flex items-center space-x-4 text-sm text-neutral-400">
+                        <h4 className="font-semibold text-white">
+                          {account.name}
+                        </h4>
+                        <div className="flex items-center space-x-4 text-neutral-400 text-sm">
                           <span>Last sync: {account.lastSync}</span>
                           <span>•</span>
                           <span>{account.meetingCount} meetings today</span>
@@ -465,10 +537,12 @@ function IntegrationsSection() {
                     </div>
                     <div className="flex items-center space-x-2">
                       <Button
-                        variant="ghost"
-                        size="sm"
                         className="text-red-400 hover:text-red-300"
-                        onClick={() => handleDisconnect(account.id, "google-meet")}
+                        onClick={() =>
+                          handleDisconnect(account.id, 'google-meet')
+                        }
+                        size="sm"
+                        variant="ghost"
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
@@ -478,17 +552,17 @@ function IntegrationsSection() {
               </div>
             )}
 
-            <Button 
-              onClick={() => handleConnectNew("google-meet")}
-              variant="outline" 
-              className="w-full justify-start border-dashed border-neutral-600 hover:border-neutral-500"
+            <Button
+              className="w-full justify-start border-neutral-600 border-dashed hover:border-neutral-500"
+              onClick={() => handleConnectNew('google-meet')}
+              variant="outline"
             >
-              <Plus className="h-4 w-4 mr-2" />
+              <Plus className="mr-2 h-4 w-4" />
               Connect Another Google Meet Account
             </Button>
           </CardContent>
         </Card>
       </div>
     </div>
-  )
+  );
 }

@@ -1,40 +1,58 @@
-import { Repeat } from "lucide-react"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../ui/select"
+import { Repeat } from 'lucide-react';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '../../ui/select';
 
 interface EventRepeatProps {
-    repeat: string
-    onRepeatChange: (repeat: string) => void
+  repeat: string;
+  onRepeatChange: (repeat: string) => void;
 }
 
 export const EventRepeat = ({ repeat, onRepeatChange }: EventRepeatProps) => {
-    return (
-        <div className="flex items-center gap-2 text-sm text-neutral-300">
-            <Repeat className="w-4 h-4" />
-            <Select value={repeat} onValueChange={onRepeatChange}>
-                <SelectTrigger className="h-8 text-sm bg-neutral-800/50 border-neutral-700 text-white hover:bg-neutral-700 flex-1">
-                    <SelectValue placeholder="Does not repeat" />
-                </SelectTrigger>
-                <SelectContent className="bg-neutral-900 border-neutral-700">
-                    <SelectItem value="none" className="text-white hover:bg-neutral-800">
-                        Does not repeat
-                    </SelectItem>
-                    <SelectItem value="daily" className="text-white hover:bg-neutral-800">
-                        Daily
-                    </SelectItem>
-                    <SelectItem value="weekly" className="text-white hover:bg-neutral-800">
-                        Weekly
-                    </SelectItem>
-                    <SelectItem value="monthly" className="text-white hover:bg-neutral-800">
-                        Monthly
-                    </SelectItem>
-                    <SelectItem value="yearly" className="text-white hover:bg-neutral-800">
-                        Yearly
-                    </SelectItem>
-                    <SelectItem value="custom" className="text-white hover:bg-neutral-800">
-                        Custom
-                    </SelectItem>
-                </SelectContent>
-            </Select>
-        </div>
-    )
-} 
+  return (
+    <div className="flex items-center gap-2 text-neutral-300 text-sm">
+      <Repeat className="h-4 w-4" />
+      <Select onValueChange={onRepeatChange} value={repeat}>
+        <SelectTrigger className="h-8 flex-1 border-neutral-700 bg-neutral-800/50 text-sm text-white hover:bg-neutral-700">
+          <SelectValue placeholder="Does not repeat" />
+        </SelectTrigger>
+        <SelectContent className="border-neutral-700 bg-neutral-900">
+          <SelectItem className="text-white hover:bg-neutral-800" value="none">
+            Does not repeat
+          </SelectItem>
+          <SelectItem className="text-white hover:bg-neutral-800" value="daily">
+            Daily
+          </SelectItem>
+          <SelectItem
+            className="text-white hover:bg-neutral-800"
+            value="weekly"
+          >
+            Weekly
+          </SelectItem>
+          <SelectItem
+            className="text-white hover:bg-neutral-800"
+            value="monthly"
+          >
+            Monthly
+          </SelectItem>
+          <SelectItem
+            className="text-white hover:bg-neutral-800"
+            value="yearly"
+          >
+            Yearly
+          </SelectItem>
+          <SelectItem
+            className="text-white hover:bg-neutral-800"
+            value="custom"
+          >
+            Custom
+          </SelectItem>
+        </SelectContent>
+      </Select>
+    </div>
+  );
+};

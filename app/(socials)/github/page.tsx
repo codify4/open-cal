@@ -1,7 +1,7 @@
-import { redirect } from 'next/navigation'
+import { redirect } from 'next/navigation';
 
 function GithubPage() {
-  redirect('https://github.com/ijon007/open-cal')
+  redirect('https://github.com/ijon007/open-cal');
 }
 
-export default GithubPage
+export default GithubPage;

@@ -1,11 +1,11 @@
-"use client"
+'use client';
 
-import { AnimatePresence, motion } from "framer-motion"
-import { X } from "lucide-react"
+import { AnimatePresence, motion } from 'framer-motion';
+import { X } from 'lucide-react';
 
 interface InterruptPromptProps {
-  isOpen: boolean
-  close: () => void
+  isOpen: boolean;
+  close: () => void;
 }
 
 export function InterruptPrompt({ isOpen, close }: InterruptPromptProps) {
@@ -13,29 +13,29 @@ export function InterruptPrompt({ isOpen, close }: InterruptPromptProps) {
     <AnimatePresence>
       {isOpen && (
         <motion.div
-          initial={{ top: 0, filter: "blur(5px)" }}
           animate={{
             top: -40,
-            filter: "blur(0px)",
+            filter: 'blur(0px)',
             transition: {
-              type: "spring",
-              filter: { type: "tween" },
+              type: 'spring',
+              filter: { type: 'tween' },
             },
           }}
-          exit={{ top: 0, filter: "blur(5px)" }}
-          className="absolute left-1/2 flex -translate-x-1/2 overflow-hidden whitespace-nowrap rounded-full border bg-background py-1 text-center text-sm text-muted-foreground"
+          className="-translate-x-1/2 absolute left-1/2 flex overflow-hidden whitespace-nowrap rounded-full border bg-background py-1 text-center text-muted-foreground text-sm"
+          exit={{ top: 0, filter: 'blur(5px)' }}
+          initial={{ top: 0, filter: 'blur(5px)' }}
         >
           <span className="ml-2.5">Press Enter again to interrupt</span>
           <button
-            className="ml-1 mr-2.5 flex items-center"
-            type="button"
-            onClick={close}
             aria-label="Close"
+            className="mr-2.5 ml-1 flex items-center"
+            onClick={close}
+            type="button"
           >
             <X className="h-3 w-3" />
           </button>
         </motion.div>
       )}
     </AnimatePresence>
-  )
+  );
 }

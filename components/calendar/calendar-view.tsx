@@ -1,32 +1,31 @@
-"use client";
+'use client';
 
-import React, { useEffect, useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
-import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { CalendarDaysIcon, ArrowLeft, ArrowRight } from "lucide-react";
-import { BsCalendarMonth, BsCalendarWeek } from "react-icons/bs";
-
-import DailyView from "./view/daily-view";
-import MonthView from "./view/month-view";
-import WeeklyView from "./view/week-view";
-import { cn } from "@/lib/utils";
-import { SidebarTrigger } from "@/components/ui/sidebar";
-import { useCalendarStore } from "@/providers/calendar-store-provider";
-import { ClassNames, Views } from "@/types/index";
+import { AnimatePresence, motion } from 'framer-motion';
+import { ArrowLeft, ArrowRight, CalendarDaysIcon } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { BsCalendarMonth, BsCalendarWeek } from 'react-icons/bs';
+import { Button } from '@/components/ui/button';
+import { SidebarTrigger } from '@/components/ui/sidebar';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { cn } from '@/lib/utils';
+import { useCalendarStore } from '@/providers/calendar-store-provider';
+import type { ClassNames, Views } from '@/types/index';
+import DailyView from './view/daily-view';
+import MonthView from './view/month-view';
+import WeeklyView from './view/week-view';
 
 // Animation settings for Framer Motion
 const animationConfig = {
   initial: { opacity: 0, y: 20 },
   animate: { opacity: 1, y: 0 },
   exit: { opacity: 0, y: -20 },
-  transition: { duration: 0.3, type: "spring", stiffness: 250 },
+  transition: { duration: 0.3, type: 'spring', stiffness: 250 },
 };
 
 export default function CalendarView({
   views = {
-    views: ["day", "week", "month"],
-    mobileViews: ["day", "week", "month"],
+    views: ['day', 'week', 'month'],
+    mobileViews: ['day', 'week', 'month'],
   },
   stopDayEventSummary = false,
   classNames,
@@ -47,7 +46,7 @@ export default function CalendarView({
     goToPreviousWeek,
     goToNextWeek,
     goToPreviousMonth,
-    goToNextMonth
+    goToNextMonth,
   } = useCalendarStore((state) => state);
 
   useEffect(() => {
@@ -69,20 +68,20 @@ export default function CalendarView({
       }
     }
 
-    window && window.addEventListener("resize", handleResize);
+    window && window.addEventListener('resize', handleResize);
 
-    return () => window && window.removeEventListener("resize", handleResize);
+    return () => window && window.removeEventListener('resize', handleResize);
   }, [clientSide]);
 
   // Function to get days in week
   const getDaysInWeek = (week: number, year: number) => {
-    const weekStartsOn = "sunday";
-    const startDay = weekStartsOn === "sunday" ? 0 : 1;
+    const weekStartsOn = 'sunday';
+    const startDay = weekStartsOn === 'sunday' ? 0 : 1;
     const currentDayOfWeek = currentDate.getDay();
     const daysToSubtract = (currentDayOfWeek - startDay + 7) % 7;
     const weekStart = new Date(currentDate);
     weekStart.setDate(currentDate.getDate() - daysToSubtract);
-    
+
     const days = [];
     for (let i = 0; i < 7; i++) {
       const day = new Date(weekStart);
@@ -94,62 +93,63 @@ export default function CalendarView({
 
   const getViewTitle = (viewType: string) => {
     // Ensure currentDate is a Date object
-    const date = currentDate instanceof Date ? currentDate : new Date(currentDate)
-    
-    if (viewType === "day") {
+    const date =
+      currentDate instanceof Date ? currentDate : new Date(currentDate);
+
+    if (viewType === 'day') {
       return (
         <>
           <span className="hidden sm:inline">
-            {date.toLocaleDateString("en-US", {
-              weekday: "long",
-              year: "numeric",
-              month: "long",
-              day: "numeric",
+            {date.toLocaleDateString('en-US', {
+              weekday: 'long',
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric',
             })}
           </span>
           <span className="sm:hidden">
-            {date.toLocaleDateString("en-US", {
-              month: "long",
+            {date.toLocaleDateString('en-US', {
+              month: 'long',
             })}
           </span>
         </>
-      )
-    } else if (viewType === "week") {
+      );
+    }
+    if (viewType === 'week') {
       const daysOfWeek = getDaysInWeek(1, date.getFullYear());
-      
+
       const startOfWeek = daysOfWeek[0];
       const endOfWeek = daysOfWeek[6];
 
       return (
         <>
           <span className="hidden sm:inline">
-            {`${startOfWeek.toLocaleDateString("en-US", { month: "short", day: "numeric" })} - ${endOfWeek.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}`}
+            {`${startOfWeek.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${endOfWeek.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`}
           </span>
           <span className="sm:hidden">
-            {date.toLocaleDateString("en-US", {
-              month: "long",
+            {date.toLocaleDateString('en-US', {
+              month: 'long',
             })}
           </span>
         </>
-      )
-    } else {
-      return (
-        <>
-          <span className="hidden sm:inline">
-            {date.toLocaleDateString("en-US", {
-              year: "numeric",
-              month: "long",
-            })}
-          </span>
-          <span className="sm:hidden">
-            {date.toLocaleDateString("en-US", {
-              month: "long",
-            })}
-          </span>
-        </>
-      )
+      );
     }
-  }
+    return (
+      <>
+        <span className="hidden sm:inline">
+          {date.toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'long',
+          })}
+        </span>
+        <span className="sm:hidden">
+          {date.toLocaleDateString('en-US', {
+            month: 'long',
+          })}
+        </span>
+      </>
+    );
+  };
 
   const handlePrev = () => {
     if (viewType === 'day') {
@@ -180,63 +180,63 @@ export default function CalendarView({
   };
 
   return (
-    <div className="flex flex-col gap-6 w-full p-2">
+    <div className="flex w-full flex-col gap-6 p-2">
       <div className="flex w-full">
         <div className="dayly-weekly-monthly-selection relative w-full">
           <Tabs
-            value={viewType}
+            className={cn('w-full', classNames?.tabs)}
             onValueChange={handleViewChange}
-            className={cn("w-full", classNames?.tabs)}
+            value={viewType}
           >
-            <div className="flex justify-between items-center border-b border-border">
-              <div className="flex items-center justify-between w-full gap-4 pb-2">
+            <div className="flex items-center justify-between border-border border-b">
+              <div className="flex w-full items-center justify-between gap-4 pb-2">
                 <div className="flex items-center gap-2">
-                  <div className="flex items-center gap-2 mr-2">
+                  <div className="mr-2 flex items-center gap-2">
                     <SidebarTrigger />
-                    <h1 className="text-lg font-semibold">
+                    <h1 className="font-semibold text-lg">
                       {getViewTitle(viewType)}
                     </h1>
                   </div>
 
                   <div className="flex gap-2">
                     <Button
-                      variant="outline"
-                      size="sm"
                       className={classNames?.buttons?.prev}
                       onClick={handlePrev}
+                      size="sm"
+                      variant="outline"
                     >
                       <ArrowLeft className="h-4 w-4" />
                     </Button>
                     <Button
-                      variant="outline"
-                      size="sm"
                       className={classNames?.buttons?.next}
                       onClick={handleNext}
+                      size="sm"
+                      variant="outline"
                     >
                       <ArrowRight className="h-4 w-4" />
                     </Button>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                <Button 
-                  variant="outline" 
-                  className="hidden sm:flex bg-muted rounded-sm w-20 h-8 text-sm"
-                  onClick={handleGoToToday}
-                >
-                  Today
-                </Button>
+                  <Button
+                    className="hidden h-8 w-20 rounded-sm bg-muted text-sm sm:flex"
+                    onClick={handleGoToToday}
+                    variant="outline"
+                  >
+                    Today
+                  </Button>
                   <TabsList className="grid grid-cols-3">
                     <TabsTrigger value="day">
-                        <div className="flex items-center space-x-2">
-                          <CalendarDaysIcon size={15} />
-                          <span>Day</span>
-                        </div>
+                      <div className="flex items-center space-x-2">
+                        <CalendarDaysIcon size={15} />
+                        <span>Day</span>
+                      </div>
                     </TabsTrigger>
                     <TabsTrigger value="week">
-                        <div className="flex items-center space-x-2">
-                          <BsCalendarWeek />
-                          <span>Week</span>
-                        </div>
+                      <div className="flex items-center space-x-2">
+                        <BsCalendarWeek />
+                        <span>Week</span>
+                      </div>
                     </TabsTrigger>
 
                     <TabsTrigger value="month">

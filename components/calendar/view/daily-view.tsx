@@ -1,21 +1,20 @@
-"use client";
+'use client';
 
-import React, { useRef, useState, useCallback, useMemo } from "react";
-import { AnimatePresence, motion } from "framer-motion";
-
-
-import { Event } from "@/lib/store/calendar-store";
-import { Badge } from "@/components/ui/badge";
-import { useCalendarStore } from "@/providers/calendar-store-provider";
-import { EventCard } from "@/components/event/cards/event-card";
-import { Plus, Sparkles } from "lucide-react";
+import { useDroppable } from '@dnd-kit/core';
+import { AnimatePresence, motion } from 'framer-motion';
+import { Plus, Sparkles } from 'lucide-react';
+import type React from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
+import { EventCard } from '@/components/event/cards/event-card';
+import { Badge } from '@/components/ui/badge';
 import {
   ContextMenu,
   ContextMenuContent,
   ContextMenuItem,
   ContextMenuTrigger,
-} from "@/components/ui/context-menu";
-import { useDroppable } from "@dnd-kit/core";
+} from '@/components/ui/context-menu';
+import type { Event } from '@/lib/store/calendar-store';
+import { useCalendarStore } from '@/providers/calendar-store-provider';
 
 interface TimeSlotProps {
   timeSlotId: string;
@@ -28,25 +27,24 @@ const TimeSlot: React.FC<TimeSlotProps> = ({ timeSlotId, hourIndex, date }) => {
     id: timeSlotId,
     data: {
       hourIndex,
-      date
-    }
+      date,
+    },
   });
 
   return (
     <div
-      ref={setNodeRef}
-      className={`w-full h-[64px] relative transition duration-300 border-b border-default-200 z-10 ${
+      className={`relative z-10 h-[64px] w-full border-default-200 border-b transition duration-300 ${
         isOver ? 'bg-blue-500/20' : ''
       }`}
-    >
-    </div>
+      ref={setNodeRef}
+    ></div>
   );
 };
 
 // Generate hours in 12-hour format
 const hours = Array.from({ length: 24 }, (_, i) => {
   const hour = i % 12 || 12;
-  const ampm = i < 12 ? "AM" : "PM";
+  const ampm = i < 12 ? 'AM' : 'PM';
   return `${hour}:00 ${ampm}`;
 });
 
@@ -77,7 +75,7 @@ const pageTransitionVariants = {
   exit: (direction: number) => ({
     opacity: 0,
     transition: {
-      opacity: { duration: 0.2, ease: "easeInOut" },
+      opacity: { duration: 0.2, ease: 'easeInOut' },
     },
   }),
 };
@@ -85,27 +83,27 @@ const pageTransitionVariants = {
 // Precise time-based event grouping function
 const groupEventsByTimePeriod = (events: Event[] | undefined) => {
   if (!events || events.length === 0) return [];
-  
-  const sortedEvents = [...events].sort((a, b) => 
-    new Date(a.startDate).getTime() - new Date(b.startDate).getTime()
+
+  const sortedEvents = [...events].sort(
+    (a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime()
   );
-  
+
   const eventsOverlap = (event1: Event, event2: Event) => {
     const start1 = new Date(event1.startDate).getTime();
     const end1 = new Date(event1.endDate).getTime();
     const start2 = new Date(event2.startDate).getTime();
     const end2 = new Date(event2.endDate).getTime();
-    
-    return (start1 < end2 && start2 < end1);
+
+    return start1 < end2 && start2 < end1;
   };
-  
+
   const buildOverlapGraph = (events: Event[]) => {
     const graph: Record<string, string[]> = {};
-    
-    events.forEach(event => {
+
+    events.forEach((event) => {
       graph[event.id] = [];
     });
-    
+
     for (let i = 0; i < events.length; i++) {
       for (let j = i + 1; j < events.length; j++) {
         if (eventsOverlap(events[i], events[j])) {
@@ -114,52 +112,68 @@ const groupEventsByTimePeriod = (events: Event[] | undefined) => {
         }
       }
     }
-    
+
     return graph;
   };
-  
-  const findConnectedComponents = (graph: Record<string, string[]>, events: Event[]) => {
+
+  const findConnectedComponents = (
+    graph: Record<string, string[]>,
+    events: Event[]
+  ) => {
     const visited: Record<string, boolean> = {};
     const components: Event[][] = [];
-    
+
     const dfs = (nodeId: string, component: string[]) => {
       visited[nodeId] = true;
       component.push(nodeId);
-      
+
       for (const neighbor of graph[nodeId]) {
         if (!visited[neighbor]) {
           dfs(neighbor, component);
         }
       }
     };
-    
+
     for (const event of events) {
       if (!visited[event.id]) {
         const component: string[] = [];
         dfs(event.id, component);
-        components.push(component.map(id => events.find(e => e.id === id)!));
+        components.push(
+          component.map((id) => events.find((e) => e.id === id)!)
+        );
       }
     }
-    
+
     return components;
   };
-  
+
   const graph = buildOverlapGraph(sortedEvents);
   return findConnectedComponents(graph, sortedEvents);
 };
 
-export default function DailyView({ stopDayEventSummary }: { stopDayEventSummary?: boolean }) {
+export default function DailyView({
+  stopDayEventSummary,
+}: {
+  stopDayEventSummary?: boolean;
+}) {
   const hoursColumnRef = useRef<HTMLDivElement>(null);
   const [detailedHour, setDetailedHour] = useState<string | null>(null);
   const [timelinePosition, setTimelinePosition] = useState<number>(0);
   const [contextMenuTime, setContextMenuTime] = useState<string | null>(null);
-  const { currentDate, navigationDirection, openEventSidebarForNewEvent, events, toggleChatSidebar } = useCalendarStore((state) => state);
+  const {
+    currentDate,
+    navigationDirection,
+    openEventSidebarForNewEvent,
+    events,
+    toggleChatSidebar,
+  } = useCalendarStore((state) => state);
 
   // Use Zustand store data instead of mock data
   const direction = navigationDirection;
 
   // Ensure currentDate is a Date object
-  const date = currentDate instanceof Date ? currentDate : new Date(currentDate);
+  const date =
+    currentDate instanceof Date ? currentDate : new Date(currentDate);
 
   const handleMouseMove = useCallback(
     (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
@@ -172,9 +186,9 @@ export default function DailyView({ stopDayEventSummary }: { stopDayEventSummary
       const minutes = Math.floor(minuteFraction * 60);
 
       const hour12 = hour % 12 || 12;
-      const ampm = hour < 12 ? "AM" : "PM";
+      const ampm = hour < 12 ? 'AM' : 'PM';
       setDetailedHour(
-        `${hour12}:${Math.max(0, minutes).toString().padStart(2, "0")} ${ampm}`
+        `${hour12}:${Math.max(0, minutes).toString().padStart(2, '0')} ${ampm}`
       );
 
       const position = Math.max(0, Math.min(rect.height, Math.round(y)));
@@ -191,46 +205,47 @@ export default function DailyView({ stopDayEventSummary }: { stopDayEventSummary
     const hour = Math.max(0, Math.min(23, Math.floor(y / hourHeight)));
     const minuteFraction = (y % hourHeight) / hourHeight;
     const minutes = Math.floor(minuteFraction * 60);
-    
+
     const hour12 = hour % 12 || 12;
-    const ampm = hour < 12 ? "AM" : "PM";
-    const timeString = `${hour12}:${minutes.toString().padStart(2, "0")} ${ampm}`;
+    const ampm = hour < 12 ? 'AM' : 'PM';
+    const timeString = `${hour12}:${minutes.toString().padStart(2, '0')} ${ampm}`;
     setContextMenuTime(timeString);
   }, []);
 
   // Function to get events for day
-  const getEventsForDay = useCallback((day: number, currentDate: Date) => {
-    const dayEvents = events.filter((event: Event) => {
-      const eventDate = new Date(event.startDate)
-      const matches = eventDate.getDate() === day && 
-             eventDate.getMonth() === currentDate.getMonth() && 
-             eventDate.getFullYear() === currentDate.getFullYear()
-      return matches
-    })
-    return dayEvents
-  }, [events])
-
-  const dayEvents = getEventsForDay(
-    date.getDate(),
-    date
+  const getEventsForDay = useCallback(
+    (day: number, currentDate: Date) => {
+      const dayEvents = events.filter((event: Event) => {
+        const eventDate = new Date(event.startDate);
+        const matches =
+          eventDate.getDate() === day &&
+          eventDate.getMonth() === currentDate.getMonth() &&
+          eventDate.getFullYear() === currentDate.getFullYear();
+        return matches;
+      });
+      return dayEvents;
+    },
+    [events]
   );
-  
+
+  const dayEvents = getEventsForDay(date.getDate(), date);
+
   const timeGroups = groupEventsByTimePeriod(dayEvents);
 
   function handleAddEventDay(detailedHour: string) {
     if (!detailedHour) {
-      console.error("Detailed hour not provided.");
+      console.error('Detailed hour not provided.');
       return;
     }
 
-    const [timePart, ampm] = detailedHour.split(" ");
-    const [hourStr, minuteStr] = timePart.split(":");
-    let hours = parseInt(hourStr);
-    const minutes = parseInt(minuteStr);
-    
-    if (ampm === "PM" && hours < 12) {
+    const [timePart, ampm] = detailedHour.split(' ');
+    const [hourStr, minuteStr] = timePart.split(':');
+    let hours = Number.parseInt(hourStr);
+    const minutes = Number.parseInt(minuteStr);
+
+    if (ampm === 'PM' && hours < 12) {
       hours += 12;
-    } else if (ampm === "AM" && hours === 12) {
+    } else if (ampm === 'AM' && hours === 12) {
       hours = 0;
     }
 
@@ -247,39 +262,62 @@ export default function DailyView({ stopDayEventSummary }: { stopDayEventSummary
 
   // Mock event styling function
   const handleEventStyling = (
-    event: Event, 
+    event: Event,
     dayEvents: Event[],
-    periodOptions?: { 
-      eventsInSamePeriod?: number; 
-      periodIndex?: number; 
+    periodOptions?: {
+      eventsInSamePeriod?: number;
+      periodIndex?: number;
       adjustForPeriod?: boolean;
     }
   ) => {
     const eventsOnHour = dayEvents.filter((e) => {
       if (e.id === event.id) return false;
-      
-      const eStart = e.startDate instanceof Date ? e.startDate.getTime() : new Date(e.startDate).getTime();
-      const eEnd = e.endDate instanceof Date ? e.endDate.getTime() : new Date(e.endDate).getTime();
-      const eventStart = event.startDate instanceof Date ? event.startDate.getTime() : new Date(event.startDate).getTime();
-      const eventEnd = event.endDate instanceof Date ? event.endDate.getTime() : new Date(event.endDate).getTime();
-      
-      return (eStart < eventEnd && eEnd > eventStart);
+
+      const eStart =
+        e.startDate instanceof Date
+          ? e.startDate.getTime()
+          : new Date(e.startDate).getTime();
+      const eEnd =
+        e.endDate instanceof Date
+          ? e.endDate.getTime()
+          : new Date(e.endDate).getTime();
+      const eventStart =
+        event.startDate instanceof Date
+          ? event.startDate.getTime()
+          : new Date(event.startDate).getTime();
+      const eventEnd =
+        event.endDate instanceof Date
+          ? event.endDate.getTime()
+          : new Date(event.endDate).getTime();
+
+      return eStart < eventEnd && eEnd > eventStart;
     });
 
     const allEventsInRange = [event, ...eventsOnHour];
 
     allEventsInRange.sort((a, b) => {
-      const aStart = a.startDate instanceof Date ? a.startDate.getTime() : new Date(a.startDate).getTime();
-      const bStart = b.startDate instanceof Date ? b.startDate.getTime() : new Date(b.startDate).getTime();
+      const aStart =
+        a.startDate instanceof Date
+          ? a.startDate.getTime()
+          : new Date(a.startDate).getTime();
+      const bStart =
+        b.startDate instanceof Date
+          ? b.startDate.getTime()
+          : new Date(b.startDate).getTime();
       return aStart - bStart;
     });
 
-    const useCustomPeriod = periodOptions?.adjustForPeriod && 
-                           periodOptions.eventsInSamePeriod !== undefined && 
-                           periodOptions.periodIndex !== undefined;
-                           
-    let numEventsOnHour = useCustomPeriod ? periodOptions!.eventsInSamePeriod! : allEventsInRange.length;
-    let indexOnHour = useCustomPeriod ? periodOptions!.periodIndex! : allEventsInRange.indexOf(event);
+    const useCustomPeriod =
+      periodOptions?.adjustForPeriod &&
+      periodOptions.eventsInSamePeriod !== undefined &&
+      periodOptions.periodIndex !== undefined;
+
+    let numEventsOnHour = useCustomPeriod
+      ? periodOptions!.eventsInSamePeriod!
+      : allEventsInRange.length;
+    let indexOnHour = useCustomPeriod
+      ? periodOptions!.periodIndex!
+      : allEventsInRange.indexOf(event);
 
     if (numEventsOnHour === 0 || indexOnHour === -1) {
       numEventsOnHour = 1;
@@ -311,13 +349,13 @@ export default function DailyView({ stopDayEventSummary }: { stopDayEventSummary
 
       eventTop = eventStartHour * 64;
     } else {
-      console.error("Invalid event or missing start/end dates.");
+      console.error('Invalid event or missing start/end dates.');
     }
 
     const widthPercentage = Math.min(95 / Math.max(numEventsOnHour, 1), 95);
-    
+
     const leftPosition = indexOnHour * (widthPercentage + 1);
-    
+
     const safeLeftPosition = Math.min(leftPosition, 100 - widthPercentage);
 
     const minimumHeight = 20;
@@ -327,8 +365,8 @@ export default function DailyView({ stopDayEventSummary }: { stopDayEventSummary
         eventHeight < minimumHeight
           ? minimumHeight
           : eventHeight > maxHeight
-          ? maxHeight
-          : eventHeight
+            ? maxHeight
+            : eventHeight
       }px`,
       top: `${eventTop}px`,
       zIndex: indexOnHour + 1,
@@ -340,100 +378,100 @@ export default function DailyView({ stopDayEventSummary }: { stopDayEventSummary
 
   return (
     <div className="mt-0">
-      <AnimatePresence initial={false} custom={direction} mode="wait">
+      <AnimatePresence custom={direction} initial={false} mode="wait">
         <motion.div
-          key={currentDate.toISOString()}
-          custom={direction}
-          variants={pageTransitionVariants}
-          initial="enter"
           animate="center"
+          className="flex flex-col gap-4"
+          custom={direction}
           exit="exit"
+          initial="enter"
+          key={currentDate.toISOString()}
           transition={{
-            x: { type: "spring", stiffness: 300, damping: 30 },
+            x: { type: 'spring', stiffness: 300, damping: 30 },
             opacity: { duration: 0.2 },
           }}
-          className="flex flex-col gap-4"
+          variants={pageTransitionVariants}
         >
-
-          <div className="relative rounded-md bg-default-50 hover:bg-default-100 transition duration-400">
+          <div className="relative rounded-md bg-default-50 transition duration-400 hover:bg-default-100">
             <motion.div
-              className="relative rounded-xl flex ease-in-out"
+              animate="visible"
+              className="relative flex rounded-xl ease-in-out"
+              initial="hidden"
+              onMouseLeave={() => setDetailedHour(null)}
+              onMouseMove={handleMouseMove}
               ref={hoursColumnRef}
               variants={containerVariants}
-              initial="hidden"
-              animate="visible"
-              onMouseMove={handleMouseMove}
-              onMouseLeave={() => setDetailedHour(null)}
             >
-              <div className="flex  flex-col">
+              <div className="flex flex-col">
                 {hours.map((hour, index) => (
                   <motion.div
+                    className="h-[64px] cursor-pointer border-default-200 p-4 text-left text-muted-foreground text-sm transition duration-300"
                     key={`hour-${index}`}
                     variants={itemVariants}
-                    className="cursor-pointer   transition duration-300  p-4 h-[64px] text-left text-sm text-muted-foreground border-default-200"
                   >
                     {hour}
                   </motion.div>
                 ))}
               </div>
-              <div className="flex relative flex-grow flex-col ">
+              <div className="relative flex flex-grow flex-col ">
                 {Array.from({ length: 24 }).map((_, index) => {
-                   const timeSlotId = `hour-${index}`;
-                   
-                   return (
-                     <ContextMenu key={`hour-${index}`}>
-                       <ContextMenuTrigger asChild>
-                         <div
-                           onContextMenu={handleContextMenuOpen}
-                         >
-                           <TimeSlot
-                             timeSlotId={timeSlotId}
-                             hourIndex={index}
-                             date={date}
-                           />
-                         </div>
-                       </ContextMenuTrigger>
-                       <ContextMenuContent className="bg-neutral-950 w-40">
-                         <ContextMenuItem
-                           className="cursor-pointer py-2"
-                           onClick={() => {
-                             const timeToUse = contextMenuTime || detailedHour || "12:00 PM";
-                             handleAddEventDay(timeToUse);
-                             setContextMenuTime(null);
-                           }}
-                         >
-                           <Plus className="mr-2 h-4 w-4" />
-                           Add Event
-                         </ContextMenuItem>
-                         <ContextMenuItem
-                           className="cursor-pointer py-2"
-                           onClick={() => {
-                             toggleChatSidebar();
-                             setContextMenuTime(null);
-                           }}
-                         >
-                           <Sparkles className="mr-2 h-4 w-4" />
-                           Ask AI
-                         </ContextMenuItem>
-                       </ContextMenuContent>
-                     </ContextMenu>
-                   );
-                 })}
+                  const timeSlotId = `hour-${index}`;
+
+                  return (
+                    <ContextMenu key={`hour-${index}`}>
+                      <ContextMenuTrigger asChild>
+                        <div onContextMenu={handleContextMenuOpen}>
+                          <TimeSlot
+                            date={date}
+                            hourIndex={index}
+                            timeSlotId={timeSlotId}
+                          />
+                        </div>
+                      </ContextMenuTrigger>
+                      <ContextMenuContent className="w-40 bg-neutral-950">
+                        <ContextMenuItem
+                          className="cursor-pointer py-2"
+                          onClick={() => {
+                            const timeToUse =
+                              contextMenuTime || detailedHour || '12:00 PM';
+                            handleAddEventDay(timeToUse);
+                            setContextMenuTime(null);
+                          }}
+                        >
+                          <Plus className="mr-2 h-4 w-4" />
+                          Add Event
+                        </ContextMenuItem>
+                        <ContextMenuItem
+                          className="cursor-pointer py-2"
+                          onClick={() => {
+                            toggleChatSidebar();
+                            setContextMenuTime(null);
+                          }}
+                        >
+                          <Sparkles className="mr-2 h-4 w-4" />
+                          Ask AI
+                        </ContextMenuItem>
+                      </ContextMenuContent>
+                    </ContextMenu>
+                  );
+                })}
                 <AnimatePresence initial={false}>
                   {dayEvents && dayEvents?.length
                     ? dayEvents?.map((event: Event, eventIndex: number) => {
                         let eventsInSamePeriod = 1;
                         let periodIndex = 0;
-                        
+
                         for (let i = 0; i < timeGroups.length; i++) {
-                          const groupIndex = timeGroups[i].findIndex(e => e.id === event.id);
+                          const groupIndex = timeGroups[i].findIndex(
+                            (e) => e.id === event.id
+                          );
                           if (groupIndex !== -1) {
                             eventsInSamePeriod = timeGroups[i].length;
                             periodIndex = groupIndex;
                             break;
                           }
                         }
-                        
+
                         const {
                           height,
                           left,
@@ -441,53 +479,47 @@ export default function DailyView({ stopDayEventSummary }: { stopDayEventSummary
                           minWidth,
                           top,
                           zIndex,
-                        } = handleEventStyling(
-                          event, 
-                          dayEvents,
-                          {
-                            eventsInSamePeriod,
-                            periodIndex,
-                            adjustForPeriod: true
-                          }
-                        );
+                        } = handleEventStyling(event, dayEvents, {
+                          eventsInSamePeriod,
+                          periodIndex,
+                          adjustForPeriod: true,
+                        });
                         return (
                           <motion.div
+                            animate={{ opacity: 1, scale: 1 }}
+                            className="absolute flex flex-grow flex-col transition-all duration-1000"
+                            exit={{ opacity: 0, scale: 0.9 }}
+                            initial={{ opacity: 0, scale: 0.9 }}
                             key={event.id}
                             style={{
                               minHeight: height,
-                              top: top,
-                              left: left,
-                              maxWidth: maxWidth,
-                              minWidth: minWidth,
-                              padding: "0 2px",
-                              boxSizing: "border-box",
+                              top,
+                              left,
+                              maxWidth,
+                              minWidth,
+                              padding: '0 2px',
+                              boxSizing: 'border-box',
                               zIndex: zIndex + 1000, // Ensure events are above time slots
                             }}
-                            className="flex transition-all duration-1000 flex-grow flex-col absolute"
-                            initial={{ opacity: 0, scale: 0.9 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            exit={{ opacity: 0, scale: 0.9 }}
                             transition={{ duration: 0.2 }}
                           >
-                            <EventCard 
-                              event={event}
-                            />
+                            <EventCard event={event} />
                           </motion.div>
                         );
                       })
-                    : ""}
+                    : ''}
                 </AnimatePresence>
               </div>
             </motion.div>
 
             {detailedHour && (
               <div
-                className="absolute left-[100px] w-[calc(100%-53px)] h-[2px] bg-primary/40 rounded-full pointer-events-none"
+                className="pointer-events-none absolute left-[100px] h-[2px] w-[calc(100%-53px)] rounded-full bg-primary/40"
                 style={{ top: `${timelinePosition}px` }}
               >
                 <Badge
+                  className="-translate-y-1/2 absolute left-[5px] z-50 bg-neutral-800 text-white text-xs"
                   variant="outline"
-                  className="absolute -translate-y-1/2 bg-neutral-800 z-50 left-[5px] text-xs text-white"
                 >
                   {detailedHour}
                 </Badge>
