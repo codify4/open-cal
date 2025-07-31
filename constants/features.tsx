@@ -9,6 +9,10 @@ import type React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { AnimatedList } from '@/components/magicui/animated-list';
+import { DummyEventCard } from '@/components/ui/dummy-event-card';
+import { SimpleChatMessage } from '@/components/ui/simple-chat-message';
+import { sampleEvents } from './sample-events';
 
 export interface Feature {
   Icon: React.ElementType;
@@ -30,13 +34,13 @@ export const features: Feature[] = [
     cta: 'See events',
     className: 'col-span-3 lg:col-span-2',
     background: (
-      <Card className="absolute inset-0 border-0 bg-gradient-to-br from-primary/10 to-primary/5">
-        <CardContent className="flex h-full items-center justify-center p-0">
-          <Badge className="text-xs" variant="secondary">
-            Events
-          </Badge>
-        </CardContent>
-      </Card>
+      <div className="absolute inset-0 p-4 pt-16">
+        <AnimatedList className="flex flex-col gap-2" delay={800}>
+          {sampleEvents.map((event) => (
+            <DummyEventCard key={event.id} event={event} minimized className="w-full max-w-[280px]" />
+          ))}
+        </AnimatedList>
+      </div>
     ),
   },
   {
@@ -71,13 +75,28 @@ export const features: Feature[] = [
     cta: 'Ask AI',
     className: 'col-span-3 lg:col-span-1',
     background: (
-      <Card className="absolute inset-0 border-0 bg-gradient-to-br from-accent/10 to-accent/5">
-        <CardContent className="flex h-full items-center justify-center p-0">
-          <Button className="text-xs" size="sm" variant="ghost">
-            "What's my schedule today?"
-          </Button>
-        </CardContent>
-      </Card>
+      <div className="absolute inset-0 p-4 pt-16">
+        <AnimatedList className="flex flex-col gap-3" delay={1000}>
+          <SimpleChatMessage 
+            message="What's my schedule today?" 
+            isUser 
+            timestamp="2:30 PM"
+          />
+          <SimpleChatMessage 
+            message="You have 3 meetings today: Team Meeting at 10 AM, Lunch with Sarah at 12:30 PM, and Project Review at 2 PM. Would you like me to help you prepare for any of these?" 
+            timestamp="2:31 PM"
+          />
+          <SimpleChatMessage 
+            message="Can you reschedule the project review?" 
+            isUser 
+            timestamp="2:32 PM"
+          />
+          <SimpleChatMessage 
+            message="I found a free slot tomorrow at 3 PM. Should I reschedule the Project Review to tomorrow at 3 PM?" 
+            timestamp="2:33 PM"
+          />
+        </AnimatedList>
+      </div>
     ),
   },
   {
