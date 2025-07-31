@@ -41,7 +41,7 @@ const TimeSlot: React.FC<TimeSlotProps> = ({
     <div
       className={`relative z-10 col-span-1 h-[64px] border-default-200 border-r border-b text-center text-muted-foreground text-sm transition duration-300 ${isOver ? 'bg-blue-500/20' : ''}`}
       ref={setNodeRef}
-    ></div>
+    />
   );
 };
 

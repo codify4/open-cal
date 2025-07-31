@@ -35,6 +35,7 @@ export const EventCard = ({
   const [resizeEdge, setResizeEdge] = useState<'top' | 'bottom' | null>(null);
   const [previewEndDate, setPreviewEndDate] = useState<Date | null>(null);
   const cardRef = useRef<HTMLDivElement>(null);
+  const dragHandleRef = useRef<HTMLDivElement>(null);
   const resizeHandleRef = useRef<HTMLDivElement>(null);
   const [isClient, setIsClient] = useState(false);
 
@@ -51,7 +52,8 @@ export const EventCard = ({
   const { openEventSidebarForEdit, deleteEvent, updateEventTime, saveEvent } =
     useCalendarStore((state) => state);
 
-  const handleEdit = () => {
+  const handleEdit = (e: React.MouseEvent) => {
+    e.stopPropagation();
     openEventSidebarForEdit(event);
   };
 
@@ -187,18 +189,26 @@ export const EventCard = ({
     <ContextMenu>
       <ContextMenuTrigger>
         <div
+          className={`group relative cursor-pointer rounded-sm border p-2 text-xs transition-all duration-200 hover:shadow-md ${getColorClasses(event.color)} ${event.isAllDay ? 'border-l-4' : ''} ${isClient && isDragging ? 'opacity-50' : ''} ${minimized ? 'max-h-[40px] min-h-[20px] overflow-hidden' : 'min-h-[60px]'} ${isDragging ? 'z-[9998]' : ''} ${className} `}
           ref={isClient ? setNodeRef : undefined}
           style={isClient ? style : undefined}
-          {...(isClient ? listeners : {})}
-          {...(isClient ? attributes : {})}
-          className={`group relative cursor-pointer rounded-sm border p-2 text-xs transition-all duration-200 hover:shadow-md ${getColorClasses(event.color)} ${event.isAllDay ? 'border-l-4' : ''} ${isClient && isDragging ? 'opacity-50' : ''} ${minimized ? 'max-h-[40px] min-h-[20px] overflow-hidden' : 'min-h-[60px]'} ${isDragging ? 'z-[9998]' : ''} ${className} `}
-          onClick={handleEdit}
         >
-          <div className={'-right-0 absolute top-0 size-12 overflow-hidden'}>
+          <div className="absolute top-2 left-2">
+            <div
+              ref={dragHandleRef}
+              {...(isClient ? listeners : {})}
+              {...(isClient ? attributes : {})}
+              className="cursor-grab"
+            >
+              <GripVertical className="h-4 w-4 text-white/80 hover:text-white" />
+            </div>
+          </div>
+
+          <div className="-right-0 absolute top-0 size-12 overflow-hidden">
             <GraphicDoodle color={event.color} size="md" />
           </div>
 
-          <div className="flex flex-col items-start justify-between">
+          <div className="flex flex-col items-start justify-between pl-6">
             <div className="flex min-w-0 flex-1 items-center gap-1">
               {event.type === 'birthday' ? (
                 <Cake className="h-3 w-3 text-white" />

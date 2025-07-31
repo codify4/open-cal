@@ -37,7 +37,7 @@ const TimeSlot: React.FC<TimeSlotProps> = ({ timeSlotId, hourIndex, date }) => {
         isOver ? 'bg-blue-500/20' : ''
       }`}
       ref={setNodeRef}
-    ></div>
+    />
   );
 };
 
