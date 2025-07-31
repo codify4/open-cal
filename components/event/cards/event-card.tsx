@@ -1,56 +1,52 @@
-'use client';
+"use client"
 
-import { useDraggable } from '@dnd-kit/core';
-import { Cake, Calendar, GripVertical } from 'lucide-react';
-import type React from 'react';
-import { useEffect, useRef, useState } from 'react';
-import {
-  ContextMenu,
-  ContextMenuContent,
-  ContextMenuItem,
-  ContextMenuTrigger,
-} from '@/components/ui/context-menu';
-import type { Event } from '@/lib/store/calendar-store';
-import { cn, ensureDate } from '@/lib/utils';
-import { useCalendarStore } from '@/providers/calendar-store-provider';
-import { GraphicDoodle } from './graphics';
+import type React from "react"
+import { useState, useRef, useEffect } from "react"
+import { Calendar, Cake, GripVertical } from "lucide-react"
+import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger } from "@/components/ui/context-menu"
+import { GraphicDoodle } from "./graphics"
+import { useCalendarStore } from "@/providers/calendar-store-provider"
+import { Event } from "@/lib/store/calendar-store"
+import { cn } from "@/lib/utils"
+import { useDraggable } from "@dnd-kit/core"
 
 interface EventCardProps {
-  event: Event;
-  className?: string;
-  minimized?: boolean;
-  onResize?: (eventId: string, newStartDate: Date, newEndDate: Date) => void;
+  event: Event
+  className?: string
+  minimized?: boolean
+  onResize?: (eventId: string, newStartDate: Date, newEndDate: Date) => void
+  onEdit?: (event: Event) => void
+  onDelete?: (eventId: string) => void
+  onDuplicate?: (event: Event) => void
+}
+
+const ensureDate = (date: Date | string): Date => {
+  return typeof date === "string" ? new Date(date) : date
 }
 
 export const EventCard = ({
   event,
-  className = '',
+  className = "",
   minimized = false,
   onResize,
 }: EventCardProps) => {
-  const [isResizing, setIsResizing] = useState(false);
-  const [resizeStartY, setResizeStartY] = useState(0);
-  const [originalStartDate, setOriginalStartDate] = useState<Date | null>(null);
-  const [originalEndDate, setOriginalEndDate] = useState<Date | null>(null);
-  const [resizeEdge, setResizeEdge] = useState<'top' | 'bottom' | null>(null);
-  const [previewEndDate, setPreviewEndDate] = useState<Date | null>(null);
-  const cardRef = useRef<HTMLDivElement>(null);
-  const dragHandleRef = useRef<HTMLDivElement>(null);
-  const resizeHandleRef = useRef<HTMLDivElement>(null);
+
+  const { openEventSidebarForEdit, deleteEvent, saveEvent } = useCalendarStore((state) => state)
+  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({ id: event.id, data: event });
+  const [isResizing, setIsResizing] = useState(false)
+  const [resizeStartY, setResizeStartY] = useState(0)
+  const [dragStartPos, setDragStartPos] = useState({ x: 0, y: 0 })
+  const [position, setPosition] = useState({ x: 0, y: 0 })
+  const [originalStartDate, setOriginalStartDate] = useState<Date | null>(null)
+  const [originalEndDate, setOriginalEndDate] = useState<Date | null>(null)
+  const [initialHeight, setInitialHeight] = useState(0)
+  const cardRef = useRef<HTMLDivElement>(null)
+  const resizeHandleRef = useRef<HTMLDivElement>(null)
   const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
     setIsClient(true);
   }, []);
-
-  const { attributes, listeners, setNodeRef, transform, isDragging } =
-    useDraggable({
-      id: event.id,
-      data: event,
-    });
-
-  const { openEventSidebarForEdit, deleteEvent, updateEventTime, saveEvent } =
-    useCalendarStore((state) => state);
 
   const handleEdit = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -65,7 +61,7 @@ export const EventCard = ({
     const startDate = ensureDate(event.startDate);
     const endDate = ensureDate(event.endDate);
 
-    const duplicatedEvent: Event = {
+    const duplicatedEvent = {
       ...event,
       id: `event-${Date.now()}`,
       title: `${event.title} (Copy)`,
@@ -81,17 +77,17 @@ export const EventCard = ({
 
   const getColorClasses = (color: string) => {
     const colorMap: Record<string, string> = {
-      blue: 'bg-blue-500/40 border-blue-600',
-      green: 'bg-green-500/40 border-green-600',
-      purple: 'bg-purple-500/40 border-purple-600',
-      orange: 'bg-orange-500/40 border-orange-600',
-      red: 'bg-red-500/40 border-red-600',
-      pink: 'bg-pink-500/40 border-pink-600',
-      yellow: 'bg-yellow-500/40 border-yellow-600',
-      gray: 'bg-gray-500/40 border-gray-600',
-    };
-    return colorMap[color] || colorMap.blue;
-  };
+      blue: "bg-blue-500/40 border-blue-600",
+      green: "bg-green-500/40 border-green-600",
+      purple: "bg-purple-500/40 border-purple-600",
+      orange: "bg-orange-500/40 border-orange-600",
+      red: "bg-red-500/40 border-red-600",
+      pink: "bg-pink-500/40 border-pink-600",
+      yellow: "bg-yellow-500/40 border-yellow-600",
+      gray: "bg-gray-500/40 border-gray-600",
+    }
+    return colorMap[color] || colorMap.blue
+  }
 
   const getAccountColor = (account: string) => {
     const accountMap: Record<string, string> = {
@@ -104,112 +100,156 @@ export const EventCard = ({
   }
 
   const formatTime = (date: Date | string) => {
-    const dateObj = typeof date === 'string' ? new Date(date) : date;
+    const dateObj = typeof date === "string" ? new Date(date) : date
     if (!(dateObj instanceof Date) || isNaN(dateObj.getTime())) {
-      return 'Invalid time';
+      return "Invalid time"
     }
-    const hours = dateObj.getHours();
-    const minutes = dateObj.getMinutes();
-    const hour12 = hours % 12 || 12;
-    const ampm = hours < 12 ? 'AM' : 'PM';
-    return `${hour12}:${minutes.toString().padStart(2, '0')} ${ampm}`;
-  };
+    const hours = dateObj.getHours()
+    const minutes = dateObj.getMinutes()
+    const hour12 = hours % 12 || 12
+    const ampm = hours < 12 ? "AM" : "PM"
+    return `${hour12}:${minutes.toString().padStart(2, "0")} ${ampm}`
+  }
 
-  const timeDisplay = `${formatTime(event.startDate)}–${formatTime(event.endDate)}`;
+  const timeDisplay = `${formatTime(event.startDate)}–${formatTime(event.endDate)}`
 
-  const style = transform
-    ? {
-        transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
-      }
-    : undefined;
+  const handleDragMove = (e: MouseEvent) => {
+    if (!isDragging) return
 
-  const handleResizeStart = (
-    e: React.MouseEvent,
-    edge: 'top' | 'bottom' = 'bottom'
-  ) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsResizing(true);
-    setResizeStartY(e.clientY);
-    const startDate = ensureDate(event.startDate);
-    const endDate = ensureDate(event.endDate);
-    setOriginalStartDate(new Date(startDate));
-    setOriginalEndDate(new Date(endDate));
-    setResizeEdge(edge);
-  };
+    setPosition({
+      x: e.clientX - dragStartPos.x,
+      y: e.clientY - dragStartPos.y,
+    })
+  }
+
+  const handleDragEnd = () => {
+    document.body.style.cursor = ""
+    document.body.style.userSelect = ""
+  }
+
+  // Resize functionality
+  const handleResizeStart = (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+
+    setIsResizing(true)
+    setResizeStartY(e.clientY)
+
+    const startDate = ensureDate(event.startDate)
+    const endDate = ensureDate(event.endDate)
+    setOriginalStartDate(new Date(startDate))
+    setOriginalEndDate(new Date(endDate))
+
+    // Get initial height of the card
+    if (cardRef.current) {
+      setInitialHeight(cardRef.current.offsetHeight)
+    }
+
+    // Prevent text selection and set cursor
+    document.body.style.userSelect = "none"
+    document.body.style.cursor = "ns-resize"
+  }
 
   const handleResizeMove = (e: MouseEvent) => {
-    if (!(isResizing && originalStartDate && originalEndDate)) return;
-
+    if (!isResizing || !originalStartDate || !cardRef.current) return;
+  
     const deltaY = e.clientY - resizeStartY;
-    const minutesPerPixel = 15; // 15 minutes per pixel
-    const deltaMinutes =
-      Math.round((deltaY * minutesPerPixel) / 15) * 15 * 60 * 1000; // Snap to 15-min increments
-    const minDuration = 15 * 60 * 1000; // 15 minutes
-
-    if (resizeEdge === 'top') {
-      const newStartDate = new Date(originalStartDate.getTime() + deltaMinutes);
-      if (newStartDate.getTime() <= originalEndDate.getTime() - minDuration) {
-        setPreviewEndDate(originalEndDate);
-        updateEventTime(event.id, newStartDate, originalEndDate);
-        onResize?.(event.id, newStartDate, originalEndDate);
-      }
-    } else {
-      const newEndDate = new Date(originalEndDate.getTime() + deltaMinutes);
-      if (newEndDate.getTime() >= originalStartDate.getTime() + minDuration) {
-        setPreviewEndDate(newEndDate);
-        updateEventTime(event.id, originalStartDate, newEndDate);
-        onResize?.(event.id, originalStartDate, newEndDate);
-      }
+    const newHeight = Math.max(40, initialHeight + deltaY); // min height
+    cardRef.current.style.height = `${newHeight}px`;
+  
+    const pixelsPerHour = 64;
+    const hoursChanged = newHeight / pixelsPerHour;
+    const millisecondsChanged = hoursChanged * 60 * 60 * 1000;
+  
+    const newEndTime = new Date(originalStartDate.getTime() + millisecondsChanged);
+  
+    // Snap to nearest 15 minutes
+    const roundedEndTime = new Date(
+      Math.round(newEndTime.getTime() / (15 * 60 * 1000)) * (15 * 60 * 1000)
+    );
+  
+    // Minimum 15-minute duration
+    const minimumDuration = 15 * 60 * 1000;
+    const earliestEndTime = new Date(originalStartDate.getTime() + minimumDuration);
+    if (roundedEndTime < earliestEndTime) return;
+  
+    if (onResize) {
+      onResize(event.id, originalStartDate, roundedEndTime);
     }
   };
 
-  const handleResizeEnd = () => {
-    setIsResizing(false);
-    setResizeStartY(0);
-    setOriginalStartDate(null);
-    setOriginalEndDate(null);
-    setResizeEdge(null);
-    setPreviewEndDate(null);
-  };
+  const handleResizeEnd = (e: MouseEvent) => {
+    e.preventDefault()
 
+    // Don't reset the height immediately - let the new duration determine it
+    setIsResizing(false)
+    setResizeStartY(0)
+    setOriginalStartDate(null)
+    setOriginalEndDate(null)
+    setInitialHeight(0)
+
+    // Reset cursor and text selection
+    document.body.style.cursor = ""
+    document.body.style.userSelect = ""
+
+    // Reset card height after a brief delay to allow the new props to take effect
+    setTimeout(() => {
+      if (cardRef.current) {
+        cardRef.current.style.height = "auto"
+      }
+    }, 100)
+  }
+
+  // Mouse event listeners
   useEffect(() => {
-    if (isResizing) {
-      document.addEventListener('mousemove', handleResizeMove);
-      document.addEventListener('mouseup', handleResizeEnd);
-      document.body.style.cursor = 'ns-resize';
-      document.body.style.userSelect = 'none';
+    if (isDragging) {
+      document.addEventListener("mousemove", handleDragMove)
+      document.addEventListener("mouseup", handleDragEnd)
     }
 
     return () => {
-      document.removeEventListener('mousemove', handleResizeMove);
-      document.removeEventListener('mouseup', handleResizeEnd);
-      document.body.style.cursor = '';
-      document.body.style.userSelect = '';
-    };
-  }, [
-    isResizing,
-    resizeStartY,
-    originalStartDate,
-    originalEndDate,
-    resizeEdge,
-  ]);
+      document.removeEventListener("mousemove", handleDragMove)
+      document.removeEventListener("mouseup", handleDragEnd)
+    }
+  }, [isDragging, dragStartPos])
+
+  useEffect(() => {
+    if (isResizing) {
+      const handleMouseMove = (e: MouseEvent) => handleResizeMove(e)
+      const handleMouseUp = (e: MouseEvent) => handleResizeEnd(e)
+
+      document.addEventListener("mousemove", handleMouseMove, { passive: false })
+      document.addEventListener("mouseup", handleMouseUp, { passive: false })
+
+      return () => {
+        document.removeEventListener("mousemove", handleMouseMove)
+        document.removeEventListener("mouseup", handleMouseUp)
+      }
+    }
+  }, [isResizing, resizeStartY, originalStartDate, originalEndDate, initialHeight])
+
+  const cardStyle = {
+    transform: isDragging ? `translate(${position.x}px, ${position.y}px)` : undefined,
+    zIndex: isDragging ? 1000 : isResizing ? 999 : undefined,
+  }
 
   return (
     <ContextMenu>
       <ContextMenuTrigger>
         <div
-          className={`group relative cursor-pointer rounded-sm border p-2 text-xs transition-all duration-200 hover:shadow-md ${getColorClasses(event.color)} ${event.isAllDay ? 'border-l-4' : ''} ${isClient && isDragging ? 'opacity-50' : ''} ${minimized ? 'max-h-[40px] min-h-[20px] overflow-hidden' : 'min-h-[60px]'} ${isDragging ? 'z-[9998]' : ''} ${className} `}
-          ref={isClient ? setNodeRef : undefined}
-          style={isClient ? style : undefined}
-          {...(isClient ? listeners : {})}
-          {...(isClient ? attributes : {})}
+          className={`group relative rounded-sm border p-2 text-xs transition-all duration-200 hover:shadow-md ${getColorClasses(event.color)} ${event.isAllDay ? 'border-l-4' : ''} ${isClient && isDragging ? 'opacity-50' : ''} ${minimized ? 'max-h-[40px] min-h-[20px] overflow-hidden' : 'min-h-[60px]'} ${isDragging ? 'z-[9998]' : ''} ${className} `}
+          ref={cardRef}
+          style={cardStyle}
         >
-          <div className="-right-0 absolute top-0 size-12 overflow-hidden">
+          <div className={`absolute top-0 -right-0 size-12 overflow-hidden pointer-events-none`}>
             <GraphicDoodle color={event.color} size="md" />
           </div>
 
-          <div className="flex flex-row gap-2">
+          <div className="flex flex-row gap-2 relative z-10 cursor-grab"
+            ref={isClient ? setNodeRef : undefined}
+            {...(isClient ? listeners : {})}
+            {...(isClient ? attributes : {})}
+          >
             <div className={cn(
               "w-[2px]", 
               event.account ? getAccountColor(event.account) : getColorClasses(event.color),
@@ -234,48 +274,48 @@ export const EventCard = ({
             </div>
           </div>
 
-          {!(minimized || event.isAllDay) && (
-            <>
-              <div
-                className="absolute right-0 bottom-0 left-0 h-1 cursor-ns-resize rounded-b-md bg-white/20 opacity-0 transition-opacity hover:bg-white/40 group-hover:opacity-100"
-                onMouseDown={(e) => handleResizeStart(e, 'bottom')}
-                ref={resizeHandleRef}
-              >
-                <div className="flex justify-center">
-                  <GripVertical className="h-2 w-2 text-white" />
-                </div>
-              </div>
-            </>
+          {/* Resize Handle - Only show for non-all-day events and non-minimized */}
+          {!minimized && !event.isAllDay && (
+            <div
+              ref={resizeHandleRef}
+              className={`
+                absolute bottom-0 left-1/2 transform -translate-x-1/2 h-2 w-8
+                bg-gradient-to-t from-white/30 to-transparent
+                hover:from-white/50 hover:to-white/10
+                cursor-ns-resize rounded-b-md 
+                transition-all duration-200
+                ${isResizing ? "opacity-100 from-white/60" : "opacity-0 group-hover:opacity-100"}
+                flex items-end justify-center pb-0.5
+                z-20
+              `}
+              onMouseDown={handleResizeStart}
+              onClick={(e) => {
+                e.preventDefault()
+                e.stopPropagation()
+              }}
+            >
+              <GripVertical className="h-2 w-2 text-white/80" />
+            </div>
           )}
+
+          {isResizing && <div className="absolute inset-0 border-2 border-white/50 rounded-sm pointer-events-none" />}
         </div>
       </ContextMenuTrigger>
 
-      <ContextMenuContent className="border-neutral-700 bg-neutral-900">
-        <ContextMenuItem
-          className="cursor-pointer text-white hover:bg-neutral-800"
-          onClick={handleEdit}
-        >
+      <ContextMenuContent className="bg-neutral-900 border-neutral-700">
+        <ContextMenuItem className="text-white hover:bg-neutral-800 cursor-pointer" onClick={handleEdit}>
           Edit
         </ContextMenuItem>
-        <ContextMenuItem
-          className="cursor-pointer text-white hover:bg-neutral-800"
-          onClick={handleDuplicate}
-        >
+        <ContextMenuItem className="text-white hover:bg-neutral-800 cursor-pointer" onClick={handleDuplicate}>
           Duplicate
         </ContextMenuItem>
-        <ContextMenuItem
-          className="cursor-pointer text-white hover:bg-neutral-800"
-          onClick={handleCopy}
-        >
+        <ContextMenuItem className="text-white hover:bg-neutral-800 cursor-pointer" onClick={handleCopy}>
           Copy
         </ContextMenuItem>
-        <ContextMenuItem
-          className="cursor-pointer text-red-400 hover:bg-red-900/20"
-          onClick={handleDelete}
-        >
+        <ContextMenuItem className="text-red-400 hover:bg-red-900/20 cursor-pointer" onClick={handleDelete}>
           Delete
         </ContextMenuItem>
       </ContextMenuContent>
     </ContextMenu>
-  );
-};
+  )
+}

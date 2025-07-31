@@ -16,7 +16,7 @@ function CalendarPage() {
 
       {!isChatSidebarOpen && (
         <Button
-          className="fixed right-4 bottom-4 z-50 h-12 w-12 rounded-full bg-black text-white shadow-lg"
+          className="fixed right-4 bottom-4 z-50 h-12 w-12 rounded-full bg-black text-white shadow-lg hover:bg-black"
           onClick={toggleChatSidebar}
           size="icon"
         >
