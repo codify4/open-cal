@@ -1,38 +1,64 @@
+'use client'
+
 import { ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '../ui/button';
 import { Spotlight } from '../ui/spotlight';
 import Image from 'next/image';
+import { motion } from 'motion/react';
 
 export function HeroSection() {
   return (
     <section
-      className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden lg:flex-row"
+      className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden"
       id="hero"
     >
       <Spotlight className="-top-0 left-0 md:top-24 md:left-60" fill="white" />
-      <div className="container relative z-10 mx-auto w-full px-6 lg:px-8 xl:px-12">
-        <div className="flex flex-col items-center justify-center mb-10">
-          <div className="flex-1 space-y-6 lg:max-w-[45%] lg:space-y-8 xl:max-w-[50%]">
-            <div className="mt-12 flex flex-col items-center justify-center space-y-4 text-center lg:mt-24 lg:space-y-6 mb-10">
-              <h1 className="w-full font-bold text-4xl leading-[1.1] tracking-tight lg:text-6xl xl:text-7xl">
-                Never miss an event{' '}
-                <span className="underline decoration-4 underline-offset-8">
-                  ever again
-                </span>
-              </h1>
+      <div className="container relative z-10 mx-auto w-full mt-52 px-6 lg:px-8 xl:px-12">
+        <div className="flex flex-col items-center justify-center gap-16 text-center">
+          <motion.div
+            className="space-y-8 max-w-4xl"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+          >
+            <motion.h1
+              className="font-bold tracking-tight text-5xl md:text-6xl lg:text-7xl"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.1 }}
+            >
+              Your Calendar,
+              <br />
+              <span className="bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
+                Reimagined
+              </span>
+            </motion.h1>
+            
+            <motion.p
+              className="text-base sm:text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+            >
+              Take control with OpenCal’s AI-powered open source calendar. Sync with Google Calendar and let AI handle your events and time.
+            </motion.p>
 
-              <p className="max-w-2xl px-4 font-medium text-muted-foreground text-sm leading-relaxed sm:text-lg">
-                Digit is an open-source AI calendar.
-              </p>
-              <Link href="/calendar">
-                <Button className="group h-12 rounded-full" size="lg">
+            <motion.div
+              className="flex justify-center"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.3 }}
+            >
+              <Button asChild size="lg" className="group px-8 py-6 rounded-full font-semibold">
+                <Link href="/calendar">
                   Join the beta
-                  <ArrowRight className="h-4 w-4 transition-all duration-300 group-hover:translate-x-1" />
-                </Button>
-              </Link>
-            </div>
-          </div>
+                  <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform duration-300" />
+                </Link>
+              </Button>
+            </motion.div>
+          </motion.div>
+
           <Image src="/opencal-hero.png" alt="OpenCal Hero" width={1203} height={753} />
         </div>
       </div>
