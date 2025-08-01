@@ -1,6 +1,6 @@
 'use client';
 
-import { Github, Menu } from 'lucide-react';
+import { Github, Menu, ChevronDown } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
@@ -31,8 +31,13 @@ export default function TopNav({ className }: { className?: string }) {
   const navItems = [
     { name: 'Features', href: '#features' },
     { name: 'Pricing', href: '#pricing' },
-    { name: 'Use Cases', href: '#use-cases' },
     { name: 'Roadmap', href: '/roadmap' },
+  ];
+
+  const useCases = [
+    { name: 'For Founders', href: '/founders', description: 'Scale your startup' },
+    { name: 'For Developers', href: '/developers', description: 'Code more, schedule less' },
+    { name: 'For Productivity', href: '/productivity', description: 'Optimize your time' },
   ];
 
   if (!mounted) return null;
@@ -59,6 +64,25 @@ export default function TopNav({ className }: { className?: string }) {
                 {item.name}
               </Link>
             ))}
+            
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="font-medium text-muted-foreground text-sm hover:bg-transparent transition-colors hover:text-white p-0 h-auto">
+                  Use Cases
+                  <ChevronDown className="ml-1 h-3 w-3" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-[280px] bg-black border-border">
+                {useCases.map((useCase) => (
+                  <DropdownMenuItem asChild key={useCase.name}>
+                    <Link href={useCase.href} className="flex flex-col items-start p-3 hover:bg-muted/20">
+                      <div className="font-medium text-white">{useCase.name}</div>
+                      <div className="text-xs text-muted-foreground">{useCase.description}</div>
+                    </Link>
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
 
           <div className="hidden items-center space-x-4 md:flex">
@@ -82,6 +106,19 @@ export default function TopNav({ className }: { className?: string }) {
                   <DropdownMenuItem asChild key={item.name}>
                     <Link className="font-medium text-white" href={item.href}>
                       {item.name}
+                    </Link>
+                  </DropdownMenuItem>
+                ))}
+                <DropdownMenuItem className="font-medium text-white">
+                  <div className="flex items-center justify-between w-full">
+                    Use Cases
+                    <ChevronDown className="h-3 w-3" />
+                  </div>
+                </DropdownMenuItem>
+                {useCases.map((useCase) => (
+                  <DropdownMenuItem asChild key={useCase.name}>
+                    <Link className="font-medium text-white pl-6" href={useCase.href}>
+                      {useCase.name}
                     </Link>
                   </DropdownMenuItem>
                 ))}
