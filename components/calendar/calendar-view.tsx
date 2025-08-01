@@ -188,7 +188,7 @@ export default function CalendarView({
             onValueChange={handleViewChange}
             value={viewType}
           >
-            <div className="flex items-center justify-between border-border border-b">
+            <div className="sticky top-0 z-50 flex items-center justify-between border-border border-b backdrop-blur">
               <div className="flex w-full items-center justify-between gap-4 pb-2">
                 <div className="flex items-center gap-2">
                   <div className="mr-2 flex items-center gap-2">

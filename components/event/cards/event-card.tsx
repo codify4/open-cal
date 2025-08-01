@@ -1,7 +1,7 @@
 'use client';
 
 import { useDraggable } from '@dnd-kit/core';
-import { Cake, Calendar, GripVertical } from 'lucide-react';
+import { Cake, Calendar, GripVertical, GripHorizontal } from 'lucide-react';
 import type React from 'react';
 import { useEffect, useRef, useState } from 'react';
 import {
@@ -20,6 +20,7 @@ interface EventCardProps {
   className?: string;
   minimized?: boolean;
   onResize?: (eventId: string, newStartDate: Date, newEndDate: Date) => void;
+  onWidthResize?: (eventId: string, newWidth: number) => void;
   onEdit?: (event: Event) => void;
   onDelete?: (eventId: string) => void;
   onDuplicate?: (event: Event) => void;
@@ -34,6 +35,7 @@ export const EventCard = ({
   className = '',
   minimized = false,
   onResize,
+  onWidthResize,
 }: EventCardProps) => {
   const { openEventSidebarForEdit, deleteEvent, saveEvent } = useCalendarStore(
     (state) => state
@@ -41,14 +43,18 @@ export const EventCard = ({
   const { attributes, listeners, setNodeRef, transform, isDragging } =
     useDraggable({ id: event.id, data: event });
   const [isResizing, setIsResizing] = useState(false);
+  const [resizeType, setResizeType] = useState<'vertical' | 'horizontal' | null>(null);
   const [resizeStartY, setResizeStartY] = useState(0);
+  const [resizeStartX, setResizeStartX] = useState(0);
   const [dragStartPos, setDragStartPos] = useState({ x: 0, y: 0 });
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [originalStartDate, setOriginalStartDate] = useState<Date | null>(null);
   const [originalEndDate, setOriginalEndDate] = useState<Date | null>(null);
   const [initialHeight, setInitialHeight] = useState(0);
+  const [initialWidth, setInitialWidth] = useState(0);
   const cardRef = useRef<HTMLDivElement>(null);
   const resizeHandleRef = useRef<HTMLDivElement>(null);
+  const horizontalResizeHandleRef = useRef<HTMLDivElement>(null);
   const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
@@ -142,12 +148,13 @@ export const EventCard = ({
     document.body.style.userSelect = '';
   };
 
-  // Resize functionality
-  const handleResizeStart = (e: React.MouseEvent) => {
+  // Vertical resize functionality
+  const handleVerticalResizeStart = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
 
     setIsResizing(true);
+    setResizeType('vertical');
     setResizeStartY(e.clientY);
 
     const startDate = ensureDate(event.startDate);
@@ -155,59 +162,83 @@ export const EventCard = ({
     setOriginalStartDate(new Date(startDate));
     setOriginalEndDate(new Date(endDate));
 
-    // Get initial height of the card
     if (cardRef.current) {
       setInitialHeight(cardRef.current.offsetHeight);
     }
 
-    // Prevent text selection and set cursor
     document.body.style.userSelect = 'none';
     document.body.style.cursor = 'ns-resize';
   };
 
+  // Horizontal resize functionality
+  const handleHorizontalResizeStart = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    setIsResizing(true);
+    setResizeType('horizontal');
+    setResizeStartX(e.clientX);
+
+    if (cardRef.current) {
+      setInitialWidth(cardRef.current.offsetWidth);
+    }
+
+    document.body.style.userSelect = 'none';
+    document.body.style.cursor = 'ew-resize';
+  };
+
   const handleResizeMove = (e: MouseEvent) => {
-    if (!(isResizing && originalStartDate && cardRef.current)) return;
+    if (!isResizing || !cardRef.current) return;
 
-    const deltaY = e.clientY - resizeStartY;
-    const newHeight = Math.max(40, initialHeight + deltaY); // min height
-    cardRef.current.style.height = `${newHeight}px`;
+    if (resizeType === 'vertical' && originalStartDate) {
+      const deltaY = e.clientY - resizeStartY;
+      const newHeight = Math.max(40, initialHeight + deltaY);
+      cardRef.current.style.height = `${newHeight}px`;
 
-    const pixelsPerHour = 64;
-    const hoursChanged = newHeight / pixelsPerHour;
-    const millisecondsChanged = hoursChanged * 60 * 60 * 1000;
+      const pixelsPerHour = 64;
+      const hoursChanged = newHeight / pixelsPerHour;
+      const millisecondsChanged = hoursChanged * 60 * 60 * 1000;
 
-    const newEndTime = new Date(
-      originalStartDate.getTime() + millisecondsChanged
-    );
+      const newEndTime = new Date(
+        originalStartDate.getTime() + millisecondsChanged
+      );
 
-    // Snap to nearest 15 minutes
-    const roundedEndTime = new Date(
-      Math.round(newEndTime.getTime() / (15 * 60 * 1000)) * (15 * 60 * 1000)
-    );
+      const roundedEndTime = new Date(
+        Math.round(newEndTime.getTime() / (15 * 60 * 1000)) * (15 * 60 * 1000)
+      );
 
-    // Minimum 15-minute duration
-    const minimumDuration = 15 * 60 * 1000;
-    const earliestEndTime = new Date(
-      originalStartDate.getTime() + minimumDuration
-    );
-    if (roundedEndTime < earliestEndTime) return;
+      const minimumDuration = 15 * 60 * 1000;
+      const earliestEndTime = new Date(
+        originalStartDate.getTime() + minimumDuration
+      );
+      if (roundedEndTime < earliestEndTime) return;
 
-    if (onResize) {
-      onResize(event.id, originalStartDate, roundedEndTime);
+      if (onResize) {
+        onResize(event.id, originalStartDate, roundedEndTime);
+      }
+    } else if (resizeType === 'horizontal') {
+      const deltaX = e.clientX - resizeStartX;
+      const newWidth = Math.max(120, initialWidth + deltaX);
+      cardRef.current.style.width = `${newWidth}px`;
+
+      if (onWidthResize) {
+        onWidthResize(event.id, newWidth);
+      }
     }
   };
 
   const handleResizeEnd = (e: MouseEvent) => {
     e.preventDefault();
 
-    // Don't reset the height immediately - let the new duration determine it
     setIsResizing(false);
+    setResizeType(null);
     setResizeStartY(0);
+    setResizeStartX(0);
     setOriginalStartDate(null);
     setOriginalEndDate(null);
     setInitialHeight(0);
+    setInitialWidth(0);
 
-    // Reset cursor and text selection
     document.body.style.cursor = '';
     document.body.style.userSelect = '';
   };
@@ -242,10 +273,13 @@ export const EventCard = ({
     }
   }, [
     isResizing,
+    resizeType,
     resizeStartY,
+    resizeStartX,
     originalStartDate,
     originalEndDate,
     initialHeight,
+    initialWidth,
   ]);
 
   const cardStyle = {
@@ -306,18 +340,33 @@ export const EventCard = ({
             </div>
           </div>
 
-          {/* Resize Handle - Only show for non-all-day events and non-minimized */}
+          {/* Vertical Resize Handle - Only show for non-all-day events and non-minimized */}
           {!(minimized || event.isAllDay) && (
             <div
-              className={`-translate-x-1/2 absolute bottom-0 left-1/2 h-2 w-8 transform cursor-ns-resize rounded-b-md bg-gradient-to-t from-white/30 to-transparent transition-all duration-200 hover:from-white/50 hover:to-white/10 ${isResizing ? 'from-white/60 opacity-100' : 'opacity-0 group-hover:opacity-100'}flex z-20 items-end justify-center pb-0.5 `}
+              className={`-translate-x-1/2 absolute bottom-0 left-1/2 h-2 w-8 transform cursor-ns-resize rounded-b-md bg-gradient-to-t from-white/30 to-transparent transition-all duration-200 hover:from-white/50 hover:to-white/10 ${isResizing && resizeType === 'vertical' ? 'from-white/60 opacity-100' : 'opacity-0 group-hover:opacity-100'}flex z-20 items-end justify-center pb-0.5 `}
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
               }}
-              onMouseDown={handleResizeStart}
+              onMouseDown={handleVerticalResizeStart}
               ref={resizeHandleRef}
             >
               <GripVertical className="h-2 w-2 text-white/80" />
+            </div>
+          )}
+
+          {/* Horizontal Resize Handle - Right side */}
+          {!(minimized || event.isAllDay) && (
+            <div
+              className={`-translate-y-1/2 absolute right-0 top-1/2 h-8 w-2 transform cursor-ew-resize rounded-r-md bg-gradient-to-l from-white/30 to-transparent transition-all duration-200 hover:from-white/50 hover:to-white/10 ${isResizing && resizeType === 'horizontal' ? 'from-white/60 opacity-100' : 'opacity-0 group-hover:opacity-100'}flex z-20 items-center justify-center pr-0.5 `}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+              }}
+              onMouseDown={handleHorizontalResizeStart}
+              ref={horizontalResizeHandleRef}
+            >
+              <GripHorizontal className="h-2 w-2 text-white/80" />
             </div>
           )}
 

@@ -448,7 +448,7 @@ export default function WeeklyView() {
 
           <div className="relative col-span-8 flex flex-col">
             <div
-              className="grid flex-grow gap-0 border-default-200 border-b bg-neutral-900"
+              className="sticky top-0 z-40 grid flex-grow gap-0 border-default-200 border-b bg-neutral-900 backdrop-blur"
               style={{
                 gridTemplateColumns: colWidth.map((w) => `${w}fr`).join(' '),
                 transition: isResizing
