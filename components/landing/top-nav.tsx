@@ -32,7 +32,7 @@ export default function TopNav({ className }: { className?: string }) {
     { name: 'Features', href: '#features' },
     { name: 'Pricing', href: '#pricing' },
     { name: 'Use Cases', href: '#use-cases' },
-    { name: 'Blog', href: '/blog' },
+    { name: 'Roadmap', href: '/roadmap' },
   ];
 
   if (!mounted) return null;
@@ -45,9 +45,9 @@ export default function TopNav({ className }: { className?: string }) {
     >
       <div className="container mx-auto px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
-          <div className="flex flex-row items-center justify-center gap-1">
+          <Link href="/" className="flex flex-row items-center justify-center gap-1">
             <Image alt="OpenCal" height={50} src="/logo-oc.svg" width={100} />
-          </div>
+          </Link>
 
           <div className="hidden items-center space-x-8 md:flex">
             {navItems.map((item) => (

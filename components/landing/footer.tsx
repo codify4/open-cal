@@ -4,105 +4,110 @@ import Link from 'next/link';
 import { XIcon } from '@/lib/lucide/custom-icons';
 
 interface FooterLink {
-  href: string;
-  icon: React.ReactNode;
-  label: string;
+    href: string;
+    icon?: React.ReactNode;
+    label: string;
 }
 
 interface FooterSection {
-  title?: string;
-  links: FooterLink[];
+    title?: string;
+    links: FooterLink[];
 }
 
 interface FooterProps {
-  sections?: FooterSection[];
-  className?: string;
+    sections?: FooterSection[];
+    className?: string;
 }
 
-function FooterLogo() {
-  return (
-    <div className="flex flex-col items-center justify-center text-center">
-      <div className="mb-3 flex items-center space-x-3">
-        <Image alt="Logo" height={50} src="/logo-oc.svg" width={120} />
-      </div>
-      <p className="mb-3 max-w-md text-muted-foreground leading-relaxed">
-        An Open Source AI alternative to Google Calendar.
-      </p>
-    </div>
-  );
+function FooterBrand() {
+    return (
+        <div className="flex flex-col space-y-4">
+            <div className="flex items-center space-x-3">
+                <Image alt="Logo" height={50} src="/logo-oc.svg" width={120} />
+            </div>
+            <p className="text-muted-foreground max-w-sm leading-relaxed">
+                The open source AI calendar that gets the job done. Simple, powerful, and works on any platform.
+            </p>
+            <div className="flex items-center space-x-4">
+                <Link href="/github" className="text-muted-foreground hover:text-white transition-colors">
+                    <Github className="h-5 w-5" />
+                </Link>
+                <Link href="/x" className="text-muted-foreground hover:text-white transition-colors">
+                    <XIcon className="h-5 w-5" />
+                </Link>
+            </div>
+        </div>
+    );
 }
 
 function FooterLinks({ links }: { links: FooterLink[] }) {
-  return (
-    <div className="flex flex-wrap justify-center gap-5 text-muted-foreground text-sm">
-      {links.map((link, index) => (
-        <Link
-          key={index}
-          className="flex items-center gap-2 py-2 transition-colors hover:text-white"
-          href={link.href}
-        >
-          {link.icon}
-          <span className="hover:underline">{link.label}</span>
-        </Link>
-      ))}
-    </div>
-  );
+    return (
+        <div className="flex flex-col space-y-2">
+            {links.map((link, index) => (
+                <Link
+                    key={index}
+                    className="text-muted-foreground hover:text-white transition-colors text-sm"
+                    href={link.href}
+                >
+                    {link.label}
+                </Link>
+            ))}
+        </div>
+    );
 }
 
 function FooterSection({ section }: { section: FooterSection }) {
-  return (
-    <div className="flex flex-col items-center space-y-3">
-      {section.title && (
-        <h3 className="text-sm font-semibold text-white">{section.title}</h3>
-      )}
-      <FooterLinks links={section.links} />
-    </div>
-  );
+    return (
+        <div className="flex flex-col space-y-3">
+            {section.title && (
+                <h3 className="text-white font-semibold text-sm">{section.title}</h3>
+            )}
+            <FooterLinks links={section.links} />
+        </div>
+    );
 }
 
 function FooterCopyright() {
-  return (
-    <div className="flex flex-col items-center border-border border-t pt-6 text-center">
-      <p className="text-sm text-muted-foreground">
-        © {new Date().getFullYear()} Digit. All rights reserved.
-      </p>
-    </div>
-  );
+    return (
+        <div className="text-muted-foreground text-sm">
+            © {new Date().getFullYear()} OpenCal, All Rights Reserved.
+        </div>
+    );
 }
 
-const defaultSocialLinks: FooterLink[] = [
+const resourcesLinks: FooterLink[] = [
+  {
+    href: '/roadmap',
+    label: 'Roadmap',
+  },
+  {
+    href: '/privacy',
+    label: 'Privacy policy',
+  },
+  {
+    href: '/terms',
+    label: 'Terms of use',
+  },
   {
     href: '/github',
-    icon: <Github className="h-4 w-4 text-white" />,
-    label: 'GitHub',
-  },
-  {
-    href: '/x',
-    icon: <XIcon className="h-4 w-4 text-white" />,
-    label: 'X(Twitter)',
+    label: 'Repository',
   },
 ];
-
 export function Footer({ sections = [], className = '' }: FooterProps) {
-  const allSections = sections.length > 0 ? sections : [
-    {
-      links: defaultSocialLinks,
-    },
-  ];
-
-  return (
-    <footer className={`flex items-center justify-center border-border/10 border-t bg-black ${className}`}>
-      <div className="container mx-auto flex flex-col items-center justify-center px-6 py-16 lg:px-8">
-        <FooterLogo />
-        
-        <div className="flex flex-col items-center space-y-6 w-full max-w-4xl">
-          {allSections.map((section, index) => (
-            <FooterSection key={index} section={section} />
-          ))}
-        </div>
-        
-        <FooterCopyright />
-      </div>
-    </footer>
-  );
+    return (
+        <footer className={`flex items-center justify-center p-10 border-border border-t bg-black ${className}`}>
+            <div className="flex flex-row justify-between w-1/2">
+                <FooterBrand />
+                
+                <div className="flex flex-col md:flex-row md:justify-end space-y-4 md:space-y-0 md:space-x-6">
+                    <FooterSection 
+                        section={{ 
+                            title: 'Resources', 
+                            links: resourcesLinks 
+                        }} 
+                    />
+                </div>
+            </div>
+        </footer>
+    );
 }

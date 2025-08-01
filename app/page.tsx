@@ -8,7 +8,7 @@ import { FAQSection } from '@/components/landing/faq';
 
 export default function HomePage() {
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="min-h-screen bg-neutral-950 text-foreground">
       <TopNav />
       <main className="bg-background">
         <HeroSection />

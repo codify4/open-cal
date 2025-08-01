@@ -42,7 +42,7 @@ export default function RootLayout({
         />
       </head>
       <body
-        className={`${geist.variable} bg-background text-foreground antialiased`}
+        className={`${geist.variable} bg-neutral-950 text-foreground antialiased`}
       >
         <ThemeProvider attribute="class" defaultTheme="dark">
           {children}
