@@ -29,7 +29,7 @@ export function SimpleChatMessage({
         <div className={cn(
           "max-w-xs rounded-lg px-3 py-2 text-sm",
           isUser 
-            ? "bg-blue-500 text-white" 
+            ? "bg-white text-black" 
             : "bg-muted text-foreground"
         )}>
           {message}

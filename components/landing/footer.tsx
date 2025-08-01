@@ -73,7 +73,7 @@ function FooterCopyright() {
 const defaultSocialLinks: FooterLink[] = [
   {
     href: '/github',
-    icon: <Github className="h-4 w-4" fill="white" />,
+    icon: <Github className="h-4 w-4 text-white" />,
     label: 'GitHub',
   },
   {
