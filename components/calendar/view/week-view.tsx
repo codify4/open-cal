@@ -142,11 +142,41 @@ export default function WeeklyView() {
       const targetDate = daysOfWeek[dayIndex];
       const dayEvents = events.filter((event) => {
         const eventDate = new Date(event.startDate);
+        const eventEndDate = new Date(event.endDate);
         const matches =
           eventDate.getDate() === targetDate.getDate() &&
           eventDate.getMonth() === targetDate.getMonth() &&
           eventDate.getFullYear() === targetDate.getFullYear();
-        return matches;
+        
+        const isAllDay = event.isAllDay || 
+          (eventDate.getHours() === 0 && eventDate.getMinutes() === 0 &&
+           eventEndDate.getHours() === 23 && eventEndDate.getMinutes() === 59) ||
+          event.type === 'birthday';
+        
+        return matches && !isAllDay;
+      });
+      return dayEvents;
+    },
+    [events, daysOfWeek]
+  );
+
+  const getAllDayEventsForDay = useCallback(
+    (dayIndex: number) => {
+      const targetDate = daysOfWeek[dayIndex];
+      const dayEvents = events.filter((event) => {
+        const eventDate = new Date(event.startDate);
+        const eventEndDate = new Date(event.endDate);
+        const matches =
+          eventDate.getDate() === targetDate.getDate() &&
+          eventDate.getMonth() === targetDate.getMonth() &&
+          eventDate.getFullYear() === targetDate.getFullYear();
+        
+        const isAllDay = event.isAllDay || 
+          (eventDate.getHours() === 0 && eventDate.getMinutes() === 0 &&
+           eventEndDate.getHours() === 23 && eventEndDate.getMinutes() === 59) ||
+          event.type === 'birthday';
+        
+        return matches && isAllDay;
       });
       return dayEvents;
     },
@@ -169,10 +199,10 @@ export default function WeeklyView() {
         `${hour12}:${Math.max(0, minutes).toString().padStart(2, '0')} ${ampm}`
       );
 
-      const offset = 30;
-      const position =
-        Math.max(0, Math.min(rect.height, Math.round(y))) + offset;
-      setTimelinePosition(position);
+      const allDayRowHeight = 32;
+      const adjustedY = y - allDayRowHeight;
+      const position = Math.max(0, Math.min(rect.height - allDayRowHeight, Math.round(adjustedY)));
+      setTimelinePosition(position + allDayRowHeight);
     },
     []
   );
@@ -484,19 +514,58 @@ export default function WeeklyView() {
               ))}
             </div>
 
-            {detailedHour && (
-              <div
-                className="pointer-events-none absolute left-0 z-50 flex h-[1px] w-full rounded-full bg-primary/40"
-                style={{ top: `${timelinePosition}px` }}
-              >
-                <Badge
-                  className="-translate-y-1/2 absolute left-[5px] z-50 bg-neutral-800 text-white text-xs"
-                  variant="outline"
-                >
-                  {detailedHour}
-                </Badge>
-              </div>
-            )}
+            <div
+              className="grid gap-0 border-default-200 border-b bg-neutral-900/50"
+              style={{
+                gridTemplateColumns: colWidth.map((w) => `${w}fr`).join(' '),
+                transition: isResizing
+                  ? 'none'
+                  : 'grid-template-columns 0.3s ease-in-out',
+              }}
+            >
+              {daysOfWeek.map((day, dayIndex) => {
+                const allDayEvents = getAllDayEventsForDay(dayIndex);
+                const maxVisibleEvents = 3;
+                const hasMoreEvents = allDayEvents.length > maxVisibleEvents;
+                const visibleEvents = allDayEvents.slice(0, maxVisibleEvents);
+
+                return (
+                  <div
+                    className="relative min-h-[32px] border-default-200 border-r p-1"
+                    key={`allday-${dayIndex}`}
+                  >
+                    <div className="flex flex-col gap-1">
+                      {visibleEvents.map((event, eventIndex) => (
+                        <motion.div
+                          animate={{ opacity: 1, scale: 1 }}
+                          className="flex-shrink-0"
+                          exit={{ opacity: 0, scale: 0.9 }}
+                          initial={{ opacity: 0, scale: 0.9 }}
+                          key={event.id}
+                          transition={{ duration: 0.2 }}
+                        >
+                          <EventCard
+                            event={event}
+                            minimized={true}
+                            onResize={(
+                              eventId,
+                              newStartDate,
+                              newEndDate
+                            ) => {
+                              updateEventTime(
+                                eventId,
+                                newStartDate,
+                                newEndDate
+                              );
+                            }}
+                          />
+                        </motion.div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
 
           <div
@@ -526,6 +595,19 @@ export default function WeeklyView() {
                   : 'grid-template-columns 0.3s ease-in-out',
               }}
             >
+              {detailedHour && (
+              <div
+                className="pointer-events-none absolute left-0 z-50 flex h-[1px] w-full rounded-full bg-primary/40"
+                style={{ top: `${timelinePosition}px` }}
+              >
+                <Badge
+                  className="-translate-y-1/2 absolute left-[5px] z-50 bg-neutral-800 text-white text-xs"
+                  variant="outline"
+                >
+                  {detailedHour}
+                </Badge>
+              </div>
+            )}
               {Array.from({ length: 7 }, (_, dayIndex) => {
                 const dayEvents = getEventsForDay(dayIndex);
 
