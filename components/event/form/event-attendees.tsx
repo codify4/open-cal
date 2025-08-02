@@ -56,9 +56,9 @@ export const EventAttendees = ({
             </PopoverTrigger>
             <PopoverContent
               align="start"
-              className="w-[300px] border-border bg-popover p-0"
+              className="w-[300px] border-border bg-popover dark:bg-neutral-900 p-0"
             >
-              <Command className="bg-popover">
+              <Command className="bg-popover dark:bg-neutral-900">
                 <CommandInput
                   className="text-foreground"
                   onValueChange={setAttendeeSearch}

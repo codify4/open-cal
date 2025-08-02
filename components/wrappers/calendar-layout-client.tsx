@@ -110,11 +110,11 @@ export function CalendarLayoutClient({
           direction="horizontal"
         >
           <ResizablePanel
-            className="overflow-hidden p-0 md:rounded-xl"
+            className="overflow-hidden p-0 md:rounded-xl shadow-sm"
             defaultSize={isChatSidebarOpen ? 70 : 100}
             minSize={30}
           >
-            <SidebarInset className="h-screen overflow-hidden border bg-white dark:bg-neutral-950 md:rounded-xl">
+            <SidebarInset className="h-screen overflow-hidden border bg-white dark:bg-neutral-900 md:rounded-xl">
               <div className="scrollbar-hide h-full overflow-y-auto">
                 {children}
               </div>
@@ -137,7 +137,7 @@ export function CalendarLayoutClient({
                     isFullscreen={isChatFullscreen}
                     onToggleFullscreen={toggleFullscreen}
                     onToggleSidebar={closeChatSidebar}
-                    className="bg-white dark:bg-neutral-950"
+                    className="bg-white dark:bg-neutral-900"
                   />
                 </div>
               </ResizablePanel>

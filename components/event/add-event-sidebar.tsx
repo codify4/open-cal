@@ -123,7 +123,7 @@ const AddEventSidebar = ({ onClick }: AddEventProps) => {
             <SelectTrigger className="w-32 cursor-pointer rounded-sm border-border bg-transparent px-2 py-0 font-semibold text-sm text-foreground hover:bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0">
               <SelectValue />
             </SelectTrigger>
-            <SelectContent className="border-border bg-popover">
+            <SelectContent className="border-border bg-popover dark:bg-neutral-900">
               <SelectItem
                 className="cursor-pointer text-popover-foreground hover:bg-accent"
                 value="event"

@@ -33,7 +33,7 @@ export const EventSettings = ({
           <SelectTrigger className="h-8 w-full border-border bg-background text-sm text-foreground hover:bg-accent">
             <SelectValue placeholder="Add meeting" />
           </SelectTrigger>
-          <SelectContent className="border-border bg-popover">
+          <SelectContent className="border-border bg-popover dark:bg-neutral-900">
             <SelectItem
               className="text-popover-foreground hover:bg-accent"
               value="google-meet"
@@ -83,7 +83,7 @@ export const EventSettings = ({
               )}
             </SelectValue>
           </SelectTrigger>
-          <SelectContent className="border-border bg-popover">
+          <SelectContent className="border-border bg-popover dark:bg-neutral-900">
             <SelectItem
               className="text-popover-foreground hover:bg-accent"
               value="john.doe@gmail.com"
@@ -130,7 +130,7 @@ export const EventSettings = ({
           <SelectTrigger className="h-8 w-full border-border bg-background text-sm text-foreground hover:bg-accent">
             <SelectValue placeholder="Color" />
           </SelectTrigger>
-          <SelectContent className="border-border bg-popover">
+          <SelectContent className="border-border bg-popover dark:bg-neutral-900">
             <SelectItem
               className="text-popover-foreground hover:bg-accent"
               value="blue"

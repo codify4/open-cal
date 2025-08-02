@@ -27,7 +27,7 @@ export const EventBasicInfo = ({
 
       <Label className="sr-only">Event Description</Label>
       <Textarea
-        className="min-h-[60px] resize-none border-border bg-background text-sm text-foreground placeholder:text-muted-foreground focus-visible:ring-0 focus-visible:ring-offset-0"
+        className="min-h-[60px] resize-none border-border  text-sm text-foreground placeholder:text-muted-foreground focus-visible:ring-0 focus-visible:ring-offset-0"
         onChange={(e) => onDescriptionChange(e.target.value)}
         placeholder="Add description..."
         value={description}

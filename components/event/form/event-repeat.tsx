@@ -20,7 +20,7 @@ export const EventRepeat = ({ repeat, onRepeatChange }: EventRepeatProps) => {
         <SelectTrigger className="h-8 flex-1 border-border bg-background text-sm text-foreground hover:bg-accent">
           <SelectValue placeholder="Does not repeat" />
         </SelectTrigger>
-        <SelectContent className="border-border bg-popover">
+        <SelectContent className="border-border bg-popover dark:bg-neutral-900">
           <SelectItem className="text-popover-foreground hover:bg-accent" value="none">
             Does not repeat
           </SelectItem>

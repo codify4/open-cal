@@ -182,7 +182,7 @@ export default function CalendarView({
   return (
     <div className="flex w-full flex-col gap-6 p-2">
       <div className="flex w-full">
-        <div className="dayly-weekly-monthly-selection relative w-full">
+        <div className="relative w-full">
           <Tabs
             className={cn('w-full', classNames?.tabs)}
             onValueChange={handleViewChange}

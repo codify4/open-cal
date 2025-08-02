@@ -90,14 +90,14 @@ export const EventCard = ({
 
   const getColorClasses = (color: string) => {
     const colorMap: Record<string, string> = {
-      blue: 'bg-blue-500/20 border-blue-500/30 text-blue-700 dark:text-blue-100',
-      green: 'bg-green-500/20 border-green-500/30 text-green-700 dark:text-green-100',
-      purple: 'bg-purple-500/20 border-purple-500/30 text-purple-700 dark:text-purple-100',
-      orange: 'bg-orange-500/20 border-orange-500/30 text-orange-700 dark:text-orange-100',
-      red: 'bg-red-500/20 border-red-500/30 text-red-700 dark:text-red-100',
-      pink: 'bg-pink-500/20 border-pink-500/30 text-pink-700 dark:text-pink-100',
-      yellow: 'bg-yellow-500/20 border-yellow-500/30 text-yellow-700 dark:text-yellow-100',
-      gray: 'bg-gray-500/20 border-gray-500/30 text-gray-700 dark:text-gray-100',
+      blue: 'bg-blue-500/20 border-blue-500/30 text-blue-700 dark:bg-blue-500/40 dark:text-blue-100',
+      green: 'bg-green-500/20 border-green-500/30 text-green-700 dark:bg-green-500/40 dark:text-green-100',
+      purple: 'bg-purple-500/20 border-purple-500/30 text-purple-700 dark:bg-purple-500/40 dark:text-purple-100',
+      orange: 'bg-orange-500/20 border-orange-500/30 text-orange-700 dark:bg-orange-500/40 dark:text-orange-100',
+      red: 'bg-red-500/20 border-red-500/30 text-red-700 dark:bg-red-500/40 dark:text-red-100',
+      pink: 'bg-pink-500/20 border-pink-500/30 text-pink-700 dark:bg-pink-500/40 dark:text-pink-100',
+      yellow: 'bg-yellow-500/20 border-yellow-500/30 text-yellow-700 dark:bg-yellow-500/40 dark:text-yellow-100',
+      gray: 'bg-gray-500/20 border-gray-500/30 text-gray-700 dark:bg-gray-500/40 dark:text-gray-100',
     };
     return colorMap[color] || colorMap.blue;
   };

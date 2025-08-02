@@ -33,7 +33,7 @@ const EventActionsDropdown = ({
           <MoreHorizontal className="h-4 w-4" />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="min-w-[180px] border-border bg-popover p-2 text-popover-foreground">
+      <DropdownMenuContent className="min-w-[180px] border-border bg-popover dark:bg-neutral-900 p-2 text-popover-foreground">
         <DropdownMenuItem
           className="flex cursor-pointer items-center justify-between p-1 text-popover-foreground hover:bg-accent"
           onClick={onCut}
@@ -81,7 +81,7 @@ const EventActionsDropdown = ({
           variant="destructive"
         >
           <div className="flex items-center gap-2">
-            <Trash2 className="h-4 w-4" />
+            <Trash2 className="h-4 w-4 text-destructive" />
             <span>Delete</span>
           </div>
           <Kbd className="rounded-[10px] border-0 bg-transparent text-destructive text-xs">

@@ -587,7 +587,7 @@ export default function WeeklyView() {
             </div>
 
             <div
-              className="col-span-8 grid h-full bg-background"
+              className="col-span-8 grid h-full"
               style={{
                 gridTemplateColumns: colWidth.map((w) => `${w}fr`).join(' '),
                 transition: isResizing
@@ -596,18 +596,18 @@ export default function WeeklyView() {
               }}
             >
               {detailedHour && (
-              <div
-                className="pointer-events-none absolute left-0 z-50 flex h-[1px] w-full rounded-full bg-primary/40"
-                style={{ top: `${timelinePosition}px` }}
-              >
-                <Badge
-                  className="-translate-y-1/2 absolute left-[5px] z-50 bg-card text-card-foreground text-xs"
-                  variant="outline"
+                <div
+                  className="pointer-events-none absolute left-0 z-50 flex h-[1px] w-full rounded-full bg-primary/40"
+                  style={{ top: `${timelinePosition}px` }}
                 >
-                  {detailedHour}
-                </Badge>
-              </div>
-            )}
+                  <Badge
+                    className="-translate-y-1/2 absolute left-[5px] z-50 bg-card text-card-foreground text-xs"
+                    variant="outline"
+                  >
+                    {detailedHour}
+                  </Badge>
+                </div>
+              )}
               {Array.from({ length: 7 }, (_, dayIndex) => {
                 const dayEvents = getEventsForDay(dayIndex);
 
