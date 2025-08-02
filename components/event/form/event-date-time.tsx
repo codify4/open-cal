@@ -58,15 +58,15 @@ const TimePicker = ({
   return (
     <Select onValueChange={onChange} value={value}>
       <SelectTrigger
-        className="h-8 w-25 border-neutral-700 bg-neutral-800/50 text-sm text-white hover:bg-neutral-700"
+        className="h-8 w-25 border-border bg-background text-sm text-foreground hover:bg-accent"
         size="sm"
       >
         <SelectValue>{formatTime(value)}</SelectValue>
       </SelectTrigger>
-      <SelectContent className="max-h-[200px] border-neutral-700 bg-neutral-900">
+      <SelectContent className="max-h-[200px] border-border bg-popover">
         {timeOptions.map((time) => (
           <SelectItem
-            className="text-white hover:bg-neutral-800"
+            className="text-popover-foreground hover:bg-accent"
             key={time}
             value={time}
           >
@@ -106,13 +106,13 @@ export const EventDateTime = ({
 }: EventDateTimeProps) => {
   return (
     <div className="space-y-3">
-      <div className="flex items-center gap-2 text-neutral-300 text-sm">
+      <div className="flex items-center gap-2 text-muted-foreground text-sm">
         <Clock className="h-4 w-4" />
         <div className="flex items-center gap-2">
           <Popover>
             <PopoverTrigger asChild>
               <Button
-                className="h-8 border-neutral-700 bg-neutral-800/50 text-sm text-white hover:bg-neutral-700"
+                className="h-8 border-border bg-background text-sm text-foreground hover:bg-accent"
                 variant="outline"
               >
                 {formatDate(startDate)}
@@ -120,11 +120,11 @@ export const EventDateTime = ({
             </PopoverTrigger>
             <PopoverContent
               align="start"
-              className="w-auto border-neutral-700 bg-neutral-900 p-0"
+              className="w-auto border-border bg-popover p-0"
             >
-              <div className="border-neutral-700 border-b p-2">
+              <div className="border-border border-b p-2">
                 <CalendarComponent
-                  className="bg-neutral-900 p-2"
+                  className="bg-popover p-2"
                   initialFocus
                   mode="single"
                   onSelect={(date) => date && onStartDateChange(date)}
@@ -138,7 +138,7 @@ export const EventDateTime = ({
             <>
               <TimePicker onChange={onStartTimeChange} value={startTime} />
 
-              <span className="text-neutral-500">-</span>
+              <span className="text-muted-foreground">-</span>
 
               <TimePicker onChange={onEndTimeChange} value={endTime} />
             </>
@@ -149,11 +149,11 @@ export const EventDateTime = ({
       <div className="flex items-center gap-2">
         <Checkbox
           checked={isAllDay}
-          className="border-neutral-600"
+          className="border-border"
           id="all-day"
           onCheckedChange={onAllDayChange}
         />
-        <Label className="text-neutral-300 text-sm" htmlFor="all-day">
+        <Label className="text-muted-foreground text-sm" htmlFor="all-day">
           All day
         </Label>
       </div>

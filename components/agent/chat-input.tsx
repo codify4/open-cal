@@ -51,11 +51,13 @@ export function ChatInput({
         <div
           className={cn(
             'flex flex-col items-end gap-2 rounded-2xl border-2 p-2 transition-all duration-200',
-            isFocused ? 'border-primary/50' : 'border-border bg-background'
+            isFocused 
+              ? 'border-primary/50 bg-background' 
+              : 'border-border bg-background/50'
           )}
         >
           <Textarea
-            className="resize-none border-0 bg-transparent p-2 text-sm focus-visible:border-primary/50 focus-visible:ring-0 focus-visible:ring-offset-0"
+            className="resize-none border-0 bg-transparent p-2 text-sm text-foreground placeholder:text-muted-foreground focus-visible:border-primary/50 focus-visible:ring-0 focus-visible:ring-offset-0"
             disabled={disabled}
             onBlur={() => setIsFocused(false)}
             onChange={(e) => onChange(e.target.value)}

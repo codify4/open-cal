@@ -88,7 +88,7 @@ export const BirthdayForm = ({ event, onSave }: BirthdayFormProps) => {
       <div className="space-y-2">
         <Label className="sr-only">Birthday Title</Label>
         <Input
-          className="h-9 border-neutral-700 bg-neutral-800/50 font-medium text-sm text-white placeholder:text-neutral-400 focus-visible:ring-0 focus-visible:ring-offset-0"
+          className="h-9 border-border bg-background font-medium text-sm text-foreground placeholder:text-muted-foreground focus-visible:ring-0 focus-visible:ring-offset-0"
           onChange={(e) => updateBirthdayData({ title: e.target.value })}
           placeholder="Birthday"
           value={birthdayData.title}
@@ -96,12 +96,12 @@ export const BirthdayForm = ({ event, onSave }: BirthdayFormProps) => {
       </div>
 
       <div className="space-y-3">
-        <div className="flex items-center gap-2 text-neutral-300 text-sm">
+        <div className="flex items-center gap-2 text-muted-foreground text-sm">
           <Clock className="h-4 w-4" />
           <Popover>
             <PopoverTrigger asChild>
               <Button
-                className="h-8 rounded-sm border-neutral-700 bg-neutral-800/50 text-sm text-white hover:bg-neutral-700"
+                className="h-8 rounded-sm border-border bg-background text-sm text-foreground hover:bg-accent"
                 variant="outline"
               >
                 {formatDate(birthdayData.date)}
@@ -109,11 +109,11 @@ export const BirthdayForm = ({ event, onSave }: BirthdayFormProps) => {
             </PopoverTrigger>
             <PopoverContent
               align="start"
-              className="w-auto border-neutral-700 bg-neutral-900 p-0"
+              className="w-auto border-border bg-popover p-0"
             >
-              <div className="border-neutral-700 border-b p-2">
+              <div className="border-border border-b p-2">
                 <CalendarComponent
-                  className="bg-neutral-900 p-2"
+                  className="bg-popover p-2"
                   initialFocus
                   mode="single"
                   onSelect={(date) => date && updateBirthdayData({ date })}
@@ -124,20 +124,20 @@ export const BirthdayForm = ({ event, onSave }: BirthdayFormProps) => {
           </Popover>
         </div>
 
-        <div className="flex items-center gap-2 text-neutral-300 text-sm">
+        <div className="flex items-center gap-2 text-muted-foreground text-sm">
           <Repeat className="h-4 w-4" />
-          <div className="flex h-8 items-center rounded-sm border border-neutral-700 bg-neutral-800/50 px-2 text-neutral-400">
+          <div className="flex h-8 items-center rounded-sm border border-border bg-background px-2 text-muted-foreground">
             {formatRecurrence(birthdayData.recurrence)}
           </div>
         </div>
 
-        <div className="flex items-center gap-2 text-neutral-300 text-sm">
+        <div className="flex items-center gap-2 text-muted-foreground text-sm">
           <User className="h-4 w-4" />
           <Select
             onValueChange={(value) => updateBirthdayData({ account: value })}
             value={birthdayData.account}
           >
-            <SelectTrigger className="h-8 flex-1 border-neutral-700 bg-neutral-800/50 text-sm text-white hover:bg-neutral-700">
+            <SelectTrigger className="h-8 flex-1 border-border bg-background text-sm text-foreground hover:bg-accent">
               <SelectValue placeholder="Select account">
                 {birthdayData.account && (
                   <div className="flex items-center gap-2">
@@ -151,7 +151,7 @@ export const BirthdayForm = ({ event, onSave }: BirthdayFormProps) => {
                               ? 'bg-green-500'
                               : birthdayData.account === 'personal@icloud.com'
                                 ? 'bg-purple-500'
-                                : 'bg-neutral-500'
+                                : 'bg-muted'
                       }`}
                     />
                     {birthdayData.account}
@@ -159,9 +159,9 @@ export const BirthdayForm = ({ event, onSave }: BirthdayFormProps) => {
                 )}
               </SelectValue>
             </SelectTrigger>
-            <SelectContent className="border-neutral-700 bg-neutral-900">
+            <SelectContent className="border-border bg-popover">
               <SelectItem
-                className="text-white hover:bg-neutral-800"
+                className="text-popover-foreground hover:bg-accent"
                 value="john.doe@gmail.com"
               >
                 <div className="flex items-center gap-2">
@@ -170,7 +170,7 @@ export const BirthdayForm = ({ event, onSave }: BirthdayFormProps) => {
                 </div>
               </SelectItem>
               <SelectItem
-                className="text-white hover:bg-neutral-800"
+                className="text-popover-foreground hover:bg-accent"
                 value="jane.smith@outlook.com"
               >
                 <div className="flex items-center gap-2">
@@ -179,7 +179,7 @@ export const BirthdayForm = ({ event, onSave }: BirthdayFormProps) => {
                 </div>
               </SelectItem>
               <SelectItem
-                className="text-white hover:bg-neutral-800"
+                className="text-popover-foreground hover:bg-accent"
                 value="work@company.com"
               >
                 <div className="flex items-center gap-2">
@@ -188,7 +188,7 @@ export const BirthdayForm = ({ event, onSave }: BirthdayFormProps) => {
                 </div>
               </SelectItem>
               <SelectItem
-                className="text-white hover:bg-neutral-800"
+                className="text-popover-foreground hover:bg-accent"
                 value="personal@icloud.com"
               >
                 <div className="flex items-center gap-2">

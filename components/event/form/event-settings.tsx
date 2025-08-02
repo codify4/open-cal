@@ -26,16 +26,16 @@ export const EventSettings = ({
   onColorChange,
 }: EventSettingsProps) => {
   return (
-    <div className="flex flex-col gap-2 text-neutral-300 text-sm">
+    <div className="flex flex-col gap-2 text-muted-foreground text-sm">
       <div className="flex items-center gap-2 ">
         <Video className="h-4 w-4" />
         <Select onValueChange={onMeetingTypeChange} value={meetingType}>
-          <SelectTrigger className="h-8 w-full border-neutral-700 bg-neutral-800/50 text-sm text-white hover:bg-neutral-700">
+          <SelectTrigger className="h-8 w-full border-border bg-background text-sm text-foreground hover:bg-accent">
             <SelectValue placeholder="Add meeting" />
           </SelectTrigger>
-          <SelectContent className="border-neutral-700 bg-neutral-900">
+          <SelectContent className="border-border bg-popover">
             <SelectItem
-              className="text-white hover:bg-neutral-800"
+              className="text-popover-foreground hover:bg-accent"
               value="google-meet"
             >
               <div className="flex items-center gap-2">
@@ -48,10 +48,10 @@ export const EventSettings = ({
                 Google Meet
               </div>
             </SelectItem>
-            <SelectItem className="text-neutral-500" disabled value="none">
+            <SelectItem className="text-muted-foreground" disabled value="none">
               Zoom (Coming soon)
             </SelectItem>
-            <SelectItem className="text-neutral-500" disabled value="none">
+            <SelectItem className="text-muted-foreground" disabled value="none">
               Teams (Coming soon)
             </SelectItem>
           </SelectContent>
@@ -61,7 +61,7 @@ export const EventSettings = ({
       <div className="flex items-center gap-2">
         <Calendar className="h-4 w-4" />
         <Select onValueChange={onCalendarChange} value={calendar}>
-          <SelectTrigger className="h-8 w-full border-neutral-700 bg-neutral-800/50 text-sm text-white hover:bg-neutral-700">
+          <SelectTrigger className="h-8 w-full border-border bg-background text-sm text-foreground hover:bg-accent">
             <SelectValue placeholder="Select email account">
               {calendar && (
                 <div className="flex items-center gap-2">
@@ -75,7 +75,7 @@ export const EventSettings = ({
                             ? 'bg-green-500'
                             : calendar === 'personal@icloud.com'
                               ? 'bg-purple-500'
-                              : 'bg-neutral-500'
+                              : 'bg-muted'
                     }`}
                   />
                   {calendar}
@@ -83,9 +83,9 @@ export const EventSettings = ({
               )}
             </SelectValue>
           </SelectTrigger>
-          <SelectContent className="border-neutral-700 bg-neutral-900">
+          <SelectContent className="border-border bg-popover">
             <SelectItem
-              className="text-white hover:bg-neutral-800"
+              className="text-popover-foreground hover:bg-accent"
               value="john.doe@gmail.com"
             >
               <div className="flex items-center gap-2">
@@ -94,7 +94,7 @@ export const EventSettings = ({
               </div>
             </SelectItem>
             <SelectItem
-              className="text-white hover:bg-neutral-800"
+              className="text-popover-foreground hover:bg-accent"
               value="jane.smith@outlook.com"
             >
               <div className="flex items-center gap-2">
@@ -103,7 +103,7 @@ export const EventSettings = ({
               </div>
             </SelectItem>
             <SelectItem
-              className="text-white hover:bg-neutral-800"
+              className="text-popover-foreground hover:bg-accent"
               value="work@company.com"
             >
               <div className="flex items-center gap-2">
@@ -112,7 +112,7 @@ export const EventSettings = ({
               </div>
             </SelectItem>
             <SelectItem
-              className="text-white hover:bg-neutral-800"
+              className="text-popover-foreground hover:bg-accent"
               value="personal@icloud.com"
             >
               <div className="flex items-center gap-2">
@@ -127,12 +127,12 @@ export const EventSettings = ({
       <div className="flex items-center gap-2">
         <Tag className="h-4 w-4" />
         <Select onValueChange={onColorChange} value={color}>
-          <SelectTrigger className="h-8 w-full border-neutral-700 bg-neutral-800/50 text-sm text-white hover:bg-neutral-700">
+          <SelectTrigger className="h-8 w-full border-border bg-background text-sm text-foreground hover:bg-accent">
             <SelectValue placeholder="Color" />
           </SelectTrigger>
-          <SelectContent className="border-neutral-700 bg-neutral-900">
+          <SelectContent className="border-border bg-popover">
             <SelectItem
-              className="text-white hover:bg-neutral-800"
+              className="text-popover-foreground hover:bg-accent"
               value="blue"
             >
               <div className="flex items-center gap-2">
@@ -141,7 +141,7 @@ export const EventSettings = ({
               </div>
             </SelectItem>
             <SelectItem
-              className="text-white hover:bg-neutral-800"
+              className="text-popover-foreground hover:bg-accent"
               value="green"
             >
               <div className="flex items-center gap-2">
@@ -149,14 +149,14 @@ export const EventSettings = ({
                 Green
               </div>
             </SelectItem>
-            <SelectItem className="text-white hover:bg-neutral-800" value="red">
+            <SelectItem className="text-popover-foreground hover:bg-accent" value="red">
               <div className="flex items-center gap-2">
                 <div className="h-3 w-3 rounded-full bg-red-500" />
                 Red
               </div>
             </SelectItem>
             <SelectItem
-              className="text-white hover:bg-neutral-800"
+              className="text-popover-foreground hover:bg-accent"
               value="yellow"
             >
               <div className="flex items-center gap-2">
@@ -165,7 +165,7 @@ export const EventSettings = ({
               </div>
             </SelectItem>
             <SelectItem
-              className="text-white hover:bg-neutral-800"
+              className="text-popover-foreground hover:bg-accent"
               value="purple"
             >
               <div className="flex items-center gap-2">
@@ -174,7 +174,7 @@ export const EventSettings = ({
               </div>
             </SelectItem>
             <SelectItem
-              className="text-white hover:bg-neutral-800"
+              className="text-popover-foreground hover:bg-accent"
               value="orange"
             >
               <div className="flex items-center gap-2">

@@ -104,9 +104,9 @@ export function CalendarLayoutClient({
   return (
     <DndContext onDragEnd={handleDragEnd} onDragStart={handleDragStart}>
       <SidebarProvider>
-        <AppSidebar className="border-none bg-neutral-950" variant="inset" />
+        <AppSidebar className="border-none bg-white dark:bg-neutral-950" variant="inset" />
         <ResizablePanelGroup
-          className="min-h-screen gap-1 md:p-1.5"
+          className="bg-white dark:bg-neutral-950 min-h-screen gap-1 md:p-1.5"
           direction="horizontal"
         >
           <ResizablePanel
@@ -114,7 +114,7 @@ export function CalendarLayoutClient({
             defaultSize={isChatSidebarOpen ? 70 : 100}
             minSize={30}
           >
-            <SidebarInset className="h-screen overflow-hidden bg-neutral-900 md:rounded-xl">
+            <SidebarInset className="h-screen overflow-hidden border bg-white dark:bg-neutral-950 md:rounded-xl">
               <div className="scrollbar-hide h-full overflow-y-auto">
                 {children}
               </div>
@@ -127,7 +127,7 @@ export function CalendarLayoutClient({
                 withHandle
               />
               <ResizablePanel
-                className="rounded-lg bg-neutral-900 p-2"
+                className="rounded-lg bg-white dark:bg-neutral-900 border p-2"
                 defaultSize={30}
                 maxSize={50}
                 minSize={20}
@@ -137,6 +137,7 @@ export function CalendarLayoutClient({
                     isFullscreen={isChatFullscreen}
                     onToggleFullscreen={toggleFullscreen}
                     onToggleSidebar={closeChatSidebar}
+                    className="bg-white dark:bg-neutral-950"
                   />
                 </div>
               </ResizablePanel>
@@ -149,7 +150,7 @@ export function CalendarLayoutClient({
                 withHandle
               />
               <ResizablePanel
-                className="min-w-[400px] rounded-lg bg-neutral-900 p-2"
+                className="min-w-[400px] rounded-lg border bg-white dark:bg-neutral-900 p-2"
                 defaultSize={30}
                 maxSize={50}
                 minSize={20}
@@ -162,7 +163,7 @@ export function CalendarLayoutClient({
           )}
         </ResizablePanelGroup>
         {isChatFullscreen && (
-          <div className="fixed inset-0 z-50 bg-neutral-900 p-5">
+          <div className="fixed inset-0 z-50 bg-white dark:bg-neutral-900 p-5">
             <ChatSidebar
               isFullscreen={true}
               onToggleFullscreen={toggleFullscreen}

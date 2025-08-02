@@ -41,14 +41,14 @@ export const EventReminders = ({
   };
 
   return (
-    <div className="flex items-center gap-2 text-neutral-300 text-sm">
+    <div className="flex items-center gap-2 text-muted-foreground text-sm">
       <div className="flex w-full flex-col gap-2">
         <div className="flex w-full flex-row items-center gap-2">
           <Bell className="h-4 w-4" />
           <Popover>
             <PopoverTrigger asChild>
               <Button
-                className="h-9 w-full flex-1 justify-start border-neutral-700 bg-neutral-800/50 px-3 text-neutral-400 text-sm hover:bg-neutral-700"
+                className="h-9 w-full flex-1 justify-start border-border bg-background px-3 text-muted-foreground text-sm hover:bg-accent"
                 variant="outline"
               >
                 Add reminder
@@ -56,23 +56,23 @@ export const EventReminders = ({
             </PopoverTrigger>
             <PopoverContent
               align="start"
-              className="w-[300px] border-neutral-700 bg-neutral-900 p-0"
+              className="w-[300px] border-border bg-popover p-0"
             >
-              <Command className="bg-neutral-900">
+              <Command className="bg-popover">
                 <CommandInput
-                  className="text-white"
+                  className="text-foreground"
                   onValueChange={setReminderSearch}
                   placeholder="Search reminders..."
                   value={reminderSearch}
                 />
                 <CommandList>
-                  <CommandEmpty className="text-neutral-400">
+                  <CommandEmpty className="text-muted-foreground">
                     No reminders found.
                   </CommandEmpty>
                   <CommandGroup>
                     {filteredReminders.map((reminder) => (
                       <CommandItem
-                        className="flex items-center justify-between text-white hover:bg-neutral-800"
+                        className="flex items-center justify-between text-popover-foreground hover:bg-accent"
                         key={reminder.toString()}
                         onSelect={() =>
                           handleReminderToggle(new Date(reminder))
@@ -80,7 +80,7 @@ export const EventReminders = ({
                       >
                         <span>{reminder.toLocaleString()}</span>
                         {reminders.includes(new Date(reminder)) && (
-                          <div className="h-4 w-4 rounded-full bg-blue-500" />
+                          <div className="h-4 w-4 rounded-full bg-primary" />
                         )}
                       </CommandItem>
                     ))}
@@ -94,7 +94,7 @@ export const EventReminders = ({
           <div className="flex flex-1 flex-wrap gap-1">
             {reminders.map((reminder) => (
               <Badge
-                className="cursor-pointer text-black text-xs"
+                className="cursor-pointer text-xs"
                 key={reminder.toString()}
                 onClick={() => removeReminder(reminder)}
                 variant="default"

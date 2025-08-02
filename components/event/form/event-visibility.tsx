@@ -17,27 +17,27 @@ export const EventVisibility = ({
   onVisibilityChange,
 }: EventVisibilityProps) => {
   return (
-    <div className="flex items-center gap-2 text-neutral-300 text-sm">
+    <div className="flex items-center gap-2 text-muted-foreground text-sm">
       <Lock className="h-4 w-4" />
       <Select onValueChange={onVisibilityChange} value={visibility}>
-        <SelectTrigger className="h-8 flex-1 border-neutral-700 bg-neutral-800/50 text-sm hover:bg-neutral-700">
+        <SelectTrigger className="h-8 flex-1 border-border bg-background text-sm text-foreground hover:bg-accent">
           <SelectValue placeholder="Default visibility" />
         </SelectTrigger>
-        <SelectContent className="border-neutral-700 bg-neutral-900">
+        <SelectContent className="border-border bg-popover">
           <SelectItem
-            className="text-white hover:bg-neutral-800"
+            className="text-popover-foreground hover:bg-accent"
             value="default"
           >
             Default visibility
           </SelectItem>
           <SelectItem
-            className="text-white hover:bg-neutral-800"
+            className="text-popover-foreground hover:bg-accent"
             value="public"
           >
             Public
           </SelectItem>
           <SelectItem
-            className="text-white hover:bg-neutral-800"
+            className="text-popover-foreground hover:bg-accent"
             value="private"
           >
             Private

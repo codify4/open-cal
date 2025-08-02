@@ -35,7 +35,7 @@ export function ChatSidebar({
   return (
     <div
       className={cn(
-        'flex h-full flex-col text-white',
+        'flex h-full flex-col text-neutral-900 dark:text-white',
         isFullscreen ? 'mx-auto w-full max-w-4xl' : '',
         className
       )}
@@ -46,7 +46,7 @@ export function ChatSidebar({
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
-                className="h-8 w-8 text-white hover:bg-neutral-800"
+                className="h-8 w-8 text-neutral-900 dark:text-white hover:bg-neutral-100 dark:hover:bg-neutral-800"
                 onClick={isFullscreen ? onToggleFullscreen : onToggleSidebar}
                 size="icon"
                 variant="ghost"
@@ -54,14 +54,14 @@ export function ChatSidebar({
                 <X className="h-4 w-4" />
               </Button>
             </TooltipTrigger>
-            <TooltipContent className="bg-neutral-950 font-semibold text-white">
+            <TooltipContent className="bg-white dark:bg-neutral-950 font-semibold text-neutral-900 dark:text-white">
               <p>{isFullscreen ? 'Exit Fullscreen' : 'Close'}</p>
             </TooltipContent>
           </Tooltip>
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
-                className="h-8 w-8 text-white hover:bg-neutral-800"
+                className="h-8 w-8 text-neutral-900 dark:text-white hover:bg-neutral-100 dark:hover:bg-neutral-800"
                 onClick={onToggleFullscreen}
                 size="icon"
                 variant="ghost"
@@ -73,32 +73,32 @@ export function ChatSidebar({
                 )}
               </Button>
             </TooltipTrigger>
-            <TooltipContent className="bg-neutral-950 font-semibold text-white">
+            <TooltipContent className="bg-white dark:bg-neutral-950 font-semibold text-neutral-900 dark:text-white">
               <p>{isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}</p>
             </TooltipContent>
           </Tooltip>
           <Tooltip>
             <TooltipTrigger asChild>
-              <div className="flex items-center gap-2 rounded-md bg-neutral-800 px-2 py-1">
-                <MessageSquare className="h-4 w-4 text-white" />
-                <span className="text-sm text-white">0</span>
+              <div className="flex items-center gap-2 rounded-md bg-neutral-100 dark:bg-neutral-800 px-2 py-1">
+                <MessageSquare className="h-4 w-4 text-neutral-900 dark:text-white" />
+                <span className="text-sm text-neutral-900 dark:text-white">0</span>
               </div>
             </TooltipTrigger>
-            <TooltipContent className="bg-neutral-950 font-semibold text-white">
+            <TooltipContent className="bg-white dark:bg-neutral-950 font-semibold text-neutral-900 dark:text-white">
               <p>Messages left</p>
             </TooltipContent>
           </Tooltip>
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
-                className="h-8 w-8 text-white hover:bg-neutral-800"
+                className="h-8 w-8 text-neutral-900 dark:text-white hover:bg-neutral-100 dark:hover:bg-neutral-800"
                 size="icon"
                 variant="ghost"
               >
                 <Plus className="h-4 w-4" />
               </Button>
             </TooltipTrigger>
-            <TooltipContent className="bg-neutral-950 font-semibold text-white">
+            <TooltipContent className="bg-white dark:bg-neutral-950 font-semibold text-neutral-900 dark:text-white">
               <p>Add</p>
             </TooltipContent>
           </Tooltip>

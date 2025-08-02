@@ -76,11 +76,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
   return (
     <Sidebar
-      className="overflow-hidden border-none bg-neutral-950"
+      className="overflow-hidden border-none bg-white dark:bg-neutral-950"
       variant="inset"
       {...props}
     >
-      <SidebarContent className="scrollbar-hide border-none bg-neutral-950">
+      <SidebarContent className="scrollbar-hide border-none bg-white dark:bg-neutral-950">
         <CalendarPicker />
         <NavCalendars
           calendars={calendarList}
@@ -90,7 +90,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           selectedEmail={selectedEmail}
         />
       </SidebarContent>
-      <SidebarFooter className="border-none bg-neutral-950">
+      <SidebarFooter className="border-none bg-white dark:bg-neutral-950">
         <div className="mt-auto">
           <PremiumCard />
         </div>

@@ -17,7 +17,7 @@ const PremiumCard = () => {
 
   return (
     <Card
-      className={`relative mx-2 overflow-hidden rounded-xl border-none bg-neutral-900 py-4 text-white ${close ? 'hidden' : ''}`}
+      className={`relative mx-2 overflow-hidden rounded-xl border-none bg-white dark:bg-neutral-900 py-4 text-neutral-900 dark:text-white ${close ? 'hidden' : ''}`}
     >
       <ShineBorder
         className="absolute inset-0"
@@ -26,7 +26,7 @@ const PremiumCard = () => {
       <CardHeader className="px-4">
         <CardTitle className="flex items-center justify-between gap-2">
           <div className="flex flex-row items-center gap-2">
-            <Sparkles className="h-4 w-4" color="white" />
+            <Sparkles className="h-4 w-4 text-black dark:text-white" />
             <p className="font-medium text-sm">Premium</p>
           </div>
 
@@ -36,7 +36,7 @@ const PremiumCard = () => {
             size="icon"
             variant="ghost"
           >
-            <X className="h-4 w-4" color="white" />
+            <X className="h-4 w-4 text-black dark:text-white" />
           </Button>
         </CardTitle>
         <CardDescription>
@@ -44,7 +44,7 @@ const PremiumCard = () => {
         </CardDescription>
       </CardHeader>
       <CardContent className="px-4">
-        <Button className="w-full bg-white text-black hover:bg-white/80">
+        <Button className="w-full bg-black text-white hover:bg-black/80 dark:bg-white dark:text-black dark:hover:bg-white/80">
           Upgrade
         </Button>
       </CardContent>

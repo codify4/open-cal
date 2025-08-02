@@ -13,7 +13,6 @@ export function CalendarPicker() {
   const { selectedDate, currentDate, setSelectedDate, setCurrentDate } =
     useCalendarStore((state) => state);
 
-  // Sync selected date with current date when current date changes
   useEffect(() => {
     if (
       currentDate &&
@@ -35,7 +34,7 @@ export function CalendarPicker() {
       <SidebarGroupLabel className="sr-only">Calendar</SidebarGroupLabel>
       <SidebarMenu>
         <Calendar
-          className="rounded-md bg-neutral-950"
+          className="rounded-md bg-white dark:bg-neutral-950"
           mode="single"
           onSelect={handleDateSelect}
           selected={selectedDate}
