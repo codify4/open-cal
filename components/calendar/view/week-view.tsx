@@ -138,18 +138,19 @@ export default function WeeklyView() {
   }, []);
 
   const getEventsForDay = useCallback(
-    (day: number, currentDate: Date) => {
+    (dayIndex: number) => {
+      const targetDate = daysOfWeek[dayIndex];
       const dayEvents = events.filter((event) => {
         const eventDate = new Date(event.startDate);
         const matches =
-          eventDate.getDate() === day &&
-          eventDate.getMonth() === currentDate.getMonth() &&
-          eventDate.getFullYear() === currentDate.getFullYear();
+          eventDate.getDate() === targetDate.getDate() &&
+          eventDate.getMonth() === targetDate.getMonth() &&
+          eventDate.getFullYear() === targetDate.getFullYear();
         return matches;
       });
       return dayEvents;
     },
-    [events]
+    [events, daysOfWeek]
   );
 
   const handleMouseMove = useCallback(
@@ -526,10 +527,7 @@ export default function WeeklyView() {
               }}
             >
               {Array.from({ length: 7 }, (_, dayIndex) => {
-                const dayEvents = getEventsForDay(
-                  daysOfWeek[dayIndex % 7].getDate(),
-                  currentDate
-                );
+                const dayEvents = getEventsForDay(dayIndex);
 
                 const timeGroups = groupEventsByTimePeriod(dayEvents);
 
