@@ -111,7 +111,7 @@ const AddEventSidebar = ({ onClick }: AddEventProps) => {
   };
 
   return (
-    <div className="flex h-full flex-col gap-6 p-2 px-1 text-white">
+    <div className="flex h-full flex-col gap-6 p-2 px-1 text-foreground">
       <div className="mt-2 flex items-center justify-between">
         <div className="flex items-center">
           <Select
@@ -120,18 +120,18 @@ const AddEventSidebar = ({ onClick }: AddEventProps) => {
             }
             value={formType}
           >
-            <SelectTrigger className="w-32 cursor-pointer rounded-sm border-neutral-800 bg-transparent px-2 py-0 font-semibold text-sm text-white hover:bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0">
+            <SelectTrigger className="w-32 cursor-pointer rounded-sm border-border bg-transparent px-2 py-0 font-semibold text-sm text-foreground hover:bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0">
               <SelectValue />
             </SelectTrigger>
-            <SelectContent className="border-neutral-700 bg-neutral-900">
+            <SelectContent className="border-border bg-popover dark:bg-neutral-900">
               <SelectItem
-                className="cursor-pointer text-white hover:bg-neutral-800"
+                className="cursor-pointer text-popover-foreground hover:bg-accent"
                 value="event"
               >
                 Event
               </SelectItem>
               <SelectItem
-                className="cursor-pointer text-white hover:bg-neutral-800"
+                className="cursor-pointer text-popover-foreground hover:bg-accent"
                 value="birthday"
               >
                 Birthday
@@ -144,7 +144,7 @@ const AddEventSidebar = ({ onClick }: AddEventProps) => {
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
-                className="h-8 w-8 text-white hover:bg-neutral-800"
+                className="h-8 w-8 text-foreground hover:bg-accent"
                 disabled={!(isNewEvent || hasUnsavedChanges)}
                 onClick={handleManualSave}
                 size="icon"
@@ -153,7 +153,7 @@ const AddEventSidebar = ({ onClick }: AddEventProps) => {
                 <Save className="h-4 w-4" />
               </Button>
             </TooltipTrigger>
-            <TooltipContent className="bg-neutral-950 font-semibold text-white">
+            <TooltipContent className="bg-popover font-semibold text-popover-foreground">
               <p>Save</p>
             </TooltipContent>
           </Tooltip>
@@ -170,7 +170,7 @@ const AddEventSidebar = ({ onClick }: AddEventProps) => {
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
-                className="h-8 w-8 text-white hover:bg-neutral-800"
+                className="h-8 w-8 text-foreground hover:bg-accent"
                 onClick={handleClose}
                 size="icon"
                 variant="ghost"
@@ -178,7 +178,7 @@ const AddEventSidebar = ({ onClick }: AddEventProps) => {
                 <X className="h-4 w-4" />
               </Button>
             </TooltipTrigger>
-            <TooltipContent className="bg-neutral-950 font-semibold text-white">
+            <TooltipContent className="bg-popover font-semibold text-popover-foreground">
               <p>Close</p>
             </TooltipContent>
           </Tooltip>

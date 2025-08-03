@@ -69,7 +69,6 @@ export function Chat({
   const messagesRef = useRef(messages);
   messagesRef.current = messages;
 
-  // Enhanced stop function that marks pending tool calls as cancelled
   const handleStop = useCallback(() => {
     stop?.();
 
@@ -95,7 +94,7 @@ export function Chat({
               state: 'result',
               result: {
                 content: 'Tool execution was cancelled',
-                __cancelled: true, // Special marker to indicate cancellation
+                __cancelled: true,
               },
             } as const;
           }
@@ -215,7 +214,7 @@ export function Chat({
       >
         {({ files, setFiles }) => (
           <MessageInput
-            className="min-h-[80px] bg-neutral-950/80"
+            className="min-h-[80px] bg-background/80"
             files={files}
             isGenerating={isGenerating}
             onChange={handleInputChange}
@@ -280,7 +279,7 @@ export const ChatContainer = forwardRef<
 >(({ className, ...props }, ref) => {
   return (
     <div
-      className={cn('flex h-full flex-col bg-black text-white', className)}
+      className={cn('flex h-full flex-col bg-background text-foreground', className)}
       ref={ref}
       {...props}
     />

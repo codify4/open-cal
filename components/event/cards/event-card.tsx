@@ -90,14 +90,14 @@ export const EventCard = ({
 
   const getColorClasses = (color: string) => {
     const colorMap: Record<string, string> = {
-      blue: 'bg-blue-500/40 border-blue-600',
-      green: 'bg-green-500/40 border-green-600',
-      purple: 'bg-purple-500/40 border-purple-600',
-      orange: 'bg-orange-500/40 border-orange-600',
-      red: 'bg-red-500/40 border-red-600',
-      pink: 'bg-pink-500/40 border-pink-600',
-      yellow: 'bg-yellow-500/40 border-yellow-600',
-      gray: 'bg-gray-500/40 border-gray-600',
+      blue: 'bg-blue-500/20 border-blue-500/30 text-blue-700 dark:bg-blue-500/40 dark:text-blue-100',
+      green: 'bg-green-500/20 border-green-500/30 text-green-700 dark:bg-green-500/40 dark:text-green-100',
+      purple: 'bg-purple-500/20 border-purple-500/30 text-purple-700 dark:bg-purple-500/40 dark:text-purple-100',
+      orange: 'bg-orange-500/20 border-orange-500/30 text-orange-700 dark:bg-orange-500/40 dark:text-orange-100',
+      red: 'bg-red-500/20 border-red-500/30 text-red-700 dark:bg-red-500/40 dark:text-red-100',
+      pink: 'bg-pink-500/20 border-pink-500/30 text-pink-700 dark:bg-pink-500/40 dark:text-pink-100',
+      yellow: 'bg-yellow-500/20 border-yellow-500/30 text-yellow-700 dark:bg-yellow-500/40 dark:text-yellow-100',
+      gray: 'bg-gray-500/20 border-gray-500/30 text-gray-700 dark:bg-gray-500/40 dark:text-gray-100',
     };
     return colorMap[color] || colorMap.blue;
   };
@@ -294,7 +294,15 @@ export const EventCard = ({
     <ContextMenu>
       <ContextMenuTrigger>
         <div
-          className={`group relative rounded-sm border p-2 text-xs transition-all duration-200 hover:shadow-md ${getColorClasses(event.color)} ${event.isAllDay ? 'border-l-4' : ''} ${isClient && isDragging ? 'opacity-50' : ''} ${minimized ? 'max-h-[40px] min-h-[20px] overflow-hidden' : ''} ${isDragging ? 'z-[9998]' : ''} ${className} `}
+          className={cn(
+            'group relative rounded-sm border p-2 text-xs transition-all duration-200 hover:shadow-md',
+            getColorClasses(event.color),
+            event.isAllDay && 'border-l-4',
+            isClient && isDragging && 'opacity-50',
+            minimized && 'max-h-[40px] min-h-[20px] overflow-hidden',
+            isDragging && 'z-[9998]',
+            className
+          )}
           ref={cardRef}
           style={cardStyle}
         >
@@ -324,16 +332,16 @@ export const EventCard = ({
             <div className="flex flex-col items-start justify-between">
               <div className="flex min-w-0 flex-1 items-center gap-1">
                 {event.type === 'birthday' ? (
-                  <Cake className="h-3 w-3 text-white" />
+                  <Cake className="h-3 w-3" />
                 ) : (
-                  <Calendar className="h-3 w-3 text-white" />
+                  <Calendar className="h-3 w-3" />
                 )}
-                <h4 className="truncate font-medium text-white">
+                <h4 className="truncate font-medium">
                   {event.title || 'Untitled Event'}
                 </h4>
               </div>
               {!minimized && (
-                <p className="mt-1 truncate text-white/80 text-xs">
+                <p className="mt-1 truncate text-xs opacity-80">
                   {timeDisplay}
                 </p>
               )}
@@ -343,7 +351,11 @@ export const EventCard = ({
           {/* Vertical Resize Handle - Only show for non-all-day events and non-minimized */}
           {!(minimized || event.isAllDay) && (
             <div
-              className={`-translate-x-1/2 absolute bottom-0 left-1/2 h-2 w-8 transform cursor-ns-resize rounded-b-md bg-gradient-to-t from-white/30 to-transparent transition-all duration-200 hover:from-white/50 hover:to-white/10 ${isResizing && resizeType === 'vertical' ? 'from-white/60 opacity-100' : 'opacity-0 group-hover:opacity-100'}flex z-20 items-end justify-center pb-0.5 `}
+              className={cn(
+                'absolute bottom-0 left-1/2 h-2 w-8 -translate-x-1/2 transform cursor-ns-resize rounded-b-md bg-gradient-to-t from-foreground/20 to-transparent transition-all duration-200 hover:from-foreground/30 hover:to-foreground/5',
+                isResizing && resizeType === 'vertical' ? 'from-foreground/40 opacity-100' : 'opacity-0 group-hover:opacity-60',
+                'flex z-20 items-end justify-center pb-0.5'
+              )}
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
@@ -351,14 +363,18 @@ export const EventCard = ({
               onMouseDown={handleVerticalResizeStart}
               ref={resizeHandleRef}
             >
-              <GripVertical className="h-2 w-2 text-white/80" />
+              <GripVertical className="h-2 w-2 opacity-60" />
             </div>
           )}
 
           {/* Horizontal Resize Handle - Right side */}
           {!(minimized || event.isAllDay) && (
             <div
-              className={`-translate-y-1/2 absolute right-0 top-1/2 h-8 w-2 transform cursor-ew-resize rounded-r-md bg-gradient-to-l from-white/30 to-transparent transition-all duration-200 hover:from-white/50 hover:to-white/10 ${isResizing && resizeType === 'horizontal' ? 'from-white/60 opacity-100' : 'opacity-0 group-hover:opacity-100'}flex z-20 items-center justify-center pr-0.5 `}
+              className={cn(
+                'absolute right-0 top-1/2 h-8 w-2 -translate-y-1/2 transform cursor-ew-resize rounded-r-md bg-gradient-to-l from-foreground/20 to-transparent transition-all duration-200 hover:from-foreground/30 hover:to-foreground/5',
+                isResizing && resizeType === 'horizontal' ? 'from-foreground/40 opacity-100' : 'opacity-0 group-hover:opacity-60',
+                'flex z-20 items-center justify-center pr-0.5'
+              )}
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
@@ -366,37 +382,37 @@ export const EventCard = ({
               onMouseDown={handleHorizontalResizeStart}
               ref={horizontalResizeHandleRef}
             >
-              <GripHorizontal className="h-2 w-2 text-white/80" />
+              <GripHorizontal className="h-2 w-2 opacity-60" />
             </div>
           )}
 
           {isResizing && (
-            <div className="pointer-events-none absolute inset-0 rounded-sm border-2 border-white/50" />
+            <div className="pointer-events-none absolute inset-0 rounded-sm border-2 border-foreground/50" />
           )}
         </div>
       </ContextMenuTrigger>
 
-      <ContextMenuContent className="border-neutral-700 bg-neutral-900">
+      <ContextMenuContent className="bg-popover">
         <ContextMenuItem
-          className="cursor-pointer text-white hover:bg-neutral-800"
+          className="cursor-pointer"
           onClick={handleEdit}
         >
           Edit
         </ContextMenuItem>
         <ContextMenuItem
-          className="cursor-pointer text-white hover:bg-neutral-800"
+          className="cursor-pointer"
           onClick={handleDuplicate}
         >
           Duplicate
         </ContextMenuItem>
         <ContextMenuItem
-          className="cursor-pointer text-white hover:bg-neutral-800"
+          className="cursor-pointer"
           onClick={handleCopy}
         >
           Copy
         </ContextMenuItem>
         <ContextMenuItem
-          className="cursor-pointer text-red-400 hover:bg-red-900/20"
+          className="cursor-pointer text-destructive"
           onClick={handleDelete}
         >
           Delete

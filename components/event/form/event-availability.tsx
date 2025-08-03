@@ -17,27 +17,27 @@ export const EventAvailability = ({
   onAvailabilityChange,
 }: EventAvailabilityProps) => {
   return (
-    <div className="flex items-center gap-2 text-neutral-300 text-sm">
+    <div className="flex items-center gap-2 text-muted-foreground text-sm">
       <Briefcase className="h-4 w-4" />
       <Select onValueChange={onAvailabilityChange} value={availability}>
-        <SelectTrigger className="h-8 flex-1 border-neutral-700 bg-neutral-800/50 text-sm hover:bg-neutral-700">
+        <SelectTrigger className="h-8 flex-1 border-border bg-background text-sm text-foreground hover:bg-accent">
           <SelectValue placeholder="Busy" />
         </SelectTrigger>
-        <SelectContent className="border-neutral-700 bg-neutral-900">
-          <SelectItem className="text-white hover:bg-neutral-800" value="busy">
+        <SelectContent className="border-border bg-popover dark:bg-neutral-900">
+          <SelectItem className="text-popover-foreground hover:bg-accent" value="busy">
             Busy
           </SelectItem>
-          <SelectItem className="text-white hover:bg-neutral-800" value="free">
+          <SelectItem className="text-popover-foreground hover:bg-accent" value="free">
             Free
           </SelectItem>
           <SelectItem
-            className="text-white hover:bg-neutral-800"
+            className="text-popover-foreground hover:bg-accent"
             value="tentative"
           >
             Tentative
           </SelectItem>
           <SelectItem
-            className="text-white hover:bg-neutral-800"
+            className="text-popover-foreground hover:bg-accent"
             value="out-of-office"
           >
             Out of office

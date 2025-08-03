@@ -15,8 +15,8 @@ export function PromptSuggestions({
       <Image alt="OpenCal" height={80} src="/open-cal.svg" width={80} />
 
       <div className="flex flex-col items-center gap-2">
-        <h1 className="font-bold text-white text-xl">OpenCal Agent</h1>
-        <p className="text-neutral-400 text-sm">
+        <h1 className="font-bold text-foreground text-xl">OpenCal Agent</h1>
+        <p className="text-muted-foreground text-sm">
           Ask anything about your calendar
         </p>
       </div>
@@ -27,12 +27,12 @@ export function PromptSuggestions({
         <div className="mb-3 flex gap-3 overflow-x-hidden">
           {suggestions.slice(0, 3).map((suggestion, index) => (
             <Button
-              className="h-auto flex-shrink-0 cursor-pointer whitespace-nowrap rounded-sm border border-neutral-700 bg-neutral-900/50 p-2 text-left text-white transition-all duration-200 hover:border-neutral-600 hover:bg-neutral-800/80"
+              className="h-auto flex-shrink-0 cursor-pointer whitespace-nowrap rounded-sm border border-border bg-card/50 p-2 text-left text-card-foreground transition-all duration-200 hover:border-border/80 hover:bg-card/80"
               key={suggestion}
               onClick={() => append({ role: 'user', content: suggestion })}
               variant="outline"
             >
-              <span className="text-sm text-white leading-relaxed">
+              <span className="text-sm text-card-foreground leading-relaxed">
                 {suggestion}
               </span>
             </Button>
@@ -42,12 +42,12 @@ export function PromptSuggestions({
         <div className="flex gap-3 overflow-x-hidden">
           {suggestions.slice(3, 6).map((suggestion, index) => (
             <Button
-              className="h-auto flex-shrink-0 whitespace-nowrap rounded-sm border border-neutral-700 bg-neutral-900/50 p-2 text-left text-white transition-all duration-200 hover:border-neutral-600 hover:bg-neutral-800/80"
+              className="h-auto flex-shrink-0 whitespace-nowrap rounded-sm border border-border bg-card/50 p-2 text-left text-card-foreground transition-all duration-200 hover:border-border/80 hover:bg-card/80"
               key={suggestion}
               onClick={() => append({ role: 'user', content: suggestion })}
               variant="outline"
             >
-              <span className="text-sm text-white leading-relaxed">
+              <span className="text-sm text-card-foreground leading-relaxed">
                 {suggestion}
               </span>
             </Button>
