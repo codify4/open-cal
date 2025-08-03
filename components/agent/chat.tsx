@@ -125,7 +125,7 @@ export function Chat({
       ) : null}
 
       {messages.length > 0 ? (
-        <div className="flex-1 overflow-scroll">
+        <div className="flex-1 overflow-scroll scrollbar-hide">
           <ChatMessages messages={messages}>
             <MessageList
               isTyping={isTyping}
@@ -137,13 +137,13 @@ export function Chat({
       ) : null}
 
       <ChatForm
-        className="mt-auto flex-shrink-0"
+        className="mt-auto flex-shrink-0 sticky bottom-0 z-10"
         handleSubmit={handleSubmit}
         isPending={isGenerating || isTyping}
       >
         {({ files, setFiles }) => (
           <MessageInput
-            className="min-h-[80px] bg-background/80 sticky bottom-0 z-10"
+            className="min-h-[80px] bg-background/80"
             files={files}
             isGenerating={isGenerating}
             onChange={handleInputChange}
@@ -175,7 +175,7 @@ export function ChatMessages({
 
   return (
     <div
-      className="grid grid-cols-1 overflow-y-auto pb-4 h-full"
+      className="grid grid-cols-1 overflow-y-auto pb-4 h-full scrollbar-hide"
       onScroll={handleScroll}
       onTouchStart={handleTouchStart}
       ref={containerRef}
@@ -191,7 +191,7 @@ export function ChatMessages({
               className="fade-in-0 slide-in-from-bottom-1 pointer-events-auto h-8 w-8 animate-in rounded-full ease-in-out"
               onClick={scrollToBottom}
               size="icon"
-              variant="ghost"
+              variant="outline"
             >
               <ArrowDown className="h-4 w-4" />
             </Button>

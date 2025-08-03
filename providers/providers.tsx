@@ -2,6 +2,7 @@
 
 import type * as React from 'react';
 import { CalendarStoreProvider } from './calendar-store-provider';
+import { ChatStoreProvider } from './chat-store-provider';
 import { CalendarLayoutClient } from '@/components/wrappers/calendar-layout-client';
 
 export interface ProvidersProps {
@@ -11,9 +12,11 @@ export interface ProvidersProps {
 export function Providers({ children }: ProvidersProps) {
   return (
     <CalendarStoreProvider>
+      <ChatStoreProvider>
         <CalendarLayoutClient>
-            {children}
+          {children}
         </CalendarLayoutClient>
+      </ChatStoreProvider>
     </CalendarStoreProvider>
   )
 }

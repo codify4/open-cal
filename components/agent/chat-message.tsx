@@ -10,17 +10,18 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { FilePreview } from '@/components/agent/file-preview';
 import { MarkdownRenderer } from '@/components/agent/markdown-renderer';
 import { cn } from '@/lib/utils';
 
 const chatBubbleVariants = cva(
-  'group/message relative break-words rounded-xl p-3 text-sm sm:max-w-[75%] shadow-sm border',
+  'group/message relative break-words p-2 text-sm sm:max-w-[75%] shadow-sm border',
   {
     variants: {
       isUser: {
-        true: 'bg-primary text-primary-foreground ml-auto border-primary/20',
-        false: 'bg-white dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100 border-neutral-200 dark:border-neutral-700',
+        true: 'bg-primary text-primary-foreground ml-auto border-primary/20 rounded-l-lg rounded-tr-none rounded-br-lg',
+        false: 'bg-white dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100 border-neutral-200 dark:border-neutral-700 rounded-r-lg rounded-tl-none rounded-bl-lg',
       },
       animation: {
         none: '',
@@ -136,6 +137,8 @@ export interface ChatMessageProps extends Message {
   showTimeStamp?: boolean;
   animation?: Animation;
   actions?: React.ReactNode;
+  avatar?: string;
+  avatarFallback?: string;
 }
 
 export const ChatMessage: React.FC<ChatMessageProps> = ({
@@ -148,6 +151,8 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
   experimental_attachments,
   toolInvocations,
   parts,
+  avatar,
+  avatarFallback,
 }) => {
   const files = useMemo(() => {
     return experimental_attachments?.map((attachment) => {
@@ -168,19 +173,134 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
 
   if (isUser) {
     return (
-      <div
-        className={cn('flex flex-col', isUser ? 'items-end' : 'items-start')}
-      >
-        {files ? (
-          <div className="mb-1 flex flex-wrap gap-2">
-            {files.map((file, index) => {
-              return <FilePreview file={file} key={index} />;
-            })}
-          </div>
-        ) : null}
+      <div className="flex items-start gap-3">
+        <div className="flex flex-col items-end flex-1">
+          {files ? (
+            <div className="mb-1 flex flex-wrap gap-2">
+              {files.map((file, index) => {
+                return <FilePreview file={file} key={index} />;
+              })}
+            </div>
+          ) : null}
 
-        <div className={cn(chatBubbleVariants({ isUser, animation }))}>
-          <MarkdownRenderer>{content}</MarkdownRenderer>
+          <div className={cn(chatBubbleVariants({ isUser, animation }))}>
+            <MarkdownRenderer>{content}</MarkdownRenderer>
+          </div>
+
+          {showTimeStamp && createdAt ? (
+            <time
+              className={cn(
+                'mt-1 block px-1 text-xs opacity-50',
+                animation !== 'none' && 'fade-in-0 animate-in duration-500'
+              )}
+              dateTime={createdAt.toISOString()}
+            >
+              {formattedTime}
+            </time>
+          ) : null}
+        </div>
+
+        <Avatar className="h-8 w-8 flex-shrink-0">
+          <AvatarImage src={avatar} alt="User avatar" />
+          <AvatarFallback className="bg-primary text-primary-foreground text-sm">
+            {avatarFallback || 'U'}
+          </AvatarFallback>
+        </Avatar>
+      </div>
+    );
+  }
+
+  // AI Message with enhanced styling
+  if (parts && parts.length > 0) {
+    return (
+      <div className="flex items-start gap-3">
+        <Avatar className="h-8 w-8 flex-shrink-0">
+          <AvatarImage src="/open-cal.svg" alt="AI Assistant" />
+          <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white text-sm">
+            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-2 0c0 .993-.241 1.929-.668 2.754l-1.524-1.525a3.997 3.997 0 00.078-2.183l1.562-1.562C15.802 8.249 16 9.1 16 10zm-5.165 3.913l1.58 1.58A5.98 5.98 0 0110 16a5.976 5.976 0 01-2.552-.552l1.562-1.562a4.006 4.006 0 001.9.903zm-4.677-2.796a4.002 4.002 0 01-.041-2.08l-.08.08-1.53-1.533A5.98 5.98 0 004 10c0 .954.223 1.856.619 2.657l1.54-1.54zm1.088-6.45A5.974 5.974 0 0110 4c.954 0 1.856.223 2.657.619l-1.54 1.54a4.002 4.002 0 00-2.346.033zm7.297 4.773a4.018 4.018 0 01-1.08 1.08l1.58 1.58a5.98 5.98 0 001.08-1.08l-1.58-1.58z" clipRule="evenodd" />
+            </svg>
+          </AvatarFallback>
+        </Avatar>
+
+        <div className="flex flex-col items-start space-y-2 flex-1">
+          {parts.map((part, index) => {
+            if (part.type === 'text') {
+              return (
+                <div
+                  className={cn(
+                    'flex flex-col items-start w-full'
+                  )}
+                  key={`text-${index}`}
+                >
+                  <div className={cn(chatBubbleVariants({ isUser, animation }), 'relative')}>
+                    <div className="flex items-start gap-3">
+                      <div className="flex-1 min-w-0">
+                        <MarkdownRenderer>{part.text}</MarkdownRenderer>
+                      </div>
+                    </div>
+                    {actions ? (
+                      <div className="absolute -bottom-4 right-2 flex space-x-1 rounded-lg border bg-neutral-100 dark:bg-neutral-900 p-1 text-neutral-900 dark:text-neutral-100 opacity-0 transition-opacity group-hover/message:opacity-100">
+                        {actions}
+                      </div>
+                    ) : null}
+                  </div>
+
+                  {showTimeStamp && createdAt ? (
+                    <time
+                      className={cn(
+                        'mt-1 block px-1 text-xs opacity-50',
+                        animation !== 'none' && 'fade-in-0 animate-in duration-500'
+                      )}
+                      dateTime={createdAt.toISOString()}
+                    >
+                      {formattedTime}
+                    </time>
+                  ) : null}
+                </div>
+              );
+            }
+            if (part.type === 'reasoning') {
+              return <ReasoningBlock key={`reasoning-${index}`} part={part} />;
+            }
+            if (part.type === 'tool-invocation') {
+              return (
+                <div key={`tool-${index}`} className="w-full">
+                  <ToolCall toolInvocations={[part.toolInvocation]} />
+                </div>
+              );
+            }
+            return null;
+          })}
+        </div>
+      </div>
+    );
+  }
+
+  // Fallback for simple text messages
+  return (
+    <div className="flex items-start gap-3">
+      <Avatar className="h-8 w-8 flex-shrink-0">
+        <AvatarImage src="/open-cal.svg" alt="AI Assistant" />
+        <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white text-sm">
+          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-2 0c0 .993-.241 1.929-.668 2.754l-1.524-1.525a3.997 3.997 0 00.078-2.183l1.562-1.562C15.802 8.249 16 9.1 16 10zm-5.165 3.913l1.58 1.58A5.98 5.98 0 0110 16a5.976 5.976 0 01-2.552-.552l1.562-1.562a4.006 4.006 0 001.9.903zm-4.677-2.796a4.002 4.002 0 01-.041-2.08l-.08.08-1.53-1.533A5.98 5.98 0 004 10c0 .954.223 1.856.619 2.657l1.54-1.54zm1.088-6.45A5.974 5.974 0 0110 4c.954 0 1.856.223 2.657.619l-1.54 1.54a4.002 4.002 0 00-2.346.033zm7.297 4.773a4.018 4.018 0 01-1.08 1.08l1.58 1.58a5.98 5.98 0 001.08-1.08l-1.58-1.58z" clipRule="evenodd" />
+          </svg>
+        </AvatarFallback>
+      </Avatar>
+
+      <div className="flex flex-col items-start flex-1">
+        <div className={cn(chatBubbleVariants({ isUser, animation }), 'relative')}>
+          <div className="flex items-start gap-3">
+            <div className="flex-1 min-w-0">
+              <MarkdownRenderer>{content}</MarkdownRenderer>
+            </div>
+          </div>
+          {actions ? (
+            <div className="absolute -bottom-4 right-2 flex space-x-1 rounded-lg border bg-background p-1 text-foreground opacity-0 transition-opacity group-hover/message:opacity-100">
+              {actions}
+            </div>
+          ) : null}
         </div>
 
         {showTimeStamp && createdAt ? (
@@ -195,97 +315,6 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
           </time>
         ) : null}
       </div>
-    );
-  }
-
-  // AI Message with enhanced styling
-  if (parts && parts.length > 0) {
-    return (
-      <div className="flex flex-col items-start space-y-2">
-        {parts.map((part, index) => {
-          if (part.type === 'text') {
-            return (
-              <div
-                className={cn(
-                  'flex flex-col items-start w-full'
-                )}
-                key={`text-${index}`}
-              >
-                <div className={cn(chatBubbleVariants({ isUser, animation }), 'relative')}>
-                  <div className="flex items-start gap-3">
-                    <div className="flex-1 min-w-0">
-                      <MarkdownRenderer>{part.text}</MarkdownRenderer>
-                    </div>
-                  </div>
-                  {actions ? (
-                    <div className="absolute -bottom-4 right-2 flex space-x-1 rounded-lg border bg-background p-1 text-foreground opacity-0 transition-opacity group-hover/message:opacity-100">
-                      {actions}
-                    </div>
-                  ) : null}
-                </div>
-
-                {showTimeStamp && createdAt ? (
-                  <time
-                    className={cn(
-                      'mt-1 block px-1 text-xs opacity-50',
-                      animation !== 'none' && 'fade-in-0 animate-in duration-500'
-                    )}
-                    dateTime={createdAt.toISOString()}
-                  >
-                    {formattedTime}
-                  </time>
-                ) : null}
-              </div>
-            );
-          }
-          if (part.type === 'reasoning') {
-            return <ReasoningBlock key={`reasoning-${index}`} part={part} />;
-          }
-          if (part.type === 'tool-invocation') {
-            return (
-              <div key={`tool-${index}`} className="w-full">
-                <ToolCall toolInvocations={[part.toolInvocation]} />
-              </div>
-            );
-          }
-          return null;
-        })}
-      </div>
-    );
-  }
-
-  // Fallback for simple text messages
-  return (
-    <div className="flex flex-col items-start">
-      <div className={cn(chatBubbleVariants({ isUser, animation }), 'relative')}>
-        <div className="flex items-start gap-3">
-          <div className="flex-shrink-0 w-6 h-6 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
-            <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-2 0c0 .993-.241 1.929-.668 2.754l-1.524-1.525a3.997 3.997 0 00.078-2.183l1.562-1.562C15.802 8.249 16 9.1 16 10zm-5.165 3.913l1.58 1.58A5.98 5.98 0 0110 16a5.976 5.976 0 01-2.552-.552l1.562-1.562a4.006 4.006 0 001.9.903zm-4.677-2.796a4.002 4.002 0 01-.041-2.08l-.08.08-1.53-1.533A5.98 5.98 0 004 10c0 .954.223 1.856.619 2.657l1.54-1.54zm1.088-6.45A5.974 5.974 0 0110 4c.954 0 1.856.223 2.657.619l-1.54 1.54a4.002 4.002 0 00-2.346.033zm7.297 4.773a4.018 4.018 0 01-1.08 1.08l1.58 1.58a5.98 5.98 0 001.08-1.08l-1.58-1.58z" clipRule="evenodd" />
-            </svg>
-          </div>
-          <div className="flex-1 min-w-0">
-            <MarkdownRenderer>{content}</MarkdownRenderer>
-          </div>
-        </div>
-        {actions ? (
-          <div className="absolute -bottom-4 right-2 flex space-x-1 rounded-lg border bg-background p-1 text-foreground opacity-0 transition-opacity group-hover/message:opacity-100">
-            {actions}
-          </div>
-        ) : null}
-      </div>
-
-      {showTimeStamp && createdAt ? (
-        <time
-          className={cn(
-            'mt-1 block px-1 text-xs opacity-50',
-            animation !== 'none' && 'fade-in-0 animate-in duration-500'
-          )}
-          dateTime={createdAt.toISOString()}
-        >
-          {formattedTime}
-        </time>
-      ) : null}
     </div>
   );
 };

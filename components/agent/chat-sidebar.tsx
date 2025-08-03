@@ -3,11 +3,12 @@
 import { useChat } from '@ai-sdk/react';
 import { Maximize2, MessageSquare, Minimize2, Plus, X } from 'lucide-react';
 import type * as React from 'react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Chat } from '@/components/agent/chat';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { useChatStore } from '@/providers/chat-store-provider';
 
 interface ChatSidebarProps {
   isFullscreen: boolean;
@@ -22,8 +23,26 @@ export function ChatSidebar({
   onToggleFullscreen,
   ...props
 }: React.ComponentProps<'div'> & ChatSidebarProps) {
-  const { messages, sendMessage, status } = useChat();
+  const { messages, sendMessage, status, setMessages } = useChat();
   const [input, setInput] = useState('');
+  
+  const chatMessages = useChatStore((state) => state.messages);
+  const chatInput = useChatStore((state) => state.input);
+  const setChatMessages = useChatStore((state) => state.setMessages);
+  const setChatInput = useChatStore((state) => state.setInput);
+  const clearChat = useChatStore((state) => state.clearChat);
+
+  useEffect(() => {
+    if (chatMessages.length > 0) {
+      setMessages(chatMessages);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (chatInput) {
+      setInput(chatInput);
+    }
+  }, []);
 
   const handleSubmit = (
     event?: { preventDefault?: () => void },
@@ -33,11 +52,14 @@ export function ChatSidebar({
     if (input.trim()) {
       sendMessage({ text: input });
       setInput('');
+      setChatInput('');
     }
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setInput(e.target.value);
+    const newInput = e.target.value;
+    setInput(newInput);
+    setChatInput(newInput);
   };
 
   const append = (message: { role: 'user'; content: string }) => {
@@ -48,18 +70,30 @@ export function ChatSidebar({
     // Stop generation if needed
   };
 
+  const handleNewChat = () => {
+    setMessages([]);
+    setInput('');
+    clearChat();
+  };
+
+  useEffect(() => {
+    if (messages.length > 0) {
+      setChatMessages(messages);
+    }
+  }, [messages, setChatMessages]);
+
   const isGenerating = status === 'submitted' || status === 'streaming';
 
   return (
     <div
       className={cn(
         'flex h-full flex-col text-neutral-900 dark:text-white',
-        isFullscreen ? 'mx-auto w-full max-w-4xl' : '',
+        isFullscreen ? 'mx-auto w-full max-w-4xl scrollbar-hide' : '',
         className
       )}
       {...props}
     >
-      <div className="flex items-center justify-between ">
+      <div className="flex items-center justify-between">
         <div className="flex w-full items-center justify-end gap-3">
           <Tooltip>
             <TooltipTrigger asChild>
@@ -110,6 +144,7 @@ export function ChatSidebar({
             <TooltipTrigger asChild>
               <Button
                 className="h-8 w-8 text-neutral-900 dark:text-white hover:bg-neutral-100 dark:hover:bg-neutral-800"
+                onClick={handleNewChat}
                 size="icon"
                 variant="ghost"
               >
@@ -117,13 +152,13 @@ export function ChatSidebar({
               </Button>
             </TooltipTrigger>
             <TooltipContent className="bg-white dark:bg-neutral-950 font-semibold text-neutral-900 dark:text-white">
-              <p>Add</p>
+              <p>New Chat</p>
             </TooltipContent>
           </Tooltip>
         </div>
       </div>
 
-      <div className="mt-3 flex-1">
+      <div className="mt-3 flex-1 min-h-0">
         <Chat
           append={append}
           className="h-full bg-transparent"

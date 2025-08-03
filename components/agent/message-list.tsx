@@ -60,7 +60,7 @@ export function MessageList({
   messageOptions,
 }: MessageListProps) {
   return (
-    <div className="space-y-4 overflow-y-auto h-full p-4">
+    <div className="space-y-4 overflow-y-auto h-full">
       {messages.map((message, index) => {
         const chatMessageProps = convertUIMessageToChatMessageProps(message);
         const additionalOptions =
