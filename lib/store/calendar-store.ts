@@ -30,6 +30,15 @@ export interface EventCreationContext {
   type?: 'event' | 'birthday';
 }
 
+export interface PendingCalendarAction {
+  id: string;
+  toolName: string;
+  args: any;
+  result?: any;
+  timestamp: Date;
+  status: 'pending' | 'accepted' | 'declined' | 'edited';
+}
+
 export interface CalendarState {
   events: Event[];
   isChatSidebarOpen: boolean;
@@ -48,6 +57,10 @@ export interface CalendarState {
 
   eventColors: string[];
   eventTypes: Array<'event' | 'birthday'>;
+
+  // Calendar Agent State
+  pendingActions: PendingCalendarAction[];
+  isProcessing: boolean;
 }
 
 export interface CalendarActions {
@@ -80,6 +93,13 @@ export interface CalendarActions {
   goToNextWeek: () => void;
   goToPreviousMonth: () => void;
   goToNextMonth: () => void;
+
+  // Calendar Agent Actions
+  addPendingAction: (action: Omit<PendingCalendarAction, 'id' | 'timestamp'>) => void;
+  updateActionStatus: (id: string, status: PendingCalendarAction['status']) => void;
+  removePendingAction: (id: string) => void;
+  clearPendingActions: () => void;
+  setProcessing: (isProcessing: boolean) => void;
 }
 
 export type CalendarStore = CalendarState & CalendarActions;
@@ -132,6 +152,10 @@ export const defaultInitState: CalendarState = {
       account: 'john.doe@gmail.com',
     },
   ],
+
+  // Calendar Agent State
+  pendingActions: [],
+  isProcessing: false,
 };
 
 export const createCalendarStore = (
@@ -326,6 +350,37 @@ export const createCalendarStore = (
             navigationDirection: 1,
           });
         },
+
+        // Calendar Agent Actions
+        addPendingAction: (action) =>
+          set((state) => ({
+            pendingActions: [
+              ...state.pendingActions,
+              {
+                ...action,
+                id: `action-${Date.now()}`,
+                timestamp: new Date(),
+              },
+            ],
+          })),
+
+        updateActionStatus: (id, status) =>
+          set((state) => ({
+            pendingActions: state.pendingActions.map((action) =>
+              action.id === id ? { ...action, status } : action
+            ),
+          })),
+
+        removePendingAction: (id) =>
+          set((state) => ({
+            pendingActions: state.pendingActions.filter((action) => action.id !== id),
+          })),
+
+        clearPendingActions: () =>
+          set({ pendingActions: [] }),
+
+        setProcessing: (isProcessing) =>
+          set({ isProcessing }),
       }),
       {
         name: 'calendar-store',

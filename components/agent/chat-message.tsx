@@ -13,7 +13,9 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { FilePreview } from '@/components/agent/file-preview';
 import { MarkdownRenderer } from '@/components/agent/markdown-renderer';
+import { CalendarToolCall } from '@/components/agent/calendar-tool-call';
 import { cn } from '@/lib/utils';
+import { useCalendarStore } from '@/providers/calendar-store-provider';
 
 const chatBubbleVariants = cva(
   'group/message relative break-words p-2 text-sm sm:max-w-[75%] shadow-sm border',
@@ -91,7 +93,10 @@ interface ReasoningPart {
 
 interface ToolInvocationPart {
   type: 'tool-invocation';
-  toolInvocation: ToolInvocation;
+  toolInvocation: ToolInvocation & {
+    args?: any;
+    result?: any;
+  };
 }
 
 interface TextPart {
@@ -154,6 +159,7 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
   avatar,
   avatarFallback,
 }) => {
+  const { addPendingAction, updateActionStatus } = useCalendarStore((state) => state);
   const files = useMemo(() => {
     return experimental_attachments?.map((attachment) => {
       const dataArray = dataUrlToUint8Array(attachment.url);
@@ -264,9 +270,51 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
               return <ReasoningBlock key={`reasoning-${index}`} part={part} />;
             }
             if (part.type === 'tool-invocation') {
+              const toolInvocation = part.toolInvocation;
+              
+              // Check if it's a calendar tool
+              if (toolInvocation.toolName.startsWith('calendar_') || 
+                  ['create_event', 'find_free_time', 'get_events', 'update_event', 'delete_event', 'get_calendar_summary'].includes(toolInvocation.toolName)) {
+                
+                // Add to pending actions if it's a result
+                if (toolInvocation.state === 'result' && toolInvocation.result) {
+                  addPendingAction({
+                    toolName: toolInvocation.toolName,
+                    args: toolInvocation.args || {},
+                    result: toolInvocation.result,
+                    status: 'pending',
+                  });
+                }
+
+                return (
+                  <div key={`calendar-tool-${index}`} className="w-full">
+                    <CalendarToolCall
+                      toolName={toolInvocation.toolName}
+                      args={toolInvocation.args || {}}
+                      result={toolInvocation.result}
+                      isPending={toolInvocation.state === 'call'}
+                      onAccept={() => {
+                        // Handle calendar action acceptance
+                        console.log('Calendar action accepted:', toolInvocation);
+                        // Here you would actually execute the calendar action
+                      }}
+                      onDecline={() => {
+                        // Handle calendar action decline
+                        console.log('Calendar action declined:', toolInvocation);
+                      }}
+                      onEdit={() => {
+                        // Handle calendar action edit
+                        console.log('Calendar action edit:', toolInvocation);
+                      }}
+                    />
+                  </div>
+                );
+              }
+              
+              // Fall back to regular tool call UI
               return (
                 <div key={`tool-${index}`} className="w-full">
-                  <ToolCall toolInvocations={[part.toolInvocation]} />
+                  <ToolCall toolInvocations={[toolInvocation]} />
                 </div>
               );
             }
