@@ -5,9 +5,9 @@ import { Maximize2, MessageSquare, Minimize2, Plus, X } from 'lucide-react';
 import type * as React from 'react';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
-import { Button } from '../ui/button';
-import { Chat } from '../ui/chat';
-import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip';
+import { Button } from '@/components/ui/button';
+import { Chat } from '@/components/agent/chat';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface ChatSidebarProps {
   isFullscreen: boolean;

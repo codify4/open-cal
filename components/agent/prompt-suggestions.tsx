@@ -1,5 +1,5 @@
 import Image from 'next/image';
-import { Button } from './button';
+import { Button } from '../ui/button';
 
 interface PromptSuggestionsProps {
   append: (message: { role: 'user'; content: string }) => void;

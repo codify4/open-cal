@@ -1,7 +1,7 @@
 import {
   ChatMessage,
   type ChatMessageProps,
-} from '@/components/ui/chat-message';
+} from '@/components/agent/chat-message';
 import { cn } from '@/lib/utils';
 import { TextShimmer } from './text-shimmer';
 import type { UIMessage } from 'ai';
@@ -60,7 +60,7 @@ export function MessageList({
   messageOptions,
 }: MessageListProps) {
   return (
-    <div className="space-y-4 overflow-visible">
+    <div className="space-y-4 overflow-y-auto h-full p-4">
       {messages.map((message, index) => {
         const chatMessageProps = convertUIMessageToChatMessageProps(message);
         const additionalOptions =
@@ -71,7 +71,7 @@ export function MessageList({
         return <ChatMessage key={index} {...chatMessageProps} {...additionalOptions} />;
       })}
       {isTyping && (
-        <div className={cn('group rounded-full ')}>
+        <div className={cn('group rounded-full')}>
           <TextShimmer className="text-sm" duration={1}>
             Processing...
           </TextShimmer>

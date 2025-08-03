@@ -15,7 +15,7 @@ import { useEffect, useRef, useState } from 'react';
 import { omit } from 'remeda';
 import { AudioVisualizer } from '@/components/ui/audio-visualizer';
 import { Button } from '@/components/ui/button';
-import { FilePreview } from '@/components/ui/file-preview';
+import { FilePreview } from '@/components/agent/file-preview';
 import { InterruptPrompt } from '@/components/ui/interrupt-prompt';
 import { useAudioRecording } from '@/hooks/use-audio-recording';
 import { useAutosizeTextArea } from '@/hooks/use-autosize-textarea';

@@ -9,10 +9,10 @@ import {
   useState,
 } from 'react';
 import { Button } from '@/components/ui/button';
-import { CopyButton } from '@/components/ui/copy-button';
-import { MessageInput } from '@/components/ui/message-input';
-import { MessageList } from '@/components/ui/message-list';
-import { PromptSuggestions } from '@/components/ui/prompt-suggestions';
+import { CopyButton } from '@/components/agent/copy-button';
+import { MessageInput } from '@/components/agent/message-input';
+import { MessageList } from '@/components/agent/message-list';
+import { PromptSuggestions } from '@/components/agent/prompt-suggestions';
 import { useAutoScroll } from '@/hooks/use-auto-scroll';
 import { cn } from '@/lib/utils';
 import type { UIMessage } from 'ai';
@@ -125,23 +125,25 @@ export function Chat({
       ) : null}
 
       {messages.length > 0 ? (
-        <ChatMessages messages={messages}>
-          <MessageList
-            isTyping={isTyping}
-            messageOptions={messageOptions}
-            messages={messages}
-          />
-        </ChatMessages>
+        <div className="flex-1 overflow-scroll">
+          <ChatMessages messages={messages}>
+            <MessageList
+              isTyping={isTyping}
+              messageOptions={messageOptions}
+              messages={messages}
+            />
+          </ChatMessages>
+        </div>
       ) : null}
 
       <ChatForm
-        className="mt-auto"
+        className="mt-auto flex-shrink-0"
         handleSubmit={handleSubmit}
         isPending={isGenerating || isTyping}
       >
         {({ files, setFiles }) => (
           <MessageInput
-            className="min-h-[80px] bg-background/80"
+            className="min-h-[80px] bg-background/80 sticky bottom-0 z-10"
             files={files}
             isGenerating={isGenerating}
             onChange={handleInputChange}
@@ -173,7 +175,7 @@ export function ChatMessages({
 
   return (
     <div
-      className="grid grid-cols-1 overflow-y-auto pb-4"
+      className="grid grid-cols-1 overflow-y-auto pb-4 h-full"
       onScroll={handleScroll}
       onTouchStart={handleTouchStart}
       ref={containerRef}
