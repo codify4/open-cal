@@ -104,13 +104,13 @@ export function CalendarLayoutClient({
   return (
     <DndContext onDragEnd={handleDragEnd} onDragStart={handleDragStart}>
       <SidebarProvider className="scrollbar-hide">
-        <AppSidebar className="border-none bg-white dark:bg-neutral-950" variant="inset" />
+        <AppSidebar className="border-none dark:bg-neutral-950" variant="inset" />
         <ResizablePanelGroup
-          className="bg-white dark:bg-neutral-950 min-h-screen gap-1 md:p-1.5"
+          className="bg-neutral-100 dark:bg-neutral-950 min-h-screen gap-1 md:p-1.5"
           direction="horizontal"
         >
           <ResizablePanel
-            className="overflow-hidden p-0 md:rounded-xl shadow-sm"
+            className="overflow-hidden p-0 md:rounded-xl shadow-2xs"
             defaultSize={isChatSidebarOpen ? 70 : 100}
             minSize={30}
           >

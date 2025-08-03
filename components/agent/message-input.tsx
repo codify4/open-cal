@@ -296,7 +296,7 @@ export function MessageInput({
         ) : (
           <Button
             aria-label="Send message"
-            className="h-8 w-8 transition-opacity"
+            className="h-8 w-8 transition-opacity bg-primary text-primary-foreground"
             disabled={props.value === '' || isGenerating}
             size="icon"
             type="submit"

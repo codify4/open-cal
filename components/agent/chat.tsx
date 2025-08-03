@@ -143,7 +143,7 @@ export function Chat({
       >
         {({ files, setFiles }) => (
           <MessageInput
-            className="min-h-[80px] bg-background/80"
+            className="min-h-[80px] bg-neutral-100 dark:bg-neutral-800"
             files={files}
             isGenerating={isGenerating}
             onChange={handleInputChange}

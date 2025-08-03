@@ -95,7 +95,7 @@ export function NavCalendars({
             </DropdownMenuTrigger>
             <DropdownMenuContent
               align={isMobile ? 'end' : 'start'}
-              className="w-64 bg-background dark:bg-neutral-950"
+              className="w-64 bg-neutral-100 dark:bg-neutral-950"
               side={isMobile ? 'bottom' : 'right'}
             >
               {emailAccounts.map((account) => (

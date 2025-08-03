@@ -11,16 +11,16 @@ const getColorClasses = (color?: string) => {
 
   const colorMap: Record<string, string> = {
     'bg-blue-500':
-      'data-[state=checked]:bg-blue-500 bg-blue-500 border-blue-500',
+      'data-[state=checked]:bg-blue-500 border-blue-500',
     'bg-green-500':
-      'data-[state=checked]:bg-green-500 bg-green-500 border-green-500',
-    'bg-red-500': 'data-[state=checked]:bg-red-500 bg-red-500 border-red-500',
+      'data-[state=checked]:bg-green-500 border-green-500',
+    'bg-red-500': 'data-[state=checked]:bg-red-500 border-red-500',
     'bg-yellow-500':
-      'data-[state=checked]:bg-yellow-500 bg-yellow-500 border-yellow-500',
+      'data-[state=checked]:bg-yellow-500 border-yellow-500',
     'bg-purple-500':
-      'data-[state=checked]:bg-purple-500 bg-purple-500 border-purple-500',
+      'data-[state=checked]:bg-purple-500 border-purple-500',
     'bg-orange-500':
-      'data-[state=checked]:bg-orange-500 bg-orange-500 border-orange-500',
+      'data-[state=checked]:bg-orange-500 border-orange-500',
   };
 
   return colorMap[color] || '';

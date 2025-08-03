@@ -34,7 +34,7 @@ export function CalendarPicker() {
       <SidebarGroupLabel className="sr-only">Calendar</SidebarGroupLabel>
       <SidebarMenu>
         <Calendar
-          className="rounded-md bg-white dark:bg-neutral-950"
+          className="rounded-md bg-neutral-100 dark:bg-neutral-950"
           mode="single"
           onSelect={handleDateSelect}
           selected={selectedDate}

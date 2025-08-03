@@ -21,7 +21,7 @@ const chatBubbleVariants = cva(
     variants: {
       isUser: {
         true: 'bg-primary text-primary-foreground ml-auto border-primary/20 rounded-l-lg rounded-tr-none rounded-br-lg',
-        false: 'bg-white dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100 border-neutral-200 dark:border-neutral-700 rounded-r-lg rounded-tl-none rounded-bl-lg',
+        false: 'bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100 border-neutral-200 dark:border-neutral-700 rounded-r-lg rounded-tl-none rounded-bl-lg',
       },
       animation: {
         none: '',
