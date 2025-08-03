@@ -1,4 +1,3 @@
-import { CalendarLayoutClient } from '@/components/wrappers/calendar-layout-client';
 import { Providers } from '@/providers/providers';
 
 export const metadata = {
@@ -13,7 +12,7 @@ export default function CalendarLayout({
 }) {
   return (
     <Providers>
-      <CalendarLayoutClient>{children}</CalendarLayoutClient>
+      {children}
     </Providers>
   );
 }

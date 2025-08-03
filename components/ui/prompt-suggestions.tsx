@@ -22,8 +22,8 @@ export function PromptSuggestions({
       </div>
 
       <div className="relative flex flex-col items-center">
-        <div className="pointer-events-none absolute top-0 bottom-0 left-0 z-10 w-20 bg-gradient-to-r from-neutral-900 to-transparent" />
-        <div className="pointer-events-none absolute top-0 right-0 bottom-0 z-10 w-20 bg-gradient-to-l from-neutral-900 to-transparent" />
+        <div className="pointer-events-none absolute top-0 bottom-0 left-0 z-10 w-20 bg-gradient-to-r from-background dark:from-neutral-900 to-transparent" />
+        <div className="pointer-events-none absolute top-0 right-0 bottom-0 z-10 w-20 bg-gradient-to-l from-background dark:from-neutral-900 to-transparent" />
         <div className="mb-3 flex gap-3 overflow-x-hidden">
           {suggestions.slice(0, 3).map((suggestion, index) => (
             <Button

@@ -103,7 +103,7 @@ export function CalendarLayoutClient({
 
   return (
     <DndContext onDragEnd={handleDragEnd} onDragStart={handleDragStart}>
-      <SidebarProvider>
+      <SidebarProvider className="scrollbar-hide">
         <AppSidebar className="border-none bg-white dark:bg-neutral-950" variant="inset" />
         <ResizablePanelGroup
           className="bg-white dark:bg-neutral-950 min-h-screen gap-1 md:p-1.5"

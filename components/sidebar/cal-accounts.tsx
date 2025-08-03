@@ -95,12 +95,12 @@ export function NavCalendars({
             </DropdownMenuTrigger>
             <DropdownMenuContent
               align={isMobile ? 'end' : 'start'}
-              className="w-64 bg-neutral-950"
+              className="w-64 bg-background dark:bg-neutral-950"
               side={isMobile ? 'bottom' : 'right'}
             >
               {emailAccounts.map((account) => (
                 <DropdownMenuItem
-                  className="flex items-center gap-2"
+                  className="flex items-center gap-2 cursor-pointer"
                   key={account.email}
                   onClick={() => onEmailChange(account.email)}
                 >
