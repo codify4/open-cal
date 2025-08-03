@@ -1,0 +1,169 @@
+import TopNav from '@/components/landing/top-nav'
+import { Footer } from '@/components/landing/footer'
+import { Metadata } from 'next'
+import Link from 'next/link'
+
+export const metadata: Metadata = {
+    title: 'Terms of Use | OpenCal',
+    description: 'The terms of use for OpenCal, an open-source ai calendar app by OpenCal.',
+}
+
+function TermsOfUsePage() {
+    return (
+        <div className="min-h-screen bg-neutral-950 text-foreground scrollbar-hide">
+            <TopNav />
+            <main className="bg-background pt-24">
+                <div className="container mx-auto px-6 lg:px-8 py-16">
+                    <div className="max-w-4xl mx-auto">
+                        <h1 className="text-4xl font-bold text-white mb-4">OpenCal Terms of Use</h1>
+
+                        <div className="prose prose-invert max-w-none">
+                            <p className="text-muted-foreground text-lg leading-relaxed mb-8">
+                                By using OpenCal, an open-source calendar app by OpenCal, you agree to these Terms of Use. If you disagree, do not use the app.
+                            </p>
+
+                            <section className="mb-12">
+                                <h2 className="text-2xl font-semibold text-white mb-6">1. Use of Service</h2>
+                                <ul className="space-y-3 text-muted-foreground">
+                                    <li className="flex items-start gap-3">
+                                        <span className="text-white font-medium">Eligibility:</span>
+                                        <span>You must be 13+ to use OpenCal.</span>
+                                    </li>
+                                    <li className="flex items-start gap-3">
+                                        <span className="text-white font-medium">License:</span>
+                                        <span>OpenCal is open-source under MIT License. You may use, modify, and distribute the code per the license.</span>
+                                    </li>
+                                    <li className="flex items-start gap-3">
+                                        <span className="text-white font-medium">Account:</span>
+                                        <span>You're responsible for your account security and activity.</span>
+                                    </li>
+                                </ul>
+                            </section>
+
+                            <section className="mb-12">
+                                <h2 className="text-2xl font-semibold text-white mb-6">2. Acceptable Use</h2>
+                                <ul className="space-y-3 text-muted-foreground">
+                                    <li className="flex items-start gap-3">
+                                        <span className="text-white font-medium">Permitted:</span>
+                                        <span>Use OpenCal for personal/team scheduling, AI chat, and Google Calendar sync.</span>
+                                    </li>
+                                    <li className="flex items-start gap-3">
+                                        <span className="text-white font-medium">Prohibited:</span>
+                                        <span>No illegal activity, reverse-engineering, or abusing the app (e.g., spamming AI chat).</span>
+                                    </li>
+                                </ul>
+                            </section>
+
+                            <section className="mb-12">
+                                <h2 className="text-2xl font-semibold text-white mb-6">3. Subscription</h2>
+                                <ul className="space-y-3 text-muted-foreground">
+                                    <li className="flex items-start gap-3">
+                                        <span className="text-white font-medium">Free Tier:</span>
+                                        <span>Basic features (Google Calendar sync, AI chat, drag-and-drop).</span>
+                                    </li>
+                                    <li className="flex items-start gap-3">
+                                        <span className="text-white font-medium">Pro Plan:</span>
+                                        <span>$20/month or $120/year for advanced AI, team timelines. $1 trial available.</span>
+                                    </li>
+                                    <li className="flex items-start gap-3">
+                                        <span className="text-white font-medium">Payments:</span>
+                                        <span>Handled by Lemon Squeezy; subject to their terms.</span>
+                                    </li>
+                                    <li className="flex items-start gap-3">
+                                        <span className="text-white font-medium">Cancellation:</span>
+                                        <span>Cancel anytime via app or Lemon Squeezy. No refunds for partial periods.</span>
+                                    </li>
+                                </ul>
+                            </section>
+
+                            <section className="mb-12">
+                                <h2 className="text-2xl font-semibold text-white mb-6">4. Open-Source</h2>
+                                <ul className="space-y-3 text-muted-foreground">
+                                    <li className="flex items-start gap-3">
+                                        <span className="text-white font-medium">Code:</span>
+                                        <span>Available on GitHub. Contributions welcome per MIT License.</span>
+                                    </li>
+                                    <li className="flex items-start gap-3">
+                                        <span className="text-white font-medium">No Warranty:</span>
+                                        <span>Provided "as is." We're not liable for damages from use.</span>
+                                    </li>
+                                </ul>
+                            </section>
+
+                            <section className="mb-12">
+                                <h2 className="text-2xl font-semibold text-white mb-6">5. Data and Privacy</h2>
+                                <p className="text-muted-foreground leading-relaxed">
+                                    See our{' '}
+                                    <Link href="/privacy" className="text-white hover:text-muted-foreground transition-colors">
+                                        Privacy Policy
+                                    </Link>{' '}
+                                    for data handling details. You own your event data; we don't claim ownership.
+                                </p>
+                            </section>
+
+                            <section className="mb-12">
+                                <h2 className="text-2xl font-semibold text-white mb-6">6. Termination</h2>
+                                <ul className="space-y-3 text-muted-foreground">
+                                    <li className="flex items-start gap-3">
+                                        <span className="text-white font-medium">By You:</span>
+                                        <span>Delete your account anytime.</span>
+                                    </li>
+                                    <li className="flex items-start gap-3">
+                                        <span className="text-white font-medium">By Us:</span>
+                                        <span>We may suspend/terminate accounts for violating these terms.</span>
+                                    </li>
+                                </ul>
+                            </section>
+
+                            <section className="mb-12">
+                                <h2 className="text-2xl font-semibold text-white mb-6">7. Liability</h2>
+                                <ul className="space-y-3 text-muted-foreground">
+                                    <li className="flex items-start gap-3">
+                                        <span className="text-white font-medium">Limitation:</span>
+                                        <span>We're not liable for indirect damages (e.g., data loss, lost profits).</span>
+                                    </li>
+                                    <li className="flex items-start gap-3">
+                                        <span className="text-white font-medium">Open-Source Risks:</span>
+                                        <span>Use at your own risk; community contributions may affect functionality.</span>
+                                    </li>
+                                </ul>
+                            </section>
+
+                            <section className="mb-12">
+                                <h2 className="text-2xl font-semibold text-white mb-6">8. Governing Law</h2>
+                                <p className="text-muted-foreground leading-relaxed">
+                                    Governed by applicable law. Disputes resolved via appropriate legal channels.
+                                </p>
+                            </section>
+
+                            <section className="mb-12">
+                                <h2 className="text-2xl font-semibold text-white mb-6">9. Changes</h2>
+                                <p className="text-muted-foreground leading-relaxed">
+                                    We may update these terms. Changes posted on{' '}
+                                    <Link href="/terms" className="text-white hover:text-muted-foreground transition-colors">
+                                        OpenCal Terms of Use
+                                    </Link>{' '}
+                                    and effective upon next use.
+                                </p>
+                            </section>
+
+                            <section className="mb-12">
+                                <h2 className="text-2xl font-semibold text-white mb-6">10. Contact</h2>
+                                <p className="text-muted-foreground leading-relaxed">
+                                    Email{' '}
+                                    <Link href="mailto:opencal.oss@gmail.com" className="text-white hover:text-muted-foreground transition-colors">
+                                        opencal.oss@gmail.com
+                                    </Link>{' '}
+                                    for questions.
+                                </p>
+                            </section>
+                        </div>
+                    </div>
+                </div>
+            </main>
+            <Footer />
+        </div>
+    )
+}
+
+export default TermsOfUsePage

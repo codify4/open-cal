@@ -97,10 +97,10 @@ const resourcesLinks: FooterLink[] = [
 export function Footer({ sections = [], className = '' }: FooterProps) {
     return (
         <footer className={`flex items-center justify-center p-10 border-border border-t bg-black ${className}`}>
-            <div className="flex flex-row justify-between w-1/2">
+            <div className="flex flex-col md:flex-row justify-between md:w-full xl:w-1/2">
                 <FooterBrand />
                 
-                <div className="flex flex-col md:flex-row md:justify-end space-y-4 md:space-y-0 md:space-x-6">
+                <div className="flex flex-col md:flex-row md:justify-end space-y-4 md:space-y-0 md:space-x-6 mt-10 md:mt-0">
                     <FooterSection 
                         section={{ 
                             title: 'Resources', 

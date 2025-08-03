@@ -12,7 +12,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 
-export default function TopNav({ className }: { className?: string }) {
+export default function TopNav() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mounted, setMounted] = useState(false);
 
@@ -44,7 +44,7 @@ export default function TopNav({ className }: { className?: string }) {
 
   return (
     <nav
-      className={`-translate-x-1/2 fixed top-0 left-1/2 z-50 mt-2 w-2/3 self-center rounded-full border border-border bg-black transition-all duration-500 ${
+      className={`-translate-x-1/2 fixed top-0 left-1/2 z-50 mt-2 w-11/12 sm:w-2/3 self-center rounded-full border border-border bg-black transition-all duration-500 ${
         isScrolled ? 'w-2/4 bg-black/80 backdrop-blur-xl' : 'bg-black'
       }`}
     >
@@ -54,7 +54,7 @@ export default function TopNav({ className }: { className?: string }) {
             <Image alt="OpenCal" height={50} src="/logo-oc.svg" width={100} />
           </Link>
 
-          <div className="hidden items-center space-x-8 md:flex">
+          <div className="hidden items-center space-x-8 lg:flex">
             {navItems.map((item) => (
               <Link
                 className="font-medium text-muted-foreground text-sm transition-colors hover:text-white"
@@ -66,11 +66,9 @@ export default function TopNav({ className }: { className?: string }) {
             ))}
             
             <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="font-medium text-muted-foreground text-sm hover:bg-transparent transition-colors hover:text-white p-0 h-auto">
-                  Use Cases
-                  <ChevronDown className="ml-1 h-3 w-3" />
-                </Button>
+              <DropdownMenuTrigger className="flex items-center gap-1 font-medium text-muted-foreground text-sm bg-transparent hover:bg-transparent transition-colors hover:text-white p-0 mx-0 h-auto cursor-pointer">
+                Use Cases
+                <ChevronDown className="h-3 w-3" />
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-[280px] bg-black border-border">
                 {useCases.map((useCase) => (
@@ -84,46 +82,48 @@ export default function TopNav({ className }: { className?: string }) {
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
-
-          <div className="hidden items-center space-x-4 md:flex">
-            <Link href="/github" target="_blank">
-              <Button className="h-9 bg-white px-6 text-black hover:bg-white/90">
-                <Github className="h-4 w-4" fill="black" />
-                GitHub
-              </Button>
-            </Link>
-          </div>
-
-          <div className="flex items-center space-x-2 md:hidden">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button className="h-9 w-9" size="icon" variant="ghost">
-                  <Menu className="h-5 w-5" />
+          
+          <div className="flex items-center">
+            <div className="items-center space-x-4 flex">
+              <Link href="/github" target="_blank">
+                <Button className="h-9 bg-white px-6 text-black hover:bg-white/90">
+                  <Github className="h-4 w-4" fill="black" />
+                  GitHub
                 </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-[200px] bg-black">
-                {navItems.map((item) => (
-                  <DropdownMenuItem asChild key={item.name}>
-                    <Link className="font-medium text-white" href={item.href}>
-                      {item.name}
-                    </Link>
+              </Link>
+            </div>
+
+            <div className="flex items-center space-x-2 lg:hidden">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button className="h-9 w-9" size="icon" variant="ghost">
+                    <Menu className="h-5 w-5" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-[200px] bg-black">
+                  {navItems.map((item) => (
+                    <DropdownMenuItem asChild key={item.name}>
+                      <Link className="font-medium text-white" href={item.href}>
+                        {item.name}
+                      </Link>
+                    </DropdownMenuItem>
+                  ))}
+                  <DropdownMenuItem className="font-medium text-white">
+                    <div className="flex items-center justify-between w-full">
+                      Use Cases
+                      <ChevronDown className="h-3 w-3" />
+                    </div>
                   </DropdownMenuItem>
-                ))}
-                <DropdownMenuItem className="font-medium text-white">
-                  <div className="flex items-center justify-between w-full">
-                    Use Cases
-                    <ChevronDown className="h-3 w-3" />
-                  </div>
-                </DropdownMenuItem>
-                {useCases.map((useCase) => (
-                  <DropdownMenuItem asChild key={useCase.name}>
-                    <Link className="font-medium text-white pl-6" href={useCase.href}>
-                      {useCase.name}
-                    </Link>
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
+                  {useCases.map((useCase) => (
+                    <DropdownMenuItem asChild key={useCase.name}>
+                      <Link className="font-medium text-white pl-6" href={useCase.href}>
+                        {useCase.name}
+                      </Link>
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
           </div>
         </div>
       </div>
