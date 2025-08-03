@@ -9,20 +9,20 @@ import {
   useState,
 } from 'react';
 import { Button } from '@/components/ui/button';
-import type { Message } from '@/components/ui/chat-message';
 import { CopyButton } from '@/components/ui/copy-button';
 import { MessageInput } from '@/components/ui/message-input';
 import { MessageList } from '@/components/ui/message-list';
 import { PromptSuggestions } from '@/components/ui/prompt-suggestions';
 import { useAutoScroll } from '@/hooks/use-auto-scroll';
 import { cn } from '@/lib/utils';
+import type { UIMessage } from 'ai';
 
 interface ChatPropsBase {
   handleSubmit: (
     event?: { preventDefault?: () => void },
     options?: { experimental_attachments?: FileList }
   ) => void;
-  messages: Array<Message>;
+  messages: UIMessage[];
   input: string;
   className?: string;
   handleInputChange: React.ChangeEventHandler<HTMLTextAreaElement>;
@@ -32,7 +32,7 @@ interface ChatPropsBase {
     messageId: string,
     rating: 'thumbs-up' | 'thumbs-down'
   ) => void;
-  setMessages?: (messages: any[]) => void;
+  setMessages?: (messages: UIMessage[]) => void;
   transcribeAudio?: (blob: Blob) => Promise<string>;
 }
 
@@ -71,94 +71,18 @@ export function Chat({
 
   const handleStop = useCallback(() => {
     stop?.();
-
-    if (!setMessages) return;
-
-    const latestMessages = [...messagesRef.current];
-    const lastAssistantMessage = latestMessages.findLast(
-      (m) => m.role === 'assistant'
-    );
-
-    if (!lastAssistantMessage) return;
-
-    let needsUpdate = false;
-    let updatedMessage = { ...lastAssistantMessage };
-
-    if (lastAssistantMessage.toolInvocations) {
-      const updatedToolInvocations = lastAssistantMessage.toolInvocations.map(
-        (toolInvocation) => {
-          if (toolInvocation.state === 'call') {
-            needsUpdate = true;
-            return {
-              ...toolInvocation,
-              state: 'result',
-              result: {
-                content: 'Tool execution was cancelled',
-                __cancelled: true,
-              },
-            } as const;
-          }
-          return toolInvocation;
-        }
-      );
-
-      if (needsUpdate) {
-        updatedMessage = {
-          ...updatedMessage,
-          toolInvocations: updatedToolInvocations,
-        };
-      }
-    }
-
-    if (lastAssistantMessage.parts && lastAssistantMessage.parts.length > 0) {
-      const updatedParts = lastAssistantMessage.parts.map((part: any) => {
-        if (
-          part.type === 'tool-invocation' &&
-          part.toolInvocation &&
-          part.toolInvocation.state === 'call'
-        ) {
-          needsUpdate = true;
-          return {
-            ...part,
-            toolInvocation: {
-              ...part.toolInvocation,
-              state: 'result',
-              result: {
-                content: 'Tool execution was cancelled',
-                __cancelled: true,
-              },
-            },
-          };
-        }
-        return part;
-      });
-
-      if (needsUpdate) {
-        updatedMessage = {
-          ...updatedMessage,
-          parts: updatedParts,
-        };
-      }
-    }
-
-    if (needsUpdate) {
-      const messageIndex = latestMessages.findIndex(
-        (m) => m.id === lastAssistantMessage.id
-      );
-      if (messageIndex !== -1) {
-        latestMessages[messageIndex] = updatedMessage;
-        setMessages(latestMessages);
-      }
-    }
-  }, [stop, setMessages, messagesRef]);
+  }, [stop]);
 
   const messageOptions = useCallback(
-    (message: Message) => ({
+    (message: UIMessage) => ({
       actions: onRateResponse ? (
         <>
-          <div className="border-r pr-1">
+          <div className="border-r pr-1 bg-neutral-100 dark:bg-neutral-800">
             <CopyButton
-              content={message.content}
+              content={message.parts
+                .filter(part => part.type === 'text')
+                .map(part => (part as any).text)
+                .join('')}
               copyMessage="Copied response to clipboard!"
             />
           </div>
@@ -181,7 +105,10 @@ export function Chat({
         </>
       ) : (
         <CopyButton
-          content={message.content}
+          content={message.parts
+            .filter(part => part.type === 'text')
+            .map(part => (part as any).text)
+            .join('')}
           copyMessage="Copied response to clipboard!"
         />
       ),
@@ -234,7 +161,7 @@ export function ChatMessages({
   messages,
   children,
 }: React.PropsWithChildren<{
-  messages: Message[];
+  messages: UIMessage[];
 }>) {
   const {
     containerRef,

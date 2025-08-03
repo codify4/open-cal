@@ -1,8 +1,9 @@
 'use client';
 
-import { useChat } from 'ai/react';
+import { useChat } from '@ai-sdk/react';
 import { Maximize2, MessageSquare, Minimize2, Plus, X } from 'lucide-react';
 import type * as React from 'react';
+import { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { Button } from '../ui/button';
 import { Chat } from '../ui/chat';
@@ -21,16 +22,33 @@ export function ChatSidebar({
   onToggleFullscreen,
   ...props
 }: React.ComponentProps<'div'> & ChatSidebarProps) {
-  const {
-    messages,
-    input,
-    handleInputChange,
-    handleSubmit,
-    append,
-    status,
-    stop,
-  } = useChat();
-  const isLoading = status === 'submitted' || status === 'streaming';
+  const { messages, sendMessage, status } = useChat();
+  const [input, setInput] = useState('');
+
+  const handleSubmit = (
+    event?: { preventDefault?: () => void },
+    options?: { experimental_attachments?: FileList }
+  ) => {
+    event?.preventDefault?.();
+    if (input.trim()) {
+      sendMessage({ text: input });
+      setInput('');
+    }
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setInput(e.target.value);
+  };
+
+  const append = (message: { role: 'user'; content: string }) => {
+    sendMessage({ text: message.content });
+  };
+
+  const stop = () => {
+    // Stop generation if needed
+  };
+
+  const isGenerating = status === 'submitted' || status === 'streaming';
 
   return (
     <div
@@ -112,7 +130,7 @@ export function ChatSidebar({
           handleInputChange={handleInputChange}
           handleSubmit={handleSubmit}
           input={input}
-          isGenerating={isLoading}
+          isGenerating={isGenerating}
           messages={messages}
           stop={stop}
           suggestions={[
