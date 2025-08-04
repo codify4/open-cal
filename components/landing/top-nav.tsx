@@ -51,7 +51,7 @@ export default function TopNav() {
       <div className="container mx-auto px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
           <Link href="/" className="flex flex-row items-center justify-center gap-1">
-            <Image alt="OpenCal" height={50} src="/logo-oc.svg" width={100} />
+            <Image alt="OpenCal" height={50} src="/logo-name.svg" width={100} />
           </Link>
 
           <div className="hidden items-center space-x-8 lg:flex">

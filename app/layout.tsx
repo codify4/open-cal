@@ -16,8 +16,8 @@ export const metadata: Metadata = {
   description:
     'An open-source calendar, offering a fresh alternative to traditional calendar applications. Deeply integrated with AI Agents to help you manage your time and never miss an important event ever again.',
   icons: {
-    icon: '/icon.png',
-    apple: '/icon.png',
+    icon: '/open-cal.svg',
+    apple: '/open-cal.svg',
   },
 };
 

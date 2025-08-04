@@ -20,7 +20,7 @@ function CalendarPage() {
           onClick={toggleChatSidebar}
           size="icon"
         >
-          <Image alt="OpenCal" height={30} src="/open-cal.svg" width={30} />
+          <Image alt="OpenCal" height={40} src="/open-cal.svg" width={40} className='rounded-full' />
         </Button>
       )}
     </div>

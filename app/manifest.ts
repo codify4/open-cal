@@ -12,7 +12,7 @@ export default function manifest(): MetadataRoute.Manifest {
     theme_color: '#000',
     icons: [
       {
-        src: '/icon.png',
+        src: '/open-cal.svg',
         sizes: 'any',
         type: 'image/x-icon',
       },
