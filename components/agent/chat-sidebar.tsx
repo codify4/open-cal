@@ -25,6 +25,7 @@ export function ChatSidebar({
 }: React.ComponentProps<'div'> & ChatSidebarProps) {
   const { messages, sendMessage, status, setMessages } = useChat();
   const [input, setInput] = useState('');
+  const [messagesLeft, setMessagesLeft] = useState(3);
   
   const chatMessages = useChatStore((state) => state.messages);
   const chatInput = useChatStore((state) => state.input);
@@ -49,10 +50,11 @@ export function ChatSidebar({
     options?: { experimental_attachments?: FileList }
   ) => {
     event?.preventDefault?.();
-    if (input.trim()) {
+    if (input.trim() && messagesLeft > 0) {
       sendMessage({ text: input });
       setInput('');
       setChatInput('');
+      setMessagesLeft(prev => Math.max(0, prev - 1));
     }
   };
 
@@ -63,7 +65,10 @@ export function ChatSidebar({
   };
 
   const append = (message: { role: 'user'; content: string }) => {
-    sendMessage({ text: message.content });
+    if (messagesLeft > 0) {
+      sendMessage({ text: message.content });
+      setMessagesLeft(prev => Math.max(0, prev - 1));
+    }
   };
 
   const stop = () => {
@@ -73,6 +78,7 @@ export function ChatSidebar({
   const handleNewChat = () => {
     setMessages([]);
     setInput('');
+    setMessagesLeft(3);
     clearChat();
   };
 
@@ -133,7 +139,7 @@ export function ChatSidebar({
             <TooltipTrigger asChild>
               <div className="flex items-center gap-2 rounded-md bg-neutral-100 dark:bg-neutral-800 px-2 py-1">
                 <MessageSquare className="h-4 w-4 text-neutral-900 dark:text-white" />
-                <span className="text-sm text-neutral-900 dark:text-white">0</span>
+                <span className="text-sm text-neutral-900 dark:text-white">{messagesLeft}</span>
               </div>
             </TooltipTrigger>
             <TooltipContent className="bg-white dark:bg-neutral-950 font-semibold text-neutral-900 dark:text-white">
@@ -168,6 +174,7 @@ export function ChatSidebar({
           isGenerating={isGenerating}
           messages={messages}
           stop={stop}
+          disabled={messagesLeft === 0}
           suggestions={[
             'free time for coffee',
             'work meetings',

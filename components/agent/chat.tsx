@@ -34,6 +34,7 @@ interface ChatPropsBase {
   ) => void;
   setMessages?: (messages: UIMessage[]) => void;
   transcribeAudio?: (blob: Blob) => Promise<string>;
+  disabled?: boolean;
 }
 
 interface ChatPropsWithoutSuggestions extends ChatPropsBase {
@@ -61,6 +62,7 @@ export function Chat({
   onRateResponse,
   setMessages,
   transcribeAudio,
+  disabled,
 }: ChatProps) {
   const lastMessage = messages.at(-1);
   const isEmpty = messages.length === 0;
@@ -151,6 +153,7 @@ export function Chat({
             stop={handleStop}
             transcribeAudio={transcribeAudio}
             value={input}
+            disabled={disabled}
           />
         )}
       </ChatForm>
