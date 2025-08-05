@@ -139,7 +139,7 @@ export function ChatSidebar({
                 <X className="h-4 w-4" />
               </Button>
             </TooltipTrigger>
-            <TooltipContent className="bg-white dark:bg-neutral-950 font-semibold text-neutral-900 dark:text-white">
+            <TooltipContent className="bg-black font-semibold text-white">
               <p>{isFullscreen ? 'Exit Fullscreen' : 'Close'}</p>
             </TooltipContent>
           </Tooltip>
@@ -158,7 +158,7 @@ export function ChatSidebar({
                 )}
               </Button>
             </TooltipTrigger>
-            <TooltipContent className="bg-white dark:bg-neutral-950 font-semibold text-neutral-900 dark:text-white">
+            <TooltipContent className="bg-black font-semibold text-white">
               <p>{isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}</p>
             </TooltipContent>
           </Tooltip>
@@ -169,7 +169,7 @@ export function ChatSidebar({
                 <span className="text-sm text-neutral-900 dark:text-white">{messagesLeft}</span>
               </div>
             </TooltipTrigger>
-            <TooltipContent className="bg-white dark:bg-neutral-950 font-semibold text-neutral-900 dark:text-white">
+            <TooltipContent className="bg-black font-semibold text-white">
               <p>Messages left</p>
             </TooltipContent>
           </Tooltip>
@@ -184,7 +184,7 @@ export function ChatSidebar({
                 <Plus className="h-4 w-4" />
               </Button>
             </TooltipTrigger>
-            <TooltipContent className="bg-white dark:bg-neutral-950 font-semibold text-neutral-900 dark:text-white">
+            <TooltipContent className="bg-black font-semibold text-white">
               <p>New Chat</p>
             </TooltipContent>
           </Tooltip>
