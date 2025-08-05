@@ -310,6 +310,10 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
                           }
                         }
                       }}
+                      onRegenerate={onRegenerate}
+                      isRegenerating={isRegenerating}
+                      onCopy={onCopy}
+                      onRate={onRate}
                     />
                   </div>
                 );

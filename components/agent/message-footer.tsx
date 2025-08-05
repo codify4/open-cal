@@ -24,7 +24,7 @@ export function MessageFooter({
   return (
     <div
       className={cn(
-        'flex items-center justify-between gap-2 mt-2 rounded-md',
+        'flex items-center gap-2 mt-2 rounded-md',
         className
       )}
     >
