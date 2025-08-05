@@ -12,8 +12,8 @@ import {
 } from '@/components/ui/collapsible';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { FilePreview } from '@/components/agent/file-preview';
-import { MarkdownRenderer } from '@/components/agent/markdown-renderer';
 import { CalendarToolCall } from '@/components/agent/calendar-tool-call';
+import { MessageFooter } from '@/components/agent/message-footer';
 import { cn, ensureDate } from '@/lib/utils';
 import { useCalendarStore, CalendarStoreContext } from '@/providers/calendar-store-provider';
 
@@ -106,6 +106,11 @@ export interface ChatMessageProps extends Message {
   actions?: React.ReactNode;
   avatar?: string;
   avatarFallback?: string;
+  footer?: React.ReactNode;
+  onRegenerate?: () => void;
+  isRegenerating?: boolean;
+  onCopy?: () => void;
+  onRate?: (rating: 'thumbs-up' | 'thumbs-down') => void;
 }
 
 export const ChatMessage: React.FC<ChatMessageProps> = ({
@@ -119,6 +124,11 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
   parts,
   avatar,
   avatarFallback,
+  footer,
+  onRegenerate,
+  isRegenerating,
+  onCopy,
+  onRate,
 }) => {
   const { addPendingAction } = useCalendarStore((state) => state);
   const calendarStoreContext = useContext(CalendarStoreContext);
@@ -174,7 +184,7 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
           ) : null}
 
           <div className={cn(chatBubbleVariants({ isUser, animation }))}>
-            <MarkdownRenderer>{content}</MarkdownRenderer>
+            {content}
           </div>
 
           {showTimeStamp && createdAt ? (
@@ -225,15 +235,22 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
                   <div className={cn(chatBubbleVariants({ isUser, animation }), 'relative')}>
                     <div className="flex items-start gap-3">
                       <div className="flex-1 min-w-0">
-                        <MarkdownRenderer>{part.text}</MarkdownRenderer>
+                        {part.text}
                       </div>
                     </div>
-                    {actions ? (
-                      <div className="absolute -bottom-4 right-2 flex space-x-1 rounded-lg border bg-neutral-100 dark:bg-neutral-900 p-1 text-neutral-900 dark:text-neutral-100 opacity-0 transition-opacity group-hover/message:opacity-100">
-                        {actions}
-                      </div>
-                    ) : null}
+                    
                   </div>
+
+                  {role === 'assistant' && (
+                    <MessageFooter
+                      onRegenerate={onRegenerate}
+                      isRegenerating={isRegenerating}
+                      onCopy={onCopy}
+                      onRate={onRate}
+                    >
+                      {footer}
+                    </MessageFooter>
+                  )}
 
                   {showTimeStamp && createdAt ? (
                     <time
@@ -326,15 +343,22 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
         <div className={cn(chatBubbleVariants({ isUser, animation }), 'relative')}>
           <div className="flex items-start gap-3">
             <div className="flex-1 min-w-0">
-              <MarkdownRenderer>{content}</MarkdownRenderer>
+              {content}
             </div>
           </div>
-          {actions ? (
-            <div className="absolute -bottom-4 right-2 flex space-x-1 rounded-lg border bg-background p-1 text-foreground opacity-0 transition-opacity group-hover/message:opacity-100">
-              {actions}
-            </div>
-          ) : null}
+          
         </div>
+
+        {role === 'assistant' && (
+          <MessageFooter
+            onRegenerate={onRegenerate}
+            isRegenerating={isRegenerating}
+            onCopy={onCopy}
+            onRate={onRate}
+          >
+            {footer}
+          </MessageFooter>
+        )}
 
         {showTimeStamp && createdAt ? (
           <time

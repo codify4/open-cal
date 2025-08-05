@@ -35,6 +35,9 @@ interface ChatPropsBase {
   setMessages?: (messages: UIMessage[]) => void;
   transcribeAudio?: (blob: Blob) => Promise<string>;
   disabled?: boolean;
+  onRegenerate?: (messageId: string) => void;
+  isRegenerating?: boolean;
+  onCopy?: (messageId: string) => void;
 }
 
 interface ChatPropsWithoutSuggestions extends ChatPropsBase {
@@ -63,6 +66,9 @@ export function Chat({
   setMessages,
   transcribeAudio,
   disabled,
+  onRegenerate,
+  isRegenerating,
+  onCopy,
 }: ChatProps) {
   const lastMessage = messages.at(-1);
   const isEmpty = messages.length === 0;
@@ -77,45 +83,13 @@ export function Chat({
 
   const messageOptions = useCallback(
     (message: UIMessage) => ({
-      actions: onRateResponse ? (
-        <>
-          <div className="border-r pr-1 bg-neutral-100 dark:bg-neutral-800">
-            <CopyButton
-              content={message.parts
-                .filter(part => part.type === 'text')
-                .map(part => (part as any).text)
-                .join('')}
-              copyMessage="Copied response to clipboard!"
-            />
-          </div>
-          <Button
-            className="h-6 w-6"
-            onClick={() => onRateResponse(message.id, 'thumbs-up')}
-            size="icon"
-            variant="ghost"
-          >
-            <ThumbsUp className="h-4 w-4" />
-          </Button>
-          <Button
-            className="h-6 w-6"
-            onClick={() => onRateResponse(message.id, 'thumbs-down')}
-            size="icon"
-            variant="ghost"
-          >
-            <ThumbsDown className="h-4 w-4" />
-          </Button>
-        </>
-      ) : (
-        <CopyButton
-          content={message.parts
-            .filter(part => part.type === 'text')
-            .map(part => (part as any).text)
-            .join('')}
-          copyMessage="Copied response to clipboard!"
-        />
-      ),
+      onRegenerate: message.role === 'assistant' && onRegenerate ? 
+        () => onRegenerate(message.id) : undefined,
+      isRegenerating: message.role === 'assistant' && isRegenerating,
+      onCopy: onCopy ? () => onCopy(message.id) : undefined,
+      onRate: onRateResponse ? (rating: 'thumbs-up' | 'thumbs-down') => onRateResponse(message.id, rating) : undefined,
     }),
-    [onRateResponse]
+    [onRateResponse, onRegenerate, isRegenerating, onCopy]
   );
 
   return (

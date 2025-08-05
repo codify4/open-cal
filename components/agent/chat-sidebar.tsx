@@ -27,6 +27,7 @@ export function ChatSidebar({
   const [input, setInput] = useState('');
   const [messagesLeft, setMessagesLeft] = useState(3);
   const [isRegenerating, setIsRegenerating] = useState(false);
+  const [regeneratingMessageId, setRegeneratingMessageId] = useState<string | null>(null);
   
   const chatMessages = useChatStore((state) => state.messages);
   const chatInput = useChatStore((state) => state.input);
@@ -81,6 +82,31 @@ export function ChatSidebar({
     setInput('');
     setMessagesLeft(3);
     clearChat();
+  };
+
+  const handleRegenerate = async (messageId: string) => {
+    setRegeneratingMessageId(messageId);
+    setIsRegenerating(true);
+    
+    try {
+      await regenerate();
+    } catch (error) {
+      console.error('Failed to regenerate:', error);
+    } finally {
+      setIsRegenerating(false);
+      setRegeneratingMessageId(null);
+    }
+  };
+
+  const handleCopy = (messageId: string) => {
+    const message = messages.find(m => m.id === messageId);
+    if (message) {
+      const content = message.parts
+        .filter(part => part.type === 'text')
+        .map(part => (part as any).text)
+        .join('');
+      navigator.clipboard.writeText(content);
+    }
   };
 
   useEffect(() => {
@@ -176,6 +202,9 @@ export function ChatSidebar({
           messages={messages}
           stop={stop}
           disabled={messagesLeft === 0}
+          onRegenerate={handleRegenerate}
+          isRegenerating={isRegenerating && regeneratingMessageId !== null}
+          onCopy={handleCopy}
           suggestions={[
             'free time for coffee',
             'work meetings',
