@@ -18,5 +18,5 @@ export function cn(...inputs: ClassValue[]): string {
  * @returns A Date object.
  */
 export function ensureDate(date: Date | string): Date {
-  return date instanceof Date ? date : new Date(date);
+  return typeof date === 'string' ? new Date(date) : date;
 }

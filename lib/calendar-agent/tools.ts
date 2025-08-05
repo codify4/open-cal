@@ -24,10 +24,27 @@ const mockCalendarStore = {
     },
   ],
   saveEvent: (event: any) => {
-    console.log('Saving event:', event);
+    return event;
   },
   deleteEvent: (eventId: string) => {
-    console.log('Deleting event:', eventId);
+    return { success: true, eventId };
+  },
+  getEvents: (startDate?: Date, endDate?: Date) => {
+    return mockCalendarStore.events;
+  },
+  findFreeTime: (duration: number, startDate?: Date, endDate?: Date) => {
+    return [
+      {
+        start: new Date('2024-01-15T14:00:00Z'),
+        end: new Date('2024-01-15T15:00:00Z'),
+        duration: 60,
+      },
+      {
+        start: new Date('2024-01-16T10:00:00Z'),
+        end: new Date('2024-01-16T11:00:00Z'),
+        duration: 60,
+      },
+    ];
   },
 };
 

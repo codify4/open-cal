@@ -73,7 +73,8 @@ export const createCalendarToolHandlers = (calendarStore: any): CalendarToolHand
         account: 'user@example.com',
       };
       
-      calendarStore.saveEvent(event);
+      // Don't actually save to the mock store, just return the event
+      // The frontend will save it to the real store when accepted
       return { success: true, event };
     } catch (error) {
       return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };

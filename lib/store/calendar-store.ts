@@ -353,16 +353,35 @@ export const createCalendarStore = (
 
         // Calendar Agent Actions
         addPendingAction: (action) =>
-          set((state) => ({
-            pendingActions: [
+          set((state) => {
+            // Check if this action already exists to prevent duplicates
+            const existingAction = state.pendingActions.find(
+              (existing) => 
+                existing.toolName === action.toolName && 
+                JSON.stringify(existing.args) === JSON.stringify(action.args)
+            );
+            
+            if (existingAction) {
+              return state; // Don't add duplicate
+            }
+            
+            // Limit to 10 pending actions to prevent localStorage quota issues
+            const newActions = [
               ...state.pendingActions,
               {
                 ...action,
                 id: `action-${Date.now()}`,
                 timestamp: new Date(),
               },
-            ],
-          })),
+            ];
+            
+            // Keep only the 10 most recent actions
+            if (newActions.length > 10) {
+              newActions.splice(0, newActions.length - 10);
+            }
+            
+            return { pendingActions: newActions };
+          }),
 
         updateActionStatus: (id, status) =>
           set((state) => ({

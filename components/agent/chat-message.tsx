@@ -4,7 +4,7 @@ import { cva, type VariantProps } from 'class-variance-authority';
 import { motion } from 'framer-motion';
 import { Ban, ChevronRight, Code2, Loader2, Terminal } from 'lucide-react';
 import type React from 'react';
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect, useContext } from 'react';
 import {
   Collapsible,
   CollapsibleContent,
@@ -14,8 +14,8 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { FilePreview } from '@/components/agent/file-preview';
 import { MarkdownRenderer } from '@/components/agent/markdown-renderer';
 import { CalendarToolCall } from '@/components/agent/calendar-tool-call';
-import { cn } from '@/lib/utils';
-import { useCalendarStore } from '@/providers/calendar-store-provider';
+import { cn, ensureDate } from '@/lib/utils';
+import { useCalendarStore, CalendarStoreContext } from '@/providers/calendar-store-provider';
 
 const chatBubbleVariants = cva(
   'group/message relative break-words p-2 text-sm sm:max-w-[75%] shadow-sm border',
@@ -65,35 +65,11 @@ interface Attachment {
   url: string;
 }
 
-interface PartialToolCall {
-  state: 'partial-call';
-  toolName: string;
-}
-
-interface ToolCall {
-  state: 'call';
-  toolName: string;
-}
-
-interface ToolResult {
-  state: 'result';
-  toolName: string;
-  result: {
-    __cancelled?: boolean;
-    [key: string]: any;
-  };
-}
-
-type ToolInvocation = PartialToolCall | ToolCall | ToolResult;
-
-interface ReasoningPart {
-  type: 'reasoning';
-  reasoning: string;
-}
-
 interface ToolInvocationPart {
   type: 'tool-invocation';
-  toolInvocation: ToolInvocation & {
+  toolInvocation: {
+    state: 'call' | 'result';
+    toolName: string;
     args?: any;
     result?: any;
   };
@@ -104,29 +80,16 @@ interface TextPart {
   text: string;
 }
 
-// For compatibility with AI SDK types, not used
-interface SourcePart {
-  type: 'source';
-  source?: any;
-}
-
-interface FilePart {
-  type: 'file';
-  mimeType: string;
-  data: string;
+interface ReasoningPart {
+  type: 'reasoning';
+  reasoning: string;
 }
 
 interface StepStartPart {
   type: 'step-start';
 }
 
-type MessagePart =
-  | TextPart
-  | ReasoningPart
-  | ToolInvocationPart
-  | SourcePart
-  | FilePart
-  | StepStartPart;
+type MessagePart = TextPart | ReasoningPart | ToolInvocationPart | StepStartPart;
 
 export interface Message {
   id: string;
@@ -134,7 +97,6 @@ export interface Message {
   content: string;
   createdAt?: Date;
   experimental_attachments?: Attachment[];
-  toolInvocations?: ToolInvocation[];
   parts?: MessagePart[];
 }
 
@@ -154,12 +116,35 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
   animation = 'scale',
   actions,
   experimental_attachments,
-  toolInvocations,
   parts,
   avatar,
   avatarFallback,
 }) => {
-  const { addPendingAction, updateActionStatus } = useCalendarStore((state) => state);
+  const { addPendingAction } = useCalendarStore((state) => state);
+  const calendarStoreContext = useContext(CalendarStoreContext);
+  
+  useEffect(() => {
+    if (parts && parts.length > 0) {
+      parts.forEach((part) => {
+        if (part.type === 'tool-invocation') {
+          const toolInvocation = part.toolInvocation;
+          const calendarToolNames = ['create_event', 'find_free_time', 'get_events', 'update_event', 'delete_event', 'get_calendar_summary'];
+          
+          if (calendarToolNames.includes(toolInvocation.toolName)) {
+            if (toolInvocation.state === 'result' && toolInvocation.result) {
+              addPendingAction({
+                toolName: toolInvocation.toolName,
+                args: toolInvocation.args || {},
+                result: toolInvocation.result,
+                status: 'pending',
+              });
+            }
+          }
+        }
+      });
+    }
+  }, [parts, addPendingAction]);
+
   const files = useMemo(() => {
     return experimental_attachments?.map((attachment) => {
       const dataArray = dataUrlToUint8Array(attachment.url);
@@ -171,7 +156,6 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
   }, [experimental_attachments]);
 
   const isUser = role === 'user';
-
   const formattedTime = createdAt?.toLocaleTimeString('en-US', {
     hour: '2-digit',
     minute: '2-digit',
@@ -216,7 +200,6 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
     );
   }
 
-  // AI Message with enhanced styling
   if (parts && parts.length > 0) {
     return (
       <div className="flex items-start gap-3">
@@ -271,21 +254,9 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
             }
             if (part.type === 'tool-invocation') {
               const toolInvocation = part.toolInvocation;
+              const calendarToolNames = ['create_event', 'find_free_time', 'get_events', 'update_event', 'delete_event', 'get_calendar_summary'];
               
-              // Check if it's a calendar tool
-              if (toolInvocation.toolName.startsWith('calendar_') || 
-                  ['create_event', 'find_free_time', 'get_events', 'update_event', 'delete_event', 'get_calendar_summary'].includes(toolInvocation.toolName)) {
-                
-                // Add to pending actions if it's a result
-                if (toolInvocation.state === 'result' && toolInvocation.result) {
-                  addPendingAction({
-                    toolName: toolInvocation.toolName,
-                    args: toolInvocation.args || {},
-                    result: toolInvocation.result,
-                    status: 'pending',
-                  });
-                }
-
+              if (calendarToolNames.includes(toolInvocation.toolName)) {
                 return (
                   <div key={`calendar-tool-${index}`} className="w-full">
                     <CalendarToolCall
@@ -294,24 +265,39 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
                       result={toolInvocation.result}
                       isPending={toolInvocation.state === 'call'}
                       onAccept={() => {
-                        // Handle calendar action acceptance
-                        console.log('Calendar action accepted:', toolInvocation);
-                        // Here you would actually execute the calendar action
+                        if (toolInvocation.toolName === 'create_event' && toolInvocation.result?.event) {
+                          if (calendarStoreContext) {
+                            // Ensure dates are properly converted to Date objects
+                            const eventWithProperDates = {
+                              ...toolInvocation.result.event,
+                              startDate: ensureDate(toolInvocation.result.event.startDate),
+                              endDate: ensureDate(toolInvocation.result.event.endDate),
+                            };
+                            calendarStoreContext.getState().saveEvent(eventWithProperDates);
+                            calendarStoreContext.getState().setCurrentDate(eventWithProperDates.startDate);
+                          }
+                        }
                       }}
                       onDecline={() => {
-                        // Handle calendar action decline
-                        console.log('Calendar action declined:', toolInvocation);
+                        // Handle decline action
                       }}
                       onEdit={() => {
-                        // Handle calendar action edit
-                        console.log('Calendar action edit:', toolInvocation);
+                        if (toolInvocation.toolName === 'create_event' && toolInvocation.result?.event) {
+                          if (calendarStoreContext) {
+                            const eventWithProperDates = {
+                              ...toolInvocation.result.event,
+                              startDate: ensureDate(toolInvocation.result.event.startDate),
+                              endDate: ensureDate(toolInvocation.result.event.endDate),
+                            };
+                            calendarStoreContext.getState().openEventSidebarForEdit(eventWithProperDates);
+                          }
+                        }
                       }}
                     />
                   </div>
                 );
               }
               
-              // Fall back to regular tool call UI
               return (
                 <div key={`tool-${index}`} className="w-full">
                   <ToolCall toolInvocations={[toolInvocation]} />
@@ -325,7 +311,6 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
     );
   }
 
-  // Fallback for simple text messages
   return (
     <div className="flex items-start gap-3">
       <Avatar className="h-8 w-8 flex-shrink-0">
@@ -416,7 +401,13 @@ const ReasoningBlock = ({ part }: { part: ReasoningPart }) => {
 
 function ToolCall({
   toolInvocations,
-}: Pick<ChatMessageProps, 'toolInvocations'>) {
+}: {
+  toolInvocations: Array<{
+    state: 'call' | 'result';
+    toolName: string;
+    result?: any;
+  }>;
+}) {
   if (!toolInvocations?.length) return null;
 
   return (
@@ -424,7 +415,7 @@ function ToolCall({
       {toolInvocations.map((invocation, index) => {
         const isCancelled =
           invocation.state === 'result' &&
-          invocation.result.__cancelled === true;
+          invocation.result?.__cancelled === true;
 
         if (isCancelled) {
           return (
@@ -446,7 +437,6 @@ function ToolCall({
         }
 
         switch (invocation.state) {
-          case 'partial-call':
           case 'call':
             return (
               <div
