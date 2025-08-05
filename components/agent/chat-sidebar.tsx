@@ -23,9 +23,10 @@ export function ChatSidebar({
   onToggleFullscreen,
   ...props
 }: React.ComponentProps<'div'> & ChatSidebarProps) {
-  const { messages, sendMessage, status, setMessages } = useChat();
+  const { messages, sendMessage, status, setMessages, regenerate } = useChat();
   const [input, setInput] = useState('');
   const [messagesLeft, setMessagesLeft] = useState(3);
+  const [isRegenerating, setIsRegenerating] = useState(false);
   
   const chatMessages = useChatStore((state) => state.messages);
   const chatInput = useChatStore((state) => state.input);

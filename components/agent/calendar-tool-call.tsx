@@ -2,7 +2,7 @@
 
 import { Check, X, Edit, Clock, Calendar, Users, MapPin, Terminal } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { useCalendarStore } from '@/providers/calendar-store-provider';
@@ -123,23 +123,83 @@ export function CalendarToolCall({
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Calendar className="h-4 w-4" />
-              Free Time Found
+              Available Time Slots
             </CardTitle>
+            <CardDescription>
+              Found {result?.freeSlots?.length || 0} available time slot{result?.freeSlots?.length !== 1 ? 's' : ''} for your requested duration
+            </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-2">
-              {result?.freeSlots?.map((slot: any, index: number) => (
-                <div key={index} className="flex items-center justify-between p-2 border rounded">
-                  <div className="flex items-center gap-2">
-                    <Clock className="h-3 w-3" />
-                    <span className="text-sm">
-                      {new Date(slot.start).toLocaleDateString()} {new Date(slot.start).toLocaleTimeString()} - {new Date(slot.end).toLocaleTimeString()}
-                    </span>
-                  </div>
-                  <Badge variant="secondary">{slot.duration}min</Badge>
-                </div>
-              ))}
-            </div>
+            {result?.freeSlots?.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                <Clock className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                <p>No available time slots found for the requested duration</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {result?.freeSlots?.map((slot: any, index: number) => {
+                  const startDate = new Date(slot.start);
+                  const endDate = new Date(slot.end);
+                  const durationMinutes = Math.round((endDate.getTime() - startDate.getTime()) / 60000);
+                  const isSameDay = startDate.toDateString() === endDate.toDateString();
+                  const isAllDay = durationMinutes >= 1440; // 24 hours
+                  
+                  return (
+                    <div key={index} className="border rounded-lg p-4 bg-muted/30">
+                      <div className="flex items-start justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                          <span className="font-medium">
+                            {isAllDay ? 'All Day' : `${durationMinutes} minutes available`}
+                          </span>
+                        </div>
+                        <Badge variant="outline" className="text-xs">
+                          {durationMinutes >= 60 ? `${Math.floor(durationMinutes / 60)}h ${durationMinutes % 60}m` : `${durationMinutes}m`}
+                        </Badge>
+                      </div>
+                      
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2 text-sm">
+                          <Calendar className="h-3 w-3 text-muted-foreground" />
+                          <span className="font-medium">
+                            {startDate.toLocaleDateString(undefined, { 
+                              weekday: 'long', 
+                              year: 'numeric', 
+                              month: 'long', 
+                              day: 'numeric' 
+                            })}
+                          </span>
+                        </div>
+                        
+                        {!isAllDay && (
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <Clock className="h-3 w-3" />
+                            <span>
+                              {startDate.toLocaleTimeString(undefined, { 
+                                hour: 'numeric', 
+                                minute: '2-digit',
+                                hour12: true 
+                              })} - {endDate.toLocaleTimeString(undefined, { 
+                                hour: 'numeric', 
+                                minute: '2-digit',
+                                hour12: true 
+                              })}
+                            </span>
+                          </div>
+                        )}
+                        
+                        {isAllDay && (
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <Clock className="h-3 w-3" />
+                            <span>Available all day</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </CardContent>
         </Card>
       );
