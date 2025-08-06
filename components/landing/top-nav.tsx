@@ -44,7 +44,7 @@ export default function TopNav() {
 
   return (
     <nav
-      className={`-translate-x-1/2 fixed top-0 left-1/2 z-50 mt-2 w-11/12 sm:w-2/3 self-center rounded-full border border-border bg-black transition-all duration-500 ${
+      className={`-translate-x-1/2 fixed top-0 left-1/2 z-50 mt-2 w-11/12 sm:w-2/3 self-center rounded-full border border-neutral-800 bg-black transition-all duration-500 ${
         isScrolled ? 'w-2/4 bg-black/80 backdrop-blur-xl' : 'bg-black'
       }`}
     >
@@ -57,7 +57,7 @@ export default function TopNav() {
           <div className="hidden items-center space-x-8 lg:flex">
             {navItems.map((item) => (
               <Link
-                className="font-medium text-muted-foreground text-sm transition-colors hover:text-white"
+                className="font-medium text-neutral-400 text-sm transition-colors hover:text-white"
                 href={item.href}
                 key={item.name}
               >

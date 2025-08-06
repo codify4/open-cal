@@ -8,9 +8,9 @@ import { FAQSection } from '@/components/landing/faq';
 
 export default function HomePage() {
   return (
-    <div className="min-h-screen bg-neutral-950 text-foreground scrollbar-hide">
+    <div className="min-h-screen bg-neutral-950 text-white scrollbar-hide">
       <TopNav />
-      <main className="bg-background">
+      <main className="bg-neutral-950">
         <HeroSection />
         <FeaturesSection />
         {/* <PricingSection /> */}

@@ -10,7 +10,7 @@ import { motion } from 'motion/react';
 export function HeroSection() {
   return (
     <section
-      className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden"
+      className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-black"
       id="hero"
     >
       <Spotlight className="-top-0 left-0 md:top-24 md:left-60" fill="white" />
@@ -23,25 +23,25 @@ export function HeroSection() {
             transition={{ duration: 0.6 }}
           >
             <motion.h1
-              className="font-bold tracking-tight text-5xl md:text-6xl lg:text-7xl"
+              className="font-bold tracking-tight text-5xl md:text-6xl lg:text-7xl text-white"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.1 }}
             >
               Your Calendar,
               <br />
-              <span className="bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-white to-white/70 bg-clip-text text-transparent">
                 Reimagined
               </span>
             </motion.h1>
             
             <motion.p
-              className="text-base sm:text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed"
+              className="text-base sm:text-xl text-neutral-400 max-w-3xl mx-auto leading-relaxed"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.2 }}
             >
-              Take control with OpenCal’s AI-powered open source calendar. Sync with Google Calendar and let AI handle your events and time.
+              Take control with OpenCal's AI-powered open source calendar. Sync with Google Calendar and let AI handle your events and time.
             </motion.p>
 
             <motion.div
@@ -50,7 +50,7 @@ export function HeroSection() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.3 }}
             >
-              <Button asChild size="lg" className="group px-8 py-6 rounded-full font-semibold">
+              <Button asChild size="lg" className="group px-8 py-6 rounded-full font-semibold bg-white text-black hover:bg-white/90">
                 <Link href="/calendar">
                   Join the beta
                   <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform duration-300" />

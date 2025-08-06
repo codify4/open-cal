@@ -96,7 +96,7 @@ const resourcesLinks: FooterLink[] = [
 ];
 export function Footer({ sections = [], className = '' }: FooterProps) {
     return (
-        <footer className={`flex items-center justify-center p-10 border-border border-t bg-black ${className}`}>
+        <footer className={`flex items-center justify-center p-10 border-border/40 border-t bg-black ${className}`}>
             <div className="flex flex-col md:flex-row justify-between md:w-full xl:w-1/2">
                 <FooterBrand />
                 

@@ -44,11 +44,11 @@ export function FAQSection() {
     }
 
   return (
-        <section id="faq" className="py-32 flex flex-col items-center justify-center">
+        <section id="faq" className="py-32 flex flex-col items-center justify-center bg-black">
             <div className="container mx-auto px-6 lg:px-8 flex flex-col items-center justify-center">
                 <div className="max-w-3xl mb-20 text-center">
-                <h2 className="text-4xl lg:text-5xl font-bold mb-6 tracking-tight">Frequently asked questions</h2>
-                <p className="text-xl text-muted-foreground leading-relaxed font-medium">
+                <h2 className="text-4xl lg:text-5xl font-bold mb-6 tracking-tight text-white">Frequently asked questions</h2>
+                <p className="text-xl text-neutral-400 leading-relaxed font-medium">
                     Everything you need to know about OpenCal. Can&apos;t find what you&apos;re looking for?
                 </p>
                 </div>
@@ -56,11 +56,11 @@ export function FAQSection() {
                 <Accordion type="single" collapsible defaultValue="item-0" className="max-w-3xl w-full">
                     {faqs.map((faq, index) => (
                         <AccordionItem key={index} value={`item-${index}`}>
-                            <AccordionTrigger className="text-left font-medium text-lg cursor-pointer">
+                            <AccordionTrigger className="text-left font-medium text-lg cursor-pointer text-white hover:text-neutral-300">
                                 {faq.question}
                             </AccordionTrigger>
                             <AccordionContent>
-                                <p className="text-muted-foreground leading-relaxed">{faq.answer}</p>
+                                <p className="text-neutral-400 leading-relaxed">{faq.answer}</p>
                             </AccordionContent>
                         </AccordionItem>
                     ))}
