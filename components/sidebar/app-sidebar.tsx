@@ -10,7 +10,7 @@ import {
   SidebarContent,
   SidebarFooter,
 } from '@/components/ui/sidebar';
-import PremiumCard from './premium';
+import Premium from './premium';
 
 const emailAccounts = [
   {
@@ -90,9 +90,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           selectedEmail={selectedEmail}
         />
       </SidebarContent>
-      <SidebarFooter className="border-none bg-white dark:bg-neutral-950">
+      <SidebarFooter className="border-none bg-neutral-100 dark:bg-neutral-950">
         <div className="mt-auto">
-          <PremiumCard />
+          <Premium />
         </div>
         <NavUser user={data.user} />
       </SidebarFooter>

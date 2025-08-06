@@ -1,55 +1,19 @@
 'use client';
 
-import { Sparkles, X } from 'lucide-react';
 import { useState } from 'react';
-import { ShineBorder } from '../magicui/shine-border';
 import { Button } from '../ui/button';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '../ui/card';
+import { Sparkles } from 'lucide-react';
 
-const PremiumCard = () => {
-  const [close, setClose] = useState(false);
-
+const Premium = () => {
   return (
-    <Card
-      className={`relative mx-2 overflow-hidden rounded-xl border-none bg-white dark:bg-neutral-900 py-4 text-neutral-900 dark:text-white ${close ? 'hidden' : ''}`}
+    <Button 
+      variant="outline" 
+      className="w-full py-2.5 rounded-sm border-blue-200/20 bg-gradient-to-r from-blue-50/50 to-indigo-50/50 hover:from-blue-100/60 hover:to-indigo-100/60 text-blue-700 hover:text-blue-800 font-medium transition-all duration-200 hover:shadow-sm hover:border-blue-300/30 group"
     >
-      <ShineBorder
-        className="absolute inset-0"
-        shineColor={['#A07CFE', '#FE8FB5', '#FFBE7B']}
-      />
-      <CardHeader className="px-4">
-        <CardTitle className="flex items-center justify-between gap-2">
-          <div className="flex flex-row items-center gap-2">
-            <Sparkles className="h-4 w-4 text-black dark:text-white" />
-            <p className="font-medium text-sm">Premium</p>
-          </div>
-
-          <Button
-            className="absolute top-2 right-2"
-            onClick={() => setClose(true)}
-            size="icon"
-            variant="ghost"
-          >
-            <X className="h-4 w-4 text-black dark:text-white" />
-          </Button>
-        </CardTitle>
-        <CardDescription>
-          Upgrade to the premium plan to get access to all features.
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="px-4">
-        <Button className="w-full bg-black text-white hover:bg-black/80 dark:bg-white dark:text-black dark:hover:bg-white/80">
-          Upgrade
-        </Button>
-      </CardContent>
-    </Card>
+      <Sparkles className="w-4 h-4 mr-2 text-blue-500 group-hover:text-blue-600 transition-colors" />
+      Upgrade to Premium
+    </Button>
   );
 };
 
-export default PremiumCard;
+export default Premium;
