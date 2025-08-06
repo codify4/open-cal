@@ -164,6 +164,12 @@ export function MessageInput({
       event.currentTarget.form?.requestSubmit();
     }
 
+    if (event.key === 'Escape' && isGenerating && stop) {
+      event.preventDefault();
+      stop();
+      setShowInterruptPrompt(false);
+    }
+
     onKeyDownProp?.(event);
   };
 
@@ -197,6 +203,7 @@ export function MessageInput({
         <InterruptPrompt
           close={() => setShowInterruptPrompt(false)}
           isOpen={showInterruptPrompt}
+          onStop={stop}
         />
       )}
 
@@ -212,6 +219,7 @@ export function MessageInput({
             className={cn(
               'z-10 w-full grow resize-none rounded-xl border border-input bg-background p-3 pr-24 text-sm text-foreground ring-offset-background transition-[border] placeholder:text-muted-foreground focus-visible:border-primary focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50',
               showFileList && 'pb-16',
+              showInterruptPrompt && 'border-orange-500 ring-orange-500/20',
               className
             )}
             onKeyDown={onKeyDown}
@@ -286,12 +294,16 @@ export function MessageInput({
         {isGenerating && stop ? (
           <Button
             aria-label="Stop generating"
-            className="h-8 w-8"
-            onClick={stop}
+            className="h-8 w-8 bg-destructive text-destructive-foreground hover:bg-destructive/90 shadow-lg"
+            onClick={() => {
+              stop();
+              setShowInterruptPrompt(false);
+            }}
             size="icon"
             type="button"
+            title="Stop generation (Esc)"
           >
-            <Square className="h-3 w-3 animate-pulse" fill="currentColor" />
+            <Square className="h-3 w-3" fill="currentColor" />
           </Button>
         ) : (
           <Button

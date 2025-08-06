@@ -1,6 +1,6 @@
 'use client';
 
-import { ArrowDown, ThumbsDown, ThumbsUp } from 'lucide-react';
+import { ArrowDown } from 'lucide-react';
 import {
   forwardRef,
   type ReactElement,
@@ -9,7 +9,6 @@ import {
   useState,
 } from 'react';
 import { Button } from '@/components/ui/button';
-import { CopyButton } from '@/components/agent/copy-button';
 import { MessageInput } from '@/components/agent/message-input';
 import { MessageList } from '@/components/agent/message-list';
 import { PromptSuggestions } from '@/components/agent/prompt-suggestions';

@@ -23,7 +23,7 @@ export function ChatSidebar({
   onToggleFullscreen,
   ...props
 }: React.ComponentProps<'div'> & ChatSidebarProps) {
-  const { messages, sendMessage, status, setMessages, regenerate } = useChat();
+  const { messages, sendMessage, status, setMessages, regenerate, stop } = useChat();
   const [input, setInput] = useState('');
   const [messagesLeft, setMessagesLeft] = useState(3);
   const [isRegenerating, setIsRegenerating] = useState(false);
@@ -71,10 +71,6 @@ export function ChatSidebar({
       sendMessage({ text: message.content });
       setMessagesLeft(prev => Math.max(0, prev - 1));
     }
-  };
-
-  const stop = () => {
-    // Stop generation if needed
   };
 
   const handleNewChat = () => {
