@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Chat } from '@/components/agent/chat';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { useChatStore } from '@/providers/chat-store-provider';
+import { useRateLimit } from '@/hooks/use-rate-limit';
 
 interface ChatSidebarProps {
   isFullscreen: boolean;
@@ -25,9 +26,10 @@ export function ChatSidebar({
 }: React.ComponentProps<'div'> & ChatSidebarProps) {
   const { messages, sendMessage, status, setMessages, regenerate, stop } = useChat();
   const [input, setInput] = useState('');
-  const [messagesLeft, setMessagesLeft] = useState(3);
   const [isRegenerating, setIsRegenerating] = useState(false);
   const [regeneratingMessageId, setRegeneratingMessageId] = useState<string | null>(null);
+  
+  const { messagesLeft, isLimited, sendMessage: sendRateLimitedMessage, refreshRateLimit } = useRateLimit();
   
   const chatMessages = useChatStore((state) => state.messages);
   const chatInput = useChatStore((state) => state.input);
@@ -52,11 +54,14 @@ export function ChatSidebar({
     options?: { experimental_attachments?: FileList }
   ) => {
     event?.preventDefault?.();
-    if (input.trim() && messagesLeft > 0) {
-      sendMessage({ text: input });
-      setInput('');
-      setChatInput('');
-      setMessagesLeft(prev => Math.max(0, prev - 1));
+    if (input.trim()) {
+      const { isLimited } = sendRateLimitedMessage();
+      
+      if (!isLimited) {
+        sendMessage({ text: input });
+        setInput('');
+        setChatInput('');
+      }
     }
   };
 
@@ -67,17 +72,18 @@ export function ChatSidebar({
   };
 
   const append = (message: { role: 'user'; content: string }) => {
-    if (messagesLeft > 0) {
+    const { isLimited } = sendRateLimitedMessage();
+    
+    if (!isLimited) {
       sendMessage({ text: message.content });
-      setMessagesLeft(prev => Math.max(0, prev - 1));
     }
   };
 
   const handleNewChat = () => {
     setMessages([]);
     setInput('');
-    setMessagesLeft(3);
     clearChat();
+    refreshRateLimit();
   };
 
   const handleRegenerate = async (messageId: string) => {
@@ -166,7 +172,7 @@ export function ChatSidebar({
               </div>
             </TooltipTrigger>
             <TooltipContent className="bg-black font-semibold text-white">
-              <p>Messages left</p>
+              <p>Messages left today</p>
             </TooltipContent>
           </Tooltip>
           <Tooltip>
@@ -197,7 +203,7 @@ export function ChatSidebar({
           isGenerating={isGenerating}
           messages={messages}
           stop={stop}
-          disabled={messagesLeft === 0}
+          disabled={isLimited}
           onRegenerate={handleRegenerate}
           isRegenerating={isRegenerating && regeneratingMessageId !== null}
           onCopy={handleCopy}
