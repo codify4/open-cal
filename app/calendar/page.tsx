@@ -4,6 +4,7 @@ import Image from 'next/image';
 import CalendarView from '@/components/calendar/calendar-view';
 import { Button } from '@/components/ui/button';
 import { useCalendarStore } from '@/providers/calendar-store-provider';
+import MobileDialog from '@/components/wrappers/mobile-dialog';
 
 function CalendarPage() {
   const { isChatSidebarOpen, toggleChatSidebar } = useCalendarStore(
@@ -12,6 +13,7 @@ function CalendarPage() {
 
   return (
     <div className="h-full">
+      <MobileDialog />
       <CalendarView />
 
       {!isChatSidebarOpen && (
