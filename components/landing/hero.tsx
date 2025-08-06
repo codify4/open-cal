@@ -28,10 +28,10 @@ export function HeroSection() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.1 }}
             >
-              Your Calendar,
+              A calendar that
               <br />
               <span className="bg-gradient-to-r from-white to-white/70 bg-clip-text text-transparent">
-                Reimagined
+                does everything for you
               </span>
             </motion.h1>
             
@@ -59,7 +59,7 @@ export function HeroSection() {
             </motion.div>
           </motion.div>
 
-          <Image src="/opencal-hero.png" alt="OpenCal Hero" width={1203} height={753} />
+          <Image src="/hero-ui.png" alt="OpenCal Hero" width={1203} height={753} />
         </div>
       </div>
     </section>
