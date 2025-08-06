@@ -29,8 +29,8 @@ export default function TopNav() {
   }, []);
 
   const navItems = [
-    { name: 'Features', href: '#features' },
-    { name: 'Pricing', href: '#pricing' },
+    { name: 'Features', href: '/#features' },
+    // { name: 'Pricing', href: '/#pricing' },
     { name: 'Roadmap', href: '/roadmap' },
   ];
 
@@ -65,7 +65,7 @@ export default function TopNav() {
               </Link>
             ))}
             
-            <DropdownMenu>
+            {/* <DropdownMenu>
               <DropdownMenuTrigger className="flex items-center gap-1 font-medium text-muted-foreground text-sm bg-transparent hover:bg-transparent transition-colors hover:text-white p-0 mx-0 h-auto cursor-pointer">
                 Use Cases
                 <ChevronDown className="h-3 w-3" />
@@ -80,7 +80,7 @@ export default function TopNav() {
                   </DropdownMenuItem>
                 ))}
               </DropdownMenuContent>
-            </DropdownMenu>
+            </DropdownMenu> */}
           </div>
           
           <div className="flex items-center">
@@ -93,7 +93,7 @@ export default function TopNav() {
               </Link>
             </div>
 
-            <div className="flex items-center space-x-2 lg:hidden">
+            {/* <div className="flex items-center space-x-2 lg:hidden">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button className="h-9 w-9" size="icon" variant="ghost">
@@ -123,7 +123,7 @@ export default function TopNav() {
                   ))}
                 </DropdownMenuContent>
               </DropdownMenu>
-            </div>
+            </div> */}
           </div>
         </div>
       </div>
