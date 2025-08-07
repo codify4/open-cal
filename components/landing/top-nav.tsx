@@ -73,7 +73,7 @@ export default function TopNav() {
               <DropdownMenuContent align="end" className="w-[280px] bg-black border-border">
                 {useCases.map((useCase) => (
                   <DropdownMenuItem asChild key={useCase.name}>
-                    <Link href={useCase.href} className="flex flex-col items-start p-3 hover:bg-muted/20">
+                    <Link href={useCase.href} className="flex flex-col items-start p-3 hover:bg-muted/20 cursor-pointer">
                       <div className="font-medium text-white">{useCase.name}</div>
                       <div className="text-xs text-muted-foreground">{useCase.description}</div>
                     </Link>
