@@ -23,7 +23,7 @@ function FooterBrand() {
     return (
         <div className="flex flex-col space-y-4">
             <div className="flex items-center space-x-3">
-                <Image alt="Logo" height={50} src="/logo-name.svg" width={120} />
+                <Image alt="Logo" height={50} src="/logo-name.svg" width={100} />
             </div>
             <p className="text-muted-foreground max-w-sm leading-relaxed">
                 The open source AI calendar that gets the job done. Simple, powerful, and works on any platform.
@@ -71,7 +71,7 @@ function FooterSection({ section }: { section: FooterSection }) {
 function FooterCopyright() {
     return (
         <div className="text-muted-foreground text-sm">
-            © {new Date().getFullYear()} OpenCal, All Rights Reserved.
+            © {new Date().getFullYear()} Caly, All Rights Reserved.
         </div>
     );
 }

@@ -41,7 +41,7 @@ export function HeroSection() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.2 }}
             >
-              Take control with OpenCal's AI-powered open source calendar. Sync with Google Calendar and let AI handle your events and time.
+              Take control with Caly's AI-powered open source calendar. Sync with Google Calendar and let AI handle your events and time.
             </motion.p>
 
             <motion.div
@@ -59,7 +59,7 @@ export function HeroSection() {
             </motion.div>
           </motion.div>
 
-          <Image src="/hero-ui.png" alt="OpenCal Hero" width={1203} height={753} />
+          <Image src="/ui-hero.png" alt="Caly Hero" width={1203} height={753} />
         </div>
       </div>
     </section>

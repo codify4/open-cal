@@ -12,10 +12,10 @@ export function PromptSuggestions({
 }: PromptSuggestionsProps) {
   return (
     <div className="flex max-w-md flex-col items-center justify-center gap-6">
-      <Image alt="OpenCal" height={80} src="/open-cal.svg" width={80} className='rounded-full' />
+      <Image alt="Caly" height={80} src="/caly.svg" width={80} className='rounded-full' />
 
       <div className="flex flex-col items-center gap-2">
-        <h1 className="font-bold text-foreground text-xl">OpenCal Agent</h1>
+        <h1 className="font-bold text-foreground text-xl">Caly Agent</h1>
         <p className="text-muted-foreground text-sm">
           Ask anything about your calendar
         </p>

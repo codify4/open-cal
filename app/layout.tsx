@@ -13,32 +13,32 @@ const geist = Geist({
 });
 
 export const metadata: Metadata = {
-  title: 'OpenCal',
+  title: 'Caly',
   description:
     'An open-source calendar, offering a fresh alternative to traditional calendar applications. Deeply integrated with AI Agents to help you manage your time and never miss an important event ever again.',
   icons: {
-    icon: '/open-cal.svg',
-    apple: '/open-cal.svg',
+    icon: '/caly.svg',
+    apple: '/caly.svg',
   },
   openGraph: {
     images: '/og-img.png',
-    title: 'OpenCal',
+    title: 'Caly',
     description:
       'An open-source calendar, offering a fresh alternative to traditional calendar applications. Deeply integrated with AI Agents to help you manage your time and never miss an important event ever again.',
-    url: 'https://open-cal.vercel.app',
-    siteName: 'OpenCal',
+    url: 'https://caly-ai.vercel.app',
+    siteName: 'Caly',
     locale: 'en_US',
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'OpenCal',
+    title: 'Caly',
     description:
       'An open-source calendar, offering a fresh alternative to traditional calendar applications. Deeply integrated with AI Agents to help you manage your time and never miss an important event ever again.',
     images: '/og-img.png',
   },
   alternates: {
-    canonical: 'https://open-cal.vercel.app',
+    canonical: 'https://caly-ai.vercel.app',
   },
 };
 
