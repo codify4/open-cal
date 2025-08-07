@@ -119,6 +119,11 @@ export function NavUser({
           <DialogContent className="h-[600px] w-[1000px] bg-white dark:bg-neutral-950 p-0">
             <div className="flex h-full">
               <div className="w-1/4 border-neutral-200 dark:border-neutral-800 border-r px-3 py-4">
+                <div className="mb-4 rounded-lg bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 p-3">
+                  <p className="text-yellow-800 dark:text-yellow-200 text-xs font-medium">
+                    Beta UI - Settings coming soon!
+                  </p>
+                </div>
                 <div className="mb-6">
                   <DialogTitle className="font-semibold text-lg text-neutral-900 dark:text-white">
                     Settings

@@ -4,6 +4,7 @@ import { Analytics } from '@vercel/analytics/next';
 import { Geist } from 'next/font/google';
 import Script from 'next/script';
 import { ThemeProvider } from 'next-themes';
+import { Toaster } from 'sonner';
 
 const geist = Geist({
   subsets: ['latin'],
@@ -20,7 +21,7 @@ export const metadata: Metadata = {
     apple: '/open-cal.svg',
   },
   openGraph: {
-    images: '/og-image.png',
+    images: '/og-img.png',
     title: 'OpenCal',
     description:
       'An open-source calendar, offering a fresh alternative to traditional calendar applications. Deeply integrated with AI Agents to help you manage your time and never miss an important event ever again.',
@@ -34,7 +35,7 @@ export const metadata: Metadata = {
     title: 'OpenCal',
     description:
       'An open-source calendar, offering a fresh alternative to traditional calendar applications. Deeply integrated with AI Agents to help you manage your time and never miss an important event ever again.',
-    images: '/og-image.png',
+    images: '/og-img.png',
   },
   alternates: {
     canonical: 'https://open-cal.vercel.app',
@@ -67,6 +68,7 @@ export default function RootLayout({
         <ThemeProvider attribute="class" defaultTheme="dark">
           {children}
         </ThemeProvider>
+        <Toaster duration={1000} />
         <Analytics />
       </body>
     </html>
