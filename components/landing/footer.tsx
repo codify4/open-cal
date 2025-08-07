@@ -1,7 +1,7 @@
 import { Github } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { XIcon } from '@/lib/lucide/custom-icons';
+import { DiscordIcon, XIcon } from '@/lib/lucide/custom-icons';
 
 interface FooterLink {
     href: string;
@@ -34,6 +34,9 @@ function FooterBrand() {
                 </Link>
                 <Link href="/x" className="text-muted-foreground hover:text-white transition-colors">
                     <XIcon className="h-5 w-5" />
+                </Link>
+                <Link href="/discord" className="text-muted-foreground hover:text-white transition-colors">
+                    <DiscordIcon className="h-5 w-5" />
                 </Link>
             </div>
             <FooterCopyright />
