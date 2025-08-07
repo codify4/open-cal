@@ -19,6 +19,26 @@ export const metadata: Metadata = {
     icon: '/open-cal.svg',
     apple: '/open-cal.svg',
   },
+  openGraph: {
+    images: '/og-image.png',
+    title: 'OpenCal',
+    description:
+      'An open-source calendar, offering a fresh alternative to traditional calendar applications. Deeply integrated with AI Agents to help you manage your time and never miss an important event ever again.',
+    url: 'https://open-cal.vercel.app',
+    siteName: 'OpenCal',
+    locale: 'en_US',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'OpenCal',
+    description:
+      'An open-source calendar, offering a fresh alternative to traditional calendar applications. Deeply integrated with AI Agents to help you manage your time and never miss an important event ever again.',
+    images: '/og-image.png',
+  },
+  alternates: {
+    canonical: 'https://open-cal.vercel.app',
+  },
 };
 
 export default function RootLayout({
