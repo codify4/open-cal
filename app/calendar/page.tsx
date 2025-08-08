@@ -5,11 +5,29 @@ import CalendarView from '@/components/calendar/calendar-view';
 import { Button } from '@/components/ui/button';
 import { useCalendarStore } from '@/providers/calendar-store-provider';
 import MobileDialog from '@/components/wrappers/mobile-dialog';
+import { authClient } from '@/lib/auth-client';
+import { SignInButton } from '@/components/auth/sign-in-button';
 
 function CalendarPage() {
+  const { data: session, isPending } = authClient.useSession();
   const { isChatSidebarOpen, toggleChatSidebar } = useCalendarStore(
     (state) => state
   );
+
+  if (isPending) {
+    return <div className="h-full grid place-items-center text-sm text-muted-foreground">Loading…</div>;
+  }
+
+  if (!session) {
+    return (
+      <div className="h-full grid place-items-center">
+        <div className="flex flex-col items-center gap-4">
+          <p className="text-sm text-muted-foreground">Sign in to view your calendar.</p>
+          <SignInButton />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="h-full">

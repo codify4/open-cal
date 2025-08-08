@@ -13,6 +13,8 @@ import type { ClassNames, Views } from '@/types/index';
 import DailyView from './view/daily-view';
 import MonthView from './view/month-view';
 import WeeklyView from './view/week-view';
+import { authClient } from '@/lib/auth-client';
+import { SignInButton } from '@/components/auth/sign-in-button';
 
 // Animation settings for Framer Motion
 const animationConfig = {
@@ -34,6 +36,7 @@ export default function CalendarView({
   stopDayEventSummary?: boolean;
   classNames?: ClassNames;
 }) {
+  const { data: session, isPending } = authClient.useSession();
   const [clientSide, setClientSide] = useState(false);
 
   const {
@@ -178,6 +181,22 @@ export default function CalendarView({
   const handleViewChange = (newView: string) => {
     setViewType(newView as 'day' | 'week' | 'month');
   };
+
+  if (isPending) {
+    return <div className="p-6 text-sm text-muted-foreground">Loading…</div>;
+  }
+
+  if (!session) {
+    return (
+      <div className="p-6">
+        <div className="flex items-center justify-between">
+          <h1 className="font-semibold text-lg">Calendar</h1>
+          <SignInButton />
+        </div>
+        <p className="mt-4 text-sm text-muted-foreground">Sign in to access your calendar.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="flex w-full flex-col gap-6 p-2">

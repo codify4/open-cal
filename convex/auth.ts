@@ -27,5 +27,3 @@ export const getCurrentUser = query({
     return { ...user, ...userMetadata }
   },
 })
-
-

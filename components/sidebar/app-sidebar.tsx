@@ -11,6 +11,8 @@ import {
   SidebarFooter,
 } from '@/components/ui/sidebar';
 import Premium from './premium';
+import { authClient } from '@/lib/auth-client';
+import { SignInButton } from '@/components/auth/sign-in-button';
 
 const emailAccounts = [
   {
@@ -57,6 +59,7 @@ const calendars = [
 ];
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const { data: session, isPending } = authClient.useSession();
   const [selectedEmail, setSelectedEmail] = React.useState(
     'kushta.joni@gmail.com'
   );
@@ -73,6 +76,28 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       )
     );
   };
+
+  if (isPending) return null;
+
+  if (!session) {
+    return (
+      <Sidebar
+        className="overflow-hidden border-none bg-neutral-100 dark:bg-neutral-950"
+        variant="inset"
+        {...props}
+      >
+        <SidebarContent className="scrollbar-hide border-none bg-neutral-100 dark:bg-neutral-950">
+          <div className="p-4">
+            <p className="text-sm text-muted-foreground mb-3">Sign in to manage calendars.</p>
+            <SignInButton />
+          </div>
+        </SidebarContent>
+        <SidebarFooter className="border-none bg-neutral-100 dark:bg-neutral-950">
+          <Premium />
+        </SidebarFooter>
+      </Sidebar>
+    );
+  }
 
   return (
     <Sidebar
