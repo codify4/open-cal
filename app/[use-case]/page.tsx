@@ -26,13 +26,13 @@ export async function generateMetadata({ params }: { params: Promise<{ "use-case
   
   if (!useCaseData) {
     return {
-      title: "Use Case - OpenCal",
-      description: "Discover how OpenCal can help your specific use case.",
+      title: "Use Case - Caly",
+      description: "Discover how Caly can help your specific use case.",
     };
   }
   
   return {
-    title: `${useCaseData.title} - OpenCal`,
+    title: `${useCaseData.title} - Caly`,
     description: useCaseData.description,
   };
 }
@@ -58,7 +58,7 @@ export default async function UseCasePage({ params }: UseCasePageProps) {
         />
         <UseCaseBenefits benefits={useCaseData.benefits} />
         <UseCaseFeatures features={useCaseData.features} />
-        <UseCaseTestimonials testimonials={useCaseData.testimonials} />
+        {/* <UseCaseTestimonials testimonials={useCaseData.testimonials} /> */}
         <UseCaseFAQ faq={useCaseData.faq} />
         <UseCaseCTA
           title={useCaseData.cta.title}

@@ -25,7 +25,7 @@ const MobileDialog = () => {
                 <DialogContent className="sm:max-w-md bg-neutral-950 rounded-lg" showCloseButton={false}>
                     <DialogHeader className='flex flex-col items-center'>
                         <DialogTitle className='flex flex-col items-center'>
-                            <Image alt="OpenCal" height={40} src="/logo-name.svg" width={140} className='rounded-full' />
+                            <Image alt="Caly" height={40} src="/logo-name.svg" width={140} className='rounded-full' />
                             <p className='text-center text-base text-white'>
                                 We are building the best mobile experience for ai calendars.
                             </p>

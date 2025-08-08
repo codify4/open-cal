@@ -4,8 +4,8 @@ import { Metadata } from 'next'
 import Link from 'next/link'
 
 export const metadata: Metadata = {
-    title: 'Terms of Use | OpenCal',
-    description: 'The terms of use for OpenCal, an open-source ai calendar app by OpenCal.',
+    title: 'Terms of Use | Caly',
+    description: 'The terms of use for Caly, an open-source ai calendar app by Caly.',
 }
 
 function TermsOfUsePage() {
@@ -15,11 +15,11 @@ function TermsOfUsePage() {
             <main className="bg-background pt-24">
                 <div className="container mx-auto px-6 lg:px-8 py-16">
                     <div className="max-w-4xl mx-auto">
-                        <h1 className="text-4xl font-bold text-white mb-4">OpenCal Terms of Use</h1>
+                        <h1 className="text-4xl font-bold text-white mb-4">Caly Terms of Use</h1>
 
                         <div className="prose prose-invert max-w-none">
                             <p className="text-muted-foreground text-lg leading-relaxed mb-8">
-                                By using OpenCal, an open-source calendar app by OpenCal, you agree to these Terms of Use. If you disagree, do not use the app.
+                                By using Caly, an open-source calendar app by Caly, you agree to these Terms of Use. If you disagree, do not use the app.
                             </p>
 
                             <section className="mb-12">
@@ -27,11 +27,11 @@ function TermsOfUsePage() {
                                 <ul className="space-y-3 text-muted-foreground">
                                     <li className="flex items-start gap-3">
                                         <span className="text-white font-medium">Eligibility:</span>
-                                        <span>You must be 13+ to use OpenCal.</span>
+                                        <span>You must be 13+ to use Caly.</span>
                                     </li>
                                     <li className="flex items-start gap-3">
                                         <span className="text-white font-medium">License:</span>
-                                        <span>OpenCal is open-source under MIT License. You may use, modify, and distribute the code per the license.</span>
+                                        <span>Caly is open-source under MIT License. You may use, modify, and distribute the code per the license.</span>
                                     </li>
                                     <li className="flex items-start gap-3">
                                         <span className="text-white font-medium">Account:</span>
@@ -45,7 +45,7 @@ function TermsOfUsePage() {
                                 <ul className="space-y-3 text-muted-foreground">
                                     <li className="flex items-start gap-3">
                                         <span className="text-white font-medium">Permitted:</span>
-                                        <span>Use OpenCal for personal/team scheduling, AI chat, and Google Calendar sync.</span>
+                                        <span>Use Caly for personal/team scheduling, AI chat, and Google Calendar sync.</span>
                                     </li>
                                     <li className="flex items-start gap-3">
                                         <span className="text-white font-medium">Prohibited:</span>
@@ -141,7 +141,7 @@ function TermsOfUsePage() {
                                 <p className="text-muted-foreground leading-relaxed">
                                     We may update these terms. Changes posted on{' '}
                                     <Link href="/terms" className="text-white hover:text-muted-foreground transition-colors">
-                                        OpenCal Terms of Use
+                                        Caly Terms of Use
                                     </Link>{' '}
                                     and effective upon next use.
                                 </p>
@@ -151,8 +151,8 @@ function TermsOfUsePage() {
                                 <h2 className="text-2xl font-semibold text-white mb-6">10. Contact</h2>
                                 <p className="text-muted-foreground leading-relaxed">
                                     Email{' '}
-                                    <Link href="mailto:opencal.oss@gmail.com" className="text-white hover:text-muted-foreground transition-colors">
-                                        opencal.oss@gmail.com
+                                    <Link href="mailto:Caly.oss@gmail.com" className="text-white hover:text-muted-foreground transition-colors">
+                                        Caly.oss@gmail.com
                                     </Link>{' '}
                                     for questions.
                                 </p>

@@ -36,9 +36,9 @@ export const features = [
       id: 4,
       title: "Open Source",
       description:
-        "Built with transparency and community. Contribute, customize, and extend OpenCal to fit your needs.",
+        "Built with transparency and community. Contribute, customize, and extend Caly to fit your needs.",
       longDescription:
-        "Built with transparency and community. Contribute, customize, and extend OpenCal to fit your needs. Full source code available for developers and organizations.",
+        "Built with transparency and community. Contribute, customize, and extend Caly to fit your needs. Full source code available for developers and organizations.",
       cta: "View on GitHub",
       visual: "publish",
       reverse: true,

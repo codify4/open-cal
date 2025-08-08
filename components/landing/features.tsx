@@ -119,7 +119,7 @@ export function FeaturesSection({ page = false }: { page?: boolean }) {
         <div className="text-center mb-20">
           <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">Features</h2>
           <p className="text-xl text-gray-400 max-w-2xl mx-auto">
-            OpenCal is an open source AI calendar that helps you manage your schedule intelligently.
+            Caly is an open source AI calendar that helps you manage your schedule intelligently.
           </p>
         </div>
         {/* Features */}

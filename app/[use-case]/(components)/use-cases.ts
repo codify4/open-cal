@@ -10,7 +10,7 @@ export interface UseCase {
     cta: string;
     demo?: {
       type: 'calendar' | 'form' | 'chat';
-      props: Record<string, any>;
+      props: Record<string, unknown>;
     };
   };
   benefits: Array<{
@@ -47,12 +47,12 @@ export const useCases: Record<string, UseCase> = {
     id: 'founders',
     title: 'For Founders',
     subtitle: 'Scale your startup with intelligent scheduling',
-    description: 'Stop losing deals to scheduling delays. OpenCal helps founders close deals faster with AI-powered scheduling that adapts to your team and your prospects.',
+    description: 'Stop losing deals to scheduling delays. Caly helps founders close deals faster with AI‑powered scheduling that adapts to your team and your prospects, and keeps everything in sync with Google Calendar.',
     hero: {
       title: 'Close deals faster with intelligent scheduling',
       subtitle: 'Stop losing deals to scheduling delays',
-      description: 'OpenCal helps founders streamline investor meetings, customer demos, and team coordination with AI that understands your priorities.',
-      cta: 'Start closing deals',
+      description: 'Caly streamlines investor meetings, customer demos, and team coordination with AI that understands your priorities and syncs seamlessly with Google Calendar.',
+      cta: 'Get started',
       demo: {
         type: 'calendar',
         props: {
@@ -89,25 +89,25 @@ export const useCases: Record<string, UseCase> = {
       {
         id: 'investor-scheduling',
         title: 'Investor Meeting Scheduling',
-        description: 'Streamline investor calls with automated scheduling and follow-up reminders.',
+        description: 'Streamline investor calls with smart time suggestions, buffers, and follow‑ups—always in sync with Google Calendar.',
         visual: 'calendar'
       },
       {
         id: 'customer-demos',
         title: 'Customer Demo Coordination',
-        description: 'Schedule product demos with prospects and automatically include relevant team members.',
+        description: 'Quickly schedule product demos with attendee suggestions and clear agendas that reduce back‑and‑forth.',
         visual: 'workflow'
       },
       {
         id: 'team-sync',
         title: 'Team Synchronization',
-        description: 'Keep your entire team in sync with shared calendars and availability tracking.',
+        description: 'Keep your team aligned with shared availability, time‑zone awareness, and conflict‑free events in Google Calendar.',
         visual: 'integration'
       }
     ],
     testimonials: [
       {
-        quote: "OpenCal cut our scheduling time by 80%. We're closing deals faster than ever.",
+        quote: "Caly cut our scheduling time by 80%. We're closing deals faster than ever.",
         author: "Sarah Chen",
         role: "CEO",
         company: "TechFlow"
@@ -121,12 +121,12 @@ export const useCases: Record<string, UseCase> = {
     ],
     faq: [
       {
-        question: "How does OpenCal help with investor meetings?",
-        answer: "OpenCal automatically finds optimal times for investor calls, sends professional scheduling links, and ensures all stakeholders are available."
+        question: "How does Caly help with investor meetings?",
+        answer: "Caly automatically finds optimal times for investor calls, sends professional scheduling links, and ensures all stakeholders are available."
       },
       {
-        question: "Can I integrate with my existing CRM?",
-        answer: "Yes, OpenCal integrates with popular CRMs like Salesforce and HubSpot to keep your deal pipeline updated."
+        question: "Does Caly work with Google Calendar?",
+        answer: "Yes. Caly has a two‑way sync with Google Calendar so meetings, updates, and cancellations are reflected instantly."
       },
       {
         question: "How does the AI help with scheduling?",
@@ -135,20 +135,20 @@ export const useCases: Record<string, UseCase> = {
     ],
     cta: {
       title: "Ready to scale your startup?",
-      description: "Join thousands of founders using OpenCal to close deals faster.",
-      button: "Start free trial"
+      description: "Try Caly and let it handle everything in your calendar for you.",
+      button: "Get started"
     }
   },
   developers: {
     id: 'developers',
     title: 'For Developers',
     subtitle: 'Code more, schedule less',
-    description: 'Focus on what matters most - building great software. OpenCal handles all your scheduling needs with developer-friendly integrations and automation.',
+    description: 'Focus on what matters most—building great software. Caly handles scheduling with smart automation and reliable Google Calendar sync.',
     hero: {
       title: 'Code more, schedule less',
-      subtitle: 'Developer-friendly scheduling automation',
-      description: 'OpenCal integrates with your development workflow, from code reviews to client meetings, so you can focus on building amazing software.',
-      cta: 'Start coding more',
+      subtitle: 'Developer‑friendly scheduling automation',
+      description: 'Caly fits your development routine—from code reviews to client calls—so you can stay in flow while your calendar stays organized.',
+      cta: 'Get started',
       demo: {
         type: 'calendar',
         props: {
@@ -169,15 +169,15 @@ export const useCases: Record<string, UseCase> = {
         icon: 'code'
       },
       {
-        id: 'api-integration',
-        title: 'API-first approach',
-        description: 'Integrate OpenCal into your apps with our comprehensive API and webhooks.',
-        icon: 'api'
+        id: 'smart-suggestions',
+        title: 'Smart time suggestions',
+        description: 'Caly recommends review and meeting slots that avoid conflicts and protect focus time.',
+        icon: 'brain'
       },
       {
         id: 'workflow-automation',
         title: 'Workflow automation',
-        description: 'Connect scheduling to your development tools and automate routine tasks.',
+        description: 'Use templates, buffers, and defaults to automate routine scheduling tasks—no context switching.',
         icon: 'workflow'
       }
     ],
@@ -185,25 +185,25 @@ export const useCases: Record<string, UseCase> = {
       {
         id: 'code-review-scheduling',
         title: 'Code Review Scheduling',
-        description: 'Automatically schedule code reviews when PRs are ready, with team availability detection.',
+        description: 'Plan code reviews at low‑interruption times based on your availability and team calendars in Google Calendar.',
         visual: 'workflow'
       },
       {
         id: 'client-meetings',
         title: 'Client Meeting Management',
-        description: 'Streamline client calls with automated scheduling and project context integration.',
+        description: 'Streamline client calls with clear agendas, time‑zone handling, and instant Google Calendar updates.',
         visual: 'calendar'
       },
       {
         id: 'team-sync',
         title: 'Development Team Sync',
-        description: 'Keep your dev team coordinated with sprint planning and standup scheduling.',
+        description: 'Coordinate sprint planning and standups with shared availability and conflict detection in Google Calendar.',
         visual: 'integration'
       }
     ],
     testimonials: [
       {
-        quote: "OpenCal's API integration is seamless. I built our scheduling system in a weekend.",
+        quote: "Caly helps me protect focus blocks and schedule reviews without endless back‑and‑forth.",
         author: "Alex Kumar",
         role: "Senior Developer",
         company: "DevFlow"
@@ -217,34 +217,34 @@ export const useCases: Record<string, UseCase> = {
     ],
     faq: [
       {
-        question: "Can I integrate OpenCal with my development tools?",
-        answer: "Yes, OpenCal offers APIs and webhooks that integrate with GitHub, GitLab, Jira, and other development tools."
+        question: "Does Caly support Google Calendar?",
+        answer: "Yes. Caly syncs both ways with Google Calendar so your schedule stays accurate across devices."
       },
       {
         question: "How does it handle different time zones for remote teams?",
-        answer: "OpenCal automatically detects time zones and suggests optimal meeting times for distributed teams."
+        answer: "Caly automatically detects time zones and suggests optimal meeting times for distributed teams."
       },
       {
         question: "Can I customize the scheduling flow for my team?",
-        answer: "Absolutely. Our API allows you to build custom scheduling experiences tailored to your development workflow."
+        answer: "Yes. Configure templates, default durations, buffers, and availability rules—no code required."
       }
     ],
     cta: {
       title: "Ready to code more?",
-      description: "Join developers worldwide using OpenCal to automate their scheduling.",
-      button: "Start building"
+      description: "Try Caly and let it handle everything in your calendar for you.",
+      button: "Get started"
     }
   },
   productivity: {
     id: 'productivity',
     title: 'For Productivity',
     subtitle: 'Optimize your time with AI-powered scheduling',
-    description: 'Take control of your schedule with intelligent time management. OpenCal helps you optimize your day, reduce context switching, and achieve more.',
+    description: 'Take control of your schedule with intelligent time management. Caly helps you optimize your day, reduce context switching, and achieve more—fully synced with Google Calendar.',
     hero: {
       title: 'Optimize your time with AI-powered scheduling',
       subtitle: 'Achieve more with intelligent time management',
-      description: 'OpenCal analyzes your patterns and helps you schedule tasks, meetings, and breaks for maximum productivity.',
-      cta: 'Optimize your time',
+      description: 'Caly analyzes your patterns and helps you schedule tasks, meetings, and breaks for maximum productivity—without leaving Google Calendar behind.',
+      cta: 'Get started',
       demo: {
         type: 'calendar',
         props: {
@@ -300,7 +300,7 @@ export const useCases: Record<string, UseCase> = {
     ],
     testimonials: [
       {
-        quote: "OpenCal helped me reclaim 3 hours per day by optimizing my schedule.",
+        quote: "Caly helped me reclaim 3 hours per day by optimizing my schedule.",
         author: "David Park",
         role: "Product Manager",
         company: "InnovateCorp"
@@ -314,21 +314,25 @@ export const useCases: Record<string, UseCase> = {
     ],
     faq: [
       {
-        question: "How does OpenCal optimize my schedule?",
+        question: "How does Caly optimize my schedule?",
         answer: "Our AI analyzes your work patterns, energy levels, and priorities to suggest optimal scheduling for maximum productivity."
       },
       {
         question: "Can I set boundaries for work-life balance?",
-        answer: "Yes, OpenCal helps you schedule breaks, personal time, and maintain healthy work-life boundaries."
+        answer: "Yes, Caly helps you schedule breaks, personal time, and maintain healthy work-life boundaries."
+      },
+      {
+        question: "Does this work with Google Calendar?",
+        answer: "Yes. Caly keeps a two‑way sync with Google Calendar so changes are reflected immediately."
       },
       {
         question: "How does it handle different types of work?",
-        answer: "OpenCal categorizes your work (deep work, meetings, breaks) and optimizes your schedule accordingly."
+        answer: "Caly categorizes your work (deep work, meetings, breaks) and optimizes your schedule accordingly."
       }
     ],
     cta: {
       title: "Ready to optimize your time?",
-      description: "Join productivity enthusiasts using OpenCal to achieve more.",
+      description: "Try Caly and let it handle everything in your calendar for you.",
       button: "Start optimizing"
     }
   }

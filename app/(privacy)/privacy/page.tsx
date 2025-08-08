@@ -4,8 +4,8 @@ import { Metadata } from 'next'
 import Link from 'next/link'
 
 export const metadata: Metadata = {
-    title: 'Privacy Policy | OpenCal',
-    description: 'The privacy policy for OpenCal, an open-source calendar app by OpenCal.',
+    title: 'Privacy Policy | Caly',
+    description: 'The privacy policy for Caly, an open-source calendar app by Caly.',
 }
 
 function PrivacyPolicyPage() {
@@ -15,11 +15,11 @@ function PrivacyPolicyPage() {
             <main className="bg-background pt-24">
                 <div className="container mx-auto px-6 lg:px-8 py-16">
                     <div className="max-w-4xl mx-auto">
-                        <h1 className="text-4xl font-bold text-white mb-4">OpenCal Privacy Policy</h1>
+                        <h1 className="text-4xl font-bold text-white mb-4">Caly Privacy Policy</h1>
 
                         <div className="prose prose-invert max-w-none">
                             <p className="text-muted-foreground text-lg leading-relaxed mb-8">
-                                OpenCal, an open-source calendar app by OpenCal, respects your privacy. This Privacy Policy explains how we collect, use, and protect your data.
+                                Caly, an open-source calendar app by Caly, respects your privacy. This Privacy Policy explains how we collect, use, and protect your data.
                             </p>
 
                             <section className="mb-12">
@@ -103,7 +103,7 @@ function PrivacyPolicyPage() {
                                 <ul className="space-y-3 text-muted-foreground">
                                     <li className="flex items-start gap-3">
                                         <span className="text-white font-medium">Access/Delete:</span>
-                                        <span>Request access or deletion of your data via opencal.oss@gmail.com</span>
+                                        <span>Request access or deletion of your data via Caly.oss@gmail.com</span>
                                     </li>
                                     <li className="flex items-start gap-3">
                                         <span className="text-white font-medium">Opt-Out:</span>
@@ -157,7 +157,7 @@ function PrivacyPolicyPage() {
                                 <p className="text-muted-foreground leading-relaxed">
                                     We may update this policy. Changes posted on{' '}
                                     <Link href="/privacy" className="text-white hover:text-muted-foreground transition-colors">
-                                        OpenCal Privacy Policy
+                                        Caly Privacy Policy
                                     </Link>{' '}
                                     and effective upon your next app use.
                                 </p>
@@ -167,8 +167,8 @@ function PrivacyPolicyPage() {
                                 <h2 className="text-2xl font-semibold text-white mb-6">9. Contact</h2>
                                 <p className="text-muted-foreground leading-relaxed">
                                     Questions? Email{' '}
-                                    <Link href="mailto:opencal.oss@gmail.com" className="text-white hover:text-muted-foreground transition-colors">
-                                        opencal.oss@gmail.com
+                                    <Link href="mailto:Caly.oss@gmail.com" className="text-white hover:text-muted-foreground transition-colors">
+                                        Caly.oss@gmail.com
                                     </Link>
                                     .
                                 </p>

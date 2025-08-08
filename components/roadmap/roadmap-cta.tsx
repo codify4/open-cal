@@ -13,7 +13,7 @@ export function RoadmapCTA() {
                         Help Shape the Future
                     </h2>
                     <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-                        OpenCal is built by the community, for the community. Your feedback, 
+                        Caly is built by the community, for the community. Your feedback, 
                         contributions, and ideas help us build the best calendar platform.
                     </p>
                 </div>

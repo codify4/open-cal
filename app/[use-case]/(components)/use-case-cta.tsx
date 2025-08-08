@@ -1,39 +1,71 @@
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { ShineBorder } from "@/components/magicui/shine-border";
+"use client"
+
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { ArrowRight, Sparkles, Zap } from 'lucide-react'
 
 interface UseCaseCTAProps {
-  title: string;
-  description: string;
-  button: string;
+  title: string
+  description: string
+  button: string
 }
 
 export function UseCaseCTA({ title, description, button }: UseCaseCTAProps) {
   return (
-    <section className="py-24 bg-gradient-to-r from-primary/10 to-primary/5">
-      <div className="container mx-auto px-4">
-        <Card className="relative border border-border/60 shadow-2xl bg-gradient-to-br from-neutral-950 to-neutral-900 max-w-4xl mx-auto rounded-2xl">
-          <ShineBorder className="rounded-2xl" duration={12} shineColor={["#ffffff10","#99999910","#ffffff10"]} />
-          <CardContent className="p-12 text-center space-y-8">
-            <div className="space-y-4">
-              <Badge variant="secondary">Get Started</Badge>
-              <h2 className="text-3xl lg:text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-b from-white to-neutral-400">
-                {title}
-              </h2>
-              <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-                {description}
-              </p>
+    <section className="relative py-32 bg-black overflow-hidden">
+
+      <div className="container relative z-10 mx-auto px-4">
+        <div className="max-w-4xl mx-auto">
+          <div className="relative">
+            <div className="relative bg-white/5 backdrop-blur-sm border border-white/10 rounded-3xl p-12 text-center">
+              <div className="space-y-6 mb-10">
+                <Badge className="bg-white/10 text-white border-white/20 backdrop-blur-sm">
+                  <Sparkles className="w-3 h-3 mr-1" />
+                  {"Get Started"}
+                </Badge>
+                
+                <h2 className="text-3xl lg:text-4xl font-bold">
+                  <span className="bg-gradient-to-r from-white via-white to-gray-300 bg-clip-text text-transparent">
+                    {title}
+                  </span>
+                </h2>
+                
+                <p className="text-xl text-gray-300 max-w-2xl mx-auto leading-relaxed">
+                  {description}
+                </p>
+              </div>
+
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
+                <Button
+                  size="lg"
+                  className="bg-white text-black hover:bg-gray-100 px-10 py-6 rounded-full font-bold text-lg"
+                >
+                  <span className="flex items-center">
+                    <Zap className="mr-2 h-5 w-5" />
+                    {button}
+                    <ArrowRight className="ml-2 h-5 w-5" />
+                  </span>
+                </Button>
+                
+                <div className="flex items-center gap-4 text-sm text-gray-400">
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 bg-white rounded-full" />
+                    {"Free trial"}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 bg-gray-300 rounded-full" />
+                    {"No credit card"}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 bg-gray-400 rounded-full" />
+                    {"Cancel anytime"}
+                  </div>
+                </div>
+              </div>
             </div>
-            
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button type="button" size="lg" className="group px-8 py-6 rounded-full font-semibold bg-white text-black hover:bg-white/90">
-                {button}
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
     </section>
-  );
-} 
+  )
+}

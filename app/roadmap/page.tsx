@@ -14,7 +14,7 @@ export default function RoadmapPage() {
             Roadmap
           </h1>
           <p className="text-xl text-muted-foreground">
-            What's coming next for OpenCal
+            What's coming next for Caly
           </p>
         </div>
         

@@ -1,7 +1,7 @@
 import { Providers } from '@/providers/providers';
 
 export const metadata = {
-  title: 'OpenCal',
+  title: 'Caly',
   description: 'An Open Source AI alternative to Google Calendar.',
 };
 
