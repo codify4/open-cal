@@ -14,7 +14,7 @@ import Premium from './premium';
 
 const emailAccounts = [
   {
-    email: 'kushta.joni@gmail.com',
+    email: 'anne.smith@gmail.com',
     isDefault: true,
     color: 'red' as const,
   },
