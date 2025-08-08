@@ -14,9 +14,9 @@ import {
   User,
   Zap,
 } from 'lucide-react';
-import Image from 'next/image';
-import { useTheme } from 'next-themes';
 import { useState } from 'react';
+import { useTheme } from 'next-themes';
+import { authClient } from '@/lib/auth-client';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import {
@@ -41,6 +41,9 @@ import {
 import { Label } from '../ui/label';
 import { Separator } from '../ui/separator';
 import { Switch } from '../ui/switch';
+import type { EmailAccount, CalendarEntry } from '@/components/sidebar/cal-accounts';
+import { getColorClasses, emailColorFromString } from '@/components/sidebar/cal-accounts';
+import Image from 'next/image';
 
 const SETTINGS_SECTIONS = [
   {
@@ -71,14 +74,19 @@ const SETTINGS_SECTIONS = [
 
 export function NavUser({
   user,
+  accounts,
+  calendars,
+  onAddAccount,
 }: {
   user: {
     name: string;
     email: string;
     avatar: string;
   };
+  accounts: EmailAccount[];
+  calendars: CalendarEntry[];
+  onAddAccount: () => void;
 }) {
-  const { theme, setTheme } = useTheme();
   const [activeSection, setActiveSection] = useState('profile');
 
   const renderSectionContent = () => {
@@ -86,7 +94,13 @@ export function NavUser({
       case 'profile':
         return <ProfileSection user={user} />;
       case 'integrations':
-        return <IntegrationsSection />;
+        return (
+          <IntegrationsSection
+            accounts={accounts}
+            calendars={calendars}
+            onAddAccount={onAddAccount}
+          />
+        );
       case 'appearance':
         return <AppearanceSection />;
       case 'billing':
@@ -107,7 +121,7 @@ export function NavUser({
             >
               <Avatar className="h-8 w-8 rounded-lg">
                 <AvatarImage alt={user.name} src={user.avatar} />
-                <AvatarFallback className="rounded-lg">CN</AvatarFallback>
+                <AvatarFallback className="rounded-lg">{user.name.charAt(0).toUpperCase()}</AvatarFallback>
               </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight">
                 <span className="truncate font-medium">{user.name}</span>
@@ -119,11 +133,6 @@ export function NavUser({
           <DialogContent className="h-[600px] w-[1000px] bg-white dark:bg-neutral-950 p-0">
             <div className="flex h-full">
               <div className="w-1/4 border-neutral-200 dark:border-neutral-800 border-r px-3 py-4">
-                <div className="mb-4 rounded-lg bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 p-3">
-                  <p className="text-yellow-800 dark:text-yellow-200 text-xs font-medium">
-                    Beta UI - Settings coming soon!
-                  </p>
-                </div>
                 <div className="mb-6">
                   <DialogTitle className="font-semibold text-lg text-neutral-900 dark:text-white">
                     Settings
@@ -231,7 +240,11 @@ function ProfileSection({
       </Card>
 
       <div className="flex justify-end">
-        <Button className="rounded-sm bg-red-500/10 text-red-500 hover:bg-red-500/20">
+        <Button
+          className="rounded-sm bg-red-500/10 text-red-500 hover:bg-red-500/20"
+          onClick={() => authClient.signOut({ fetchOptions: { onError: () => {} } })}
+          type="button"
+        >
           <LogOut className="mr-2 h-4 w-4" />
           Logout
         </Button>
@@ -388,53 +401,23 @@ function BillingSection() {
   );
 }
 
-function IntegrationsSection() {
-  const [connectedAccounts, setConnectedAccounts] = useState([
-    {
-      id: '1',
-      name: 'john.doe@gmail.com',
-      type: 'google',
-      status: 'connected',
-      lastSync: '2 minutes ago',
-      calendarCount: 3,
-    },
-    {
-      id: '2',
-      name: 'work@company.com',
-      type: 'google',
-      status: 'connected',
-      lastSync: '1 hour ago',
-      calendarCount: 5,
-    },
-  ]);
-
-  const [meetAccounts, setMeetAccounts] = useState([
-    {
-      id: '1',
-      name: 'john.doe@gmail.com',
-      type: 'google-meet',
-      status: 'connected',
-      lastSync: '5 minutes ago',
-      meetingCount: 2,
-    },
-  ]);
-
-  const handleDisconnect = (accountId: string, type: string) => {
-    if (type === 'google') {
-      setConnectedAccounts((prev) =>
-        prev.filter((account) => account.id !== accountId)
-      );
-    } else if (type === 'google-meet') {
-      setMeetAccounts((prev) =>
-        prev.filter((account) => account.id !== accountId)
-      );
-    }
+function IntegrationsSection({
+  accounts,
+  calendars,
+  onAddAccount,
+}: {
+  accounts: EmailAccount[];
+  calendars: CalendarEntry[];
+  onAddAccount: () => void;
+}) {
+  const colorMap: Record<EmailAccount['color'], string> = {
+    blue: 'bg-blue-500',
+    green: 'bg-green-500',
+    red: 'bg-red-500',
+    yellow: 'bg-yellow-500',
+    purple: 'bg-purple-500',
+    orange: 'bg-orange-500',
   };
-
-  const handleConnectNew = (type: string) => {
-    console.log(`Connecting new ${type} account...`);
-  };
-
   return (
     <div className="scrollbar-hide max-h-[560px] space-y-6 overflow-y-auto scroll-smooth pr-2">
       <div>
@@ -454,40 +437,20 @@ function IntegrationsSection() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            {connectedAccounts.length > 0 && (
+            {accounts.length > 0 && (
               <div className="space-y-3">
-                {connectedAccounts.map((account) => (
+                {accounts.map((account) => (
                   <div
                     className="flex items-center justify-between rounded-lg bg-neutral-100 dark:bg-neutral-800 p-3"
-                    key={account.id}
+                    key={account.email}
                   >
                     <div className="flex items-center space-x-3">
-                      <Image
-                        alt="Google Calendar"
-                        height={30}
-                        src="/g-cal.svg"
-                        width={30}
-                      />
+                      <Image src={'g-cal.svg'} alt={account.email} width={32} height={32} />
                       <div>
                         <h4 className="font-semibold text-neutral-900 dark:text-white">
-                          {account.name}
+                          {account.email}
                         </h4>
-                        <div className="flex items-center space-x-4 text-neutral-600 dark:text-neutral-400 text-sm">
-                          <span>Last sync: {account.lastSync}</span>
-                          <span>•</span>
-                          <span>{account.calendarCount} calendars</span>
-                        </div>
                       </div>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Button
-                        className="text-red-500 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300"
-                        onClick={() => handleDisconnect(account.id, 'google')}
-                        size="sm"
-                        variant="ghost"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
                     </div>
                   </div>
                 ))}
@@ -496,7 +459,7 @@ function IntegrationsSection() {
 
             <Button
               className="w-full justify-start border-neutral-300 dark:border-neutral-600 border-dashed hover:border-neutral-400 dark:hover:border-neutral-500"
-              onClick={() => handleConnectNew('google')}
+              onClick={onAddAccount}
               variant="outline"
             >
               <Plus className="mr-2 h-4 w-4" />
@@ -514,51 +477,11 @@ function IntegrationsSection() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            {meetAccounts.length > 0 && (
-              <div className="space-y-3">
-                {meetAccounts.map((account) => (
-                  <div
-                    className="flex items-center justify-between rounded-lg bg-neutral-100 dark:bg-neutral-800 p-3"
-                    key={account.id}
-                  >
-                    <div className="flex items-center space-x-3">
-                      <Image
-                        alt="Google Meet"
-                        height={20}
-                        src="/g-meet.svg"
-                        width={20}
-                      />
-                      <div>
-                        <h4 className="font-semibold text-neutral-900 dark:text-white">
-                          {account.name}
-                        </h4>
-                        <div className="flex items-center space-x-4 text-neutral-600 dark:text-neutral-400 text-sm">
-                          <span>Last sync: {account.lastSync}</span>
-                          <span>•</span>
-                          <span>{account.meetingCount} meetings today</span>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Button
-                        className="text-red-500 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300"
-                        onClick={() =>
-                          handleDisconnect(account.id, 'google-meet')
-                        }
-                        size="sm"
-                        variant="ghost"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
+            <div className="text-sm text-muted-foreground">Google Meet linking coming soon</div>
 
             <Button
               className="w-full justify-start border-neutral-300 dark:border-neutral-600 border-dashed hover:border-neutral-400 dark:hover:border-neutral-500"
-              onClick={() => handleConnectNew('google-meet')}
+              onClick={onAddAccount}
               variant="outline"
             >
               <Plus className="mr-2 h-4 w-4" />

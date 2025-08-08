@@ -14,56 +14,22 @@ import Premium from './premium';
 import { authClient } from '@/lib/auth-client';
 import { SignInButton } from '@/components/auth/sign-in-button';
 
-const emailAccounts = [
-  {
-    email: 'kushta.joni@gmail.com',
-    isDefault: true,
-    color: 'red' as const,
-  },
-  {
-    email: 'john.doe@gmail.com',
-    isDefault: false,
-    color: 'blue' as const,
-  },
-];
-
-const calendars = [
-  {
-    id: '1',
-    name: 'Team Meetings',
-    color: 'blue' as const,
-    isVisible: false,
-    type: 'class' as const,
-  },
-  {
-    id: '2',
-    name: 'Project Alpha',
-    color: 'purple' as const,
-    isVisible: false,
-    type: 'class' as const,
-  },
-  {
-    id: '3',
-    name: 'Personal Errands',
-    color: 'red' as const,
-    isVisible: false,
-    type: 'class' as const,
-  },
-  {
-    id: '4',
-    name: 'Client Consultations',
-    color: 'green' as const,
-    isVisible: false,
-    type: 'class' as const,
-  },
-];
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { data: session, isPending } = authClient.useSession();
-  const [selectedEmail, setSelectedEmail] = React.useState(
-    'kushta.joni@gmail.com'
-  );
-  const [calendarList, setCalendarList] = React.useState(calendars);
+  const [selectedEmail, setSelectedEmail] = React.useState('');
+  const [calendarList, setCalendarList] = React.useState<Array<{
+    id: string;
+    name: string;
+    color: 'blue' | 'green' | 'red' | 'yellow' | 'purple' | 'orange';
+    isVisible: boolean;
+    type: 'calendar' | 'class' | 'project';
+  }>>([]);
+  const [emailAccounts, setEmailAccounts] = React.useState<Array<{
+    email: string;
+    isDefault: boolean;
+    color: 'blue' | 'green' | 'red' | 'yellow' | 'purple' | 'orange';
+  }>>([]);
 
   const handleEmailChange = (email: string) => {
     setSelectedEmail(email);
@@ -76,6 +42,34 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       )
     );
   };
+
+  React.useEffect(() => {
+    if (session?.user?.email) setSelectedEmail(session.user.email);
+  }, [session?.user?.email]);
+
+  React.useEffect(() => {
+    if (!session?.user?.email) return;
+    setEmailAccounts((prev) => {
+      const exists = prev.some((acc) => acc.email === session.user.email);
+      if (exists) return prev;
+      return [
+        {
+          email: session.user.email,
+          isDefault: true,
+          color: 'blue',
+        },
+        ...prev,
+      ];
+    });
+  }, [session?.user?.email]);
+
+  const handleAddAccount = () =>
+    authClient.signIn.social({
+      provider: 'google',
+      callbackURL: `${window.location.origin}/calendar`,
+      errorCallbackURL: `${window.location.origin}/calendar`,
+      newUserCallbackURL: `${window.location.origin}/calendar`,
+    });
 
   if (isPending) return null;
 
@@ -108,6 +102,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       <SidebarContent className="scrollbar-hide border-none bg-neutral-100 dark:bg-neutral-950">
         <CalendarPicker />
         <NavCalendars
+          user={{
+            name: session.user.name || session.user.email,
+            email: session.user.email,
+            avatar: ((session.user as unknown as { image?: string })?.image) || '/vercel.svg',
+          }}
+          onAddAccount={handleAddAccount}
           calendars={calendarList}
           emailAccounts={emailAccounts}
           onCalendarToggle={handleCalendarToggle}
@@ -119,33 +119,19 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <div className="mt-auto">
           <Premium />
         </div>
-        <NavUser user={data.user} />
+        <NavUser
+          user={{
+            name: session.user.name || session.user.email,
+            email: session.user.email,
+            avatar: ((session.user as unknown as { image?: string })?.image) || '/vercel.svg',
+          }}
+          accounts={emailAccounts}
+          calendars={calendarList}
+          onAddAccount={handleAddAccount}
+        />
       </SidebarFooter>
     </Sidebar>
   );
 }
 
-const data = {
-  user: {
-    name: 'shadcn',
-    email: 'm@example.com',
-    avatar: '/vercel.svg',
-  },
-  projects: [
-    {
-      name: 'Design Engineering',
-      url: '#',
-      icon: Frame,
-    },
-    {
-      name: 'Sales & Marketing',
-      url: '#',
-      icon: PieChart,
-    },
-    {
-      name: 'Travel',
-      url: '#',
-      icon: Map,
-    },
-  ],
-};
+// demo data removed

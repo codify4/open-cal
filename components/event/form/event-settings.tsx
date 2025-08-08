@@ -1,3 +1,6 @@
+ 'use client';
+
+import * as React from 'react';
 import { Calendar, Tag, Video } from 'lucide-react';
 import Image from 'next/image';
 import {
@@ -7,6 +10,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '../../ui/select';
+import { authClient } from '@/lib/auth-client';
+import { getColorClasses, emailColorFromString } from '@/components/sidebar/cal-accounts';
 
 interface EventSettingsProps {
   meetingType: string;
@@ -25,6 +30,9 @@ export const EventSettings = ({
   onCalendarChange,
   onColorChange,
 }: EventSettingsProps) => {
+  const { data: session } = authClient.useSession();
+  const sessionEmail = session?.user?.email || '';
+
   return (
     <div className="flex flex-col gap-2 text-muted-foreground text-sm">
       <div className="flex items-center gap-2 ">
@@ -66,17 +74,9 @@ export const EventSettings = ({
               {calendar && (
                 <div className="flex items-center gap-2">
                   <div
-                    className={`h-3 w-3 rounded-full ${
-                      calendar === 'john.doe@gmail.com'
-                        ? 'bg-red-500'
-                        : calendar === 'jane.smith@outlook.com'
-                          ? 'bg-blue-500'
-                          : calendar === 'work@company.com'
-                            ? 'bg-green-500'
-                            : calendar === 'personal@icloud.com'
-                              ? 'bg-purple-500'
-                              : 'bg-muted'
-                    }`}
+                    className={`h-3 w-3 rounded-full ${getColorClasses(
+                      emailColorFromString(calendar)
+                    )}`}
                   />
                   {calendar}
                 </div>
@@ -84,42 +84,25 @@ export const EventSettings = ({
             </SelectValue>
           </SelectTrigger>
           <SelectContent className="border-border bg-popover dark:bg-neutral-900">
-            <SelectItem
-              className="text-popover-foreground hover:bg-accent"
-              value="john.doe@gmail.com"
-            >
-              <div className="flex items-center gap-2">
-                <div className="h-3 w-3 rounded-full bg-red-500" />
-                john.doe@gmail.com
-              </div>
-            </SelectItem>
-            <SelectItem
-              className="text-popover-foreground hover:bg-accent"
-              value="jane.smith@outlook.com"
-            >
-              <div className="flex items-center gap-2">
-                <div className="h-3 w-3 rounded-full bg-blue-500" />
-                jane.smith@outlook.com
-              </div>
-            </SelectItem>
-            <SelectItem
-              className="text-popover-foreground hover:bg-accent"
-              value="work@company.com"
-            >
-              <div className="flex items-center gap-2">
-                <div className="h-3 w-3 rounded-full bg-green-500" />
-                work@company.com
-              </div>
-            </SelectItem>
-            <SelectItem
-              className="text-popover-foreground hover:bg-accent"
-              value="personal@icloud.com"
-            >
-              <div className="flex items-center gap-2">
-                <div className="h-3 w-3 rounded-full bg-purple-500" />
-                personal@icloud.com
-              </div>
-            </SelectItem>
+            {sessionEmail ? (
+              <SelectItem
+                className="text-popover-foreground hover:bg-accent"
+                value={sessionEmail}
+              >
+                <div className="flex items-center gap-2">
+                  <div
+                    className={`h-3 w-3 rounded-full ${getColorClasses(
+                      emailColorFromString(sessionEmail)
+                    )}`}
+                  />
+                  {sessionEmail}
+                </div>
+              </SelectItem>
+            ) : (
+              <SelectItem className="text-muted-foreground" disabled value="none">
+                No accounts connected
+              </SelectItem>
+            )}
           </SelectContent>
         </Select>
       </div>

@@ -1,6 +1,6 @@
 'use client';
 
-import { ChevronRight, Mail } from 'lucide-react';
+import { ChevronRight, Plus } from 'lucide-react';
 import * as React from 'react';
 
 import {
@@ -19,7 +19,7 @@ import {
 } from '@/components/ui/sidebar';
 import { Checkbox } from '../ui/checkbox';
 
-interface CalendarEntry {
+export interface CalendarEntry {
   id: string;
   name: string;
   color: 'blue' | 'green' | 'red' | 'yellow' | 'purple' | 'orange';
@@ -27,21 +27,23 @@ interface CalendarEntry {
   type: 'calendar' | 'class' | 'project';
 }
 
-interface EmailAccount {
+export interface EmailAccount {
   email: string;
   isDefault: boolean;
   color: 'blue' | 'green' | 'red' | 'yellow' | 'purple' | 'orange';
 }
 
-interface NavCalendarsProps {
+export interface NavCalendarsProps {
   emailAccounts: EmailAccount[];
   calendars: CalendarEntry[];
   selectedEmail: string;
   onEmailChange: (email: string) => void;
   onCalendarToggle: (calendarId: string) => void;
+  user: { name: string; email: string; avatar: string };
+  onAddAccount: () => void;
 }
 
-const getColorClasses = (
+export const getColorClasses = (
   color: CalendarEntry['color'] | EmailAccount['color']
 ) => {
   const colorMap = {
@@ -55,12 +57,30 @@ const getColorClasses = (
   return colorMap[color];
 };
 
+export const emailColorFromString = (
+  email: string
+): EmailAccount['color'] => {
+  const palette: EmailAccount['color'][] = [
+    'blue',
+    'green',
+    'red',
+    'yellow',
+    'purple',
+    'orange',
+  ];
+  let hash = 0;
+  for (let i = 0; i < email.length; i++) hash = (hash + email.charCodeAt(i)) % 2147483647;
+  return palette[hash % palette.length];
+};
+
 export function NavCalendars({
   emailAccounts,
   calendars,
   selectedEmail,
   onEmailChange,
   onCalendarToggle,
+  user,
+  onAddAccount,
 }: NavCalendarsProps) {
   const { isMobile } = useSidebar();
   const selectedAccount = emailAccounts.find(
@@ -77,11 +97,13 @@ export function NavCalendars({
               <SidebarMenuButton className="w-full cursor-pointer justify-between rounded-sm py-5 hover:bg-primary/10 hover:text-primary focus:bg-transparent focus:outline-none focus:ring-0 active:bg-transparent">
                 <div className="flex items-center gap-2">
                   <div
-                    className={`h-3 w-3 rounded-full ${getColorClasses(selectedAccount?.color || 'blue')}`}
+                    className={`h-3 w-3 rounded-full ${getColorClasses(
+                      (selectedAccount?.color ?? emailColorFromString(selectedAccount?.email || user.email))
+                    )}`}
                   />
                   <div className="flex flex-col items-start">
                     <span className="truncate font-medium text-sm">
-                      {selectedAccount?.email || 'Select Account'}
+                      {selectedAccount?.email || user.email || 'Select Account'}
                     </span>
                     {selectedAccount?.isDefault && (
                       <span className="text-muted-foreground text-xs">
@@ -98,6 +120,11 @@ export function NavCalendars({
               className="w-64 bg-neutral-100 dark:bg-neutral-950"
               side={isMobile ? 'bottom' : 'right'}
             >
+              {emailAccounts.length === 0 && (
+                <div className="px-3 py-2 text-sm text-muted-foreground">
+                  No accounts connected
+                </div>
+              )}
               {emailAccounts.map((account) => (
                 <DropdownMenuItem
                   className="flex items-center gap-2 cursor-pointer"
@@ -105,7 +132,9 @@ export function NavCalendars({
                   onClick={() => onEmailChange(account.email)}
                 >
                   <div
-                    className={`h-3 w-3 rounded-full ${getColorClasses(account.color)}`}
+                    className={`h-3 w-3 rounded-full ${getColorClasses(
+                      account.color ?? emailColorFromString(account.email)
+                    )}`}
                   />
                   <div className="flex flex-col">
                     <span className="text-sm">{account.email}</span>
@@ -117,6 +146,13 @@ export function NavCalendars({
                   </div>
                 </DropdownMenuItem>
               ))}
+              <DropdownMenuItem
+                className="mt-1 flex items-center gap-2 cursor-pointer"
+                onClick={onAddAccount}
+              >
+                <Plus className="h-4 w-4" />
+                <span className="text-sm">Add account</span>
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </SidebarMenuItem>
@@ -124,6 +160,13 @@ export function NavCalendars({
 
       <SidebarGroupLabel className="mt-2">Calendars</SidebarGroupLabel>
       <SidebarMenu>
+        {calendars.length === 0 && (
+          <SidebarMenuItem>
+            <div className="px-2 py-1.5 text-sm text-muted-foreground">
+              No calendars yet
+            </div>
+          </SidebarMenuItem>
+        )}
         {calendars.map((calendar) => (
           <SidebarMenuItem key={calendar.id}>
             <div
