@@ -1,0 +1,96 @@
+#https://www.trycaly.cc/llms.txt
+
+## Smart AI Calendar
+# A calendar that  does everything for you
+
+Take control with Caly's AI-powered open source calendar. Sync with Google Calendar and let AI handle your events and time.
+
+[Join the beta](https://www.trycaly.cc/calendar)
+
+![Caly Hero](https://www.trycaly.cc/_next/image?url=%2Fui-hero.png&w=3840&q=75)
+
+## Features
+
+Caly is an open source AI calendar that helps you manage your schedule intelligently.
+
+AI Assistant
+
+Analyzing your schedule...
+
+Checking availability
+
+Found optimal time
+
+Scheduling meeting
+
+✓ Meeting scheduled for 2:00 PM
+
+### AI Calendar Agent
+
+Your personal AI assistant that understands your schedule and helps you find the perfect time for everything.
+
+Calendar Features
+
+![Google Calendar](https://www.trycaly.cc/g-cal.svg)Google CalendarConnected
+
+Full calendar functionality
+
+✓ Events, reminders, tasks
+
+### Google Calendar Integration
+
+Complete calendar functionality with Google Calendar integration, event management, and team scheduling.
+
+Smart Time Finding
+
+Finding best time for:
+
+Team Meeting
+
+Available times:
+
+9:00 AM✓ Best
+
+2:00 PM✓ Best
+
+4:00 PM✓ Best
+
+AI found optimal time
+
+### Smart Scheduling
+
+AI-powered scheduling that finds the best time for meetings, tasks, and personal events, then helps you manage and optimize your daily routine.
+
+Open Source
+
+Repository
+
+Public
+
+Free to use
+
+Open source
+
+### Open Source
+
+Built with transparency and community. Contribute, customize, and extend Caly to fit your needs.
+
+## Frequently asked questions
+
+Everything you need to know about Caly. Can't find what you're looking for?
+
+### How does Caly's AI help me manage my calendar?
+
+Caly's AI assistant understands natural language and can schedule meetings, set reminders, and organize your calendar through simple conversations. Just tell it what you need, and it handles the rest.
+
+### Can Caly integrate with my existing calendar apps?
+
+### How does Caly handle scheduling conflicts?
+
+### Is my calendar data secure and private?
+
+### Can Caly learn my scheduling preferences?
+
+### What makes Caly different from other calendar apps?
+
+Copy

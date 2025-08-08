@@ -2,9 +2,9 @@ import type { Metadata } from 'next';
 import './globals.css';
 import { Analytics } from '@vercel/analytics/next';
 import { Geist } from 'next/font/google';
-import Script from 'next/script';
 import { ThemeProvider } from 'next-themes';
 import { Toaster } from 'sonner';
+import Script from 'next/script';
 
 const geist = Geist({
   subsets: ['latin'],
@@ -51,15 +51,13 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <head>
         <Script
-          async
-          crossOrigin="anonymous"
-          data-client-id="UqCP74-YWv1RohnF2azYu"
-          data-enable-batching="true"
-          data-track-bounce-rate="true"
-          data-track-engagement="true"
-          data-track-interactions="true"
-          data-track-web-vitals="true"
           src="https://cdn.databuddy.cc/databuddy.js"
+          data-client-id="CAJ7p0ZlIg6Pxys0PfjZF"
+          data-track-engagement="true"
+          data-track-web-vitals="true"
+          data-enable-batching="true"
+          crossOrigin="anonymous"
+          async
         />
       </head>
       <body
