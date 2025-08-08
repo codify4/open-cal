@@ -143,9 +143,7 @@ export function PricingSection() {
                 <div className="mt-auto">
                   <Button asChild className="group w-full rounded-full py-5">
                     <Link
-                      href={
-                        plan.cta === 'Contact sales' ? '/contact' : '/signup'
-                      }
+                      href='/calendar'
                     >
                       {plan.cta}
                       <ArrowRight className="ml-2 h-4 w-4 transition-all duration-300 group-hover:translate-x-1" />

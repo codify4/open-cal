@@ -1,6 +1,6 @@
 'use client'
 
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Star } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '../ui/button';
 import { Spotlight } from '../ui/spotlight';
@@ -45,15 +45,21 @@ export function HeroSection() {
             </motion.p>
 
             <motion.div
-              className="flex justify-center"
+              className="flex justify-center gap-5"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.3 }}
             >
               <Button asChild size="lg" className="group px-8 py-6 rounded-full font-semibold bg-white text-black hover:bg-white/90">
-                <Link href="/calendar">
-                  Join the beta
+                <Link href="/calendar" target="_blank">
+                  Start for free
                   <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform duration-300" />
+                </Link>
+              </Button>
+              <Button asChild size="lg" className="group px-8 py-6 rounded-full font-semibold" variant="outline">
+                <Link href="/github" target="_blank">
+                  <Star className="h-5 w-5 group-hover:-rotate-12 transition-transform duration-300" fill="yellow" color="yellow" />
+                  Give us a star
                 </Link>
               </Button>
             </motion.div>
