@@ -4,6 +4,7 @@ import type * as React from 'react';
 import { CalendarStoreProvider } from './calendar-store-provider';
 import { ChatStoreProvider } from './chat-store-provider';
 import { CalendarLayoutClient } from '@/components/wrappers/calendar-layout-client';
+import UpgradeDialog from '@/components/wrappers/upgrade-dialog';
 import { authClient } from '@/lib/auth-client';
 import { ConvexBetterAuthProvider } from '@convex-dev/better-auth/react';
 import { ConvexReactClient } from 'convex/react';
@@ -21,6 +22,7 @@ export function Providers({ children }: ProvidersProps) {
                 <ChatStoreProvider>
                     <CalendarLayoutClient>
                         {children}
+                        <UpgradeDialog />
                     </CalendarLayoutClient>
                 </ChatStoreProvider>
             </CalendarStoreProvider>

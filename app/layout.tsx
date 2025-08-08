@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import { Analytics } from '@vercel/analytics/next';
-import { Geist } from 'next/font/google';
+import { Geist, Lora } from 'next/font/google';
 import Script from 'next/script';
 import { ThemeProvider } from 'next-themes';
 import { Toaster } from 'sonner';
@@ -9,6 +9,12 @@ import { Toaster } from 'sonner';
 const geist = Geist({
   subsets: ['latin'],
   variable: '--font-geist',
+  display: 'swap',
+});
+
+const lora = Lora({
+  subsets: ['latin'],
+  variable: '--font-lora',
   display: 'swap',
 });
 
@@ -61,9 +67,10 @@ export default function RootLayout({
           data-track-web-vitals="true"
           src="https://cdn.databuddy.cc/databuddy.js"
         />
+        <Script src="https://app.lemonsqueezy.com/js/lemon.js" strategy="afterInteractive" />
       </head>
       <body
-        className={`${geist.variable} bg-neutral-950 text-foreground antialiased`}
+        className={`${geist.variable} ${lora.variable} bg-neutral-950 text-foreground antialiased`}
       >
         <ThemeProvider attribute="class" defaultTheme="dark">
           {children}

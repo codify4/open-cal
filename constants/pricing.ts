@@ -6,6 +6,7 @@ export const plans: Array<{
   cta: string;
   originalPrice?: string;
   billingNote?: string;
+  lemonVariantEnv?: string;
 }> = [
   {
     name: 'Free',
@@ -30,6 +31,7 @@ export const plans: Array<{
       'Priority support',
     ],
     cta: 'Get started',
+    lemonVariantEnv: 'LEMONSQUEEZY_VARIANT_MONTHLY_ID',
   },
   {
     name: 'Pro Yearly',
@@ -42,5 +44,6 @@ export const plans: Array<{
       'Priority support',
     ],
     cta: 'Get started',
+    lemonVariantEnv: 'LEMONSQUEEZY_VARIANT_YEARLY_ID',
   },
 ];

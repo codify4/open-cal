@@ -23,7 +23,7 @@ export function HeroSection() {
             transition={{ duration: 0.6 }}
           >
             <motion.h1
-              className="font-bold tracking-tight text-5xl md:text-6xl lg:text-7xl text-white"
+              className="font-bold tracking-tight text-5xl md:text-6xl lg:text-7xl text-white font-lora"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.1 }}
