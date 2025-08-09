@@ -3,16 +3,20 @@
 import { Button } from '../ui/button';
 import { Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
-import { openLemonCheckout } from '@/lib/lemon-client';
 import { authClient } from '@/lib/auth-client';
 import { getCheckoutURL } from '@/actions/billing';
 
 const Premium = () => {
     const { data: session } = authClient.useSession();
+    if (!session) return null;
+    
     const onUpgrade = async () => {
         try {
-            const url = await getCheckoutURL(process.env.NEXT_PUBLIC_LEMONSQUEEZY_MONTHLY_PRODUCT_ID as string)
-            window.LemonSqueezy.Url.Open(url)
+            const url = await getCheckoutURL(
+              Number(process.env.NEXT_PUBLIC_LEMONSQUEEZY_VARIANT_MONTHLY_ID),
+              { userId: session.user?.id as string, email: session.user?.email ?? null } 
+            )
+            if (typeof window !== 'undefined') window.location.href = url as string
         } catch (e) {
             toast.error('Unable to start checkout');
         }

@@ -1,49 +1,65 @@
 "use server";
 
-import { api } from "@/convex/_generated/api";
-import { fetchQuery, fetchMutation } from "convex/nextjs";
-import { createCheckout, lemonSqueezySetup } from "@lemonsqueezy/lemonsqueezy.js";
+export async function getCheckoutURL(
+  variantId: number,
+  user: { userId: string; email?: string | null }
+) {
+  const apiKey = process.env.LEMONSQUEEZY_API_KEY;
+  const storeId = process.env.LEMONSQUEEZY_STORE_ID;
+  const appUrl = process.env.APP_URL;
 
-export async function configureLemonSqueezy() {
-    const requiredVars = [
-      'LEMONSQUEEZY_API_KEY',
-    ]
-    const missing = requiredVars.filter((v) => !process.env[v])
-    if (missing.length) {
-      throw new Error(
-        `Missing required Lemon Squeezy env: ${missing.join(', ')}. See https://docs.lemonsqueezy.com/guides/tutorials/nextjs-saas-billing`
-      )
+  if (!apiKey) throw new Error("Missing LEMONSQUEEZY_API_KEY.");
+  if (!storeId) throw new Error("Missing LEMONSQUEEZY_STORE_ID.");
+  if (!appUrl) throw new Error("Missing APP_URL.");
+  if (!user?.userId) throw new Error("User is not authenticated.");
+
+  const url = 'https://api.lemonsqueezy.com/v1/checkouts';
+  const body = {
+    data: {
+      type: 'checkouts',
+      attributes: {
+        product_options: {
+          redirect_url: `${appUrl}/calendar`,
+          receipt_button_text: 'Go to Calendar',
+          receipt_thank_you_note: 'Thank you for subscribing to Caly!'
+        },
+        checkout_options: {
+          embed: false,
+          media: false,
+          logo: true
+        },
+        checkout_data: {
+          email: user.email ?? undefined,
+          custom: { user_id: user.userId }
+        }
+      },
+      relationships: {
+        store: { data: { type: 'stores', id: String(storeId) } },
+        variant: { data: { type: 'variants', id: String(variantId) } }
+      }
     }
-  
-    lemonSqueezySetup({ apiKey: process.env.LEMONSQUEEZY_API_KEY as string })
+  };
+
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      Accept: 'application/vnd.api+json',
+      'Content-Type': 'application/vnd.api+json'
+    },
+    body: JSON.stringify(body)
+  });
+
+  const json = await response.json().catch(() => null);
+  if (!response.ok) {
+    const detail =
+      json?.errors?.[0]?.detail ||
+      json?.error?.message ||
+      `HTTP ${response.status}`;
+    throw new Error(detail);
+  }
+
+  const checkoutUrl = json?.data?.attributes?.url;
+  if (!checkoutUrl) throw new Error('Missing checkout URL');
+  return checkoutUrl as string;
 }
-
-export async function getCheckoutURL(variantId: string, embed = false): Promise<string> {
-    await configureLemonSqueezy()
-    
-    const user = await fetchQuery(api.auth.getCurrentUser, {})
-    if (!user) throw new Error('Unauthorized')
-
-    const storeId = process.env.LEMONSQUEEZY_STORE_ID as string | undefined
-    if (!storeId) throw new Error('LEMONSQUEEZY_STORE_ID not set')
-
-    const checkout = await createCheckout(storeId, variantId, {
-        checkoutOptions: { embed, media: false, logo: !embed },
-        checkoutData: {
-            email: (user as any)?.email ?? undefined,
-            custom: { user_id: (user as any)?.userId },
-        },
-        productOptions: {
-            enabledVariants: [variantId],
-            redirectUrl: `${process.env.NEXT_PUBLIC_APP_URL || ''}/calendar`,
-            receiptButtonText: 'Go to Dashboard',
-            receiptThankYouNote: 'Thank you for upgrading!',
-        },
-    } as any)
-
-    const url = (checkout as any)?.data?.data?.attributes?.url as string | undefined
-    if (!url) throw new Error('Failed to create checkout')
-    return url
-}
-
-

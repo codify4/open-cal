@@ -67,7 +67,7 @@ export default function RootLayout({
           data-track-web-vitals="true"
           src="https://cdn.databuddy.cc/databuddy.js"
         />
-        <Script src="https://app.lemonsqueezy.com/js/lemon.js" strategy="afterInteractive" />
+        {/** Removed Lemon Squeezy overlay script to ensure full-page checkout */}
       </head>
       <body
         className={`${geist.variable} ${lora.variable} bg-neutral-950 text-foreground antialiased`}
@@ -75,7 +75,7 @@ export default function RootLayout({
         <ThemeProvider attribute="class" defaultTheme="dark">
           {children}
         </ThemeProvider>
-        <Toaster duration={1000} />
+        <Toaster duration={2000} />
         <Analytics />
       </body>
     </html>
