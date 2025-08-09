@@ -14,12 +14,27 @@ export const auth = (ctx: GenericCtx) =>
 		trustedOrigins: [
 			process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
 			process.env.NEXT_PUBLIC_CONVEX_SITE_URL || '',
-            "https://6e6a95feb49fb6852dbbca7595c3aa96.loophole.site"
+			'https://6e6a95feb49fb6852dbbca7595c3aa96.loophole.site',
 		].filter(Boolean) as string[],
 		socialProviders: {
-			google: { 
-				clientId: process.env.GOOGLE_CLIENT_ID as string, 
-				clientSecret: process.env.GOOGLE_CLIENT_SECRET as string, 
-			}, 
+			google: {
+				clientId: process.env.GOOGLE_CLIENT_ID as string,
+				clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
+				scopes: [
+					'openid',
+					'https://www.googleapis.com/auth/userinfo.email',
+					'https://www.googleapis.com/auth/userinfo.profile',
+					'https://www.googleapis.com/auth/calendar.events',
+					'https://www.googleapis.com/auth/calendar.calendarlist.readonly',
+					'https://www.googleapis.com/auth/calendar.freebusy',
+				],
+				authorization: {
+					params: {
+						access_type: 'offline',
+						prompt: 'consent',
+						include_granted_scopes: 'true',
+					},
+				},
+			},
 		},
 	})

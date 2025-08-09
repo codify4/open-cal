@@ -243,7 +243,10 @@ function ProfileSection({
       <div className="flex justify-end">
         <Button
           className="rounded-sm bg-red-500/10 text-red-500 hover:bg-red-500/20"
-          onClick={() => authClient.signOut({ fetchOptions: { onError: () => {} } })}
+          onClick={async () => {
+            await authClient.signOut()
+            window.location.href = '/'
+          }}
           type="button"
         >
           <LogOut className="mr-2 h-4 w-4" />
@@ -430,7 +433,7 @@ function BillingSection() {
                     const checkoutUrl = await getCheckoutURL(
                       Number(process.env.NEXT_PUBLIC_LEMONSQUEEZY_VARIANT_MONTHLY_ID!),
                       {
-                        userId: session?.user?.id as string,
+                        userId: String(current?._id),
                         email: session?.user?.email as string,
                       }
                     )
