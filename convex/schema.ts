@@ -9,6 +9,8 @@ export default defineSchema({
     billingInterval: v.optional(v.union(v.literal('month'), v.literal('year'))),
     renewsAt: v.optional(v.number()),
     endsAt: v.optional(v.number()),
+    lemonSubscriptionId: v.optional(v.string()),
+    planVariantId: v.optional(v.number()),
   })
     .index('by_lemonCustomerId', ['lemonCustomerId']),
   subscriptions: defineTable({

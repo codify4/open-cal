@@ -1,36 +1,67 @@
-import crypto from 'node:crypto'
+import crypto from "node:crypto";
+import { NextRequest, NextResponse } from "next/server";
+import { fetchMutation } from "convex/nextjs";
+import { api } from "@/convex/_generated/api";
 
-export async function POST(request: Request) {
-  const secret = process.env.LEMONSQUEEZY_WEBHOOK_SECRET
-  const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL
-  if (!secret) return new Response('Missing webhook secret', { status: 500 })
-  if (!convexUrl) return new Response('Missing NEXT_PUBLIC_CONVEX_URL', { status: 500 })
+export async function POST(request: NextRequest) {
+  const secret = process.env.LEMONSQUEEZY_WEBHOOK_SECRET;
 
-  const rawBody = await request.text()
-  const signatureHeader = request.headers.get('X-Signature') || request.headers.get('x-signature')
-  if (!signatureHeader) return new Response('Invalid request', { status: 400 })
+  if (!secret) {
+    return NextResponse.json("Required env secrets not set!", { status: 400 });
+  }
 
-  const hmac = crypto.createHmac('sha256', secret)
-  hmac.update(rawBody, 'utf8')
-  const digestHex = hmac.digest('hex')
+  const rawBody = await request.text();
+  const signature = Buffer.from(
+    request.headers.get("X-Signature") ?? "",
+    "hex"
+  );
 
-  const expected = Buffer.from(digestHex, 'hex')
-  let provided: Buffer
+  if (signature.length === 0 || rawBody.length === 0) {
+    return NextResponse.json("Invalid request", { status: 400 });
+  }
+
+  const hmac = Buffer.from(
+    crypto.createHmac("sha256", secret).update(rawBody).digest("hex"),
+    "hex"
+  );
+
+  if (!crypto.timingSafeEqual(hmac, signature)) {
+    return NextResponse.json("Invalid request", { status: 400 });
+  }
+
+  let data: any
   try {
-    provided = Buffer.from(signatureHeader, 'hex')
+    data = JSON.parse(rawBody)
   } catch {
-    return new Response('Invalid request', { status: 400 })
-  }
-  if (expected.length !== provided.length || !crypto.timingSafeEqual(expected, provided)) {
-    return new Response('Invalid request', { status: 400 })
+    return NextResponse.json("Invalid request", { status: 400 })
   }
 
-  const res = await fetch(`${convexUrl}/lemon/webhook`, {
-    method: 'POST',
-    headers: { 'X-Signature': signatureHeader, 'Content-Type': 'application/json' },
-    body: rawBody,
-    cache: 'no-store',
+  const eventName = data?.meta?.event_name
+  if (eventName && eventName !== "subscription_created") {
+    return NextResponse.json("OK", { status: 200 })
+  }
+
+  const webhookId = data?.meta?.webhook_id || data?.meta?.event_id || data?.id
+  const userId =
+    data?.meta?.custom_data?.user_id ||
+    data?.meta?.custom?.user_id ||
+    data?.data?.attributes?.user_id
+  const subscriptionId = data?.data?.id
+  const variantFromAttr = data?.data?.attributes?.variant_id
+  const variantFromRel = data?.data?.relationships?.variant?.data?.id
+  const variantIdRaw = variantFromAttr ?? variantFromRel
+  const variantId = Number(variantIdRaw)
+
+  if (!webhookId || !userId || !subscriptionId || Number.isNaN(variantId)) {
+    return NextResponse.json("Invalid request", { status: 400 })
+  }
+
+  await fetchMutation(api.billing.markPaid, {
+    webhookId: String(webhookId),
+    userId: String(userId),
+    subscriptionId: String(subscriptionId),
+    variantId: Number(variantId),
   })
-  const text = await res.text().catch(() => '')
-  return new Response(text || 'OK', { status: res.status })
+
+  return NextResponse.json("OK", { status: 200 })
 }

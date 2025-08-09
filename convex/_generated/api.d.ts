@@ -11,7 +11,6 @@
 import type * as auth from "../auth.js";
 import type * as billing from "../billing.js";
 import type * as http from "../http.js";
-import type * as lemon_webhook from "../lemon/webhook.js";
 
 import type {
   ApiFromModules,
@@ -31,7 +30,6 @@ declare const fullApi: ApiFromModules<{
   auth: typeof auth;
   billing: typeof billing;
   http: typeof http;
-  "lemon/webhook": typeof lemon_webhook;
 }>;
 declare const fullApiWithMounts: typeof fullApi;
 
