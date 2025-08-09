@@ -1,4 +1,5 @@
 "use server";
+import { lemonSqueezySetup, getSubscription, getCustomer } from '@lemonsqueezy/lemonsqueezy.js'
 
 export async function getCheckoutURL(
   variantId: number,
@@ -62,4 +63,15 @@ export async function getCheckoutURL(
   const checkoutUrl = json?.data?.attributes?.url;
   if (!checkoutUrl) throw new Error('Missing checkout URL');
   return checkoutUrl as string;
+}
+
+export async function getCustomerPortalURL(subscriptionId: string) {
+    const apiKey = process.env.LEMONSQUEEZY_API_KEY
+    if (!apiKey) throw new Error('Missing LEMONSQUEEZY_API_KEY.')
+    if (!subscriptionId) throw new Error('Missing subscriptionId.')
+        
+    lemonSqueezySetup({ apiKey });
+    const { data } = await getSubscription(subscriptionId);
+    console.log(data?.data.attributes.urls)
+    return data?.data.attributes.urls.customer_portal
 }

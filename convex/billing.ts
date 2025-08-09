@@ -3,10 +3,10 @@ import type { Id } from './_generated/dataModel'
 import { v } from 'convex/values'
 
 export const setUpgradePromptSeen = mutation({
-  args: { userId: v.string() },
-  handler: async (ctx, args) => {
-    await ctx.db.patch(args.userId as Id<'users'>, { hasSeenUpgradePrompt: true })
-  },
+    args: { userId: v.string() },
+    handler: async (ctx, args) => {
+        await ctx.db.patch(args.userId as Id<'users'>, { hasSeenUpgradePrompt: true })
+    },
 })
 
 export const markPaid = mutation({

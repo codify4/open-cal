@@ -3,19 +3,20 @@
 import {
   CreditCard,
   EllipsisVertical,
-  ExternalLink,
   LogOut,
   Moon,
   Palette,
   Plus,
   Settings,
   Sun,
-  Trash2,
   User,
   Zap,
 } from 'lucide-react';
 import { useState } from 'react';
 import { useTheme } from 'next-themes';
+import { useQuery } from 'convex/react';
+import { api } from '@/convex/_generated/api';
+import { getCustomerPortalURL } from '@/actions/billing';
 import { authClient } from '@/lib/auth-client';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -42,7 +43,6 @@ import { Label } from '../ui/label';
 import { Separator } from '../ui/separator';
 import { Switch } from '../ui/switch';
 import type { EmailAccount, CalendarEntry } from '@/components/sidebar/cal-accounts';
-import { getColorClasses, emailColorFromString } from '@/components/sidebar/cal-accounts';
 import Image from 'next/image';
 
 const SETTINGS_SECTIONS = [
@@ -334,6 +334,21 @@ function AppearanceSection() {
 }
 
 function BillingSection() {
+  const [loadingPortal, setLoadingPortal] = useState(false)
+  const current = useQuery(api.auth.getCurrentUser, {})
+  const subscriptionId = current?.lemonSubscriptionId as string | undefined
+
+  async function openPortal() {
+    try {
+      setLoadingPortal(true)
+      if (!subscriptionId) return
+      const url = await getCustomerPortalURL(subscriptionId)
+      if (url) window.location.href = url
+    } finally {
+      setLoadingPortal(false)
+    }
+  }
+
   return (
     <div className="space-y-6">
       <div>
@@ -386,13 +401,9 @@ function BillingSection() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
-            <Button className="w-full justify-start" variant="outline">
+            <Button className="w-full justify-start" variant="outline" onClick={openPortal} disabled={loadingPortal}>
               <CreditCard className="mr-2 h-4 w-4" />
-              Change Plan
-            </Button>
-            <Button className="w-full justify-start" variant="outline">
-              <Settings className="mr-2 h-4 w-4" />
-              Cancel Subscription
+              {loadingPortal ? 'Opening...' : 'Manage Billing'}
             </Button>
           </CardContent>
         </Card>
