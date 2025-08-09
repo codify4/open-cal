@@ -33,6 +33,8 @@ export default function UpgradeDialog() {
         setOpen(false)
     }
 
+    if (!session || !currentUser || currentUser.isPro || currentUser.hasSeenUpgradePrompt) return null
+
     return (
         <Dialog open={open} onOpenChange={(v) => (v ? setOpen(true) : onClose())}>
             <DialogContent>

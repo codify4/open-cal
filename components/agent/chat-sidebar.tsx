@@ -10,6 +10,8 @@ import { Chat } from '@/components/agent/chat';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { useChatStore } from '@/providers/chat-store-provider';
 import { useRateLimit } from '@/hooks/use-rate-limit';
+import { useQuery } from 'convex/react';
+import { api } from '@/convex/_generated/api';
 
 interface ChatSidebarProps {
   isFullscreen: boolean;
@@ -30,6 +32,7 @@ export function ChatSidebar({
   const [regeneratingMessageId, setRegeneratingMessageId] = useState<string | null>(null);
   
   const { messagesLeft, isLimited, sendMessage: sendRateLimitedMessage, refreshRateLimit } = useRateLimit();
+  const currentUser = useQuery(api.auth.getCurrentUser, {});
   
   const chatMessages = useChatStore((state) => state.messages);
   const chatInput = useChatStore((state) => state.input);
@@ -172,7 +175,7 @@ export function ChatSidebar({
               </div>
             </TooltipTrigger>
             <TooltipContent className="bg-black font-semibold text-white">
-              <p>Messages left today</p>
+              <p>{currentUser?.isPro ? 'Messages left this minute' : 'Messages left today'}</p>
             </TooltipContent>
           </Tooltip>
           <Tooltip>

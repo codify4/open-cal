@@ -16,7 +16,7 @@ import { useState } from 'react';
 import { useTheme } from 'next-themes';
 import { useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
-import { getCustomerPortalURL } from '@/actions/billing';
+import { getCustomerPortalURL, getCheckoutURL } from '@/actions/billing';
 import { authClient } from '@/lib/auth-client';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -44,6 +44,7 @@ import { Separator } from '../ui/separator';
 import { Switch } from '../ui/switch';
 import type { EmailAccount, CalendarEntry } from '@/components/sidebar/cal-accounts';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 
 const SETTINGS_SECTIONS = [
   {
@@ -337,6 +338,8 @@ function BillingSection() {
   const [loadingPortal, setLoadingPortal] = useState(false)
   const current = useQuery(api.auth.getCurrentUser, {})
   const subscriptionId = current?.lemonSubscriptionId as string | undefined
+  const { data: session } = authClient.useSession()
+  const router = useRouter()
 
   async function openPortal() {
     try {
@@ -371,25 +374,36 @@ function BillingSection() {
           <CardContent className="space-y-4">
             <div className="flex items-center justify-between rounded-lg bg-neutral-100 dark:bg-neutral-800 p-4">
               <div className="flex items-center space-x-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-r from-blue-500 to-purple-500">
-                  <span className="font-semibold text-white">P</span>
-                </div>
+                <Image src={'/caly.svg'} alt="caly" width={40} height={40} className='rounded-sm' />
                 <div>
-                  <h4 className="font-semibold text-neutral-900 dark:text-white">Pro Plan</h4>
-                  <p className="text-neutral-600 dark:text-neutral-400 text-sm">$29/month</p>
+                  <h4 className="font-semibold text-neutral-900 dark:text-white">{current?.isPro ? 'Caly Pro' : 'Caly Free'}</h4>
+                  {current?.isPro ? (
+                    <p className="text-neutral-600 dark:text-neutral-400 text-sm">{current?.variantId === process.env.NEXT_PUBLIC_LEMONSQUEEZY_VARIANT_YEARLY_ID ? '$120/year' : '$20/month'}</p>
+                  ) : (
+                    <p className="text-neutral-600 dark:text-neutral-400 text-sm">Limited features</p>
+                  )}
                 </div>
               </div>
-              <Badge
-                className="bg-green-500/20 text-green-600 dark:text-green-400"
-                variant="secondary"
-              >
-                Active
-              </Badge>
+              {current?.isPro ? (
+                <Badge className="bg-green-500/20 text-green-600 dark:text-green-400" variant="secondary">Active</Badge>
+              ) : (
+                <Badge className="bg-neutral-500/20 text-neutral-700 dark:text-neutral-300" variant="secondary">Free</Badge>
+              )}
             </div>
-            <div className="text-neutral-600 dark:text-neutral-400 text-sm">
-              <p>Next billing date: January 15, 2024</p>
-              <p>Billed monthly • Auto-renewal enabled</p>
-            </div>
+            {current?.isPro ? (
+              <div className="text-neutral-600 dark:text-neutral-400 text-sm">
+                {current?.renewsAt ? (
+                  <p>Next billing date: {new Date(current.renewsAt).toLocaleDateString()}</p>
+                ) : null}
+                <p>
+                  {current?.billingInterval === 'year' ? 'Billed yearly' : 'Billed monthly'} • Auto-renewal enabled
+                </p>
+              </div>
+            ) : (
+              <div className="text-neutral-600 dark:text-neutral-400 text-sm">
+                <p>Upgrade to unlock AI agent and integrations.</p>
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -401,10 +415,33 @@ function BillingSection() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
-            <Button className="w-full justify-start" variant="outline" onClick={openPortal} disabled={loadingPortal}>
-              <CreditCard className="mr-2 h-4 w-4" />
-              {loadingPortal ? 'Opening...' : 'Manage Billing'}
-            </Button>
+            {current?.isPro ? (
+              <Button type="button" className="w-full justify-start" variant="outline" onClick={openPortal} disabled={loadingPortal}>
+                <CreditCard className="mr-2 h-4 w-4" />
+                {loadingPortal ? 'Opening...' : 'Manage Billing'}
+              </Button>
+            ) : (
+              <Button
+                type="button"
+                className="w-full justify-start"
+                variant="outline"
+                onClick={async () => {
+                  try {
+                    const checkoutUrl = await getCheckoutURL(
+                      Number(process.env.NEXT_PUBLIC_LEMONSQUEEZY_VARIANT_MONTHLY_ID!),
+                      {
+                        userId: session?.user?.id as string,
+                        email: session?.user?.email as string,
+                      }
+                    )
+                    if (checkoutUrl) router.push(checkoutUrl)
+                  } catch {}
+                }}
+              >
+                <CreditCard className="mr-2 h-4 w-4" />
+                Upgrade to Pro
+              </Button>
+            )}
           </CardContent>
         </Card>
       </div>
@@ -421,6 +458,7 @@ function IntegrationsSection({
   calendars: CalendarEntry[];
   onAddAccount: () => void;
 }) {
+  const current = useQuery(api.auth.getCurrentUser, {})
   const colorMap: Record<EmailAccount['color'], string> = {
     blue: 'bg-blue-500',
     green: 'bg-green-500',
@@ -470,11 +508,15 @@ function IntegrationsSection({
 
             <Button
               className="w-full justify-start border-neutral-300 dark:border-neutral-600 border-dashed hover:border-neutral-400 dark:hover:border-neutral-500"
-              onClick={onAddAccount}
+              onClick={() => {
+                if (!current?.isPro && accounts.length >= 1) return
+                onAddAccount()
+              }}
               variant="outline"
+              disabled={!current?.isPro && accounts.length >= 1}
             >
               <Plus className="mr-2 h-4 w-4" />
-              Connect Another Google Calendar Account
+              {!current?.isPro && accounts.length >= 1 ? 'Upgrade to add more accounts' : 'Connect Another Google Calendar Account'}
             </Button>
           </CardContent>
         </Card>

@@ -6,15 +6,20 @@ import { toast } from 'sonner';
 import { authClient } from '@/lib/auth-client';
 import { getCheckoutURL } from '@/actions/billing';
 import { useRouter } from 'next/navigation';
+import { useQuery } from 'convex/react';
+import { api } from '@/convex/_generated/api';
 
 const Premium = () => {
     const { data: session } = authClient.useSession();
     const router = useRouter();
+    const currentUser = useQuery(api.auth.getCurrentUser, {});
 
     if (!session) return null;
+    if (!currentUser || currentUser.isPro) return null;
     
     return (
         <Button 
+            type="button"
             variant="outline" 
             className="flex items-center justify-start w-full py-2.5 rounded-sm text-sm font-medium text-neutral-900 hover:bg-neutral-100 hover:text-neutral-700 dark:hover:bg-neutral-800 dark:text-neutral-200 focus:ring-0"
             onClick={async () => {                            

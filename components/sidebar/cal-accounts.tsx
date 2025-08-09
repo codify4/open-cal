@@ -18,6 +18,9 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar';
 import { Checkbox } from '../ui/checkbox';
+import { useQuery } from 'convex/react';
+import { api } from '@/convex/_generated/api';
+import { toast } from 'sonner';
 
 export interface CalendarEntry {
   id: string;
@@ -86,6 +89,8 @@ export function NavCalendars({
   const selectedAccount = emailAccounts.find(
     (acc) => acc.email === selectedEmail
   );
+  const currentUser = useQuery(api.auth.getCurrentUser, {});
+  const canAddMoreAccounts = Boolean(currentUser?.isPro || emailAccounts.length === 0);
 
   return (
     <SidebarGroup className="mt-0 group-data-[collapsible=icon]:hidden">
@@ -147,11 +152,17 @@ export function NavCalendars({
                 </DropdownMenuItem>
               ))}
               <DropdownMenuItem
-                className="mt-1 flex items-center gap-2 cursor-pointer"
-                onClick={onAddAccount}
+                className={`mt-1 flex items-center gap-2 ${canAddMoreAccounts ? 'cursor-pointer' : 'opacity-50 cursor-not-allowed'}`}
+                onClick={() => {
+                  if (!canAddMoreAccounts) {
+                    toast('Upgrade required', { description: 'Upgrade to add more calendar accounts.' })
+                    return
+                  }
+                  onAddAccount()
+                }}
               >
                 <Plus className="h-4 w-4" />
-                <span className="text-sm">Add account</span>
+                <span className="text-sm">{canAddMoreAccounts ? 'Add account' : 'Add account (Pro)'}</span>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
