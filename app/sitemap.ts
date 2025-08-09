@@ -2,7 +2,7 @@ import { MetadataRoute } from 'next'
 import { getUseCaseIds } from './[use-case]/(components)/use-cases'
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = 'https://caly.com'
+  const baseUrl = 'https://www.trycaly.cc'
   
   const staticRoutes: MetadataRoute.Sitemap = [
     {

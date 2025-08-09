@@ -7,6 +7,6 @@ export default function robots(): MetadataRoute.Robots {
       allow: '/',
       disallow: ['/api/', '/calendar/'],
     },
-    sitemap: 'https://caly.com/sitemap.xml',
+    sitemap: 'https://www.trycaly.cc/sitemap.xml',
   }
 }
