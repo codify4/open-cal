@@ -1,15 +1,33 @@
-"use node"
 import { httpAction } from '../_generated/server'
 import { api } from '../_generated/api'
-import crypto from 'node:crypto'
+import HmacSHA256 from 'crypto-js/hmac-sha256'
+import Hex from 'crypto-js/enc-hex'
+
+function hexToBytes(hex: string): Uint8Array {
+  if (hex.length % 2 !== 0) return new Uint8Array()
+  const out = new Uint8Array(hex.length / 2)
+  for (let i = 0; i < hex.length; i += 2) out[i / 2] = parseInt(hex.slice(i, i + 2), 16)
+  return out
+}
+
+function safeEqual(a: Uint8Array, b: Uint8Array): boolean {
+  const len = Math.max(a.length, b.length)
+  let result = a.length ^ b.length
+  for (let i = 0; i < len; i++) {
+    const ai = i < a.length ? a[i] : 0
+    const bi = i < b.length ? b[i] : 0
+    result |= ai ^ bi
+  }
+  return result === 0
+}
 
 function verifyLemonSqueezySignature(rawBody: string, signature: string | null): boolean {
-  if (!process.env.LEMONSQUEEZY_WEBHOOK_SECRET) return false;
-  if (!signature) return false;
-  const hmac = crypto.createHmac('sha256', process.env.LEMONSQUEEZY_WEBHOOK_SECRET);
-  hmac.update(rawBody, 'utf8');
-  const digest = hmac.digest('hex');
-  return crypto.timingSafeEqual(Buffer.from(signature, 'hex'), Buffer.from(digest, 'hex'));
+  const secret = process.env.LEMONSQUEEZY_WEBHOOK_SECRET
+  if (!secret || !signature) return false
+  const digestHex = HmacSHA256(rawBody, secret).toString(Hex)
+  const expected = hexToBytes(digestHex)
+  const provided = /^[0-9a-fA-F]+$/.test(signature) ? hexToBytes(signature) : new Uint8Array()
+  return safeEqual(expected, provided)
 }
 
 export const lemonsqueezyWebhook = httpAction(async (ctx, request) => {
@@ -25,7 +43,8 @@ export const lemonsqueezyWebhook = httpAction(async (ctx, request) => {
     return new Response('bad json', { status: 400 });
   }
 
-  const eventId: string | undefined = payload?.meta?.event_id ?? payload?.id;
+  const eventId: string | undefined =
+    payload?.meta?.webhook_id ?? payload?.meta?.event_id ?? payload?.id;
   if (!eventId) return new Response('no event id', { status: 400 });
 
   const type: string = payload?.meta?.event_name ?? payload?.type ?? '';

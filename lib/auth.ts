@@ -14,6 +14,7 @@ export const auth = (ctx: GenericCtx) =>
 		trustedOrigins: [
 			process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
 			process.env.NEXT_PUBLIC_CONVEX_SITE_URL || '',
+            "https://6e6a95feb49fb6852dbbca7595c3aa96.loophole.site"
 		].filter(Boolean) as string[],
 		socialProviders: {
 			google: { 
