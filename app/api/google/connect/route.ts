@@ -1,8 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { fetchQuery } from 'convex/nextjs'
+import { api } from '@/convex/_generated/api'
 
 export async function GET(request: NextRequest) {
   const clientId = process.env.GOOGLE_CLIENT_ID
-  const redirectUri = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/google/oauth/callback`
+  const base = (process.env.NEXT_PUBLIC_APP_URL || request.nextUrl.origin) as string
+  const redirectUri = `${base}/api/google/oauth/callback`
   const scopes = [
     'openid',
     'https://www.googleapis.com/auth/userinfo.email',
@@ -16,7 +19,14 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'Missing GOOGLE_CLIENT_ID' }, { status: 400 })
   }
 
-  const state = Math.random().toString(36).slice(2)
+  const csrf = Math.random().toString(36).slice(2)
+  let uid: string | null = null
+  try {
+    const currentUser = await fetchQuery(api.auth.getCurrentUser, {})
+    uid = (currentUser?.userId as unknown as string) || null
+  } catch {}
+  const statePayload = { csrf, uid }
+  const state = Buffer.from(JSON.stringify(statePayload)).toString('base64url')
   const url = new URL('https://accounts.google.com/o/oauth2/v2/auth')
   url.searchParams.set('client_id', clientId)
   url.searchParams.set('redirect_uri', redirectUri)

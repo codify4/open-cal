@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { fetchMutation } from 'convex/nextjs'
+import { fetchMutation, fetchQuery } from 'convex/nextjs'
 import { api } from '@/convex/_generated/api'
 
 export async function GET(request: NextRequest) {
@@ -19,6 +19,11 @@ export async function GET(request: NextRequest) {
   if (!state || !cookieState || state !== cookieState) {
     return NextResponse.redirect(new URL('/calendar?error=invalid_state', base))
   }
+  let uidFromState: string | null = null
+  try {
+    const decoded = JSON.parse(Buffer.from(state, 'base64url').toString()) as { csrf?: string; uid?: string }
+    uidFromState = decoded.uid ?? null
+  } catch {}
 
   const clientId = process.env.GOOGLE_CLIENT_ID
   const clientSecret = process.env.GOOGLE_CLIENT_SECRET
@@ -57,6 +62,8 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(new URL('/calendar?error=profile_fetch_failed', base))
   }
 
+  const currentUser = await fetchQuery(api.auth.getCurrentUser, {})
+
   await fetchMutation(api.google.saveAccount, {
     googleUserId: String(me.id),
     email: String(me.email),
@@ -64,6 +71,8 @@ export async function GET(request: NextRequest) {
     refreshToken,
     expiresAt,
     scopes,
+    // Fallback when session not yet bridged to Convex
+    userIdOverride: ((currentUser?.userId as any) || (uidFromState as any) || undefined),
   })
 
   const redirect = new URL('/calendar', base)

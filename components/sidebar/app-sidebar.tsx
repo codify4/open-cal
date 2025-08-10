@@ -47,6 +47,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   };
 
   React.useEffect(() => {
+    // no auto-redirect; user will link Google via Better Auth when needed
+  }, [isPending, session, accounts]);
+
+  React.useEffect(() => {
     if (!accounts || accounts.length === 0) {
       if (session?.user?.email) setSelectedEmail(session.user.email);
       return;
@@ -90,8 +94,17 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       .catch(() => setCalendarList([]));
   }, [accounts, selectedEmail, listCalendarsAction]);
 
-  const handleAddAccount = () => {
-    window.location.href = '/api/google/connect'
+  const handleAddAccount = async () => {
+    await authClient.linkSocial({
+      provider: 'google',
+      scopes: [
+        'https://www.googleapis.com/auth/calendar.events',
+        'https://www.googleapis.com/auth/calendar.calendarlist.readonly',
+        'https://www.googleapis.com/auth/calendar.freebusy',
+      ],
+      callbackURL: `${window.location.origin}/calendar`,
+      errorCallbackURL: `${window.location.origin}/calendar`,
+    })
   }
 
   if (isPending) return null;
@@ -108,9 +121,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           user={session ? {
             name: session.user.name || session.user.email,
             email: session.user.email,
-            avatar: ((session.user as unknown as { image?: string })?.image) || '/vercel.svg',
+            avatar: ((session.user as unknown as { image?: string })?.image) || '/caly.svg',
           } : undefined}
-          onAddAccount={handleAddAccount}
           calendars={calendarList}
           emailAccounts={emailAccounts}
           onCalendarToggle={handleCalendarToggle}

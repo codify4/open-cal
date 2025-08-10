@@ -7,11 +7,11 @@ export async function getCheckoutURL(
 ) {
   const apiKey = process.env.LEMONSQUEEZY_API_KEY;
   const storeId = process.env.LEMONSQUEEZY_STORE_ID;
-  const appUrl = process.env.APP_URL;
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL;
 
   if (!apiKey) throw new Error("Missing LEMONSQUEEZY_API_KEY.");
   if (!storeId) throw new Error("Missing LEMONSQUEEZY_STORE_ID.");
-  if (!appUrl) throw new Error("Missing APP_URL.");
+  if (!appUrl) throw new Error("Missing NEXT_PUBLIC_APP_URL.");
   if (!user?.userId) throw new Error("User is not authenticated.");
 
   const url = 'https://api.lemonsqueezy.com/v1/checkouts';

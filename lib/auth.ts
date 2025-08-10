@@ -28,13 +28,9 @@ export const auth = (ctx: GenericCtx) =>
 					'https://www.googleapis.com/auth/calendar.calendarlist.readonly',
 					'https://www.googleapis.com/auth/calendar.freebusy',
 				],
-				authorization: {
-					params: {
-						access_type: 'offline',
-						prompt: 'consent',
-						include_granted_scopes: 'true',
-					},
-				},
+                access_type: 'offline',
+				prompt: 'select_account+consent',
+				include_granted_scopes: 'true',
 			},
 		},
 	})

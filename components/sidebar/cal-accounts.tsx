@@ -46,7 +46,6 @@ export interface NavCalendarsProps {
   onEmailChange: (email: string) => void;
   onCalendarToggle: (calendarId: string) => void;
   user?: { name: string; email: string; avatar: string };
-  onAddAccount: () => void;
 }
 
 export const getColorClasses = (
@@ -86,7 +85,6 @@ export function NavCalendars({
   onEmailChange,
   onCalendarToggle,
   user,
-  onAddAccount,
 }: NavCalendarsProps) {
   const { isMobile } = useSidebar();
   const selectedAccount = emailAccounts.find(
@@ -107,12 +105,7 @@ export function NavCalendars({
               size="sm"
               className='w-full justify-start'
               onClick={() =>
-                authClient.signIn.social({
-                  provider: 'google',
-                  callbackURL: `${window.location.origin}/calendar`,
-                  errorCallbackURL: `${window.location.origin}/calendar`,
-                  newUserCallbackURL: `${window.location.origin}/calendar`,
-                })
+                authClient.signIn.social({ provider: 'google', callbackURL: `${window.location.origin}/calendar` })
               }
             >
               <Plus className="h-4 w-4 mr-2" />
@@ -184,12 +177,21 @@ export function NavCalendars({
               ))}
               <DropdownMenuItem
                 className={`mt-1 flex items-center gap-2 ${canAddMoreAccounts ? 'cursor-pointer' : 'opacity-50 cursor-not-allowed'}`}
-                onClick={() => {
+                onClick={async () => {
                   if (!canAddMoreAccounts) {
                     toast('Upgrade required', { description: 'Upgrade to add more calendar accounts.' })
                     return
                   }
-                  onAddAccount()
+                  await authClient.linkSocial({
+                    provider: 'google',
+                    scopes: [
+                      'https://www.googleapis.com/auth/calendar.events',
+                      'https://www.googleapis.com/auth/calendar.calendarlist.readonly',
+                      'https://www.googleapis.com/auth/calendar.freebusy',
+                    ],
+                    callbackURL: `${window.location.origin}/calendar`,
+                    errorCallbackURL: `${window.location.origin}/calendar`,
+                  })
                 }}
               >
                 <Plus className="h-4 w-4" />

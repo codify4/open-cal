@@ -12,15 +12,17 @@ export const saveAccount = mutation({
     refreshToken: v.optional(v.string()),
     expiresAt: v.number(),
     scopes: v.array(v.string()),
+    userIdOverride: v.optional(v.id('users')),
   },
   handler: async (ctx, args) => {
     const authUser = await betterAuthComponent.getAuthUser(ctx)
-    if (!authUser) throw new Error('Unauthorized')
+    const effectiveUserId = (args.userIdOverride ?? (authUser?.userId as Id<'users'>))
+    if (!effectiveUserId) throw new Error('Unauthorized')
 
     const existing = await ctx.db
       .query('googleAccounts')
       .withIndex('by_userId_googleUserId', (q) =>
-        q.eq('userId', authUser.userId as Id<'users'>).eq('googleUserId', args.googleUserId),
+        q.eq('userId', effectiveUserId).eq('googleUserId', args.googleUserId),
       )
       .unique()
 
@@ -38,7 +40,7 @@ export const saveAccount = mutation({
     }
 
     await ctx.db.insert('googleAccounts', {
-      userId: authUser.userId as Id<'users'>,
+      userId: effectiveUserId,
       googleUserId: args.googleUserId,
       email: args.email,
       accessToken: args.accessToken,
@@ -91,6 +93,60 @@ export const updateAccountTokens = internalMutation({
       expiresAt: args.expiresAt,
       updatedAt: Date.now(),
     })
+  },
+})
+
+// This function will be called from the client side after successful OAuth
+export const saveGoogleAccountFromAuth = mutation({
+  args: {
+    googleUserId: v.string(),
+    email: v.string(),
+    accessToken: v.string(),
+    refreshToken: v.optional(v.string()),
+    expiresAt: v.number(),
+    scopes: v.array(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const authUser = await betterAuthComponent.getAuthUser(ctx)
+    if (!authUser) throw new Error('Unauthorized')
+
+    // Check if we already have this account
+    const existing = await ctx.db
+      .query('googleAccounts')
+      .withIndex('by_userId_googleUserId', (q) =>
+        q.eq('userId', authUser.userId as Id<'users'>).eq('googleUserId', args.googleUserId)
+      )
+      .unique()
+
+    const now = Date.now()
+
+    if (existing) {
+      // Update existing account
+      await ctx.db.patch(existing._id, {
+        email: args.email,
+        accessToken: args.accessToken,
+        refreshToken: args.refreshToken,
+        expiresAt: args.expiresAt,
+        scopes: args.scopes,
+        updatedAt: now,
+      })
+      return { ok: true, updated: true }
+    }
+
+    // Create new account
+    await ctx.db.insert('googleAccounts', {
+      userId: authUser.userId as Id<'users'>,
+      googleUserId: args.googleUserId,
+      email: args.email,
+      accessToken: args.accessToken,
+      refreshToken: args.refreshToken,
+      expiresAt: args.expiresAt,
+      scopes: args.scopes,
+      createdAt: now,
+      updatedAt: now,
+    } as any)
+
+    return { ok: true, created: true }
   },
 })
 
