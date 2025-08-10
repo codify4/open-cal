@@ -13,6 +13,8 @@ import {
 import type { Event } from '@/lib/store/calendar-store';
 import { cn } from '@/lib/utils';
 import { useCalendarStore } from '@/providers/calendar-store-provider';
+import { useAction, useQuery } from 'convex/react';
+import { api } from '@/convex/_generated/api';
 import { GraphicDoodle } from './graphics';
 
 interface EventCardProps {
@@ -40,6 +42,9 @@ export const EventCard = ({
   const { openEventSidebarForEdit, deleteEvent, saveEvent } = useCalendarStore(
     (state) => state
   );
+  const accounts = useQuery(api.google.getAccounts, {});
+  const updateEventAction = useAction(api.google.updateEvent);
+  const deleteEventAction = useAction(api.google.deleteEvent);
   const { attributes, listeners, setNodeRef, transform, isDragging } =
     useDraggable({ id: event.id, data: event });
   const [isResizing, setIsResizing] = useState(false);
@@ -66,7 +71,17 @@ export const EventCard = ({
     openEventSidebarForEdit(event);
   };
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
+    try {
+      const account = accounts?.[0];
+      if (account) {
+        await deleteEventAction({
+          accountId: account._id,
+          calendarId: event.calendar || 'primary',
+          eventId: event.id,
+        });
+      }
+    } catch {}
     deleteEvent(event.id);
   };
 
@@ -241,6 +256,21 @@ export const EventCard = ({
 
     document.body.style.cursor = '';
     document.body.style.userSelect = '';
+
+    if (resizeType === 'vertical' && originalStartDate && originalEndDate) {
+      const account = accounts?.[0];
+      if (account) {
+        updateEventAction({
+          accountId: account._id,
+          calendarId: event.calendar || 'primary',
+          eventId: event.id,
+          patch: {
+            startDate: originalStartDate.toISOString(),
+            endDate: originalEndDate.toISOString(),
+          },
+        }).catch(() => {});
+      }
+    }
   };
 
   // Mouse event listeners

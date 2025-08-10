@@ -16,6 +16,21 @@ export default defineSchema({
         eventId: v.string(),
         processedAt: v.number(),
     }).index('by_eventId', ['eventId']),
+    googleAccounts: defineTable({
+        userId: v.id('users'),
+        googleUserId: v.string(),
+        email: v.string(),
+        accessToken: v.string(),
+        refreshToken: v.optional(v.string()),
+        expiresAt: v.number(),
+        scopes: v.array(v.string()),
+        createdAt: v.number(),
+        updatedAt: v.number(),
+    })
+        .index('by_userId', ['userId'])
+        .index('by_email', ['email'])
+        .index('by_googleUserId', ['googleUserId'])
+        .index('by_userId_googleUserId', ['userId', 'googleUserId']),
 })
 
 

@@ -1,6 +1,8 @@
 import { Save, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import type { Event } from '@/lib/store/calendar-store';
+import { useAction, useQuery } from 'convex/react';
+import { api } from '@/convex/_generated/api';
 import { useCalendarStore } from '@/providers/calendar-store-provider';
 import { Button } from '../ui/button';
 import {
@@ -32,6 +34,9 @@ const AddEventSidebar = ({ onClick }: AddEventProps) => {
     closeEventSidebar,
     saveEvent,
   } = useCalendarStore((state) => state);
+  const accounts = useQuery(api.google.getAccounts, {});
+  const createEventAction = useAction(api.google.createEvent);
+  const updateEventAction = useAction(api.google.updateEvent);
 
   const isEditing = !!selectedEvent && !isNewEvent;
 
@@ -72,7 +77,7 @@ const AddEventSidebar = ({ onClick }: AddEventProps) => {
     }
   };
 
-  const handleManualSave = () => {
+  const handleManualSave = async () => {
     if (
       currentFormData.current &&
       Object.keys(currentFormData.current).length > 0
@@ -98,7 +103,50 @@ const AddEventSidebar = ({ onClick }: AddEventProps) => {
         } as Event;
       }
 
-      saveEvent(eventToSave);
+      try {
+        const account = accounts?.[0];
+        if (account) {
+          const calendarId = eventToSave.calendar || 'primary';
+          if (isNewEvent || !selectedEvent) {
+            const created = await createEventAction({
+              accountId: account._id,
+              calendarId,
+              event: {
+                title: eventToSave.title,
+                description: eventToSave.description,
+                startDate: new Date(eventToSave.startDate).toISOString(),
+                endDate: new Date(eventToSave.endDate).toISOString(),
+                isAllDay: !!eventToSave.isAllDay,
+                location: eventToSave.location,
+                attendees: eventToSave.attendees || [],
+                visibility: eventToSave.visibility || 'public',
+              },
+            });
+            saveEvent(created as any);
+          } else {
+            const updated = await updateEventAction({
+              accountId: account._id,
+              calendarId,
+              eventId: eventToSave.id,
+              patch: {
+                title: eventToSave.title,
+                description: eventToSave.description,
+                startDate: eventToSave.startDate?.toString(),
+                endDate: eventToSave.endDate?.toString(),
+                isAllDay: eventToSave.isAllDay,
+                location: eventToSave.location,
+                attendees: eventToSave.attendees,
+                visibility: eventToSave.visibility,
+              },
+            });
+            saveEvent(updated as any);
+          }
+        } else {
+          saveEvent(eventToSave);
+        }
+      } catch {
+        saveEvent(eventToSave);
+      }
       closeEventSidebar();
       onClick();
     }

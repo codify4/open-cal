@@ -3,7 +3,7 @@ import clsx from 'clsx';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Plus, Sparkles } from 'lucide-react';
 import type React from 'react';
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { EventCard } from '@/components/event/cards/event-card';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -13,8 +13,10 @@ import {
   ContextMenuTrigger,
 } from '@/components/ui/context-menu';
 import type { Event } from '@/lib/store/calendar-store';
-import { useCalendarStore } from '@/providers/calendar-store-provider';
+import { useCalendarStore, useCalendarStoreApi } from '@/providers/calendar-store-provider';
 import { authClient } from '@/lib/auth-client';
+import { useAction, useQuery } from 'convex/react';
+import { api } from '@/convex/_generated/api';
 
 interface TimeSlotProps {
   timeSlotId: string;
@@ -88,6 +90,10 @@ export default function WeeklyView() {
     updateEventTime,
   } = useCalendarStore((state) => state);
   const { data: session } = authClient.useSession();
+  const calendarStoreApi = useCalendarStoreApi();
+  const accounts = useQuery(api.google.getAccounts, {});
+  const listCalendarsAction = useAction(api.google.listCalendars);
+  const listEventsAction = useAction(api.google.listEvents);
 
   const direction = navigationDirection;
   const weekStartsOn = 'monday';
@@ -269,6 +275,35 @@ export default function WeeklyView() {
 
     openEventSidebarForNewEvent(targetDate);
   }
+
+  useEffect(() => {
+    if (!session || !accounts || accounts.length === 0) return;
+    const account = accounts[0];
+    const timeMin = new Date(daysOfWeek[0]);
+    timeMin.setHours(0, 0, 0, 0);
+    const timeMax = new Date(daysOfWeek[6]);
+    timeMax.setHours(23, 59, 0, 0);
+    listCalendarsAction({ accountId: account._id })
+      .then(async (cals) => {
+        const calendars = (cals as any[]) || [];
+        const allEvents: Event[] = [] as any;
+        for (const cal of calendars) {
+          const items = await listEventsAction({
+            accountId: account._id,
+            calendarId: cal.id,
+            timeMin: timeMin.toISOString(),
+            timeMax: timeMax.toISOString(),
+          });
+          allEvents.push(...((items as any[]) || []));
+        }
+        // Deduplicate by id
+        const map: Record<string, Event> = {} as any;
+        for (const ev of allEvents) map[ev.id] = ev as any;
+        calendarStoreApi.setState({ events: Object.values(map) });
+      })
+      .catch(() => {});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [session, accounts, daysOfWeek[0]?.toISOString(), daysOfWeek[6]?.toISOString()]);
 
   const groupEventsByTimePeriod = (events: Event[] | undefined) => {
     if (!events || events.length === 0) return [];

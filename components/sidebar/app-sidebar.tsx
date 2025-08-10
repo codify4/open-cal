@@ -12,10 +12,14 @@ import {
 } from '@/components/ui/sidebar';
 import Premium from './premium';
 import { authClient } from '@/lib/auth-client';
+import { useAction, useQuery } from 'convex/react';
+import { api } from '@/convex/_generated/api';
 
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { data: session, isPending } = authClient.useSession();
+  const accounts = useQuery(api.google.getAccounts, {});
+  const listCalendarsAction = useAction(api.google.listCalendars);
   const [selectedEmail, setSelectedEmail] = React.useState('');
   const [calendarList, setCalendarList] = React.useState<Array<{
     id: string;
@@ -43,32 +47,52 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   };
 
   React.useEffect(() => {
-    if (session?.user?.email) setSelectedEmail(session.user.email);
-  }, [session?.user?.email]);
+    if (!accounts || accounts.length === 0) {
+      if (session?.user?.email) setSelectedEmail(session.user.email);
+      return;
+    }
+    if (selectedEmail && accounts.some((a) => a.email === selectedEmail)) return;
+    setSelectedEmail(accounts[0]?.email || selectedEmail);
+  }, [accounts, session?.user?.email]);
 
   React.useEffect(() => {
-    if (!session?.user?.email) return;
-    setEmailAccounts((prev) => {
-      const exists = prev.some((acc) => acc.email === session.user.email);
-      if (exists) return prev;
-      return [
-        {
-          email: session.user.email,
-          isDefault: true,
+    if (accounts && accounts.length > 0) {
+      setEmailAccounts(
+        accounts.map((a, idx) => ({
+          email: a.email,
+          isDefault: idx === 0,
           color: 'blue',
-        },
-        ...prev,
-      ];
-    });
-  }, [session?.user?.email]);
+        }))
+      );
+      return;
+    }
+    if (session?.user?.email) {
+      setEmailAccounts([
+        { email: session.user.email, isDefault: true, color: 'blue' },
+      ]);
+    }
+  }, [accounts, session?.user?.email]);
 
-  const handleAddAccount = () =>
-    authClient.signIn.social({
-      provider: 'google',
-      callbackURL: `${window.location.origin}/calendar`,
-      errorCallbackURL: `${window.location.origin}/calendar`,
-      newUserCallbackURL: `${window.location.origin}/calendar`,
-    });
+  React.useEffect(() => {
+    if (!accounts || accounts.length === 0 || !selectedEmail) {
+      setCalendarList([]);
+      return;
+    }
+    const account = accounts.find((a) => a.email === selectedEmail);
+    if (!account) {
+      setCalendarList([]);
+      return;
+    }
+    listCalendarsAction({ accountId: account._id })
+      .then((cals) => {
+        setCalendarList(cals as any);
+      })
+      .catch(() => setCalendarList([]));
+  }, [accounts, selectedEmail, listCalendarsAction]);
+
+  const handleAddAccount = () => {
+    window.location.href = '/api/google/connect'
+  }
 
   if (isPending) return null;
 

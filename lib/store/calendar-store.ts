@@ -66,6 +66,7 @@ export interface CalendarState {
 export interface CalendarActions {
   saveEvent: (event: Event) => void;
   deleteEvent: (eventId: string) => void;
+  setEvents: (events: Event[]) => void;
   updateEventTime: (
     eventId: string,
     newStartDate: Date,
@@ -178,6 +179,8 @@ export const createCalendarStore = (
             }
             return { events: [...state.events, event] };
           }),
+
+        setEvents: (events: Event[]) => set({ events }),
 
         deleteEvent: (eventId: string) =>
           set((state) => ({
