@@ -1,6 +1,5 @@
 "use client"
 
-import { useState } from "react"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 
 const faqs = [
@@ -37,17 +36,11 @@ const faqs = [
 ]
 
 export function FAQSection() {
-    const [openIndex, setOpenIndex] = useState<number | null>(0)
-
-    const toggleFAQ = (index: number) => {
-        setOpenIndex(openIndex === index ? null : index)
-    }
-
-  return (
+    return (
         <section id="faq" className="py-32 flex flex-col items-center justify-center bg-black">
             <div className="container mx-auto px-6 lg:px-8 flex flex-col items-center justify-center">
                 <div className="max-w-3xl mb-20 text-center">
-                <h2 className="text-4xl lg:text-5xl font-bold mb-6 tracking-tight text-white">Frequently asked questions</h2>
+                <h2 className="text-4xl sm:text-5xl md:text-6xl font-normal mb-6 tracking-tight text-white font-lora">Frequently asked questions</h2>
                 <p className="text-xl text-neutral-400 leading-relaxed font-medium">
                     Everything you need to know about Caly. Can&apos;t find what you&apos;re looking for?
                 </p>

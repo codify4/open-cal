@@ -1,12 +1,10 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { ArrowRight, Calendar, Brain, Bot, Github } from "lucide-react"
-import { features } from "@/constants/features"
-import Image from "next/image"
+import { ArrowRight, Brain, Bot, Github } from "lucide-react"
 import Link from "next/link"
 
-export function FeaturesSection({ page = false }: { page?: boolean }) {
+export function FeaturesSection() {
   return (
     <section className="relative bg-black py-16 sm:py-24 lg:py-32">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -15,7 +13,7 @@ export function FeaturesSection({ page = false }: { page?: boolean }) {
             <div className="w-2 h-2 bg-white rounded-full animate-pulse" />
             <span className="text-white/60 text-xs sm:text-sm">Features</span>
           </div>
-          <h2 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-normal text-white mb-4 sm:mb-6 tracking-tight font-lora px-4">
+          <h2 className="text-4xl sm:text-5xl md:text-6xl font-normal text-white mb-4 sm:mb-6 tracking-tight font-lora px-4">
             Intelligent by design
           </h2>
           <p className="text-base sm:text-lg lg:text-xl text-white/40 max-w-2xl mx-auto leading-relaxed px-4">
@@ -299,7 +297,6 @@ function OpenSourceVisual() {
   const [codeLineIndex, setCodeLineIndex] = useState(0)
   
   const codeLines = [
-    "npm install caly",
     "git clone github.com/caly/caly",
     "pnpm dev",
     "// Free to customize",
