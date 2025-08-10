@@ -14,6 +14,7 @@ import {
 } from '@/components/ui/context-menu';
 import type { Event } from '@/lib/store/calendar-store';
 import { useCalendarStore } from '@/providers/calendar-store-provider';
+import { authClient } from '@/lib/auth-client';
 
 interface TimeSlotProps {
   timeSlotId: string;
@@ -86,6 +87,7 @@ export default function WeeklyView() {
     events,
     updateEventTime,
   } = useCalendarStore((state) => state);
+  const { data: session } = authClient.useSession();
 
   const direction = navigationDirection;
   const weekStartsOn = 'monday';
@@ -140,7 +142,8 @@ export default function WeeklyView() {
   const getEventsForDay = useCallback(
     (dayIndex: number) => {
       const targetDate = daysOfWeek[dayIndex];
-      const dayEvents = events.filter((event) => {
+      const source = session ? events : [];
+      const dayEvents = source.filter((event) => {
         const eventDate = new Date(event.startDate);
         const eventEndDate = new Date(event.endDate);
         const matches =
@@ -157,13 +160,14 @@ export default function WeeklyView() {
       });
       return dayEvents;
     },
-    [events, daysOfWeek]
+    [events, daysOfWeek, session]
   );
 
   const getAllDayEventsForDay = useCallback(
     (dayIndex: number) => {
       const targetDate = daysOfWeek[dayIndex];
-      const dayEvents = events.filter((event) => {
+      const source = session ? events : [];
+      const dayEvents = source.filter((event) => {
         const eventDate = new Date(event.startDate);
         const eventEndDate = new Date(event.endDate);
         const matches =
@@ -180,7 +184,7 @@ export default function WeeklyView() {
       });
       return dayEvents;
     },
-    [events, daysOfWeek]
+    [events, daysOfWeek, session]
   );
 
   const handleMouseMove = useCallback(
@@ -223,6 +227,15 @@ export default function WeeklyView() {
   }, []);
 
   function handleAddEventWeek(dayIndex: number, detailedHour: string) {
+    if (!session) {
+      authClient.signIn.social({
+        provider: 'google',
+        callbackURL: `${window.location.origin}/calendar`,
+        errorCallbackURL: `${window.location.origin}/calendar`,
+        newUserCallbackURL: `${window.location.origin}/calendar`,
+      });
+      return;
+    }
     if (!detailedHour) {
       console.error('Detailed hour not provided.');
       return;
@@ -727,7 +740,16 @@ export default function WeeklyView() {
                       <ContextMenuItem
                         className="cursor-pointer py-2"
                         onClick={() => {
-                          toggleChatSidebar();
+                          if (!session) {
+                            authClient.signIn.social({
+                              provider: 'google',
+                              callbackURL: `${window.location.origin}/calendar`,
+                              errorCallbackURL: `${window.location.origin}/calendar`,
+                              newUserCallbackURL: `${window.location.origin}/calendar`,
+                            });
+                          } else {
+                            toggleChatSidebar();
+                          }
                           setContextMenuTime(null);
                         }}
                       >

@@ -12,7 +12,6 @@ import {
 } from '@/components/ui/sidebar';
 import Premium from './premium';
 import { authClient } from '@/lib/auth-client';
-import { SignInButton } from '@/components/auth/sign-in-button';
 
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
@@ -73,26 +72,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
   if (isPending) return null;
 
-  if (!session) {
-    return (
-      <Sidebar
-        className="overflow-hidden border-none bg-neutral-100 dark:bg-neutral-950"
-        variant="inset"
-        {...props}
-      >
-        <SidebarContent className="scrollbar-hide border-none bg-neutral-100 dark:bg-neutral-950">
-          <div className="p-4">
-            <p className="text-sm text-muted-foreground mb-3">Sign in to manage calendars.</p>
-            <SignInButton />
-          </div>
-        </SidebarContent>
-        <SidebarFooter className="border-none bg-neutral-100 dark:bg-neutral-950">
-          <Premium />
-        </SidebarFooter>
-      </Sidebar>
-    );
-  }
-
   return (
     <Sidebar
       className="overflow-hidden border-none bg-neutral-100 dark:bg-neutral-950"
@@ -102,11 +81,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       <SidebarContent className="scrollbar-hide border-none bg-neutral-100 dark:bg-neutral-950">
         <CalendarPicker />
         <NavCalendars
-          user={{
+          user={session ? {
             name: session.user.name || session.user.email,
             email: session.user.email,
             avatar: ((session.user as unknown as { image?: string })?.image) || '/vercel.svg',
-          }}
+          } : undefined}
           onAddAccount={handleAddAccount}
           calendars={calendarList}
           emailAccounts={emailAccounts}
@@ -119,16 +98,18 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <div className="mt-auto">
           <Premium />
         </div>
-        <NavUser
-          user={{
-            name: session.user.name || session.user.email,
-            email: session.user.email,
-            avatar: ((session.user as unknown as { image?: string })?.image) || '/vercel.svg',
-          }}
-          accounts={emailAccounts}
-          calendars={calendarList}
-          onAddAccount={handleAddAccount}
-        />
+        {session ? (
+          <NavUser
+            user={{
+              name: session.user.name || session.user.email,
+              email: session.user.email,
+              avatar: ((session.user as unknown as { image?: string })?.image) || '/vercel.svg',
+            }}
+            accounts={emailAccounts}
+            calendars={calendarList}
+            onAddAccount={handleAddAccount}
+          />
+        ) : null}
       </SidebarFooter>
     </Sidebar>
   );

@@ -15,6 +15,7 @@ import {
 } from '@/components/ui/context-menu';
 import type { Event } from '@/lib/store/calendar-store';
 import { useCalendarStore } from '@/providers/calendar-store-provider';
+import { authClient } from '@/lib/auth-client';
 
 interface TimeSlotProps {
   timeSlotId: string;
@@ -167,6 +168,7 @@ export default function DailyView({
     events,
     toggleChatSidebar,
   } = useCalendarStore((state) => state);
+  const { data: session } = authClient.useSession();
 
   // Use Zustand store data instead of mock data
   const direction = navigationDirection;
@@ -215,7 +217,8 @@ export default function DailyView({
   // Function to get events for day
   const getEventsForDay = useCallback(
     (day: number, currentDate: Date) => {
-      const dayEvents = events.filter((event: Event) => {
+      const source = session ? events : [];
+      const dayEvents = source.filter((event: Event) => {
         const eventDate = new Date(event.startDate);
         const matches =
           eventDate.getDate() === day &&
@@ -225,7 +228,7 @@ export default function DailyView({
       });
       return dayEvents;
     },
-    [events]
+    [events, session]
   );
 
   const dayEvents = getEventsForDay(date.getDate(), date);
@@ -233,6 +236,15 @@ export default function DailyView({
   const timeGroups = groupEventsByTimePeriod(dayEvents);
 
   function handleAddEventDay(detailedHour: string) {
+    if (!session) {
+      authClient.signIn.social({
+        provider: 'google',
+        callbackURL: `${window.location.origin}/calendar`,
+        errorCallbackURL: `${window.location.origin}/calendar`,
+        newUserCallbackURL: `${window.location.origin}/calendar`,
+      });
+      return;
+    }
     if (!detailedHour) {
       console.error('Detailed hour not provided.');
       return;
@@ -444,7 +456,16 @@ export default function DailyView({
                         <ContextMenuItem
                           className="cursor-pointer py-2"
                           onClick={() => {
-                            toggleChatSidebar();
+                            if (!session) {
+                              authClient.signIn.social({
+                                provider: 'google',
+                                callbackURL: `${window.location.origin}/calendar`,
+                                errorCallbackURL: `${window.location.origin}/calendar`,
+                                newUserCallbackURL: `${window.location.origin}/calendar`,
+                              });
+                            } else {
+                              toggleChatSidebar();
+                            }
                             setContextMenuTime(null);
                           }}
                         >

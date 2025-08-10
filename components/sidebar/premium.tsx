@@ -8,21 +8,28 @@ import { getCheckoutURL } from '@/actions/billing';
 import { useRouter } from 'next/navigation';
 import { useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
+import { TextShimmer } from '@/components/agent/text-shimmer';
 
 const Premium = () => {
     const { data: session } = authClient.useSession();
     const router = useRouter();
     const currentUser = useQuery(api.auth.getCurrentUser, {});
-
-    if (!session) return null;
-    if (!currentUser || currentUser.isPro) return null;
+    if (currentUser?.isPro) return null;
     
     return (
         <Button 
             type="button"
             variant="outline" 
-            className="flex items-center justify-start w-full py-2.5 rounded-sm text-sm font-medium text-neutral-900 hover:bg-neutral-100 hover:text-neutral-700 dark:hover:bg-neutral-800 dark:text-neutral-200 focus:ring-0"
+            className="group relative flex items-center justify-start w-full py-3 rounded-lg text-sm border-neutral-200 bg-white hover:bg-neutral-50 dark:border-neutral-800 dark:bg-neutral-950 dark:hover:bg-neutral-900 transition-all duration-200 focus:ring-0 shadow-sm hover:shadow-md"
             onClick={async () => {                            
+                if (!session) {
+                    authClient.signIn.social({
+                        provider: 'google',
+                        callbackURL: `${window.location.origin}/calendar`,
+                        errorCallbackURL: `${window.location.origin}/calendar`,
+                        newUserCallbackURL: `${window.location.origin}/calendar`,
+                    })
+                }
                 try {
                     const checkoutUrl = await getCheckoutURL(
                         Number(process.env.NEXT_PUBLIC_LEMONSQUEEZY_VARIANT_MONTHLY_ID!), 
@@ -41,8 +48,15 @@ const Premium = () => {
                 }
             }}
         >
-            <Sparkles className="w-4 h-4 text-blue-500 group-hover:text-blue-600 transition-colors" />
-            <span>Upgrade to Pro</span>
+            <div className="flex items-center gap-2.5">
+                <Sparkles className="w-4 h-4 text-neutral-600 group-hover:text-neutral-900 dark:text-neutral-400 dark:group-hover:text-neutral-100 transition-colors" />
+                <TextShimmer 
+                    className="text-sm"
+                    duration={2}
+                >
+                    Get Caly Pro
+                </TextShimmer>
+            </div>
         </Button>
     );
 };

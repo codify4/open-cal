@@ -12,6 +12,7 @@ import { useChatStore } from '@/providers/chat-store-provider';
 import { useRateLimit } from '@/hooks/use-rate-limit';
 import { useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
+import { authClient } from '@/lib/auth-client';
 
 interface ChatSidebarProps {
   isFullscreen: boolean;
@@ -33,6 +34,7 @@ export function ChatSidebar({
   
   const { messagesLeft, isLimited, sendMessage: sendRateLimitedMessage, refreshRateLimit } = useRateLimit();
   const currentUser = useQuery(api.auth.getCurrentUser, {});
+  const { data: session } = authClient.useSession();
   
   const chatMessages = useChatStore((state) => state.messages);
   const chatInput = useChatStore((state) => state.input);
@@ -57,6 +59,15 @@ export function ChatSidebar({
     options?: { experimental_attachments?: FileList }
   ) => {
     event?.preventDefault?.();
+    if (!session) {
+      authClient.signIn.social({
+        provider: 'google',
+        callbackURL: `${window.location.origin}/calendar`,
+        errorCallbackURL: `${window.location.origin}/calendar`,
+        newUserCallbackURL: `${window.location.origin}/calendar`,
+      });
+      return;
+    }
     if (input.trim()) {
       const { isLimited } = sendRateLimitedMessage();
       
@@ -75,14 +86,31 @@ export function ChatSidebar({
   };
 
   const append = (message: { role: 'user'; content: string }) => {
+    if (!session) {
+      authClient.signIn.social({
+        provider: 'google',
+        callbackURL: `${window.location.origin}/calendar`,
+        errorCallbackURL: `${window.location.origin}/calendar`,
+        newUserCallbackURL: `${window.location.origin}/calendar`,
+      });
+      return;
+    }
     const { isLimited } = sendRateLimitedMessage();
-    
     if (!isLimited) {
       sendMessage({ text: message.content });
     }
   };
 
   const handleNewChat = () => {
+    if (!session) {
+      authClient.signIn.social({
+        provider: 'google',
+        callbackURL: `${window.location.origin}/calendar`,
+        errorCallbackURL: `${window.location.origin}/calendar`,
+        newUserCallbackURL: `${window.location.origin}/calendar`,
+      });
+      return;
+    }
     setMessages([]);
     setInput('');
     clearChat();
@@ -206,7 +234,7 @@ export function ChatSidebar({
           isGenerating={isGenerating}
           messages={messages}
           stop={stop}
-          disabled={isLimited}
+          disabled={!session || isLimited}
           onRegenerate={handleRegenerate}
           isRegenerating={isRegenerating && regeneratingMessageId !== null}
           onCopy={handleCopy}

@@ -21,6 +21,9 @@ import { Checkbox } from '../ui/checkbox';
 import { useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import { toast } from 'sonner';
+import { Button } from '@/components/ui/button';
+import { authClient } from '@/lib/auth-client';
+import { SidebarGroupContent } from '@/components/ui/sidebar';
 
 export interface CalendarEntry {
   id: string;
@@ -42,7 +45,7 @@ export interface NavCalendarsProps {
   selectedEmail: string;
   onEmailChange: (email: string) => void;
   onCalendarToggle: (calendarId: string) => void;
-  user: { name: string; email: string; avatar: string };
+  user?: { name: string; email: string; avatar: string };
   onAddAccount: () => void;
 }
 
@@ -92,6 +95,34 @@ export function NavCalendars({
   const currentUser = useQuery(api.auth.getCurrentUser, {});
   const canAddMoreAccounts = Boolean(currentUser?.isPro || emailAccounts.length === 0);
 
+  const { data: session } = authClient.useSession();
+
+  if (!session) {
+    return (
+      <SidebarGroup className="mt-0 group-data-[collapsible=icon]:hidden">
+        <SidebarGroupLabel>Account</SidebarGroupLabel>
+        <SidebarGroupContent>
+            <Button
+              variant="outline"
+              size="sm"
+              className='w-full justify-start'
+              onClick={() =>
+                authClient.signIn.social({
+                  provider: 'google',
+                  callbackURL: `${window.location.origin}/calendar`,
+                  errorCallbackURL: `${window.location.origin}/calendar`,
+                  newUserCallbackURL: `${window.location.origin}/calendar`,
+                })
+              }
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Add account
+            </Button>
+        </SidebarGroupContent>
+      </SidebarGroup>
+    );
+  }
+
   return (
     <SidebarGroup className="mt-0 group-data-[collapsible=icon]:hidden">
       <SidebarGroupLabel>Account</SidebarGroupLabel>
@@ -103,12 +134,12 @@ export function NavCalendars({
                 <div className="flex items-center gap-2">
                   <div
                     className={`h-3 w-3 rounded-full ${getColorClasses(
-                      (selectedAccount?.color ?? emailColorFromString(selectedAccount?.email || user.email))
+                      (selectedAccount?.color ?? emailColorFromString(selectedAccount?.email || user?.email || ''))
                     )}`}
                   />
                   <div className="flex flex-col items-start">
                     <span className="truncate font-medium text-sm">
-                      {selectedAccount?.email || user.email || 'Select Account'}
+                      {selectedAccount?.email || user?.email || 'Select Account'}
                     </span>
                     {selectedAccount?.isDefault && (
                       <span className="text-muted-foreground text-xs">

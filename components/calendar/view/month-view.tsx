@@ -21,6 +21,7 @@ import {
 } from '@/components/ui/dialog';
 import type { Event } from '@/lib/store/calendar-store';
 import { useCalendarStore } from '@/providers/calendar-store-provider';
+import { authClient } from '@/lib/auth-client';
 
 const pageTransitionVariants = {
   enter: (direction: number) => ({
@@ -45,6 +46,7 @@ export default function MonthView() {
     events,
     toggleChatSidebar,
   } = useCalendarStore((state) => state);
+  const { data: session } = authClient.useSession();
   const [selectedEvents, setSelectedEvents] = React.useState<Event[]>([]);
   const [isEventsDialogOpen, setIsEventsDialogOpen] = React.useState(false);
   const direction = navigationDirection;
@@ -69,7 +71,8 @@ export default function MonthView() {
 
   // Function to get events for day
   const getEventsForDay = (day: number, currentDate: Date): Event[] => {
-    const dayEvents = events.filter((event: Event) => {
+    const source = session ? events : [];
+    const dayEvents = source.filter((event: Event) => {
       const eventDate = new Date(event.startDate);
       const matches =
         eventDate.getDate() === day &&
@@ -81,6 +84,15 @@ export default function MonthView() {
   };
 
   function handleAddEvent(selectedDay: number) {
+    if (!session) {
+      authClient.signIn.social({
+        provider: 'google',
+        callbackURL: `${window.location.origin}/calendar`,
+        errorCallbackURL: `${window.location.origin}/calendar`,
+        newUserCallbackURL: `${window.location.origin}/calendar`,
+      });
+      return;
+    }
     const startDate = new Date(
       date.getFullYear(),
       date.getMonth(),
@@ -103,6 +115,15 @@ export default function MonthView() {
   }
 
   function handleContextMenuAddEvent(selectedDay: number) {
+    if (!session) {
+      authClient.signIn.social({
+        provider: 'google',
+        callbackURL: `${window.location.origin}/calendar`,
+        errorCallbackURL: `${window.location.origin}/calendar`,
+        newUserCallbackURL: `${window.location.origin}/calendar`,
+      });
+      return;
+    }
     const startDate = new Date(
       date.getFullYear(),
       date.getMonth(),
@@ -260,7 +281,16 @@ export default function MonthView() {
                   <ContextMenuItem
                     className="cursor-pointer py-2"
                     onClick={() => {
-                      toggleChatSidebar();
+                      if (!session) {
+                        authClient.signIn.social({
+                          provider: 'google',
+                          callbackURL: `${window.location.origin}/calendar`,
+                          errorCallbackURL: `${window.location.origin}/calendar`,
+                          newUserCallbackURL: `${window.location.origin}/calendar`,
+                        });
+                      } else {
+                        toggleChatSidebar();
+                      }
                     }}
                   >
                     <Sparkles className="mr-2 h-4 w-4" />
