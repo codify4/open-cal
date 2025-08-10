@@ -9,7 +9,7 @@ export default {
         applicationID: 'convex',
     },
     {
-        domain: "https://6e6a95feb49fb6852dbbca7595c3aa96.loophole.site",
+        domain: "https://24f67c73cc1c04e043140a3945238ffb.loophole.site",
         applicationID: 'convex',
     },
   ],

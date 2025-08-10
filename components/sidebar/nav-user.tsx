@@ -245,9 +245,8 @@ function ProfileSection({
           className="rounded-sm bg-red-500/10 text-red-500 hover:bg-red-500/20"
           onClick={async () => {
             await authClient.signOut()
-            window.location.href = '/'
+            window.location.href = '/calendar'
           }}
-          type="button"
         >
           <LogOut className="mr-2 h-4 w-4" />
           Logout
