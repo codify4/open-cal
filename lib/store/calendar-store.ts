@@ -1,5 +1,6 @@
 import { persist } from 'zustand/middleware';
 import { createStore } from 'zustand/vanilla';
+import { getDateRangeForView } from '../calendar-utils';
 
 export type ViewType = 'day' | 'week' | 'month';
 
@@ -19,6 +20,11 @@ export interface Event {
   isAllDay?: boolean;
   account?: string;
   calendar?: string;
+  // Google Calendar specific fields
+  googleCalendarId?: string;
+  googleEventId?: string;
+  htmlLink?: string;
+  status?: 'confirmed' | 'tentative' | 'cancelled';
 }
 
 export interface EventCreationContext {
@@ -61,6 +67,13 @@ export interface CalendarState {
   // Calendar Agent State
   pendingActions: PendingCalendarAction[];
   isProcessing: boolean;
+
+  // Google Calendar State
+  googleEvents: Event[];
+  isFetchingEvents: boolean;
+  eventsLastFetched: Date | null;
+  visibleCalendarIds: string[];
+  refreshFunction: (() => Promise<void>) | null;
 }
 
 export interface CalendarActions {
@@ -101,6 +114,14 @@ export interface CalendarActions {
   removePendingAction: (id: string) => void;
   clearPendingActions: () => void;
   setProcessing: (isProcessing: boolean) => void;
+
+  // Google Calendar Actions
+  fetchGoogleCalendarEvents: (calendarIds: string[], startDate: Date, endDate: Date) => Promise<void>;
+  setGoogleEvents: (events: Event[]) => void;
+  setVisibleCalendarIds: (calendarIds: string[]) => void;
+  setFetchingEvents: (isFetching: boolean) => void;
+  setRefreshFunction: (refreshFn: () => Promise<void>) => void;
+  refreshEvents: () => Promise<void>;
 }
 
 export type CalendarStore = CalendarState & CalendarActions;
@@ -157,6 +178,13 @@ export const defaultInitState: CalendarState = {
   // Calendar Agent State
   pendingActions: [],
   isProcessing: false,
+
+  // Google Calendar State
+  googleEvents: [],
+  isFetchingEvents: false,
+  eventsLastFetched: null,
+  visibleCalendarIds: [],
+  refreshFunction: null,
 };
 
 export const createCalendarStore = (
@@ -403,6 +431,39 @@ export const createCalendarStore = (
 
         setProcessing: (isProcessing) =>
           set({ isProcessing }),
+
+        // Google Calendar Actions
+        fetchGoogleCalendarEvents: async (calendarIds, startDate, endDate) => {
+          set({ isFetchingEvents: true });
+          
+          try {
+            // This will be implemented in the component that uses it
+            // For now, just set fetching state
+            set({ isFetchingEvents: false });
+          } catch (error) {
+            console.error('Failed to fetch events:', error);
+            set({ isFetchingEvents: false });
+          }
+        },
+
+        setGoogleEvents: (events) =>
+          set({ googleEvents: events, isFetchingEvents: false, eventsLastFetched: new Date() }),
+
+        setVisibleCalendarIds: (calendarIds) =>
+          set({ visibleCalendarIds: calendarIds }),
+
+        setFetchingEvents: (isFetching) =>
+          set({ isFetchingEvents: isFetching }),
+
+        setRefreshFunction: (refreshFn) =>
+          set({ refreshFunction: refreshFn }),
+
+        refreshEvents: async () => {
+          const state = get();
+          if (state.refreshFunction) {
+            await state.refreshFunction();
+          }
+        },
       }),
       {
         name: 'calendar-store',

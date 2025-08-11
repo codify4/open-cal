@@ -3,7 +3,7 @@ import clsx from 'clsx';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Plus, Sparkles } from 'lucide-react';
 import type React from 'react';
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useMemo, useRef, useState, useEffect } from 'react';
 import { EventCard } from '@/components/event/cards/event-card';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -14,6 +14,7 @@ import {
 } from '@/components/ui/context-menu';
 import type { Event } from '@/lib/store/calendar-store';
 import { useCalendarStore } from '@/providers/calendar-store-provider';
+import { useGoogleCalendarRefresh } from '@/hooks/use-google-calendar-refresh';
 import { authClient } from '@/lib/auth-client';
 
 interface TimeSlotProps {
@@ -86,14 +87,41 @@ export default function WeeklyView() {
     navigationDirection,
     events,
     updateEventTime,
+    googleEvents,
+    isFetchingEvents,
+    visibleCalendarIds,
+    setGoogleEvents,
+    setFetchingEvents,
   } = useCalendarStore((state) => state);
   const { data: session } = authClient.useSession();
+  const { refreshEvents } = useGoogleCalendarRefresh();
 
   const direction = navigationDirection;
   const weekStartsOn = 'monday';
 
   const date =
     currentDate instanceof Date ? currentDate : new Date(currentDate);
+
+  // Fetch events when component mounts or dependencies change
+  useEffect(() => {
+    if (session?.user?.id && visibleCalendarIds.length > 0) {
+      refreshEvents();
+    }
+  }, [refreshEvents, session?.user?.id, visibleCalendarIds]);
+
+  // Combine local events with Google Calendar events
+  const allEvents = useMemo(() => {
+    const localEvents = events || [];
+    const googleCalEvents = googleEvents || [];
+    
+    // Create a map of Google events by ID to avoid duplicates
+    const googleEventsMap = new Map(googleCalEvents.map(event => [event.id, event]));
+    
+    // Filter out local events that have Google equivalents
+    const filteredLocalEvents = localEvents.filter(event => !googleEventsMap.has(event.id));
+    
+    return [...filteredLocalEvents, ...googleCalEvents];
+  }, [events, googleEvents]);
 
   const getDaysInWeek = useCallback(
     (week: number, year: number) => {
@@ -142,7 +170,7 @@ export default function WeeklyView() {
   const getEventsForDay = useCallback(
     (dayIndex: number) => {
       const targetDate = daysOfWeek[dayIndex];
-      const source = session ? events : [];
+      const source = allEvents;
       const dayEvents = source.filter((event) => {
         const eventDate = new Date(event.startDate);
         const eventEndDate = new Date(event.endDate);
@@ -160,13 +188,13 @@ export default function WeeklyView() {
       });
       return dayEvents;
     },
-    [events, daysOfWeek, session]
+    [allEvents, daysOfWeek]
   );
 
   const getAllDayEventsForDay = useCallback(
     (dayIndex: number) => {
       const targetDate = daysOfWeek[dayIndex];
-      const source = session ? events : [];
+      const source = allEvents;
       const dayEvents = source.filter((event) => {
         const eventDate = new Date(event.startDate);
         const eventEndDate = new Date(event.endDate);
@@ -184,7 +212,7 @@ export default function WeeklyView() {
       });
       return dayEvents;
     },
-    [events, daysOfWeek, session]
+    [allEvents, daysOfWeek]
   );
 
   const handleMouseMove = useCallback(

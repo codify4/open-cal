@@ -22,6 +22,7 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { authClient } from '@/lib/auth-client';
 import { SidebarGroupContent } from '@/components/ui/sidebar';
+import { useCalendarStore } from '@/providers/calendar-store-provider';
 
 export interface CalendarEntry {
 	id: string;
@@ -124,28 +125,34 @@ export function NavCalendars({
 	const [isLoadingCalendars, setIsLoadingCalendars] = React.useState(false);
 	const [visibleCalendars, setVisibleCalendars] = React.useState<Set<string>>(new Set());
 
+	// Sync with calendar store
+	const { setVisibleCalendarIds } = useCalendarStore((state) => state);
+
 	const fetchCalendars = React.useCallback(async () => {
 		if (!session?.user?.id) return;
 		
 		setIsLoadingCalendars(true);
 		try {
-			
 			const accessToken = await authClient.getAccessToken({
 				providerId: 'google',
 				userId: session.user.id,
 			});
 			
-			if (!accessToken) {
+			if (!accessToken?.data?.accessToken) {
 				throw new Error('No access token available');
 			}
 			
 			const url = `https://www.googleapis.com/calendar/v3/users/me/calendarList?maxResults=250&key=${process.env.NEXT_PUBLIC_GOOGLE_CALENDAR_API_KEY}`;
 			
-			const expiresAt = Number(accessToken.data?.accessTokenExpiresAt) || 0;
-			
-			if (expiresAt < Date.now()) {
+			const response = await fetch(url, {
+				headers: {
+					Authorization: `Bearer ${accessToken.data.accessToken}`,
+					Accept: 'application/json',
+				},
+			});
+
+			if (response.status === 401) {
 				toast.error('Access token expired. Please reconnect your Google account.');
-				
 				await authClient.linkSocial({
 					provider: 'google',
 					scopes: [
@@ -161,13 +168,6 @@ export function NavCalendars({
 				});
 				return;
 			}
-			
-			const response = await fetch(url, {
-				headers: {
-					Authorization: `Bearer ${accessToken.data?.accessToken}`,
-					Accept: 'application/json',
-				},
-			});
 
 			if (!response.ok) {
 				const errorText = await response.text();
@@ -195,6 +195,9 @@ export function NavCalendars({
 				setFetchedCalendars(sortedCalendars);
 				setVisibleCalendars(new Set(sortedCalendars.map((cal: any) => cal.id)));
 				
+				// Sync with calendar store
+				setVisibleCalendarIds(sortedCalendars.map((cal: any) => cal.id));
+				
 				if (onCalendarsFetched) {
 					onCalendarsFetched(sortedCalendars);
 				}
@@ -217,6 +220,15 @@ export function NavCalendars({
 			}
 			return newSet;
 		});
+		
+		// Sync with calendar store
+		const newVisibleCalendars = Array.from(visibleCalendars);
+		if (newVisibleCalendars.includes(calendarId)) {
+			setVisibleCalendarIds(newVisibleCalendars.filter(id => id !== calendarId));
+		} else {
+			setVisibleCalendarIds([...newVisibleCalendars, calendarId]);
+		}
+		
 		onCalendarToggle(calendarId);
 	};
 
