@@ -1,30 +1,95 @@
 import type { Event } from './store/calendar-store';
 
 export const getEventColor = (colorId: string | undefined, calendarId: string): string => {
+  // Enhanced color mapping based on Google Calendar's color palette
   const colorMap: Record<string, string> = {
-    '1': 'blue',
-    '2': 'green',
-    '3': 'red',
-    '4': 'yellow',
-    '5': 'purple',
-    '6': 'orange',
-    '7': 'pink',
-    '8': 'indigo',
-    '9': 'teal',
-    '10': 'cyan',
-    '11': 'lime',
-    '12': 'amber',
-    '13': 'emerald',
-    '14': 'violet',
-    '15': 'rose',
-    '16': 'slate',
-    '17': 'gray',
-    '18': 'zinc',
-    '19': 'neutral',
-    '20': 'stone',
+    '1': 'blue',      // Default blue
+    '2': 'green',     // Green
+    '3': 'red',       // Red
+    '4': 'yellow',    // Yellow
+    '5': 'purple',    // Purple
+    '6': 'orange',    // Orange
+    '7': 'pink',      // Pink
+    '8': 'indigo',    // Indigo
+    '9': 'teal',      // Teal
+    '10': 'cyan',     // Cyan
+    '11': 'lime',     // Lime
+    '12': 'amber',    // Amber
+    '13': 'emerald',  // Emerald
+    '14': 'violet',   // Violet
+    '15': 'rose',     // Rose
+    '16': 'slate',    // Slate
+    '17': 'gray',     // Gray
+    '18': 'zinc',     // Zinc
+    '19': 'neutral',  // Neutral
+    '20': 'stone',    // Stone
+    '21': 'sky',      // Sky blue
+    '22': 'fuchsia',  // Fuchsia
+    '23': 'lime',     // Light green
+    '24': 'emerald',  // Dark green
   };
   
-  return colorMap[colorId || '1'] || 'blue';
+  // Fallback to a color based on calendar ID if no colorId is provided
+  if (!colorId) {
+    const hash = calendarId.split('').reduce((a, b) => {
+      a = ((a << 5) - a + b.charCodeAt(0)) & 0xffffffff;
+      return a;
+    }, 0);
+    const fallbackColors = ['blue', 'green', 'purple', 'orange', 'pink', 'teal', 'indigo', 'rose'];
+    return fallbackColors[Math.abs(hash) % fallbackColors.length];
+  }
+  
+  return colorMap[colorId] || 'blue';
+};
+
+export const getRandomEventColor = (): string => {
+  const colors = [
+    'blue', 'green', 'red', 'yellow', 'purple', 'orange', 'pink', 'gray',
+    'indigo', 'teal', 'cyan', 'lime', 'amber', 'emerald', 'violet', 'rose',
+    'slate', 'zinc', 'neutral', 'stone', 'sky', 'fuchsia'
+  ];
+  return colors[Math.floor(Math.random() * colors.length)];
+};
+
+export const getColorDisplayName = (color: string): string => {
+  const colorNames: Record<string, string> = {
+    blue: 'Blue',
+    green: 'Green',
+    red: 'Red',
+    yellow: 'Yellow',
+    purple: 'Purple',
+    orange: 'Orange',
+    pink: 'Pink',
+    gray: 'Gray',
+    indigo: 'Indigo',
+    teal: 'Teal',
+    cyan: 'Cyan',
+    lime: 'Lime',
+    amber: 'Amber',
+    emerald: 'Emerald',
+    violet: 'Violet',
+    rose: 'Rose',
+    slate: 'Slate',
+    zinc: 'Zinc',
+    neutral: 'Neutral',
+    stone: 'Stone',
+    sky: 'Sky',
+    fuchsia: 'Fuchsia',
+  };
+  return colorNames[color] || 'Blue';
+};
+
+export const isValidColor = (color: string): boolean => {
+  const validColors = [
+    'blue', 'green', 'red', 'yellow', 'purple', 'orange', 'pink', 'gray',
+    'indigo', 'teal', 'cyan', 'lime', 'amber', 'emerald', 'violet', 'rose',
+    'slate', 'zinc', 'neutral', 'stone', 'sky', 'fuchsia'
+  ];
+  return validColors.includes(color);
+};
+
+export const normalizeColor = (color: string): string => {
+  return isValidColor(color) ? color : 'blue';
 };
 
 export const getRepeatType = (recurrence: string[] | undefined): Event['repeat'] => {

@@ -196,7 +196,7 @@ export default function CalendarView({
                         onValueChange={handleViewChange}
                         value={viewType}
                     >
-                        <div className="sticky top-0 z-40 flex items-center justify-between border-border border-b backdrop-blur">
+                        <div className="sticky top-0 z-50 flex items-center justify-between border-border border-b backdrop-blur">
                             <div className="flex w-full items-center justify-between gap-4 pb-2">
                                 <div className="flex items-center gap-2">
                                     <div className="mr-2 flex items-center gap-2">
@@ -223,13 +223,6 @@ export default function CalendarView({
                                         >
                                             <ArrowRight className="h-4 w-4" />
                                         </Button>
-                                        <Button
-                                            className="hidden h-8 w-20 rounded-sm bg-muted text-sm sm:flex"
-                                            onClick={handleGoToToday}
-                                            variant="outline"
-                                        >
-                                            Today
-                                        </Button>
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-2">
@@ -237,10 +230,17 @@ export default function CalendarView({
                                         className="hidden h-8 px-3 rounded-sm bg-muted text-sm sm:flex"
                                         onClick={refreshEvents}
                                         disabled={isFetchingEvents}
-                                        variant="ghost"
+                                        variant="outline"
                                     >
                                         {isFetchingEvents && (<TextShimmer duration={1}>Refreshing...</TextShimmer>)}
                                         <RefreshCw className={`h-4 w-4 ${isFetchingEvents ? 'animate-spin' : ''}`} />
+                                    </Button>
+                                    <Button
+                                        className="hidden h-8 w-20 rounded-sm bg-muted text-sm sm:flex"
+                                        onClick={handleGoToToday}
+                                        variant="outline"
+                                    >
+                                        Today
                                     </Button>
                                     <TabsList className="grid grid-cols-3">
                                         <TabsTrigger value="day">

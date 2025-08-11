@@ -113,7 +113,8 @@ export const EventSettings = ({
           <SelectTrigger className="h-8 w-full border-border bg-background text-sm text-foreground hover:bg-accent">
             <SelectValue placeholder="Color" />
           </SelectTrigger>
-          <SelectContent className="border-border bg-popover dark:bg-neutral-900">
+          <SelectContent className="border-border bg-popover dark:bg-neutral-900 max-h-60 overflow-y-auto">
+            {/* Primary colors */}
             <SelectItem
               className="text-popover-foreground hover:bg-accent"
               value="blue"
@@ -163,6 +164,152 @@ export const EventSettings = ({
               <div className="flex items-center gap-2">
                 <div className="h-3 w-3 rounded-full bg-orange-500" />
                 Orange
+              </div>
+            </SelectItem>
+            <SelectItem
+              className="text-popover-foreground hover:bg-accent"
+              value="pink"
+            >
+              <div className="flex items-center gap-2">
+                <div className="h-3 w-3 rounded-full bg-pink-500" />
+                Pink
+              </div>
+            </SelectItem>
+            <SelectItem
+              className="text-popover-foreground hover:bg-accent"
+              value="gray"
+            >
+              <div className="flex items-center gap-2">
+                <div className="h-3 w-3 rounded-full bg-gray-500" />
+                Gray
+              </div>
+            </SelectItem>
+            
+            {/* Extended colors */}
+            <SelectItem
+              className="text-popover-foreground hover:bg-accent"
+              value="indigo"
+            >
+              <div className="flex items-center gap-2">
+                <div className="h-3 w-3 rounded-full bg-indigo-500" />
+                Indigo
+              </div>
+            </SelectItem>
+            <SelectItem
+              className="text-popover-foreground hover:bg-accent"
+              value="teal"
+            >
+              <div className="flex items-center gap-2">
+                <div className="h-3 w-3 rounded-full bg-teal-500" />
+                Teal
+              </div>
+            </SelectItem>
+            <SelectItem
+              className="text-popover-foreground hover:bg-accent"
+              value="cyan"
+            >
+              <div className="flex items-center gap-2">
+                <div className="h-3 w-3 rounded-full bg-cyan-500" />
+                Cyan
+              </div>
+            </SelectItem>
+            <SelectItem
+              className="text-popover-foreground hover:bg-accent"
+              value="lime"
+            >
+              <div className="flex items-center gap-2">
+                <div className="h-3 w-3 rounded-full bg-lime-500" />
+                Lime
+              </div>
+            </SelectItem>
+            <SelectItem
+              className="text-popover-foreground hover:bg-accent"
+              value="amber"
+            >
+              <div className="flex items-center gap-2">
+                <div className="h-3 w-3 rounded-full bg-amber-500" />
+                Amber
+              </div>
+            </SelectItem>
+            <SelectItem
+              className="text-popover-foreground hover:bg-accent"
+              value="emerald"
+            >
+              <div className="flex items-center gap-2">
+                <div className="h-3 w-3 rounded-full bg-emerald-500" />
+                Emerald
+              </div>
+            </SelectItem>
+            <SelectItem
+              className="text-popover-foreground hover:bg-accent"
+              value="violet"
+            >
+              <div className="flex items-center gap-2">
+                <div className="h-3 w-3 rounded-full bg-violet-500" />
+                Violet
+              </div>
+            </SelectItem>
+            <SelectItem
+              className="text-popover-foreground hover:bg-accent"
+              value="rose"
+            >
+              <div className="flex items-center gap-2">
+                <div className="h-3 w-3 rounded-full bg-rose-500" />
+                Rose
+              </div>
+            </SelectItem>
+            <SelectItem
+              className="text-popover-foreground hover:bg-accent"
+              value="slate"
+            >
+              <div className="flex items-center gap-2">
+                <div className="h-3 w-3 rounded-full bg-slate-500" />
+                Slate
+              </div>
+            </SelectItem>
+            <SelectItem
+              className="text-popover-foreground hover:bg-accent"
+              value="zinc"
+            >
+              <div className="flex items-center gap-2">
+                <div className="h-3 w-3 rounded-full bg-zinc-500" />
+                Zinc
+              </div>
+            </SelectItem>
+            <SelectItem
+              className="text-popover-foreground hover:bg-accent"
+              value="neutral"
+            >
+              <div className="flex items-center gap-2">
+                <div className="h-3 w-3 rounded-full bg-neutral-500" />
+                Neutral
+              </div>
+            </SelectItem>
+            <SelectItem
+              className="text-popover-foreground hover:bg-accent"
+              value="stone"
+            >
+              <div className="flex items-center gap-2">
+                <div className="h-3 w-3 rounded-full bg-stone-500" />
+                Stone
+              </div>
+            </SelectItem>
+            <SelectItem
+              className="text-popover-foreground hover:bg-accent"
+              value="sky"
+            >
+              <div className="flex items-center gap-2">
+                <div className="h-3 w-3 rounded-full bg-sky-500" />
+                Sky
+              </div>
+            </SelectItem>
+            <SelectItem
+              className="text-popover-foreground hover:bg-accent"
+              value="fuchsia"
+            >
+              <div className="flex items-center gap-2">
+                <div className="h-3 w-3 rounded-full bg-fuchsia-500" />
+                Fuchsia
               </div>
             </SelectItem>
           </SelectContent>

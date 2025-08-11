@@ -4,7 +4,7 @@ import { useDroppable } from '@dnd-kit/core';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Plus, Sparkles } from 'lucide-react';
 import type React from 'react';
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useRef, useState, useMemo, useEffect } from 'react';
 import { EventCard } from '@/components/event/cards/event-card';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -15,6 +15,7 @@ import {
 } from '@/components/ui/context-menu';
 import type { Event } from '@/lib/store/calendar-store';
 import { useCalendarStore } from '@/providers/calendar-store-provider';
+import { useGoogleCalendarRefresh } from '@/hooks/use-google-calendar-refresh';
 import { authClient } from '@/lib/auth-client';
 
 interface TimeSlotProps {
@@ -167,8 +168,11 @@ export default function DailyView({
     openEventSidebarForNewEvent,
     events,
     toggleChatSidebar,
+    googleEvents,
+    visibleCalendarIds,
   } = useCalendarStore((state) => state);
   const { data: session } = authClient.useSession();
+  const { refreshEvents } = useGoogleCalendarRefresh();
 
   // Use Zustand store data instead of mock data
   const direction = navigationDirection;
@@ -214,10 +218,31 @@ export default function DailyView({
     setContextMenuTime(timeString);
   }, []);
 
+  // Fetch events when component mounts or dependencies change
+  useEffect(() => {
+    if (session?.user?.id && visibleCalendarIds.length > 0) {
+      refreshEvents();
+    }
+  }, [refreshEvents, session?.user?.id, visibleCalendarIds]);
+
+  // Combine local events with Google Calendar events
+  const allEvents = useMemo(() => {
+    const localEvents = events || [];
+    const googleCalEvents = googleEvents || [];
+    
+    // Create a map of Google events by ID to avoid duplicates
+    const googleEventsMap = new Map(googleCalEvents.map(event => [event.id, event]));
+    
+    // Filter out local events that have Google equivalents
+    const filteredLocalEvents = localEvents.filter(event => !googleEventsMap.has(event.id));
+    
+    return [...filteredLocalEvents, ...googleCalEvents];
+  }, [events, googleEvents]);
+
   // Function to get events for day
   const getEventsForDay = useCallback(
     (day: number, currentDate: Date) => {
-      const source = session ? events : [];
+      const source = allEvents;
       const dayEvents = source.filter((event: Event) => {
         const eventDate = new Date(event.startDate);
         const matches =
@@ -228,7 +253,7 @@ export default function DailyView({
       });
       return dayEvents;
     },
-    [events, session]
+    [allEvents]
   );
 
   const dayEvents = getEventsForDay(date.getDate(), date);

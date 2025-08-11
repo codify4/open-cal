@@ -154,6 +154,20 @@ export const defaultInitState: CalendarState = {
     'orange',
     'pink',
     'gray',
+    'indigo',
+    'teal',
+    'cyan',
+    'lime',
+    'amber',
+    'emerald',
+    'violet',
+    'rose',
+    'slate',
+    'zinc',
+    'neutral',
+    'stone',
+    'sky',
+    'fuchsia',
   ],
   eventTypes: ['event', 'birthday'],
   events: [
@@ -242,7 +256,15 @@ export const createCalendarStore = (
           set({ isChatFullscreen: fullscreen }),
 
         // Event sidebar actions
-        openEventSidebarForNewEvent: (startDate: Date) =>
+        openEventSidebarForNewEvent: (startDate: Date) => {
+          // Generate a random color for new events
+          const randomColors = [
+            'blue', 'green', 'red', 'yellow', 'purple', 'orange', 'pink', 'gray',
+            'indigo', 'teal', 'cyan', 'lime', 'amber', 'emerald', 'violet', 'rose',
+            'slate', 'zinc', 'neutral', 'stone', 'sky', 'fuchsia'
+          ];
+          const randomColor = randomColors[Math.floor(Math.random() * randomColors.length)];
+          
           set({
             isEventSidebarOpen: true,
             selectedEvent: null,
@@ -251,12 +273,13 @@ export const createCalendarStore = (
               endDate: new Date(startDate.getTime() + 60 * 60 * 1000), // 1 hour later
               title: '',
               description: '',
-              color: 'blue',
+              color: randomColor,
               type: 'event',
             },
             hasUnsavedChanges: false,
             isNewEvent: true,
-          }),
+          });
+        },
 
         openEventSidebarForEdit: (event: Event) =>
           set({

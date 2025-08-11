@@ -90,14 +90,31 @@ export const EventCard = ({
 
   const getColorClasses = (color: string) => {
     const colorMap: Record<string, string> = {
+      // Primary colors
       blue: 'bg-blue-500/20 border-blue-500/30 text-blue-700 dark:bg-blue-500/40 dark:text-blue-100',
       green: 'bg-green-500/20 border-green-500/30 text-green-700 dark:bg-green-500/40 dark:text-green-100',
+      red: 'bg-red-500/20 border-red-500/30 text-red-700 dark:bg-red-500/40 dark:text-red-100',
+      yellow: 'bg-yellow-500/20 border-yellow-500/30 text-yellow-700 dark:bg-yellow-500/40 dark:text-yellow-100',
       purple: 'bg-purple-500/20 border-purple-500/30 text-purple-700 dark:bg-purple-500/40 dark:text-purple-100',
       orange: 'bg-orange-500/20 border-orange-500/30 text-orange-700 dark:bg-orange-500/40 dark:text-orange-100',
-      red: 'bg-red-500/20 border-red-500/30 text-red-700 dark:bg-red-500/40 dark:text-red-100',
       pink: 'bg-pink-500/20 border-pink-500/30 text-pink-700 dark:bg-pink-500/40 dark:text-pink-100',
-      yellow: 'bg-yellow-500/20 border-yellow-500/30 text-yellow-700 dark:bg-yellow-500/40 dark:text-yellow-100',
       gray: 'bg-gray-500/20 border-gray-500/30 text-gray-700 dark:bg-gray-500/40 dark:text-gray-100',
+      
+      // Extended colors
+      indigo: 'bg-indigo-500/20 border-indigo-500/30 text-indigo-700 dark:bg-indigo-500/40 dark:text-indigo-100',
+      teal: 'bg-teal-500/20 border-teal-500/30 text-teal-700 dark:bg-teal-500/40 dark:text-teal-100',
+      cyan: 'bg-cyan-500/20 border-cyan-500/30 text-cyan-700 dark:bg-cyan-500/40 dark:text-cyan-100',
+      lime: 'bg-lime-500/20 border-lime-500/30 text-lime-700 dark:bg-lime-500/40 dark:text-lime-100',
+      amber: 'bg-amber-500/20 border-amber-500/30 text-amber-700 dark:bg-amber-500/40 dark:text-amber-100',
+      emerald: 'bg-emerald-500/20 border-emerald-500/30 text-emerald-700 dark:bg-emerald-500/40 dark:text-emerald-100',
+      violet: 'bg-violet-500/20 border-violet-500/30 text-violet-700 dark:bg-violet-500/40 dark:text-violet-100',
+      rose: 'bg-rose-500/20 border-rose-500/30 text-rose-700 dark:bg-rose-500/40 dark:text-rose-100',
+      slate: 'bg-slate-500/20 border-slate-500/30 text-slate-700 dark:bg-slate-500/40 dark:text-slate-100',
+      zinc: 'bg-zinc-500/20 border-zinc-500/30 text-zinc-700 dark:bg-zinc-500/40 dark:text-zinc-100',
+      neutral: 'bg-neutral-500/20 border-neutral-500/30 text-neutral-700 dark:bg-neutral-500/40 dark:text-neutral-100',
+      stone: 'bg-stone-500/20 border-stone-500/30 text-stone-700 dark:bg-stone-500/40 dark:text-stone-100',
+      sky: 'bg-sky-500/20 border-sky-500/30 text-sky-700 dark:bg-sky-500/40 dark:text-sky-100',
+      fuchsia: 'bg-fuchsia-500/20 border-fuchsia-500/30 text-fuchsia-700 dark:bg-fuchsia-500/40 dark:text-fuchsia-100',
     };
     return colorMap[color] || colorMap.blue;
   };
