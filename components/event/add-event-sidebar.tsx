@@ -22,6 +22,7 @@ interface AddEventProps {
 const AddEventSidebar = ({ onClick }: AddEventProps) => {
   const [formType, setFormType] = useState<'event' | 'birthday'>('event');
   const currentFormData = useRef<Partial<Event>>({});
+  const autoSaveTimeoutRef = useRef<NodeJS.Timeout>(null);
 
   const {
     selectedEvent,
@@ -59,6 +60,10 @@ const AddEventSidebar = ({ onClick }: AddEventProps) => {
   }, [selectedEvent, eventCreationContext]);
 
   const handleClose = () => {
+    // Clear any pending auto-save
+    if (autoSaveTimeoutRef.current) {
+      clearTimeout(autoSaveTimeoutRef.current);
+    }
     closeEventSidebar();
     currentFormData.current = {};
     onClick();
@@ -66,9 +71,39 @@ const AddEventSidebar = ({ onClick }: AddEventProps) => {
 
   const handleFormDataChange = (eventData: Partial<Event>) => {
     currentFormData.current = { ...currentFormData.current, ...eventData };
+    
     if (selectedEvent) {
       const updatedEvent = { ...selectedEvent, ...eventData };
       updateSelectedEvent(updatedEvent);
+      
+      // If this is an existing event, save it immediately to update the calendar views
+      if (!isNewEvent) {
+        saveEvent(updatedEvent);
+      } else {
+        // For new events, auto-save after a delay
+        if (autoSaveTimeoutRef.current) {
+          clearTimeout(autoSaveTimeoutRef.current);
+        }
+        
+        autoSaveTimeoutRef.current = setTimeout(() => {
+          const eventToSave: Event = {
+            id: selectedEvent.id,
+            title: currentFormData.current.title || '',
+            description: currentFormData.current.description || '',
+            startDate: currentFormData.current.startDate || new Date(),
+            endDate: currentFormData.current.endDate || new Date(),
+            color: currentFormData.current.color || 'blue',
+            type: currentFormData.current.type || 'event',
+            location: currentFormData.current.location || '',
+            attendees: currentFormData.current.attendees || [],
+            reminders: currentFormData.current.reminders || [],
+            repeat: currentFormData.current.repeat || 'none',
+            visibility: currentFormData.current.visibility || 'public',
+          };
+          
+          saveEvent(eventToSave);
+        }, 1000); // Auto-save after 1 second of inactivity
+      }
     }
   };
 
