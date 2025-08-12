@@ -9,9 +9,9 @@ const faqs = [
         "Caly's AI assistant understands natural language and can schedule meetings, set reminders, and organize your calendar through simple conversations. Just tell it what you need, and it handles the rest.",
     },
     {
-        question: "Can Caly integrate with my existing calendar apps?",
+        question: "Can Caly integrate with my existing calendar app?",
         answer:
-        "Yes! Caly seamlessly integrates with Google Calendar, Outlook, Apple Calendar, and other popular calendar services. Your events sync automatically across all your devices.",
+        "Yes! Caly seamlessly integrates with Google Calendar. Your events sync automatically across all your devices.",
     },
     {
         question: "How does Caly handle scheduling conflicts?",
@@ -23,11 +23,11 @@ const faqs = [
         answer:
         "Absolutely. Caly uses enterprise-grade encryption and follows strict privacy standards. Your calendar data is never shared with third parties, and you have full control over your information.",
     },
-    {
-        question: "Can Caly learn my scheduling preferences?",
-        answer:
-        "Yes! The AI learns your scheduling patterns, preferred meeting times, and work habits over time. It gets smarter with each interaction, making scheduling more personalized and efficient.",
-    },
+    // {
+    //     question: "Can Caly learn my scheduling preferences?",
+    //     answer:
+    //     "Yes! The AI learns your scheduling patterns, preferred meeting times, and work habits over time. It gets smarter with each interaction, making scheduling more personalized and efficient.",
+    // },
     {
         question: "What makes Caly different from other calendar apps?",
         answer:

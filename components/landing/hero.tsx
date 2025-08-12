@@ -17,7 +17,7 @@ export function HeroSection() {
       <div className="container relative z-10 mx-auto w-full mt-52 px-6 lg:px-8 xl:px-12">
         <div className="flex flex-col items-center justify-center gap-16 text-center">
           <motion.div
-            className="space-y-8 max-w-4xl"
+            className="space-y-8 flex flex-col items-center justify-center"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
@@ -45,7 +45,7 @@ export function HeroSection() {
             </motion.p>
 
             <motion.div
-              className="flex justify-center"
+              className="flex justify-start"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.3 }}

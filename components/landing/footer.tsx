@@ -1,11 +1,11 @@
-import { Github } from 'lucide-react';
+import { Github, Rocket, Code, Target, TrendingUp, Globe, Briefcase, LucideIcon, Users } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { DiscordIcon, XIcon } from '@/lib/lucide/custom-icons';
 
 interface FooterLink {
     href: string;
-    icon?: React.ReactNode;
+    icon?: LucideIcon;
     label: string;
 }
 
@@ -50,23 +50,27 @@ function FooterLinks({ links }: { links: FooterLink[] }) {
             {links.map((link, index) => (
                 <Link
                     key={index}
-                    className="text-muted-foreground hover:text-white transition-colors text-sm"
+                    className="text-muted-foreground hover:text-white transition-colors text-sm flex items-center"
                     href={link.href}
-                >
-                    {link.label}
+                >   
+                    <span>{link.label}</span>
                 </Link>
             ))}
         </div>
     );
 }
 
-function FooterSection({ section }: { section: FooterSection }) {
+function FooterSection({ section }: { section: FooterSection[] }) {
     return (
-        <div className="flex flex-col space-y-3">
-            {section.title && (
-                <h3 className="text-white font-semibold text-sm">{section.title}</h3>
-            )}
-            <FooterLinks links={section.links} />
+        <div className="flex flex-row gap-20">
+            {section.map((section, index) => (
+                <div className="flex flex-col space-y-3" key={index}>
+                    {section.title && (
+                        <h3 className="text-white font-semibold text-sm">{section.title}</h3>
+                    )}
+                    <FooterLinks links={section.links} />
+                </div>
+            ))}
         </div>
     );
 }
@@ -97,7 +101,17 @@ const resourcesLinks: FooterLink[] = [
     label: 'Repository',
   },
 ];
-export function Footer({ sections = [], className = '' }: FooterProps) {
+
+const useCases = [
+    { label: 'For Founders', href: '/founders', icon: Rocket },
+    { label: 'For Developers', href: '/developers', icon: Code },
+    { label: 'For Productivity', href: '/productivity', icon: Target },
+    { label: 'For Sales Teams', href: '/sales', icon: TrendingUp },
+    { label: 'For Freelancers', href: '/freelancers', icon: Users },
+    { label: 'For Consultants', href: '/consultants', icon: Briefcase },
+];
+
+export function Footer({ className = '' }: FooterProps) {
     return (
         <footer className={`flex items-center justify-center p-10 border-border/40 border-t bg-black ${className}`}>
             <div className="flex flex-col md:flex-row justify-between md:w-full xl:w-1/2">
@@ -105,10 +119,18 @@ export function Footer({ sections = [], className = '' }: FooterProps) {
                 
                 <div className="flex flex-col md:flex-row md:justify-end space-y-4 md:space-y-0 md:space-x-6 mt-10 md:mt-0">
                     <FooterSection 
-                        section={{ 
-                            title: 'Resources', 
-                            links: resourcesLinks 
-                        }} 
+                        section={
+                            [
+                                { 
+                                    title: 'Resources', 
+                                    links: resourcesLinks 
+                                },
+                                {
+                                    title: 'Use Cases',
+                                    links: useCases
+                                }
+                            ]
+                        } 
                     />
                 </div>
             </div>
