@@ -2,15 +2,39 @@ import TopNav from "@/components/landing/top-nav"
 import { Footer } from "@/components/landing/footer"
 import { RoadmapCTA } from "@/components/roadmap/roadmap-cta"
 import { Badge } from "@/components/ui/badge"
+import { Metadata } from "next"
+
+export const metadata: Metadata = {
+  title: 'Roadmap - Caly',
+  description: 'What\'s coming next for Caly. The full roadmap for the project.',
+  alternates: {
+    canonical: 'https://www.trycaly.cc/roadmap',
+  },
+  openGraph: {
+    images: '/og-img.png',
+    title: 'Roadmap - Caly',
+    description: 'What\'s coming next for Caly. The full roadmap for the project.',
+    url: 'https://www.trycaly.cc/roadmap',
+    siteName: 'Caly',
+    locale: 'en_US',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Roadmap - Caly',
+    description: 'What\'s coming next for Caly. The full roadmap for the project.',
+    images: '/og-img.png',
+  },
+}
 
 export default function RoadmapPage() {
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-black dark:bg-black">
       <TopNav />
       
       <div className="w-full max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="text-center space-y-6 mb-12">
-          <h1 className="text-4xl sm:text-5xl font-bold">
+          <h1 className="text-4xl sm:text-5xl font-bold mt-20 text-white">
             Roadmap
           </h1>
           <p className="text-xl text-muted-foreground">
@@ -23,7 +47,7 @@ export default function RoadmapPage() {
             <div className="flex items-center gap-4">
               <div className="w-8 h-8 bg-green-500 text-white rounded-full flex items-center justify-center font-semibold">1</div>
               <div>
-                <h3 className="text-xl font-semibold">Core UI</h3>
+                <h3 className="text-xl font-semibold text-white">Core UI</h3>
                 <Badge className="bg-green-500 font-medium">Completed</Badge>
               </div>
             </div>
@@ -36,7 +60,7 @@ export default function RoadmapPage() {
             <div className="flex items-center gap-4">
               <div className="w-8 h-8 bg-green-500 text-white rounded-full flex items-center justify-center font-semibold">2</div>
               <div>
-                <h3 className="text-xl font-semibold">Core Calendar Functionality</h3>
+                <h3 className="text-xl font-semibold text-white">Core Calendar Functionality</h3>
                 <Badge className="bg-green-500 font-medium">Completed</Badge>
               </div>
             </div>
@@ -49,7 +73,7 @@ export default function RoadmapPage() {
             <div className="flex items-center gap-4">
               <div className="w-8 h-8 bg-yellow-500 text-white rounded-full flex items-center justify-center font-semibold">3</div>
               <div>
-                <h3 className="text-xl font-semibold">AI Agent</h3>
+                <h3 className="text-xl font-semibold text-white">AI Agent</h3>
                 <Badge className="bg-yellow-500 font-medium">In Progress</Badge>
               </div>
             </div>
@@ -62,7 +86,7 @@ export default function RoadmapPage() {
             <div className="flex items-center gap-4">
               <div className="w-8 h-8 bg-yellow-500 text-white rounded-full flex items-center justify-center font-semibold">4</div>
               <div>
-                <h3 className="text-xl font-semibold">Google Calendar Integration</h3>
+                <h3 className="text-xl font-semibold text-white">Google Calendar Integration</h3>
                 <Badge className="bg-yellow-500 font-medium">Not Started</Badge>
               </div>
             </div>
@@ -75,7 +99,7 @@ export default function RoadmapPage() {
             <div className="flex items-center gap-4">
               <div className="w-8 h-8 bg-yellow-500 text-white rounded-full flex items-center justify-center font-semibold">5</div>
               <div>
-                <h3 className="text-xl font-semibold">Full Convex DB Integration</h3>
+                <h3 className="text-xl font-semibold text-white">Full Convex DB Integration</h3>
                 <Badge className="bg-yellow-500 font-medium">Not Started</Badge>
               </div>
             </div>
@@ -88,7 +112,7 @@ export default function RoadmapPage() {
             <div className="flex items-center gap-4">
               <div className="w-8 h-8 bg-gray-500 text-white rounded-full flex items-center justify-center font-semibold">6</div>
               <div>
-                <h3 className="text-xl font-semibold">Launch</h3>
+                <h3 className="text-xl font-semibold text-white">Launch</h3>
                 <Badge variant="outline" className="text-white font-medium">Future</Badge>
               </div>
             </div>

@@ -42,7 +42,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     url: `${baseUrl}/${id}`,
     lastModified: new Date(),
     changeFrequency: 'weekly',
-    priority: 0.7,
+    priority: 1,
   }))
 
   return [...staticRoutes, ...useCaseRoutes]
