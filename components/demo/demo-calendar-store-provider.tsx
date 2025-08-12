@@ -1,7 +1,6 @@
 "use client"
 
-import { createContext, type ReactNode } from "react"
-import { useStore } from "zustand"
+import { type ReactNode } from "react"
 import { CalendarStoreContext } from "@/providers/calendar-store-provider"
 import type { CalendarState } from "@/lib/store/calendar-store"
 import { createCalendarStore } from "@/lib/store/calendar-store"
@@ -13,12 +12,12 @@ export function DemoCalendarStoreProvider({ children, initState }: { children: R
   return <CalendarStoreContext.Provider value={store}>{children}</CalendarStoreContext.Provider>
 }
 
-export const useDemoCalendarStore = <T,>(selector: (store: any) => T): T => {
-  const calendarStoreContext = (CalendarStoreContext as unknown as React.Context<any>).current
-  if (!calendarStoreContext) {
-    throw new Error("useDemoCalendarStore must be used within DemoCalendarStoreProvider")
-  }
-  return useStore(calendarStoreContext, selector)
-}
+// export const useDemoCalendarStore = <T,>(selector: (store: any) => T): T => {
+//   const calendarStoreContext = (CalendarStoreContext as unknown as React.Context<any>).current
+//   if (!calendarStoreContext) {
+//     throw new Error("useDemoCalendarStore must be used within DemoCalendarStoreProvider")
+//   }
+//   return useStore(calendarStoreContext, selector)
+// }
 
 

@@ -82,7 +82,6 @@ export default async function UseCasePage({ params }: UseCasePageProps) {
           subtitle={useCaseData.hero.subtitle}
           description={useCaseData.hero.description}
           cta={useCaseData.hero.cta}
-          demo={useCaseData.hero.demo}
           icon={useCaseData.icon}
         />
         <UseCaseBenefits benefits={useCaseData.benefits} />
