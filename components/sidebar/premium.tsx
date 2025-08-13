@@ -20,7 +20,7 @@ const Premium = () => {
         <Button 
             type="button"
             variant="outline" 
-            className="group relative flex items-center justify-start w-full py-3 rounded-lg text-sm border-neutral-200 bg-white hover:bg-neutral-50 dark:border-neutral-800 dark:bg-neutral-950 dark:hover:bg-neutral-900 transition-all duration-200 focus:ring-0 shadow-sm hover:shadow-md"
+            className="group relative flex items-center justify-start w-full py-3 rounded-lg text-sm border-neutral-200 bg-white hover:bg-neutral-50 dark:border-neutral-800 dark:bg-neutral-950 dark:hover:bg-neutral-900 transition-all duration-200 focus:ring-0"
             onClick={async () => {                            
                 if (!session) {
                     authClient.signIn.social({
