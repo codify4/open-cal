@@ -15,6 +15,8 @@ import {
 import type { Event } from '@/lib/store/calendar-store';
 import { useCalendarStore } from '@/providers/calendar-store-provider';
 import { useGoogleCalendarRefresh } from '@/hooks/use-google-calendar-refresh';
+import { convertGoogleEventToLocalEvent } from '@/lib/calendar-utils';
+import { toast } from 'sonner';
 import { authClient } from '@/lib/auth-client';
 
 interface TimeSlotProps {
@@ -83,6 +85,8 @@ export default function WeeklyView() {
   const {
     toggleChatSidebar,
     openEventSidebarForNewEvent,
+    openEventSidebarForEdit,
+    saveEvent,
     currentDate,
     navigationDirection,
     events,
@@ -254,7 +258,7 @@ export default function WeeklyView() {
     setContextMenuTime(timeString);
   }, []);
 
-  function handleAddEventWeek(dayIndex: number, detailedHour: string) {
+  async function handleAddEventWeek(dayIndex: number, detailedHour: string) {
     if (!session) {
       authClient.signIn.social({
         provider: 'google',
@@ -287,15 +291,71 @@ export default function WeeklyView() {
       return;
     }
 
-    const targetDate = new Date(
+    const startDate = new Date(
       date.getFullYear(),
       date.getMonth(),
       chosenDay,
       hours,
       minutes
     );
+    const endDate = new Date(startDate.getTime() + 60 * 60 * 1000);
 
-    openEventSidebarForNewEvent(targetDate);
+    try {
+      const { data: s } = await authClient.getSession();
+      if (!s?.user?.id) {
+        openEventSidebarForNewEvent(startDate);
+        return;
+      }
+      const accessToken = await authClient.getAccessToken({
+        providerId: 'google',
+        userId: s.user.id,
+      });
+      if (!accessToken?.data?.accessToken) {
+        openEventSidebarForNewEvent(startDate);
+        return;
+      }
+
+      const calendarId = visibleCalendarIds[0] || 'primary';
+      const body = {
+        summary: 'Untitled Event',
+        start: { dateTime: startDate.toISOString() },
+        end: { dateTime: endDate.toISOString() },
+        visibility: 'public',
+        colorId: '1',
+      };
+
+      const url = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events?sendUpdates=none`;
+      const resp = await fetch(url, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${accessToken.data.accessToken}`,
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+        },
+        body: JSON.stringify(body),
+      });
+
+      if (!resp.ok) {
+        const errText = await resp.text();
+        console.error('Failed to create Google event:', errText);
+        toast.error('Failed to create event');
+        openEventSidebarForNewEvent(startDate);
+        return;
+      }
+
+      const googleEvent = await resp.json();
+      const converted = convertGoogleEventToLocalEvent(
+        googleEvent,
+        calendarId,
+        s.user.email
+      );
+      saveEvent(converted);
+      openEventSidebarForEdit(converted);
+      await refreshEvents();
+    } catch (e) {
+      console.error(e);
+      openEventSidebarForNewEvent(startDate);
+    }
   }
 
 

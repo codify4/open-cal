@@ -1,45 +1,53 @@
 import type { Event } from './store/calendar-store';
 
-export const getEventColor = (colorId: string | undefined, calendarId: string): string => {
-  // Enhanced color mapping based on Google Calendar's color palette
-  const colorMap: Record<string, string> = {
-    '1': 'blue',      // Default blue
-    '2': 'green',     // Green
-    '3': 'red',       // Red
-    '4': 'yellow',    // Yellow
-    '5': 'purple',    // Purple
-    '6': 'orange',    // Orange
-    '7': 'pink',      // Pink
-    '8': 'indigo',    // Indigo
-    '9': 'teal',      // Teal
-    '10': 'cyan',     // Cyan
-    '11': 'lime',     // Lime
-    '12': 'amber',    // Amber
-    '13': 'emerald',  // Emerald
-    '14': 'violet',   // Violet
-    '15': 'rose',     // Rose
-    '16': 'slate',    // Slate
-    '17': 'gray',     // Gray
-    '18': 'zinc',     // Zinc
-    '19': 'neutral',  // Neutral
-    '20': 'stone',    // Stone
-    '21': 'sky',      // Sky blue
-    '22': 'fuchsia',  // Fuchsia
-    '23': 'lime',     // Light green
-    '24': 'emerald',  // Dark green
-  };
-  
-  // Fallback to a color based on calendar ID if no colorId is provided
-  if (!colorId) {
-    const hash = calendarId.split('').reduce((a, b) => {
-      a = ((a << 5) - a + b.charCodeAt(0)) & 0xffffffff;
-      return a;
-    }, 0);
-    const fallbackColors = ['blue', 'green', 'purple', 'orange', 'pink', 'teal', 'indigo', 'rose'];
-    return fallbackColors[Math.abs(hash) % fallbackColors.length];
-  }
-  
-  return colorMap[colorId] || 'blue';
+// Map Google event color IDs (1..11) to our local palette approximations
+const googleColorIdToLocal: Record<string, string> = {
+  '1': 'purple',
+  '2': 'green',
+  '3': 'purple',
+  '4': 'rose',
+  '5': 'yellow',
+  '6': 'orange',
+  '7': 'teal',
+  '8': 'gray',
+  '9': 'blue',
+  '10': 'green',
+  '11': 'red',
+};
+
+export const getEventColor = (colorId: string | undefined, _calendarId: string): string => {
+  if (!colorId) return 'blue';
+  return googleColorIdToLocal[colorId] || 'blue';
+};
+
+// Map our local palette to Google event color IDs (restricted to known IDs)
+const localToGoogleColorId: Record<string, string> = {
+  blue: '9',
+  green: '10',
+  red: '11',
+  yellow: '5',
+  purple: '3',
+  orange: '6',
+  pink: '4',
+  rose: '4',
+  gray: '8',
+  indigo: '1',
+  teal: '7',
+  cyan: '7',
+  lime: '10',
+  amber: '6',
+  emerald: '10',
+  violet: '3',
+  slate: '8',
+  zinc: '8',
+  neutral: '8',
+  stone: '8',
+  sky: '9',
+  fuchsia: '4',
+};
+
+export const getGoogleColorIdFromLocal = (localColor: string): string | undefined => {
+  return localToGoogleColorId[localColor];
 };
 
 export const getRandomEventColor = (): string => {

@@ -16,7 +16,7 @@ import EventActionsDropdown from './form/event-actions';
 import { EventForm } from './form/event-form';
 import { authClient } from '@/lib/auth-client';
 import { useGoogleCalendarRefresh } from '@/hooks/use-google-calendar-refresh';
-import { convertGoogleEventToLocalEvent } from '@/lib/calendar-utils';
+import { convertGoogleEventToLocalEvent, getGoogleColorIdFromLocal } from '@/lib/calendar-utils';
 import { toast } from 'sonner';
 
 interface AddEventProps {
@@ -52,11 +52,13 @@ const AddEventSidebar = ({ onClick }: AddEventProps) => {
     const end = isAllDay
       ? { date: new Date(e.endDate).toISOString().slice(0, 10) }
       : { dateTime: new Date(e.endDate).toISOString() };
+    const colorId = getGoogleColorIdFromLocal(e.color) || '1';
     return {
       summary: e.title || '',
       description: e.description || '',
       start,
       end,
+      colorId,
       location: e.location || undefined,
       attendees: (e.attendees || []).map((email) => ({ email })),
       visibility: e.visibility || 'public',
@@ -131,6 +133,7 @@ const AddEventSidebar = ({ onClick }: AddEventProps) => {
             attendees: payload.attendees,
             visibility: payload.visibility,
             recurrence: payload.recurrence,
+            colorId: payload.colorId,
           } as Record<string, unknown>;
           body = JSON.stringify(merged);
         }
@@ -138,66 +141,41 @@ const AddEventSidebar = ({ onClick }: AddEventProps) => {
         body = JSON.stringify(buildGoogleEventPayload(eventToSave));
       }
 
-      let attempt = 0;
-      let delayMs = 500;
-      while (attempt < 3) {
-        const response = await fetch(url, {
-          method,
-          headers: {
-            Authorization: `Bearer ${accessToken.data.accessToken}`,
-            'Content-Type': 'application/json',
-            Accept: 'application/json',
-            ...(etag ? { 'If-Match': etag } : {}),
-          },
-          body,
-        });
+      const response = await fetch(url, {
+        method,
+        headers: {
+          Authorization: `Bearer ${accessToken.data.accessToken}`,
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+          ...(etag ? { 'If-Match': etag } : {}),
+        },
+        body,
+      });
 
-        if (response.ok) {
-          const googleEvent = await response.json();
-          const converted = convertGoogleEventToLocalEvent(
-            googleEvent,
-            calendarId,
-            session.user.email
-          );
-          saveEvent(converted);
-          if (provisionalId && provisionalId !== converted.id) {
-            deleteEvent(provisionalId);
-          }
-          await refreshEvents();
-          return;
+      if (response.ok) {
+        const googleEvent = await response.json();
+        const converted = convertGoogleEventToLocalEvent(
+          googleEvent,
+          calendarId,
+          session.user.email
+        );
+        saveEvent(converted);
+        if (provisionalId && provisionalId !== converted.id) {
+          deleteEvent(provisionalId);
         }
-
-        if (response.status === 401) {
-          toast.error('Access token expired. Please reconnect your Google account.');
-          return;
-        }
-
-        const errorText = await response.text();
-        let shouldRetry = false;
-        try {
-          const errJson = JSON.parse(errorText);
-          const reason = errJson?.error?.errors?.[0]?.reason;
-          if (
-            response.status === 429 ||
-            reason === 'rateLimitExceeded' ||
-            reason === 'userRateLimitExceeded'
-          ) {
-            shouldRetry = true;
-          }
-        } catch {}
-
-        if (!shouldRetry) {
-          console.error('Failed to upsert Google event:', errorText);
-          toast.error('Failed to save event to Google Calendar');
-          return;
-        }
-
-        await new Promise((r) => setTimeout(r, delayMs + Math.floor(Math.random() * 200)));
-        attempt += 1;
-        delayMs *= 2;
+        await refreshEvents();
+        return;
       }
 
-      toast.error('Rate limited by Google Calendar. Please try again.');
+      if (response.status === 401) {
+        toast.error('Access token expired. Please reconnect your Google account.');
+        return;
+      }
+
+      const errorText = await response.text();
+      console.error('Failed to upsert Google event:', errorText);
+      toast.error('Failed to save event to Google Calendar');
+      return;
     } catch (err) {
       console.error(err);
       toast.error('Error saving event');
@@ -256,31 +234,6 @@ const AddEventSidebar = ({ onClick }: AddEventProps) => {
             googleCalendarId: updatedEvent.googleCalendarId || 'primary',
           });
         }, 1000);
-      } else {
-        if (autoSaveTimeoutRef.current) {
-          clearTimeout(autoSaveTimeoutRef.current);
-        }
-        
-        autoSaveTimeoutRef.current = setTimeout(() => {
-          const eventToSave: Event = {
-            id: selectedEvent.id,
-            title: currentFormData.current.title || '',
-            description: currentFormData.current.description || '',
-            startDate: currentFormData.current.startDate || new Date(),
-            endDate: currentFormData.current.endDate || new Date(),
-            color: currentFormData.current.color || 'blue',
-            type: currentFormData.current.type || 'event',
-            location: currentFormData.current.location || '',
-            attendees: currentFormData.current.attendees || [],
-            reminders: currentFormData.current.reminders || [],
-            repeat: currentFormData.current.repeat || 'none',
-            visibility: currentFormData.current.visibility || 'public',
-            googleCalendarId: 'primary',
-          };
-          
-          saveEvent(eventToSave);
-          upsertGoogleEvent(eventToSave, selectedEvent.id);
-        }, 1000);
       }
     }
   };
@@ -295,21 +248,7 @@ const AddEventSidebar = ({ onClick }: AddEventProps) => {
       if (selectedEvent) {
         eventToSave = { ...selectedEvent, ...currentFormData.current };
       } else {
-        eventToSave = {
-          id: `event-${Date.now()}`,
-          title: currentFormData.current.title || '',
-          description: currentFormData.current.description || '',
-          startDate: currentFormData.current.startDate || new Date(),
-          endDate: currentFormData.current.endDate || new Date(),
-          color: currentFormData.current.color || 'blue',
-          type: currentFormData.current.type || 'event',
-          location: currentFormData.current.location || '',
-          attendees: currentFormData.current.attendees || [],
-          reminders: currentFormData.current.reminders || [],
-          repeat: currentFormData.current.repeat || 'none',
-          visibility: currentFormData.current.visibility || 'public',
-          googleCalendarId: 'primary',
-        };
+        return;
       }
 
       saveEvent(eventToSave);
