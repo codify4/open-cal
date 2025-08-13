@@ -14,6 +14,9 @@ import type { Event } from '@/lib/store/calendar-store';
 import { cn } from '@/lib/utils';
 import { useCalendarStore } from '@/providers/calendar-store-provider';
 import { GraphicDoodle } from './graphics';
+import { authClient } from '@/lib/auth-client';
+import { useGoogleCalendarRefresh } from '@/hooks/use-google-calendar-refresh';
+import { toast } from 'sonner';
 
 interface EventCardProps {
   event: Event;
@@ -56,6 +59,7 @@ export const EventCard = ({
   const resizeHandleRef = useRef<HTMLDivElement>(null);
   const horizontalResizeHandleRef = useRef<HTMLDivElement>(null);
   const [isClient, setIsClient] = useState(false);
+  const { refreshEvents } = useGoogleCalendarRefresh();
 
   useEffect(() => {
     setIsClient(true);
@@ -67,7 +71,38 @@ export const EventCard = ({
   };
 
   const handleDelete = async () => {
-    deleteEvent(event.id);
+    try {
+      if (event.googleEventId) {
+        const { data: session } = await authClient.getSession();
+        if (session?.user?.id) {
+          const accessToken = await authClient.getAccessToken({
+            providerId: 'google',
+            userId: session.user.id,
+          });
+          const token = accessToken?.data?.accessToken;
+          if (token) {
+            const calendarId = event.googleCalendarId || event.calendar || 'primary';
+            const url = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events/${encodeURIComponent(event.googleEventId)}?sendUpdates=none`;
+            const resp = await fetch(url, {
+              method: 'DELETE',
+              headers: {
+                Authorization: `Bearer ${token}`,
+                Accept: 'application/json',
+              },
+            });
+            if (!resp.ok && resp.status !== 404) {
+              const errText = await resp.text();
+              toast.error('Failed to delete event');
+            }
+          }
+        }
+      }
+    } catch (_) {
+      toast.error('Failed to delete event');
+    } finally {
+      deleteEvent(event.id);
+      await refreshEvents();
+    }
   };
 
   const handleDuplicate = () => {
