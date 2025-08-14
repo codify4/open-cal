@@ -85,7 +85,7 @@ export function CreateCalendarDropdown({ onCalendarCreated }: CreateCalendarDrop
 					<span className="sr-only">Create new calendar</span>
 				</Button>
 			</DropdownMenuTrigger>
-			<DropdownMenuContent align="start" side="right" className="w-64 p-3 bg-neutral-950">
+			<DropdownMenuContent align="start" side="right" className="w-64 p-3 bg-white dark:bg-neutral-950">
 				<form onSubmit={handleSubmit} className="space-y-3">
 					<div>
 						<Label htmlFor="calendar-name" className="text-sm font-medium">
@@ -126,8 +126,8 @@ export function CreateCalendarDropdown({ onCalendarCreated }: CreateCalendarDrop
 										type="button"
 										className={`h-6 w-6 rounded-full cursor-pointer transition-all duration-150 hover:scale-105 ${
 											formData.colorId === option.id 
-												? 'ring-2 ring-white ring-offset-1 ring-offset-neutral-950' 
-												: 'ring-1 ring-neutral-600 hover:ring-white/60'
+												? 'ring-2 ring-black dark:ring-white ring-offset-1 ring-offset-white dark:ring-offset-neutral-950' 
+												: 'ring-1 ring-neutral-300 dark:ring-neutral-600 hover:ring-neutral-400 dark:hover:ring-white/60'
 										}`}
 										style={{ backgroundColor: option.background }}
 										onClick={() => setFormData(prev => ({ ...prev, colorId: option.id }))}
