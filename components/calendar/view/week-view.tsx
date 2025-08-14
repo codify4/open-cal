@@ -15,6 +15,7 @@ import {
 import type { Event } from '@/lib/store/calendar-store';
 import { useCalendarStore } from '@/providers/calendar-store-provider';
 import { useGoogleCalendarRefresh } from '@/hooks/use-google-calendar-refresh';
+import { useOptimisticEventSync } from '@/hooks/use-optimistic-event-sync';
 import { convertGoogleEventToLocalEvent } from '@/lib/calendar-utils';
 import { toast } from 'sonner';
 import { authClient } from '@/lib/auth-client';
@@ -96,9 +97,11 @@ export default function WeeklyView() {
     visibleCalendarIds,
     setGoogleEvents,
     setFetchingEvents,
+    optimisticUpdateCounter,
   } = useCalendarStore((state) => state);
   const { data: session } = authClient.useSession();
   const { refreshEvents } = useGoogleCalendarRefresh();
+  const { optimisticUpdate, commit } = useOptimisticEventSync();
 
   const direction = navigationDirection;
   const weekStartsOn = 'monday';
@@ -125,7 +128,7 @@ export default function WeeklyView() {
     const filteredLocalEvents = localEvents.filter(event => !googleEventsMap.has(event.id));
     
     return [...filteredLocalEvents, ...googleCalEvents];
-  }, [events, googleEvents]);
+  }, [events, googleEvents, optimisticUpdateCounter]);
 
   const getDaysInWeek = useCallback(
     (week: number, year: number) => {
@@ -257,6 +260,21 @@ export default function WeeklyView() {
     const timeString = `${hour12}:${minutes.toString().padStart(2, '0')} ${ampm}`;
     setContextMenuTime(timeString);
   }, []);
+
+  const handleResizeEnd = useCallback((
+    eventId: string,
+    newStartDate: Date,
+    newEndDate: Date
+  ) => {
+    const result = optimisticUpdate(eventId, newStartDate, newEndDate);
+    if (result) {
+      const { updatedEvent, revert } = result;
+      
+      commit(updatedEvent).catch(() => {
+        revert();
+      });
+    }
+  }, [optimisticUpdate, commit]);
 
   async function handleAddEventWeek(dayIndex: number, detailedHour: string) {
     if (!session) {
@@ -661,6 +679,7 @@ export default function WeeklyView() {
                                 newEndDate
                               );
                             }}
+                            onResizeEnd={handleResizeEnd}
                           />
                         </motion.div>
                       ))}
@@ -793,6 +812,7 @@ export default function WeeklyView() {
                                       newEndDate
                                     );
                                   }}
+                                  onResizeEnd={handleResizeEnd}
                                 />
                               </motion.div>
                             );

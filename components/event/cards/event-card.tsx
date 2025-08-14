@@ -23,6 +23,7 @@ interface EventCardProps {
   className?: string;
   minimized?: boolean;
   onResize?: (eventId: string, newStartDate: Date, newEndDate: Date) => void;
+  onResizeEnd?: (eventId: string, newStartDate: Date, newEndDate: Date) => void;
   onWidthResize?: (eventId: string, newWidth: number) => void;
   onEdit?: (event: Event) => void;
   onDelete?: (eventId: string) => void;
@@ -38,6 +39,7 @@ export const EventCard = ({
   className = '',
   minimized = false,
   onResize,
+  onResizeEnd,
   onWidthResize,
 }: EventCardProps) => {
   const { openEventSidebarForEdit, deleteEvent, saveEvent } = useCalendarStore(
@@ -281,6 +283,31 @@ export const EventCard = ({
 
   const handleResizeEnd = (e: MouseEvent) => {
     e.preventDefault();
+
+    // Calculate final times and call onResizeEnd if vertical resize occurred
+    if (resizeType === 'vertical' && originalStartDate && onResizeEnd && cardRef.current) {
+      const newHeight = cardRef.current.offsetHeight;
+      const pixelsPerHour = 64;
+      const hoursChanged = newHeight / pixelsPerHour;
+      const millisecondsChanged = hoursChanged * 60 * 60 * 1000;
+
+      const newEndTime = new Date(
+        originalStartDate.getTime() + millisecondsChanged
+      );
+
+      const roundedEndTime = new Date(
+        Math.round(newEndTime.getTime() / (15 * 60 * 1000)) * (15 * 60 * 1000)
+      );
+
+      const minimumDuration = 15 * 60 * 1000;
+      const earliestEndTime = new Date(
+        originalStartDate.getTime() + minimumDuration
+      );
+      
+      if (roundedEndTime >= earliestEndTime) {
+        onResizeEnd(event.id, originalStartDate, roundedEndTime);
+      }
+    }
 
     setIsResizing(false);
     setResizeType(null);

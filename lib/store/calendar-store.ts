@@ -77,6 +77,9 @@ export interface CalendarState {
   eventsLastFetched: Date | null;
   visibleCalendarIds: string[];
   refreshFunction: (() => Promise<void>) | null;
+  
+  // Optimistic update counter to force re-renders
+  optimisticUpdateCounter: number;
 }
 
 export interface CalendarActions {
@@ -88,6 +91,8 @@ export interface CalendarActions {
     newStartDate: Date,
     newEndDate: Date
   ) => void;
+  replaceEvent: (event: Event) => void;
+  incrementOptimisticCounter: () => void;
 
   toggleChatSidebar: () => void;
   setChatFullscreen: (fullscreen: boolean) => void;
@@ -202,6 +207,9 @@ export const defaultInitState: CalendarState = {
   eventsLastFetched: null,
   visibleCalendarIds: [],
   refreshFunction: null,
+  
+  // Optimistic update counter
+  optimisticUpdateCounter: 0,
 };
 
 export const createCalendarStore = (
@@ -232,12 +240,40 @@ export const createCalendarStore = (
             events: state.events.filter((e) => e.id !== eventId),
           })),
 
+        replaceEvent: (event: Event) =>
+          set((state) => {
+            // First try to replace in local events
+            const eventIndex = state.events.findIndex((e) => e.id === event.id);
+            if (eventIndex >= 0) {
+              const updatedEvents = [...state.events];
+              updatedEvents[eventIndex] = event;
+              return { 
+                events: updatedEvents,
+                optimisticUpdateCounter: state.optimisticUpdateCounter + 1
+              };
+            }
+            
+            // Then try to replace in Google events
+            const googleEventIndex = state.googleEvents.findIndex((e) => e.id === event.id);
+            if (googleEventIndex >= 0) {
+              const updatedGoogleEvents = [...state.googleEvents];
+              updatedGoogleEvents[googleEventIndex] = event;
+              return { 
+                googleEvents: updatedGoogleEvents,
+                optimisticUpdateCounter: state.optimisticUpdateCounter + 1
+              };
+            }
+            
+            return state;
+          }),
+
         updateEventTime: (
           eventId: string,
           newStartDate: Date,
           newEndDate: Date
         ) =>
           set((state) => {
+            // First try to update in local events
             const eventIndex = state.events.findIndex((e) => e.id === eventId);
             if (eventIndex >= 0) {
               const updatedEvents = [...state.events];
@@ -246,10 +282,34 @@ export const createCalendarStore = (
                 startDate: newStartDate,
                 endDate: newEndDate,
               };
-              return { events: updatedEvents };
+              return { 
+                events: updatedEvents,
+                optimisticUpdateCounter: state.optimisticUpdateCounter + 1
+              };
             }
+            
+            // Then try to update in Google events
+            const googleEventIndex = state.googleEvents.findIndex((e) => e.id === eventId);
+            if (googleEventIndex >= 0) {
+              const updatedGoogleEvents = [...state.googleEvents];
+              updatedGoogleEvents[googleEventIndex] = {
+                ...updatedGoogleEvents[googleEventIndex],
+                startDate: newStartDate,
+                endDate: newEndDate,
+              };
+              return { 
+                googleEvents: updatedGoogleEvents,
+                optimisticUpdateCounter: state.optimisticUpdateCounter + 1
+              };
+            }
+            
             return state;
           }),
+
+        incrementOptimisticCounter: () =>
+          set((state) => ({
+            optimisticUpdateCounter: state.optimisticUpdateCounter + 1,
+          })),
 
         toggleChatSidebar: () =>
           set((state) => ({

@@ -1,0 +1,99 @@
+import { useCallback } from 'react';
+import { toast } from 'sonner';
+import { upsertGoogleEvent } from '@/lib/google-calendar';
+import type { Event } from '@/lib/store/calendar-store';
+import { useCalendarStore } from '@/providers/calendar-store-provider';
+import { useGoogleCalendarRefresh } from './use-google-calendar-refresh';
+
+interface OptimisticSnapshot {
+  eventId: string;
+  source: 'events' | 'googleEvents';
+  previousStartDate: Date;
+  previousEndDate: Date;
+}
+
+export const useOptimisticEventSync = () => {
+  const { 
+    events, 
+    googleEvents, 
+    updateEventTime, 
+    replaceEvent 
+  } = useCalendarStore((state) => state);
+  const { refreshEvents } = useGoogleCalendarRefresh();
+
+  const findEvent = useCallback((eventId: string): Event | null => {
+    return events.find(e => e.id === eventId) || 
+           googleEvents.find(e => e.id === eventId) || 
+           null;
+  }, [events, googleEvents]);
+
+  const optimisticUpdate = useCallback((
+    eventId: string, 
+    newStartDate: Date, 
+    newEndDate: Date
+  ) => {
+    console.log('OptimisticUpdate called with:', { eventId, newStartDate, newEndDate });
+    console.log('Available events:', events.map(e => ({ id: e.id, title: e.title })));
+    console.log('Available googleEvents:', googleEvents.map(e => ({ id: e.id, title: e.title })));
+    
+    const currentEvent = findEvent(eventId);
+    if (!currentEvent) {
+      console.warn(`Event ${eventId} not found for optimistic update`);
+      console.log('FindEvent returned null for eventId:', eventId);
+      return null;
+    }
+    
+    console.log('Found event for optimistic update:', currentEvent);
+
+    const snapshot: OptimisticSnapshot = {
+      eventId,
+      source: events.find(e => e.id === eventId) ? 'events' : 'googleEvents',
+      previousStartDate: new Date(currentEvent.startDate),
+      previousEndDate: new Date(currentEvent.endDate),
+    };
+
+    updateEventTime(eventId, newStartDate, newEndDate);
+
+    const updatedEvent: Event = {
+      ...currentEvent,
+      startDate: newStartDate,
+      endDate: newEndDate,
+    };
+
+    const revert = () => {
+      updateEventTime(
+        snapshot.eventId, 
+        snapshot.previousStartDate, 
+        snapshot.previousEndDate
+      );
+    };
+
+    return { snapshot, updatedEvent, revert };
+  }, [events, googleEvents, findEvent, updateEventTime]);
+
+  const commit = useCallback(async (updatedEvent: Event): Promise<void> => {
+    if (!updatedEvent.googleEventId && !updatedEvent.googleCalendarId) {
+      return;
+    }
+
+    try {
+      const result = await upsertGoogleEvent(updatedEvent);
+      
+      if (result?.success && result.event) {
+        replaceEvent(result.event);
+      } else {
+        throw new Error(result?.error || 'Unknown error');
+      }
+    } catch (error) {
+      console.error('Failed to sync event to Google Calendar:', error);
+      toast.error('Failed to save changes to Google Calendar');
+      await refreshEvents();
+      throw error;
+    }
+  }, [replaceEvent, refreshEvents]);
+
+  return {
+    optimisticUpdate,
+    commit,
+  };
+};

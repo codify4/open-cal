@@ -16,6 +16,7 @@ import {
 import type { Event } from '@/lib/store/calendar-store';
 import { useCalendarStore } from '@/providers/calendar-store-provider';
 import { useGoogleCalendarRefresh } from '@/hooks/use-google-calendar-refresh';
+import { useOptimisticEventSync } from '@/hooks/use-optimistic-event-sync';
 import { authClient } from '@/lib/auth-client';
 
 interface TimeSlotProps {
@@ -170,9 +171,11 @@ export default function DailyView({
     toggleChatSidebar,
     googleEvents,
     visibleCalendarIds,
+    updateEventTime,
   } = useCalendarStore((state) => state);
   const { data: session } = authClient.useSession();
   const { refreshEvents } = useGoogleCalendarRefresh();
+  const { optimisticUpdate, commit } = useOptimisticEventSync();
 
   // Use Zustand store data instead of mock data
   const direction = navigationDirection;
@@ -217,6 +220,21 @@ export default function DailyView({
     const timeString = `${hour12}:${minutes.toString().padStart(2, '0')} ${ampm}`;
     setContextMenuTime(timeString);
   }, []);
+
+  const handleResizeEnd = useCallback((
+    eventId: string,
+    newStartDate: Date,
+    newEndDate: Date
+  ) => {
+    const result = optimisticUpdate(eventId, newStartDate, newEndDate);
+    if (result) {
+      const { updatedEvent, revert } = result;
+      
+      commit(updatedEvent).catch(() => {
+        revert();
+      });
+    }
+  }, [optimisticUpdate, commit]);
 
   // Fetch events when component mounts or dependencies change
   useEffect(() => {
@@ -551,7 +569,13 @@ export default function DailyView({
                             }}
                             transition={{ duration: 0.2 }}
                           >
-                            <EventCard event={event} />
+                            <EventCard 
+                              event={event}
+                              onResize={(eventId, newStartDate, newEndDate) => {
+                                updateEventTime(eventId, newStartDate, newEndDate);
+                              }}
+                              onResizeEnd={handleResizeEnd}
+                            />
                           </motion.div>
                         );
                       })

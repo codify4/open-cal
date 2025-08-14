@@ -19,6 +19,7 @@ import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 import type { Event } from '@/lib/store/calendar-store';
 import { ensureDate } from '@/lib/utils';
 import { useCalendarStore } from '@/providers/calendar-store-provider';
+import { useOptimisticEventSync } from '@/hooks/use-optimistic-event-sync';
 import AddEventSidebar from '../event/add-event-sidebar';
 
 export function CalendarLayoutClient({
@@ -34,10 +35,11 @@ export function CalendarLayoutClient({
     toggleChatSidebar,
     setChatFullscreen,
     closeEventSidebar,
-    updateEventTime,
     setCurrentDate,
     currentDate,
+    updateEventTime,
   } = useCalendarStore((state) => state);
+  const { optimisticUpdate, commit } = useOptimisticEventSync();
 
   const closeChatSidebar = () => {
     toggleChatSidebar();
@@ -87,7 +89,20 @@ export function CalendarLayoutClient({
           originalEndDate.getTime() - originalStartDate.getTime();
         const newEndDate = new Date(newStartDate.getTime() + duration);
 
-        updateEventTime(draggedEvent.id, newStartDate, newEndDate);
+        // Use optimistic update + background sync
+        const result = optimisticUpdate(draggedEvent.id, newStartDate, newEndDate);
+        
+        if (result) {
+          const { updatedEvent, revert } = result;
+          
+          // Commit to Google Calendar in the background
+          commit(updatedEvent).catch(() => {
+            revert();
+          });
+        } else {
+          // Fallback: direct store update
+          updateEventTime(draggedEvent.id, newStartDate, newEndDate);
+        }
 
         // Only navigate if the event was dropped in a different month
         const isDifferentMonth =
