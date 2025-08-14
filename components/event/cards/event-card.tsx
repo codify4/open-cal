@@ -161,7 +161,7 @@ export const EventCard = ({
     return accountMap[account] || getCardColor(event.color);
   };
 
-  const formatTime = (date: Date | string) => {
+  const formatTime = (date: Date | string, showAMPM = true) => {
     const dateObj = typeof date === 'string' ? new Date(date) : date;
     if (!(dateObj instanceof Date) || isNaN(dateObj.getTime())) {
       return 'Invalid time';
@@ -170,10 +170,11 @@ export const EventCard = ({
     const minutes = dateObj.getMinutes();
     const hour12 = hours % 12 || 12;
     const ampm = hours < 12 ? 'AM' : 'PM';
-    return `${hour12}:${minutes.toString().padStart(2, '0')} ${ampm}`;
+    const timeStr = `${hour12}${minutes > 0 ? `:${minutes.toString().padStart(2, '0')}` : ''}`;
+    return showAMPM ? `${timeStr} ${ampm}` : timeStr;
   };
 
-  const timeDisplay = `${formatTime(event.startDate)}–${formatTime(event.endDate)}`;
+  const timeDisplay = `${formatTime(event.startDate, false)}–${formatTime(event.endDate, true)}`;
 
   // Calculate height based on event duration
   const startDate = ensureDate(event.startDate);
@@ -412,7 +413,7 @@ export const EventCard = ({
                 ) : (
                   null
                 )}
-                <p className="font-medium text-xs leading-tight break-words flex-1">
+                <p className="font-medium text-xs leading-tight break-words text-start flex-1">
                   {event.title || 'Untitled Event'}
                 </p>
               </div>
