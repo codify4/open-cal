@@ -11,7 +11,7 @@ import {
   SelectValue,
 } from '../../ui/select';
 import { authClient } from '@/lib/auth-client';
-import { getColorClasses, emailColorFromString } from '@/components/sidebar/cal-accounts';
+import { getColorClasses, emailColorFromString } from '@/lib/calendar-color-utils';
 
 interface EventSettingsProps {
   meetingType: string;
