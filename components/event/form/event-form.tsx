@@ -14,9 +14,11 @@ interface EventFormProps {
   event?: Event | null;
   onSave?: (eventData: Partial<Event>) => void;
   onDataChange?: () => void;
+  onGenerateMeeting?: () => void;
+  isGeneratingMeeting?: boolean;
 }
 
-export const EventForm = ({ event, onSave, onDataChange }: EventFormProps) => {
+export const EventForm = ({ event, onSave, onDataChange, onGenerateMeeting, isGeneratingMeeting }: EventFormProps) => {
   type RepeatType = 'none' | 'daily' | 'weekly' | 'monthly' | 'yearly';
 
   const formatTimeFromDate = (date: Date) => {
@@ -34,6 +36,8 @@ export const EventForm = ({ event, onSave, onDataChange }: EventFormProps) => {
     endTime: '10:00',
     location: '',
     meetingType: '',
+    meetingUrl: '',
+    meetingCode: '',
     attendees: [] as string[],
     reminders: [] as Date[],
     calendar: '',
@@ -45,10 +49,10 @@ export const EventForm = ({ event, onSave, onDataChange }: EventFormProps) => {
     visibility: 'default',
   });
 
-  // Initialize form data when editing an event or when event changes
   useEffect(() => {
     if (event) {
-      setEventData({
+      const newEventData = {
+        ...eventData,
         title: event.title || '',
         description: event.description || '',
         startDate: event.startDate,
@@ -56,17 +60,20 @@ export const EventForm = ({ event, onSave, onDataChange }: EventFormProps) => {
         startTime: formatTimeFromDate(event.startDate),
         endTime: formatTimeFromDate(event.endDate),
         location: event.location || '',
-        meetingType: '',
         attendees: event.attendees || [],
-        reminders: [], // Convert Date[] to string[] or use empty array
+        reminders: [],
         calendar: event.account || '',
         color: event.color || 'blue',
         isAllDay: event.isAllDay || false,
         timezone: 'UTC',
         repeat: (event.repeat || 'none') as RepeatType,
-        availability: 'busy', // Default since Event type doesn't have availability
+        availability: 'busy',
         visibility: event.visibility || 'public',
-      });
+        meetingType: event.meetingType || '',
+        meetingUrl: event.meetLink || '',
+        meetingCode: event.meetCode || '',
+      };
+      setEventData(newEventData);
     }
   }, [event]);
 
@@ -96,6 +103,9 @@ export const EventForm = ({ event, onSave, onDataChange }: EventFormProps) => {
         isAllDay: newData.isAllDay,
         repeat: newData.repeat as RepeatType,
         visibility: newData.visibility as 'public' | 'private',
+        meetingType: (newData.meetingType as any) || 'none',
+        meetLink: newData.meetingUrl || undefined,
+        meetCode: newData.meetingCode || undefined,
         type: 'event' as const,
       };
       onSave(eventData);
@@ -104,6 +114,25 @@ export const EventForm = ({ event, onSave, onDataChange }: EventFormProps) => {
 
   const handleRepeatChange = (repeat: string) => {
     updateEventData({ repeat: repeat as RepeatType });
+  };
+
+  const handleMeetingTypeChange = (newType: string) => {
+    updateEventData({ meetingType: newType });
+    if (newType !== 'google-meet') {
+      updateEventData({ meetingUrl: '', meetingCode: '' });
+    } else {
+      setTimeout(() => {
+        if (onGenerateMeeting) {
+          onGenerateMeeting();
+        }
+      }, 100);
+    }
+  };
+
+  const handleGenerateMeeting = () => {
+    if (eventData.meetingType === 'google-meet' && onGenerateMeeting) {
+      onGenerateMeeting();
+    }
   };
 
   return (
@@ -152,14 +181,18 @@ export const EventForm = ({ event, onSave, onDataChange }: EventFormProps) => {
         />
       </div>
 
-      <EventSettings
-        calendar={eventData.calendar}
-        color={eventData.color}
-        meetingType={eventData.meetingType}
-        onCalendarChange={(calendar) => updateEventData({ calendar })}
-        onColorChange={(color) => updateEventData({ color })}
-        onMeetingTypeChange={(meetingType) => updateEventData({ meetingType })}
-      />
+              <EventSettings
+          calendar={eventData.calendar}
+          color={eventData.color}
+          meetingType={eventData.meetingType}
+          onCalendarChange={(calendar) => updateEventData({ calendar })}
+          onColorChange={(color) => updateEventData({ color })}
+          onMeetingTypeChange={handleMeetingTypeChange}
+          meetingUrl={eventData.meetingUrl}
+          meetingCode={eventData.meetingCode}
+          onGenerateMeeting={handleGenerateMeeting}
+          isGeneratingMeeting={isGeneratingMeeting}
+        />
 
       <div className="flex flex-col gap-2">
         <EventAvailability

@@ -20,6 +20,9 @@ export interface Event {
   isAllDay?: boolean;
   account?: string;
   calendar?: string;
+  meetingType?: 'google-meet' | 'none' | '';
+  meetLink?: string;
+  meetCode?: string;
   // Google Calendar specific fields
   googleCalendarId?: string;
   googleEventId?: string;

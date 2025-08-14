@@ -14,9 +14,8 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip';
 import { BirthdayForm } from './form/birthday-form';
 import EventActionsDropdown from './form/event-actions';
 import { EventForm } from './form/event-form';
-import { authClient } from '@/lib/auth-client';
 import { useGoogleCalendarRefresh } from '@/hooks/use-google-calendar-refresh';
-import { convertGoogleEventToLocalEvent, getGoogleColorIdFromLocal } from '@/lib/calendar-utils';
+import { useMeetingGeneration } from '@/hooks/use-meeting-generation';
 import { toast } from 'sonner';
 
 interface AddEventProps {
@@ -25,7 +24,6 @@ interface AddEventProps {
 
 const AddEventSidebar = ({ onClick }: AddEventProps) => {
   const [formType, setFormType] = useState<'event' | 'birthday'>('event');
-  const currentFormData = useRef<Partial<Event>>({});
   const autoSaveTimeoutRef = useRef<NodeJS.Timeout>(null);
   const googleSyncTimeoutRef = useRef<NodeJS.Timeout>(null);
 
@@ -40,147 +38,10 @@ const AddEventSidebar = ({ onClick }: AddEventProps) => {
     deleteEvent,
   } = useCalendarStore((state) => state);
 
-  const isEditing = !!selectedEvent && !isNewEvent;
-
+  const { isGeneratingMeeting, currentFormData, updateFormData, generateMeeting } = useMeetingGeneration();
   const { refreshEvents } = useGoogleCalendarRefresh();
 
-  const buildGoogleEventPayload = (e: Event) => {
-    const isAllDay = e.isAllDay || false;
-    const start = isAllDay
-      ? { date: new Date(e.startDate).toISOString().slice(0, 10) }
-      : { dateTime: new Date(e.startDate).toISOString() };
-    const end = isAllDay
-      ? { date: new Date(e.endDate).toISOString().slice(0, 10) }
-      : { dateTime: new Date(e.endDate).toISOString() };
-    const colorId = getGoogleColorIdFromLocal(e.color) || '1';
-    return {
-      summary: e.title || '',
-      description: e.description || '',
-      start,
-      end,
-      colorId,
-      location: e.location || undefined,
-      attendees: (e.attendees || []).map((email) => ({ email })),
-      visibility: e.visibility || 'public',
-      recurrence:
-        e.repeat && e.repeat !== 'none'
-          ? [
-              `RRULE:FREQ=${
-                e.repeat === 'daily'
-                  ? 'DAILY'
-                  : e.repeat === 'weekly'
-                  ? 'WEEKLY'
-                  : e.repeat === 'monthly'
-                  ? 'MONTHLY'
-                  : 'YEARLY'
-              }`,
-            ]
-          : undefined,
-    } as Record<string, unknown>;
-  };
-
-  const upsertGoogleEvent = async (eventToSave: Event, provisionalId?: string) => {
-    try {
-      const { data: session } = await authClient.getSession();
-      if (!session?.user?.id) return;
-
-      const accessToken = await authClient.getAccessToken({
-        providerId: 'google',
-        userId: session.user.id,
-      });
-      if (!accessToken?.data?.accessToken) return;
-
-      const calendarId = eventToSave.googleCalendarId || 'primary';
-      let isUpdate = Boolean(eventToSave.googleEventId);
-      const baseUrl = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events`;
-      let url = isUpdate
-        ? `${baseUrl}/${encodeURIComponent(eventToSave.googleEventId!)}?sendUpdates=none`
-        : `${baseUrl}?sendUpdates=none`;
-
-      let method: 'PUT' | 'POST' = isUpdate ? 'PUT' : 'POST';
-      let body: string;
-      let etag: string | undefined;
-
-      if (isUpdate) {
-        const getResp = await fetch(`${baseUrl}/${encodeURIComponent(eventToSave.googleEventId!)}`, {
-          headers: {
-            Authorization: `Bearer ${accessToken.data.accessToken}`,
-            Accept: 'application/json',
-          },
-        });
-        if (getResp.status === 404) {
-          isUpdate = false;
-          url = `${baseUrl}?sendUpdates=none`;
-          method = 'POST';
-          body = JSON.stringify(buildGoogleEventPayload(eventToSave));
-        } else {
-          if (!getResp.ok) {
-            const errText = await getResp.text();
-            console.error('Failed to fetch existing event:', errText);
-            toast.error('Failed to load event for update');
-            return;
-          }
-          const existing = await getResp.json();
-          etag = existing?.etag;
-          const payload = buildGoogleEventPayload(eventToSave);
-          const merged = {
-            ...existing,
-            summary: payload.summary,
-            description: payload.description,
-            start: payload.start,
-            end: payload.end,
-            location: payload.location,
-            attendees: payload.attendees,
-            visibility: payload.visibility,
-            recurrence: payload.recurrence,
-            colorId: payload.colorId,
-          } as Record<string, unknown>;
-          body = JSON.stringify(merged);
-        }
-      } else {
-        body = JSON.stringify(buildGoogleEventPayload(eventToSave));
-      }
-
-      const response = await fetch(url, {
-        method,
-        headers: {
-          Authorization: `Bearer ${accessToken.data.accessToken}`,
-          'Content-Type': 'application/json',
-          Accept: 'application/json',
-          ...(etag ? { 'If-Match': etag } : {}),
-        },
-        body,
-      });
-
-      if (response.ok) {
-        const googleEvent = await response.json();
-        const converted = convertGoogleEventToLocalEvent(
-          googleEvent,
-          calendarId,
-          session.user.email
-        );
-        saveEvent(converted);
-        if (provisionalId && provisionalId !== converted.id) {
-          deleteEvent(provisionalId);
-        }
-        await refreshEvents();
-        return;
-      }
-
-      if (response.status === 401) {
-        toast.error('Access token expired. Please reconnect your Google account.');
-        return;
-      }
-
-      const errorText = await response.text();
-      console.error('Failed to upsert Google event:', errorText);
-      toast.error('Failed to save event to Google Calendar');
-      return;
-    } catch (err) {
-      console.error(err);
-      toast.error('Error saving event');
-    }
-  };
+  const isEditing = !!selectedEvent && !isNewEvent;
 
   useEffect(() => {
     if (selectedEvent) {
@@ -203,10 +64,9 @@ const AddEventSidebar = ({ onClick }: AddEventProps) => {
 
       updateSelectedEvent(newEvent);
     }
-  }, [selectedEvent, eventCreationContext]);
+  }, [selectedEvent, eventCreationContext, updateSelectedEvent]);
 
   const handleClose = () => {
-    // Clear any pending auto-save
     if (autoSaveTimeoutRef.current) {
       clearTimeout(autoSaveTimeoutRef.current);
     }
@@ -214,53 +74,42 @@ const AddEventSidebar = ({ onClick }: AddEventProps) => {
       clearTimeout(googleSyncTimeoutRef.current);
     }
     closeEventSidebar();
-    currentFormData.current = {};
+    updateFormData({});
     onClick();
   };
 
   const handleFormDataChange = (eventData: Partial<Event>) => {
-    currentFormData.current = { ...currentFormData.current, ...eventData };
+    updateFormData(eventData);
     
     if (selectedEvent) {
       const updatedEvent = { ...selectedEvent, ...eventData };
       updateSelectedEvent(updatedEvent);
-      
-      if (!isNewEvent) {
-        saveEvent(updatedEvent);
-        if (googleSyncTimeoutRef.current) clearTimeout(googleSyncTimeoutRef.current);
-        googleSyncTimeoutRef.current = setTimeout(() => {
-          upsertGoogleEvent({
-            ...updatedEvent,
-            googleCalendarId: updatedEvent.googleCalendarId || 'primary',
-          });
-        }, 1000);
-      }
+    }
+  };
+
+  const handleGenerateMeeting = async () => {
+    if (!selectedEvent) return;
+    
+    const result = await generateMeeting(selectedEvent);
+    if (result?.success && result.event) {
+      saveEvent(result.event);
+      updateSelectedEvent(result.event);
+      updateFormData(result.event);
+      await refreshEvents();
+      toast.success('Google Meet link generated successfully');
     }
   };
 
   const handleManualSave = async () => {
-    if (
-      currentFormData.current &&
-      Object.keys(currentFormData.current).length > 0
-    ) {
-      let eventToSave: Event;
-
-      if (selectedEvent) {
-        eventToSave = { ...selectedEvent, ...currentFormData.current };
-      } else {
-        return;
-      }
-
+    if (currentFormData && Object.keys(currentFormData).length > 0 && selectedEvent) {
+      const eventToSave = { ...selectedEvent, ...currentFormData };
       saveEvent(eventToSave);
-      await upsertGoogleEvent(eventToSave, eventToSave.id);
       closeEventSidebar();
       onClick();
     }
   };
 
   const handleDelete = () => {
-    if (isEditing && selectedEvent) {
-    }
     handleClose();
   };
 
@@ -362,6 +211,8 @@ const AddEventSidebar = ({ onClick }: AddEventProps) => {
                 : null)
             }
             onSave={handleFormDataChange}
+            onGenerateMeeting={handleGenerateMeeting}
+            isGeneratingMeeting={isGeneratingMeeting}
           />
         ) : (
           <BirthdayForm event={selectedEvent} onSave={handleFormDataChange} />
