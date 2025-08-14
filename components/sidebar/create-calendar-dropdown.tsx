@@ -118,13 +118,13 @@ export function CreateCalendarDropdown({ onCalendarCreated }: CreateCalendarDrop
 
 					<div>
 						<Label className="text-sm font-medium mb-2 block">Color</Label>
-						<div className="grid grid-cols-6 gap-1.5">
+						<div className="grid grid-cols-8 gap-1.5">
 							{colorOptions.length > 0 ? (
 								colorOptions.map((option) => (
 									<button
 										key={option.id}
 										type="button"
-										className={`h-6 w-6 rounded-full cursor-pointer transition-all duration-150 hover:scale-105 ${
+										className={`h-5 w-5 rounded-full cursor-pointer transition-all duration-150 hover:scale-105 ${
 											formData.colorId === option.id 
 												? 'ring-2 ring-black dark:ring-white ring-offset-1 ring-offset-white dark:ring-offset-neutral-950' 
 												: 'ring-1 ring-neutral-300 dark:ring-neutral-600 hover:ring-neutral-400 dark:hover:ring-white/60'
