@@ -56,7 +56,7 @@ export function HeroSection() {
                   <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform duration-300" />
                 </Link>
               </Button>
-              <Button asChild size="lg" className="group px-8 py-6 rounded-full font-semibold" variant="outline">
+              <Button asChild size="lg" className="group px-8 py-6 rounded-full font-semibold bg-white/10 hover:bg-white/10 border-white/20" variant="outline">
                 <Link href="/github" target="_blank">
                   <Star className="h-5 w-5 group-hover:-rotate-12 transition-transform duration-300" fill="yellow" color="yellow" />
                   Give us a star
