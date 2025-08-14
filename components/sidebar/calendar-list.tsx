@@ -2,7 +2,7 @@
 
 import { SidebarMenu, SidebarMenuItem } from '@/components/ui/sidebar';
 import { Checkbox } from '@/components/ui/checkbox';
-import { getCalendarColor } from '@/lib/calendar-color-utils';
+import { getCalendarColor } from '@/lib/calendar-utils/calendar-color-utils';
 import { CalendarDropdown } from './calendar-dropdown';
 import type { GoogleCalendar, ColorOption } from '@/types/calendar';
 

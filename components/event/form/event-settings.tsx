@@ -12,7 +12,7 @@ import {
 } from '../../ui/select';
 import { Button } from '../../ui/button';
 import { authClient } from '@/lib/auth-client';
-import { getColorClasses, emailColorFromString } from '@/lib/calendar-color-utils';
+import { getColorClasses, emailColorFromString } from '@/lib/calendar-utils/calendar-color-utils';
 import { CopyButton } from '../../agent/copy-button';
 import { ColorPicker } from './color-picker';
 

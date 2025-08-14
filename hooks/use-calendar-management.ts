@@ -3,7 +3,7 @@
 import * as React from 'react';
 import { toast } from 'sonner';
 import { authClient } from '@/lib/auth-client';
-import { arrangeWarmToCoolGrid } from '@/lib/calendar-color-utils';
+import { arrangeWarmToCoolGrid } from '@/lib/calendar-utils/calendar-color-utils';
 import { useCalendarStore } from '@/providers/calendar-store-provider';
 import type { GoogleCalendar, ColorOption } from '@/types/calendar';
 

@@ -10,7 +10,7 @@ import {
 import { SidebarMenuButton, useSidebar } from '@/components/ui/sidebar';
 import { toast } from 'sonner';
 import { authClient } from '@/lib/auth-client';
-import { getColorClasses, emailColorFromString } from '@/lib/calendar-color-utils';
+import { getColorClasses, emailColorFromString } from '@/lib/calendar-utils/calendar-color-utils';
 import type { EmailAccount } from '@/types/calendar';
 
 interface AccountDropdownProps {

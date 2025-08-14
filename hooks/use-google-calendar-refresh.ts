@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
 import { useCalendarStore } from '@/providers/calendar-store-provider';
 import { authClient } from '@/lib/auth-client';
-import { getDateRangeForView, convertGoogleEventToLocalEvent } from '@/lib/calendar-utils';
+import { getDateRangeForView, convertGoogleEventToLocalEvent } from '@/lib/calendar-utils/calendar-utils';
 import { toast } from 'sonner';
 import type { Event } from '@/lib/store/calendar-store';
 

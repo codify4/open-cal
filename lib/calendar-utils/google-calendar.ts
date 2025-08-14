@@ -1,5 +1,5 @@
 import { authClient } from '@/lib/auth-client';
-import { convertGoogleEventToLocalEvent, getGoogleColorIdFromLocal } from '@/lib/calendar-utils';
+import { convertGoogleEventToLocalEvent, getGoogleColorIdFromLocal } from '@/lib/calendar-utils/calendar-utils';
 import type { Event } from '@/lib/store/calendar-store';
 import { toast } from 'sonner';
 

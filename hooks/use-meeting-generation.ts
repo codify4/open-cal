@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react';
 import type { Event } from '@/lib/store/calendar-store';
-import { upsertGoogleEvent } from '@/lib/google-calendar';
+import { upsertGoogleEvent } from '@/lib/calendar-utils/google-calendar';
 
 export const useMeetingGeneration = () => {
   const [isGeneratingMeeting, setIsGeneratingMeeting] = useState(false);

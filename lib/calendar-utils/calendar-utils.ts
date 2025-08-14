@@ -1,4 +1,4 @@
-import type { Event } from './store/calendar-store';
+import type { Event } from '../store/calendar-store';
 
 // Map Google event color IDs (1..11) to our local palette approximations
 const googleColorIdToLocal: Record<string, string> = {

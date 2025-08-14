@@ -1,6 +1,6 @@
 import { useCallback } from 'react';
 import { toast } from 'sonner';
-import { upsertGoogleEvent } from '@/lib/google-calendar';
+import { upsertGoogleEvent } from '@/lib/calendar-utils/google-calendar';
 import type { Event } from '@/lib/store/calendar-store';
 import { useCalendarStore } from '@/providers/calendar-store-provider';
 import { useGoogleCalendarRefresh } from './use-google-calendar-refresh';

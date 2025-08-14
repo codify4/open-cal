@@ -1,19 +1,9 @@
 'use client';
 
-import { useDroppable } from '@dnd-kit/core';
-import clsx from 'clsx';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Plus, Sparkles } from 'lucide-react';
 import React, { useMemo, useEffect } from 'react';
 import { EventCard } from '@/components/event/cards/event-card';
-import { Badge } from '@/components/ui/badge';
-import { Card } from '@/components/ui/card';
-import {
-  ContextMenu,
-  ContextMenuContent,
-  ContextMenuItem,
-  ContextMenuTrigger,
-} from '@/components/ui/context-menu';
+import { MonthDayCell } from '@/components/calendar/month/month-day-cell';
 import {
   Dialog,
   DialogContent,
@@ -24,127 +14,16 @@ import type { Event } from '@/lib/store/calendar-store';
 import { useCalendarStore } from '@/providers/calendar-store-provider';
 import { useGoogleCalendarRefresh } from '@/hooks/use-google-calendar-refresh';
 import { authClient } from '@/lib/auth-client';
+import { getDaysInMonth, getEventsForDay } from '@/lib/calendar-utils/calendar-view-utils';
 
 const pageTransitionVariants = {
-  enter: (direction: number) => ({
+  enter: () => ({ opacity: 0 }),
+  center: { opacity: 1 },
+  exit: () => ({
     opacity: 0,
-  }),
-  center: {
-    opacity: 1,
-  },
-  exit: (direction: number) => ({
-    opacity: 0,
-    transition: {
-      opacity: { duration: 0.2, ease: 'easeInOut' },
-    },
+    transition: { opacity: { duration: 0.2, ease: 'easeInOut' } },
   }),
 };
-
-interface MonthDayCellProps {
-  cellDate: Date;
-  dayNumber: number;
-  dayEvents: Event[];
-  isToday: boolean;
-  sessionPresent: boolean;
-  onAddEvent: (day: number) => void;
-  onContextMenuAddEvent: (day: number) => void;
-  onAskAI: () => void;
-}
-
-function MonthDayCell({
-  cellDate,
-  dayNumber,
-  dayEvents,
-  isToday,
-  sessionPresent,
-  onAddEvent,
-  onContextMenuAddEvent,
-  onAskAI,
-}: MonthDayCellProps) {
-  const { setNodeRef, isOver } = useDroppable({
-    id: `month-day-${cellDate.getFullYear()}-${cellDate.getMonth()}-${dayNumber}`,
-    data: {
-      date: cellDate,
-    },
-  });
-
-  const itemVariants = {
-    enter: { opacity: 0, y: 20 },
-    center: { opacity: 1, y: 0, transition: { duration: 0.3 } },
-    exit: { opacity: 0, y: -20, transition: { duration: 0.2 } },
-  };
-
-  return (
-    <ContextMenu>
-      <ContextMenuTrigger asChild>
-        <motion.div animate="center" className="group flex h-[150px] flex-col rounded border-none hover:z-50" exit="exit" initial="enter" variants={itemVariants}>
-          <Card
-            className={clsx('relative flex h-full cursor-pointer overflow-hidden border p-4 shadow-md transition-colors', isOver ? 'bg-default-100' : undefined)}
-            onClick={() => onAddEvent(dayNumber)}
-            ref={setNodeRef}
-          >
-            <div
-              className={clsx(
-                'relative mb-1 font-semibold text-3xl',
-                dayEvents.length > 0 ? 'text-primary-600' : 'text-muted-foreground',
-                isToday ? 'text-secondary-500' : ''
-              )}
-            >
-              {dayNumber}
-            </div>
-            <div className="flex w-full flex-grow flex-col gap-2">
-              <AnimatePresence mode="wait">
-                {dayEvents?.length > 0 && dayEvents[0] && (
-                  <motion.div
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -20 }}
-                    initial={{ opacity: 0, y: 20 }}
-                    key={dayEvents[0].id}
-                    transition={{ duration: 0.3 }}
-                  >
-                    <EventCard event={dayEvents[0]} minimized={true} />
-                  </motion.div>
-                )}
-              </AnimatePresence>
-              {dayEvents.length > 1 && (
-                <Badge
-                  className="absolute top-2 right-2 cursor-pointer text-xs transition duration-300 hover:bg-default-200"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    // Caller handles showing all events
-                    onAddEvent(dayNumber);
-                  }}
-                  variant="outline"
-                >
-                  {dayEvents.length > 1 ? `+${dayEvents.length - 1}` : ' '}
-                </Badge>
-              )}
-            </div>
-          </Card>
-        </motion.div>
-      </ContextMenuTrigger>
-      <ContextMenuContent className="w-40 bg-neutral-950">
-        <ContextMenuItem className="cursor-pointer py-2" onClick={() => onContextMenuAddEvent(dayNumber)}>
-          <Plus className="mr-2 h-4 w-4" />
-          Add Event
-        </ContextMenuItem>
-        <ContextMenuItem
-          className="cursor-pointer py-2"
-          onClick={() => {
-            if (!sessionPresent) {
-              onAddEvent(dayNumber);
-            } else {
-              onAskAI();
-            }
-          }}
-        >
-          <Sparkles className="mr-2 h-4 w-4" />
-          Ask AI
-        </ContextMenuItem>
-      </ContextMenuContent>
-    </ContextMenu>
-  );
-}
 
 export default function MonthView() {
   const {
@@ -163,61 +42,29 @@ export default function MonthView() {
   const direction = navigationDirection;
   const weekStartsOn = 'sunday' as 'sunday' | 'monday';
 
-  // Ensure currentDate is a Date object
-  const date =
-    currentDate instanceof Date ? currentDate : new Date(currentDate);
+  const date = currentDate instanceof Date ? currentDate : new Date(currentDate);
+  const daysInMonthArray = getDaysInMonth(date.getMonth(), date.getFullYear());
 
-  // Function to get days in month
-  const getDaysInMonth = (month: number, year: number) => {
-    return Array.from(
-      { length: new Date(year, month + 1, 0).getDate() },
-      (_, index) => ({
-        day: index + 1,
-        events: [],
-      })
-    );
-  };
-
-  const daysInMonth = getDaysInMonth(date.getMonth(), date.getFullYear());
-
-  // Fetch events when component mounts or dependencies change
   useEffect(() => {
     if (session?.user?.id && visibleCalendarIds.length > 0) {
       refreshEvents();
     }
   }, [refreshEvents, session?.user?.id, visibleCalendarIds]);
 
-  // Combine local events with Google Calendar events
   const allEvents = useMemo(() => {
     const localEvents = events || [];
     const googleCalEvents = googleEvents || [];
-    
-    // Create a map of Google events by ID to avoid duplicates
     const googleEventsMap = new Map(googleCalEvents.map(event => [event.id, event]));
-    
-    // Filter out local events that have Google equivalents
     const filteredLocalEvents = localEvents.filter(event => !googleEventsMap.has(event.id));
-    
     return [...filteredLocalEvents, ...googleCalEvents];
   }, [events, googleEvents]);
 
-  // Function to get events for day
-  const getEventsForDay = (day: number, currentDate: Date): Event[] => {
-    const source = allEvents;
-    const dayEvents = source.filter((event: Event) => {
-      const eventDate = new Date(event.startDate);
-      const matches =
-        eventDate.getDate() === day &&
-        eventDate.getMonth() === currentDate.getMonth() &&
-        eventDate.getFullYear() === currentDate.getFullYear();
-      return matches;
-    });
-    return dayEvents;
+  const getEventsForDayNumber = (day: number): Event[] => {
+    const targetDate = new Date(date.getFullYear(), date.getMonth(), day);
+    return getEventsForDay(allEvents, targetDate);
   };
 
-
-
-  function handleAddEvent(selectedDay: number) {
+  const handleAddEvent = (selectedDay: number) => {
     if (!session) {
       authClient.signIn.social({
         provider: 'google',
@@ -227,28 +74,11 @@ export default function MonthView() {
       });
       return;
     }
-    const startDate = new Date(
-      date.getFullYear(),
-      date.getMonth(),
-      selectedDay,
-      0,
-      0,
-      0
-    );
-
-    const endDate = new Date(
-      date.getFullYear(),
-      date.getMonth(),
-      selectedDay,
-      23,
-      59,
-      59
-    );
-
+    const startDate = new Date(date.getFullYear(), date.getMonth(), selectedDay, 0, 0, 0);
     openEventSidebarForNewEvent(startDate);
-  }
+  };
 
-  function handleContextMenuAddEvent(selectedDay: number) {
+  const handleContextMenuAddEvent = (selectedDay: number) => {
     if (!session) {
       authClient.signIn.social({
         provider: 'google',
@@ -258,45 +88,19 @@ export default function MonthView() {
       });
       return;
     }
-    const startDate = new Date(
-      date.getFullYear(),
-      date.getMonth(),
-      selectedDay,
-      12,
-      0,
-      0
-    );
-
+    const startDate = new Date(date.getFullYear(), date.getMonth(), selectedDay, 12, 0, 0);
     openEventSidebarForNewEvent(startDate);
-  }
-
-  function handleShowAllEvents(events: Event[]) {
-    setSelectedEvents(events);
-    setIsEventsDialogOpen(true);
-  }
-
-  const itemVariants = {
-    enter: { opacity: 0, y: 20 },
-    center: { opacity: 1, y: 0, transition: { duration: 0.3 } },
-    exit: { opacity: 0, y: -20, transition: { duration: 0.2 } },
   };
 
-  const daysOfWeek =
-    weekStartsOn === 'monday'
-      ? ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
-      : ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  const daysOfWeek = weekStartsOn === 'monday'
+    ? ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+    : ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
   const firstDayOfMonth = new Date(date.getFullYear(), date.getMonth(), 1);
-
-  const startOffset =
-    (firstDayOfMonth.getDay() - (weekStartsOn === 'monday' ? 1 : 0) + 7) % 7;
-
+  const startOffset = (firstDayOfMonth.getDay() - (weekStartsOn === 'monday' ? 1 : 0) + 7) % 7;
   const prevMonth = new Date(date.getFullYear(), date.getMonth() - 1, 1);
-  const lastDateOfPrevMonth = new Date(
-    prevMonth.getFullYear(),
-    prevMonth.getMonth() + 1,
-    0
-  ).getDate();
+  const lastDateOfPrevMonth = new Date(prevMonth.getFullYear(), prevMonth.getMonth() + 1, 0).getDate();
+
   return (
     <div>
       <AnimatePresence custom={direction} initial={false} mode="wait">
@@ -319,36 +123,33 @@ export default function MonthView() {
           }}
         >
           {daysOfWeek.map((day, idx) => (
-            <div
-              className="my-8 text-left font-medium text-4xl tracking-tighter"
-              key={idx}
-            >
+            <div className="my-8 text-left font-medium text-4xl tracking-tighter" key={idx}>
               {day}
             </div>
           ))}
 
           {Array.from({ length: startOffset }).map((_, idx) => (
             <div className="h-[150px] opacity-50" key={`offset-${idx}`}>
-              <div className={clsx('relative mb-1 font-semibold text-3xl')}>
+              <div className="relative mb-1 font-semibold text-3xl">
                 {lastDateOfPrevMonth - startOffset + idx + 1}
               </div>
             </div>
           ))}
 
-          {daysInMonth.map((dayObj) => {
-            const dayEventsForCell = getEventsForDay(dayObj.day, date);
-            const cellDate = new Date(date.getFullYear(), date.getMonth(), dayObj.day);
+          {daysInMonthArray.map((day) => {
+            const dayEventsForCell = getEventsForDayNumber(day);
+            const cellDate = new Date(date.getFullYear(), date.getMonth(), day);
             const isToday =
-              new Date().getDate() === dayObj.day &&
+              new Date().getDate() === day &&
               new Date().getMonth() === date.getMonth() &&
               new Date().getFullYear() === date.getFullYear();
             return (
               <MonthDayCell
                 cellDate={cellDate}
                 dayEvents={dayEventsForCell}
-                dayNumber={dayObj.day}
+                dayNumber={day}
                 isToday={isToday}
-                key={`day-${dayObj.day}`}
+                key={`day-${day}`}
                 onAddEvent={handleAddEvent}
                 onAskAI={() => toggleChatSidebar()}
                 onContextMenuAddEvent={handleContextMenuAddEvent}
@@ -365,15 +166,12 @@ export default function MonthView() {
             <DialogTitle>
               Events for{' '}
               {selectedEvents.length > 0 &&
-                new Date(selectedEvents[0].startDate).toLocaleDateString(
-                  'en-US',
-                  {
-                    weekday: 'long',
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric',
-                  }
-                )}
+                new Date(selectedEvents[0].startDate).toLocaleDateString('en-US', {
+                  weekday: 'long',
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric',
+                })}
             </DialogTitle>
           </DialogHeader>
           <div className="flex flex-col gap-2">
