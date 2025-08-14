@@ -17,6 +17,7 @@ import { GraphicDoodle } from './graphics';
 import { authClient } from '@/lib/auth-client';
 import { useGoogleCalendarRefresh } from '@/hooks/use-google-calendar-refresh';
 import { toast } from 'sonner';
+import { getCardColor } from '@/lib/calendar-utils/calendar-color-utils';
 
 interface EventCardProps {
   event: Event;
@@ -28,6 +29,7 @@ interface EventCardProps {
   onEdit?: (event: Event) => void;
   onDelete?: (eventId: string) => void;
   onDuplicate?: (event: Event) => void;
+  onFocus?: (eventId: string) => void;
 }
 
 const ensureDate = (date: Date | string): Date => {
@@ -41,6 +43,7 @@ export const EventCard = ({
   onResize,
   onResizeEnd,
   onWidthResize,
+  onFocus,
 }: EventCardProps) => {
   const { openEventSidebarForEdit, deleteEvent, saveEvent } = useCalendarStore(
     (state) => state
@@ -57,6 +60,7 @@ export const EventCard = ({
   const [originalEndDate, setOriginalEndDate] = useState<Date | null>(null);
   const [initialHeight, setInitialHeight] = useState(0);
   const [initialWidth, setInitialWidth] = useState(0);
+  const [isFocused, setIsFocused] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
   const resizeHandleRef = useRef<HTMLDivElement>(null);
   const horizontalResizeHandleRef = useRef<HTMLDivElement>(null);
@@ -66,6 +70,28 @@ export const EventCard = ({
   useEffect(() => {
     setIsClient(true);
   }, []);
+
+  const handleCardClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsFocused(true);
+    
+    if (onFocus) {
+      onFocus(event.id);
+    }
+  };
+
+  const handleOutsideClick = (e: MouseEvent) => {
+    if (cardRef.current && !cardRef.current.contains(e.target as Node)) {
+      setIsFocused(false);
+    }
+  };
+
+  useEffect(() => {
+    if (isFocused) {
+      document.addEventListener('click', handleOutsideClick);
+      return () => document.removeEventListener('click', handleOutsideClick);
+    }
+  }, [isFocused]);
 
   const handleEdit = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -125,37 +151,6 @@ export const EventCard = ({
     navigator.clipboard.writeText(JSON.stringify(event, null, 2));
   };
 
-  const getColorClasses = (color: string) => {
-    const colorMap: Record<string, string> = {
-      // Primary colors
-      blue: 'bg-blue-500/20 border-blue-500/30 text-blue-700 dark:bg-blue-500/40 dark:text-blue-100',
-      green: 'bg-green-500/20 border-green-500/30 text-green-700 dark:bg-green-500/40 dark:text-green-100',
-      red: 'bg-red-500/20 border-red-500/30 text-red-700 dark:bg-red-500/40 dark:text-red-100',
-      yellow: 'bg-yellow-500/20 border-yellow-500/30 text-yellow-700 dark:bg-yellow-500/40 dark:text-yellow-100',
-      purple: 'bg-purple-500/20 border-purple-500/30 text-purple-700 dark:bg-purple-500/40 dark:text-purple-100',
-      orange: 'bg-orange-500/20 border-orange-500/30 text-orange-700 dark:bg-orange-500/40 dark:text-orange-100',
-      pink: 'bg-pink-500/20 border-pink-500/30 text-pink-700 dark:bg-pink-500/40 dark:text-pink-100',
-      gray: 'bg-gray-500/20 border-gray-500/30 text-gray-700 dark:bg-gray-500/40 dark:text-gray-100',
-      
-      // Extended colors
-      indigo: 'bg-indigo-500/20 border-indigo-500/30 text-indigo-700 dark:bg-indigo-500/40 dark:text-indigo-100',
-      teal: 'bg-teal-500/20 border-teal-500/30 text-teal-700 dark:bg-teal-500/40 dark:text-teal-100',
-      cyan: 'bg-cyan-500/20 border-cyan-500/30 text-cyan-700 dark:bg-cyan-500/40 dark:text-cyan-100',
-      lime: 'bg-lime-500/20 border-lime-500/30 text-lime-700 dark:bg-lime-500/40 dark:text-lime-100',
-      amber: 'bg-amber-500/20 border-amber-500/30 text-amber-700 dark:bg-amber-500/40 dark:text-amber-100',
-      emerald: 'bg-emerald-500/20 border-emerald-500/30 text-emerald-700 dark:bg-emerald-500/40 dark:text-emerald-100',
-      violet: 'bg-violet-500/20 border-violet-500/30 text-violet-700 dark:bg-violet-500/40 dark:text-violet-100',
-      rose: 'bg-rose-500/20 border-rose-500/30 text-rose-700 dark:bg-rose-500/40 dark:text-rose-100',
-      slate: 'bg-slate-500/20 border-slate-500/30 text-slate-700 dark:bg-slate-500/40 dark:text-slate-100',
-      zinc: 'bg-zinc-500/20 border-zinc-500/30 text-zinc-700 dark:bg-zinc-500/40 dark:text-zinc-100',
-      neutral: 'bg-neutral-500/20 border-neutral-500/30 text-neutral-700 dark:bg-neutral-500/40 dark:text-neutral-100',
-      stone: 'bg-stone-500/20 border-stone-500/30 text-stone-700 dark:bg-stone-500/40 dark:text-stone-100',
-      sky: 'bg-sky-500/20 border-sky-500/30 text-sky-700 dark:bg-sky-500/40 dark:text-sky-100',
-      fuchsia: 'bg-fuchsia-500/20 border-fuchsia-500/30 text-fuchsia-700 dark:bg-fuchsia-500/40 dark:text-fuchsia-100',
-    };
-    return colorMap[color] || colorMap.blue;
-  };
-
   const getAccountColor = (account: string) => {
     const accountMap: Record<string, string> = {
       'john.doe@gmail.com': 'bg-red-500',
@@ -163,7 +158,7 @@ export const EventCard = ({
       'work@company.com': 'bg-green-500',
       'personal@icloud.com': 'bg-purple-500',
     };
-    return accountMap[account] || getColorClasses(event.color);
+    return accountMap[account] || getCardColor(event.color);
   };
 
   const formatTime = (date: Date | string) => {
@@ -375,22 +370,24 @@ export const EventCard = ({
         <div
           className={cn(
             'group relative rounded-sm border p-2 text-xs transition-all duration-200 hover:shadow-md',
-            getColorClasses(event.color),
+            getCardColor(event.color, isFocused),
             event.isAllDay && 'border-l-4',
             isClient && isDragging && 'opacity-50',
             minimized && 'max-h-[40px] min-h-[20px] overflow-hidden',
             isDragging && 'z-[9998]',
+            isFocused ? 'opacity-100' : 'opacity-80',
             className
           )}
           ref={cardRef}
           style={cardStyle}
+          onClick={handleCardClick}
         >
           <div
             className={
-              '-right-0 pointer-events-none absolute top-0 size-12 overflow-hidden'
+              'absolute top-1 right-1 pointer-events-none size-8 overflow-hidden opacity-50'
             }
           >
-            <GraphicDoodle color={event.color} size="md" />
+            <GraphicDoodle color={event.color} size="sm" />
           </div>
 
           <div
@@ -401,10 +398,10 @@ export const EventCard = ({
           >
             <div
               className={cn(
-                'w-[2px]',
+                'w-[2px] rounded-sm',
                 event.account
                   ? getAccountColor(event.account)
-                  : getColorClasses(event.color),
+                  : getCardColor(event.color, isFocused),
                 minimized ? 'min-h-[20px]' : 'min-h-[30px]'
               )}
             />
@@ -413,14 +410,14 @@ export const EventCard = ({
                 {event.type === 'birthday' ? (
                   <Cake className="h-3 w-3" />
                 ) : (
-                  <Calendar className="h-3 w-3" />
+                  null
                 )}
-                <h4 className="truncate font-medium">
+                <p className="font-medium text-xs leading-tight break-words flex-1">
                   {event.title || 'Untitled Event'}
-                </h4>
+                </p>
               </div>
               {!minimized && (
-                <p className="mt-1 truncate text-xs opacity-80">
+                <p className="mt-0.5 text-[11px] opacity-80 leading-tight break-words">
                   {timeDisplay}
                 </p>
               )}

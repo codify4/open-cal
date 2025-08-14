@@ -6,6 +6,7 @@ import { TimeSlot } from '@/components/calendar/shared/time-slot';
 import type { Event } from '@/lib/store/calendar-store';
 import { calculateEventStyling } from '@/lib/calendar-utils/event-styling';
 import { groupEventsByTimePeriod } from '@/lib/calendar-utils/calendar-view-utils';
+import { useState } from 'react';
 
 interface WeekDayColumnProps {
   dayIndex: number;
@@ -39,6 +40,17 @@ export const WeekDayColumn = ({
   const timeGroups = groupEventsByTimePeriod(dayEvents);
   const maxEventsToShow = 10;
   const visibleEvents = dayEvents?.slice(0, maxEventsToShow);
+  const [focusedEventId, setFocusedEventId] = useState<string | null>(null);
+
+  const handleEventFocus = (eventId: string) => {
+    setFocusedEventId(eventId);
+  };
+
+  const handleColumnClick = (e: React.MouseEvent) => {
+    if (e.target === e.currentTarget) {
+      setFocusedEventId(null);
+    }
+  };
 
   return (
     <ContextMenu key={`day-${dayIndex}`}>
@@ -46,6 +58,7 @@ export const WeekDayColumn = ({
         <div
           className="relative z-20 col-span-1 overflow-hidden border-border border-r border-b text-center text-muted-foreground text-sm transition duration-300"
           onContextMenu={onContextMenuOpen}
+          onClick={handleColumnClick}
         >
           <AnimatePresence initial={false}>
             {visibleEvents?.map((event) => {
@@ -65,6 +78,7 @@ export const WeekDayColumn = ({
                 eventsInSamePeriod,
                 periodIndex,
                 adjustForPeriod: true,
+                focusedEventId: focusedEventId || undefined,
               });
 
               return (
@@ -93,6 +107,7 @@ export const WeekDayColumn = ({
                       updateEventTime(eventId, newStartDate, newEndDate);
                     }}
                     onResizeEnd={onResizeEnd}
+                    onFocus={handleEventFocus}
                   />
                 </motion.div>
               );
