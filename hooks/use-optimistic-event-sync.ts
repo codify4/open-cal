@@ -17,7 +17,8 @@ export const useOptimisticEventSync = () => {
     events, 
     googleEvents, 
     updateEventTime, 
-    replaceEvent 
+    replaceEvent,
+    clearOptimisticOverride 
   } = useCalendarStore((state) => state);
   const { refreshEvents } = useGoogleCalendarRefresh();
 
@@ -66,6 +67,7 @@ export const useOptimisticEventSync = () => {
         snapshot.previousStartDate, 
         snapshot.previousEndDate
       );
+      clearOptimisticOverride(snapshot.eventId);
     };
 
     return { snapshot, updatedEvent, revert };
@@ -81,6 +83,7 @@ export const useOptimisticEventSync = () => {
       
       if (result?.success && result.event) {
         replaceEvent(result.event);
+        clearOptimisticOverride(result.event.id);
       } else {
         throw new Error(result?.error || 'Unknown error');
       }

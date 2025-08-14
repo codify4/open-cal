@@ -1,6 +1,5 @@
 import { persist } from 'zustand/middleware';
 import { createStore } from 'zustand/vanilla';
-import { getDateRangeForView } from '../calendar-utils';
 
 export type ViewType = 'day' | 'week' | 'month';
 
@@ -80,6 +79,8 @@ export interface CalendarState {
   
   // Optimistic update counter to force re-renders
   optimisticUpdateCounter: number;
+  // Per-event optimistic overrides to prevent flicker on background refresh
+  optimisticOverrides: Record<string, { startDate: Date; endDate: Date }>;
 }
 
 export interface CalendarActions {
@@ -93,6 +94,7 @@ export interface CalendarActions {
   ) => void;
   replaceEvent: (event: Event) => void;
   incrementOptimisticCounter: () => void;
+  clearOptimisticOverride: (eventId: string) => void;
 
   toggleChatSidebar: () => void;
   setChatFullscreen: (fullscreen: boolean) => void;
@@ -210,6 +212,7 @@ export const defaultInitState: CalendarState = {
   
   // Optimistic update counter
   optimisticUpdateCounter: 0,
+  optimisticOverrides: {},
 };
 
 export const createCalendarStore = (
@@ -242,29 +245,33 @@ export const createCalendarStore = (
 
         replaceEvent: (event: Event) =>
           set((state) => {
-            // First try to replace in local events
             const eventIndex = state.events.findIndex((e) => e.id === event.id);
+            const googleEventIndex = state.googleEvents.findIndex((e) => e.id === event.id);
+
+            if (eventIndex < 0 && googleEventIndex < 0) {
+              return state;
+            }
+
+            const newState: Partial<CalendarState> = {};
             if (eventIndex >= 0) {
               const updatedEvents = [...state.events];
               updatedEvents[eventIndex] = event;
-              return { 
-                events: updatedEvents,
-                optimisticUpdateCounter: state.optimisticUpdateCounter + 1
-              };
+              newState.events = updatedEvents;
             }
-            
-            // Then try to replace in Google events
-            const googleEventIndex = state.googleEvents.findIndex((e) => e.id === event.id);
             if (googleEventIndex >= 0) {
               const updatedGoogleEvents = [...state.googleEvents];
               updatedGoogleEvents[googleEventIndex] = event;
-              return { 
-                googleEvents: updatedGoogleEvents,
-                optimisticUpdateCounter: state.optimisticUpdateCounter + 1
-              };
+              newState.googleEvents = updatedGoogleEvents;
             }
-            
-            return state;
+
+            return {
+              ...newState,
+              optimisticUpdateCounter: state.optimisticUpdateCounter + 1,
+              optimisticOverrides: {
+                ...state.optimisticOverrides,
+                [event.id]: { startDate: event.startDate, endDate: event.endDate },
+              },
+            } as CalendarState;
           }),
 
         updateEventTime: (
@@ -273,8 +280,14 @@ export const createCalendarStore = (
           newEndDate: Date
         ) =>
           set((state) => {
-            // First try to update in local events
             const eventIndex = state.events.findIndex((e) => e.id === eventId);
+            const googleEventIndex = state.googleEvents.findIndex((e) => e.id === eventId);
+
+            if (eventIndex < 0 && googleEventIndex < 0) {
+              return state;
+            }
+
+            const newState: Partial<CalendarState> = {};
             if (eventIndex >= 0) {
               const updatedEvents = [...state.events];
               updatedEvents[eventIndex] = {
@@ -282,14 +295,8 @@ export const createCalendarStore = (
                 startDate: newStartDate,
                 endDate: newEndDate,
               };
-              return { 
-                events: updatedEvents,
-                optimisticUpdateCounter: state.optimisticUpdateCounter + 1
-              };
+              newState.events = updatedEvents;
             }
-            
-            // Then try to update in Google events
-            const googleEventIndex = state.googleEvents.findIndex((e) => e.id === eventId);
             if (googleEventIndex >= 0) {
               const updatedGoogleEvents = [...state.googleEvents];
               updatedGoogleEvents[googleEventIndex] = {
@@ -297,13 +304,23 @@ export const createCalendarStore = (
                 startDate: newStartDate,
                 endDate: newEndDate,
               };
-              return { 
-                googleEvents: updatedGoogleEvents,
-                optimisticUpdateCounter: state.optimisticUpdateCounter + 1
-              };
+              newState.googleEvents = updatedGoogleEvents;
             }
-            
-            return state;
+
+            return {
+              ...newState,
+              optimisticUpdateCounter: state.optimisticUpdateCounter + 1,
+              optimisticOverrides: {
+                ...state.optimisticOverrides,
+                [eventId]: { startDate: newStartDate, endDate: newEndDate },
+              },
+            } as CalendarState;
+          }),
+
+        clearOptimisticOverride: (eventId: string) =>
+          set((state) => {
+            const { [eventId]: _omit, ...rest } = state.optimisticOverrides;
+            return { optimisticOverrides: rest } as Partial<CalendarState>;
           }),
 
         incrementOptimisticCounter: () =>
@@ -533,7 +550,17 @@ export const createCalendarStore = (
         },
 
         setGoogleEvents: (events) =>
-          set({ googleEvents: events, isFetchingEvents: false, eventsLastFetched: new Date() }),
+          set((state) => {
+            const merged = events.map((e) => {
+              const override = state.optimisticOverrides[e.id];
+              return override ? { ...e, ...override } : e;
+            });
+            return {
+              googleEvents: merged,
+              isFetchingEvents: false,
+              eventsLastFetched: new Date(),
+            };
+          }),
 
         setVisibleCalendarIds: (calendarIds) =>
           set({ visibleCalendarIds: calendarIds }),

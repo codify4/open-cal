@@ -22,6 +22,7 @@ import { useCalendarStore } from '@/providers/calendar-store-provider';
 import { useOptimisticEventSync } from '@/hooks/use-optimistic-event-sync';
 import AddEventSidebar from '../event/add-event-sidebar';
 
+
 export function CalendarLayoutClient({
   children,
 }: {
@@ -37,6 +38,8 @@ export function CalendarLayoutClient({
     closeEventSidebar,
     setCurrentDate,
     currentDate,
+    events,
+    googleEvents,
     updateEventTime,
   } = useCalendarStore((state) => state);
   const { optimisticUpdate, commit } = useOptimisticEventSync();
@@ -50,27 +53,28 @@ export function CalendarLayoutClient({
   };
 
   const handleDragStart = (event: DragStartEvent) => {
-    console.log('Drag started:', event);
     if (event.active.data.current) {
       setActiveEvent(event.active.data.current as Event);
     }
   };
 
   const handleDragEnd = (event: DragEndEvent) => {
-    console.log('Drag ended:', event);
     setActiveEvent(null);
 
     const { active, over } = event;
 
-    if (over && active.data.current) {
-      const draggedEvent = active.data.current as Event;
+    if (over) {
+      const eventId = String(active.id);
+      const fromActive = (active.data.current as Event | null) || null;
+      const fromLocal = events.find((e) => e.id === eventId) || null;
+      const fromGoogle = googleEvents.find((e) => e.id === eventId) || null;
+      const draggedEvent = fromActive || fromLocal || fromGoogle;
       const dropData = over.data.current as {
-        dayIndex: number;
-        hourIndex: number;
+        dayIndex?: number;
+        hourIndex?: number;
         date: Date;
       };
-
-      if (dropData) {
+      if (draggedEvent && dropData) {
         const originalStartDate = ensureDate(draggedEvent.startDate);
         const originalEndDate = ensureDate(draggedEvent.endDate);
 
@@ -80,7 +84,11 @@ export function CalendarLayoutClient({
         const originalMilliseconds = originalStartDate.getMilliseconds();
 
         const newStartDate = new Date(dropData.date);
-        newStartDate.setHours(dropData.hourIndex);
+        const hourToSet =
+          typeof dropData.hourIndex === 'number'
+            ? dropData.hourIndex
+            : originalStartDate.getHours();
+        newStartDate.setHours(hourToSet);
         newStartDate.setMinutes(originalMinutes);
         newStartDate.setSeconds(originalSeconds);
         newStartDate.setMilliseconds(originalMilliseconds);
@@ -88,13 +96,11 @@ export function CalendarLayoutClient({
         const duration =
           originalEndDate.getTime() - originalStartDate.getTime();
         const newEndDate = new Date(newStartDate.getTime() + duration);
-
         // Use optimistic update + background sync
         const result = optimisticUpdate(draggedEvent.id, newStartDate, newEndDate);
         
         if (result) {
           const { updatedEvent, revert } = result;
-          
           // Commit to Google Calendar in the background
           commit(updatedEvent).catch(() => {
             revert();
@@ -108,7 +114,6 @@ export function CalendarLayoutClient({
         const isDifferentMonth =
           newStartDate.getMonth() !== currentDate.getMonth() ||
           newStartDate.getFullYear() !== currentDate.getFullYear();
-
         if (isDifferentMonth) {
           setCurrentDate(newStartDate);
         }

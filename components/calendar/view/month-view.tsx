@@ -1,5 +1,6 @@
 'use client';
 
+import { useDroppable } from '@dnd-kit/core';
 import clsx from 'clsx';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Plus, Sparkles } from 'lucide-react';
@@ -38,6 +39,112 @@ const pageTransitionVariants = {
     },
   }),
 };
+
+interface MonthDayCellProps {
+  cellDate: Date;
+  dayNumber: number;
+  dayEvents: Event[];
+  isToday: boolean;
+  sessionPresent: boolean;
+  onAddEvent: (day: number) => void;
+  onContextMenuAddEvent: (day: number) => void;
+  onAskAI: () => void;
+}
+
+function MonthDayCell({
+  cellDate,
+  dayNumber,
+  dayEvents,
+  isToday,
+  sessionPresent,
+  onAddEvent,
+  onContextMenuAddEvent,
+  onAskAI,
+}: MonthDayCellProps) {
+  const { setNodeRef, isOver } = useDroppable({
+    id: `month-day-${cellDate.getFullYear()}-${cellDate.getMonth()}-${dayNumber}`,
+    data: {
+      date: cellDate,
+    },
+  });
+
+  const itemVariants = {
+    enter: { opacity: 0, y: 20 },
+    center: { opacity: 1, y: 0, transition: { duration: 0.3 } },
+    exit: { opacity: 0, y: -20, transition: { duration: 0.2 } },
+  };
+
+  return (
+    <ContextMenu>
+      <ContextMenuTrigger asChild>
+        <motion.div animate="center" className="group flex h-[150px] flex-col rounded border-none hover:z-50" exit="exit" initial="enter" variants={itemVariants}>
+          <Card
+            className={clsx('relative flex h-full cursor-pointer overflow-hidden border p-4 shadow-md transition-colors', isOver ? 'bg-default-100' : undefined)}
+            onClick={() => onAddEvent(dayNumber)}
+            ref={setNodeRef}
+          >
+            <div
+              className={clsx(
+                'relative mb-1 font-semibold text-3xl',
+                dayEvents.length > 0 ? 'text-primary-600' : 'text-muted-foreground',
+                isToday ? 'text-secondary-500' : ''
+              )}
+            >
+              {dayNumber}
+            </div>
+            <div className="flex w-full flex-grow flex-col gap-2">
+              <AnimatePresence mode="wait">
+                {dayEvents?.length > 0 && dayEvents[0] && (
+                  <motion.div
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -20 }}
+                    initial={{ opacity: 0, y: 20 }}
+                    key={dayEvents[0].id}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <EventCard event={dayEvents[0]} minimized={true} />
+                  </motion.div>
+                )}
+              </AnimatePresence>
+              {dayEvents.length > 1 && (
+                <Badge
+                  className="absolute top-2 right-2 cursor-pointer text-xs transition duration-300 hover:bg-default-200"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    // Caller handles showing all events
+                    onAddEvent(dayNumber);
+                  }}
+                  variant="outline"
+                >
+                  {dayEvents.length > 1 ? `+${dayEvents.length - 1}` : ' '}
+                </Badge>
+              )}
+            </div>
+          </Card>
+        </motion.div>
+      </ContextMenuTrigger>
+      <ContextMenuContent className="w-40 bg-neutral-950">
+        <ContextMenuItem className="cursor-pointer py-2" onClick={() => onContextMenuAddEvent(dayNumber)}>
+          <Plus className="mr-2 h-4 w-4" />
+          Add Event
+        </ContextMenuItem>
+        <ContextMenuItem
+          className="cursor-pointer py-2"
+          onClick={() => {
+            if (!sessionPresent) {
+              onAddEvent(dayNumber);
+            } else {
+              onAskAI();
+            }
+          }}
+        >
+          <Sparkles className="mr-2 h-4 w-4" />
+          Ask AI
+        </ContextMenuItem>
+      </ContextMenuContent>
+    </ContextMenu>
+  );
+}
 
 export default function MonthView() {
   const {
@@ -229,102 +336,24 @@ export default function MonthView() {
           ))}
 
           {daysInMonth.map((dayObj) => {
-            const dayEvents = getEventsForDay(dayObj.day, date);
-
+            const dayEventsForCell = getEventsForDay(dayObj.day, date);
+            const cellDate = new Date(date.getFullYear(), date.getMonth(), dayObj.day);
+            const isToday =
+              new Date().getDate() === dayObj.day &&
+              new Date().getMonth() === date.getMonth() &&
+              new Date().getFullYear() === date.getFullYear();
             return (
-              <ContextMenu key={`day-${dayObj.day}`}>
-                <ContextMenuTrigger asChild>
-                  <motion.div
-                    animate="center"
-                    className="group flex h-[150px] flex-col rounded border-none hover:z-50"
-                    exit="exit"
-                    initial="enter"
-                    variants={itemVariants}
-                  >
-                    <Card
-                      className="relative flex h-full cursor-pointer overflow-hidden border p-4 shadow-md"
-                      onClick={() => handleAddEvent(dayObj.day)}
-                    >
-                      <div
-                        className={clsx(
-                          'relative mb-1 font-semibold text-3xl',
-                          dayEvents.length > 0
-                            ? 'text-primary-600'
-                            : 'text-muted-foreground',
-                          new Date().getDate() === dayObj.day &&
-                            new Date().getMonth() === date.getMonth() &&
-                            new Date().getFullYear() === date.getFullYear()
-                            ? 'text-secondary-500'
-                            : ''
-                        )}
-                      >
-                        {dayObj.day}
-                      </div>
-                      <div className="flex w-full flex-grow flex-col gap-2">
-                        <AnimatePresence mode="wait">
-                          {dayEvents?.length > 0 && dayEvents[0] && (
-                            <motion.div
-                              animate={{ opacity: 1, y: 0 }}
-                              exit={{ opacity: 0, y: -20 }}
-                              initial={{ opacity: 0, y: 20 }}
-                              key={dayEvents[0].id}
-                              transition={{ duration: 0.3 }}
-                            >
-                              <EventCard
-                                event={dayEvents[0]}
-                                minimized={true}
-                              />
-                            </motion.div>
-                          )}
-                        </AnimatePresence>
-                        {dayEvents.length > 1 && (
-                          <Badge
-                            className="absolute top-2 right-2 cursor-pointer text-xs transition duration-300 hover:bg-default-200"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleShowAllEvents(dayEvents);
-                            }}
-                            variant="outline"
-                          >
-                            {dayEvents.length > 1
-                              ? `+${dayEvents.length - 1}`
-                              : ' '}
-                          </Badge>
-                        )}
-                      </div>
-                    </Card>
-                  </motion.div>
-                </ContextMenuTrigger>
-                <ContextMenuContent className="w-40 bg-neutral-950">
-                  <ContextMenuItem
-                    className="cursor-pointer py-2"
-                    onClick={() => {
-                      handleContextMenuAddEvent(dayObj.day);
-                    }}
-                  >
-                    <Plus className="mr-2 h-4 w-4" />
-                    Add Event
-                  </ContextMenuItem>
-                  <ContextMenuItem
-                    className="cursor-pointer py-2"
-                    onClick={() => {
-                      if (!session) {
-                        authClient.signIn.social({
-                          provider: 'google',
-                          callbackURL: `${window.location.origin}/calendar`,
-                          errorCallbackURL: `${window.location.origin}/calendar`,
-                          newUserCallbackURL: `${window.location.origin}/calendar`,
-                        });
-                      } else {
-                        toggleChatSidebar();
-                      }
-                    }}
-                  >
-                    <Sparkles className="mr-2 h-4 w-4" />
-                    Ask AI
-                  </ContextMenuItem>
-                </ContextMenuContent>
-              </ContextMenu>
+              <MonthDayCell
+                cellDate={cellDate}
+                dayEvents={dayEventsForCell}
+                dayNumber={dayObj.day}
+                isToday={isToday}
+                key={`day-${dayObj.day}`}
+                onAddEvent={handleAddEvent}
+                onAskAI={() => toggleChatSidebar()}
+                onContextMenuAddEvent={handleContextMenuAddEvent}
+                sessionPresent={Boolean(session)}
+              />
             );
           })}
         </motion.div>
