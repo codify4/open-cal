@@ -12,9 +12,11 @@ import {
 } from '../../ui/select';
 import { Button } from '../../ui/button';
 import { authClient } from '@/lib/auth-client';
-import { getColorClasses, emailColorFromString } from '@/lib/calendar-utils/calendar-color-utils';
+import { getColorClasses, getCalendarColor } from '@/lib/calendar-utils/calendar-color-utils';
 import { CopyButton } from '../../agent/copy-button';
 import { ColorPicker } from './color-picker';
+import { useCalendarManagement } from '@/hooks/use-calendar-management';
+import type { GoogleCalendar } from '@/types/calendar';
 
 interface EventSettingsProps {
   meetingType: string;
@@ -43,12 +45,64 @@ export const EventSettings = ({
 }: EventSettingsProps) => {
   const { data: session } = authClient.useSession();
   const sessionEmail = session?.user?.email || '';
+  const { fetchedCalendars } = useCalendarManagement();
+
+
+
+  const groupedCalendars = React.useMemo(() => {
+    const groups: Record<string, GoogleCalendar[]> = {};
+    
+    if (sessionEmail) {
+      groups[sessionEmail] = [];
+    }
+    
+    fetchedCalendars.forEach(cal => {
+      if (sessionEmail) {
+        if (!groups[sessionEmail]) {
+          groups[sessionEmail] = [];
+        }
+        groups[sessionEmail].push(cal);
+      }
+    });
+    
+    return groups;
+  }, [fetchedCalendars, sessionEmail]);
+
+  const selectedCalendar = React.useMemo(() => {
+    if (!calendar) return null;
+    return fetchedCalendars.find(cal => cal.id === calendar) || null;
+  }, [calendar, fetchedCalendars]);
+
+  const COLORS = [
+    { id: 'red', bg: 'bg-red-500' },
+    { id: 'orange', bg: 'bg-orange-500' },
+    { id: 'amber', bg: 'bg-amber-500' },
+    { id: 'yellow', bg: 'bg-yellow-500' },
+    { id: 'lime', bg: 'bg-lime-500' },
+    { id: 'green', bg: 'bg-green-500' },
+    { id: 'emerald', bg: 'bg-emerald-500' },
+    { id: 'teal', bg: 'bg-teal-500' },
+    { id: 'cyan', bg: 'bg-cyan-500' },
+    { id: 'sky', bg: 'bg-sky-500' },
+    { id: 'blue', bg: 'bg-blue-500' },
+    { id: 'indigo', bg: 'bg-indigo-500' },
+    { id: 'violet', bg: 'bg-violet-500' },
+    { id: 'purple', bg: 'bg-purple-500' },
+    { id: 'fuchsia', bg: 'bg-fuchsia-500' },
+    { id: 'pink', bg: 'bg-pink-500' },
+    { id: 'rose', bg: 'bg-rose-500' },
+    { id: 'slate', bg: 'bg-slate-500' },
+    { id: 'gray', bg: 'bg-gray-500' },
+    { id: 'zinc', bg: 'bg-zinc-500' },
+    { id: 'neutral', bg: 'bg-neutral-500' },
+    { id: 'stone', bg: 'bg-stone-500' }
+  ];
 
   return (
     <div className="flex flex-col gap-2 text-muted-foreground text-sm">
       <div className="flex items-center gap-2 ">
         <Video className="h-4 w-4" />
-                 <Select onValueChange={onMeetingTypeChange} value={meetingType} disabled={isGeneratingMeeting}>
+        <Select onValueChange={onMeetingTypeChange} value={meetingType} disabled={isGeneratingMeeting}>
           <SelectTrigger className="h-8 w-full border-border bg-background text-sm text-foreground hover:bg-accent cursor-pointer">
             <SelectValue placeholder="Add meeting" />
           </SelectTrigger>
@@ -117,44 +171,69 @@ export const EventSettings = ({
         <Calendar className="h-4 w-4" />
         <Select onValueChange={onCalendarChange} value={calendar}>
           <SelectTrigger className="h-8 w-full border-border bg-background text-sm text-foreground hover:bg-accent">
-            <SelectValue placeholder="Select email account">
-              {calendar && (
+            <SelectValue placeholder="Select calendar">
+              {selectedCalendar ? (
                 <div className="flex items-center gap-2">
                   <div
-                    className={`h-3 w-3 rounded-full ${getColorClasses(
-                      emailColorFromString(calendar)
-                    )}`}
+                    className={`h-3 w-3 rounded-full ${getCalendarColor(selectedCalendar)}`}
+                    style={{ backgroundColor: getCalendarColor(selectedCalendar) }}
                   />
-                  {calendar}
+                  {selectedCalendar.summary || selectedCalendar.name}
                 </div>
+              ) : (
+                <span className="text-muted-foreground">Select calendar</span>
               )}
             </SelectValue>
           </SelectTrigger>
-          <SelectContent className="border-border bg-popover dark:bg-neutral-900">
-            {sessionEmail ? (
-              <SelectItem
-                className="text-popover-foreground hover:bg-accent"
-                value={sessionEmail}
-              >
-                <div className="flex items-center gap-2">
-                  <div
-                    className={`h-3 w-3 rounded-full ${getColorClasses(
-                      emailColorFromString(sessionEmail)
-                    )}`}
-                  />
-                  {sessionEmail}
+            <SelectContent align='start' side='left' className="border-border bg-popover dark:bg-neutral-900">
+              {Object.entries(groupedCalendars).map(([accountEmail, calendars]) => (
+               <div key={accountEmail}>
+                 <span className='text-xs text-muted-foreground px-2'>{accountEmail}</span>
+                 {calendars.map((cal) => (
+                    <SelectItem
+                      key={cal.id}
+                      className="text-popover-foreground hover:bg-accent"
+                      value={cal.id}
+                    >
+                      <div className="flex items-center gap-2">
+                        <div
+                          className={`h-3 w-3 rounded-xs ${getCalendarColor(cal)}`}
+                          style={{ backgroundColor: getCalendarColor(cal) }}
+                        />
+                        {cal.summary || cal.name}
+                      </div>
+                    </SelectItem>
+                  ))}
                 </div>
-              </SelectItem>
-            ) : (
-              <SelectItem className="text-muted-foreground" disabled value="none">
-                No accounts connected
-              </SelectItem>
-            )}
+              ))}
+              {Object.keys(groupedCalendars).length === 0 && (
+                <SelectItem className="text-muted-foreground" disabled value="none">
+                  No accounts connected
+                </SelectItem>
+              )}
+            <div className="p-2">
+              <div className="text-xs text-muted-foreground mb-2">Select Color</div>
+              <div className="grid grid-cols-11 gap-2">
+                {COLORS.map((colorOption) => (
+                  <div
+                    key={colorOption.id}
+                    className="flex items-center justify-center"
+                    onClick={() => onColorChange(colorOption.id)}
+                  >
+                    <div
+                      className={`h-4 w-4 rounded-full cursor-pointer transition-all duration-150 hover:scale-110 ${colorOption.bg} ${
+                      color === colorOption.id 
+                        ? 'ring-2 ring-black dark:ring-white ring-offset-1 ring-offset-white dark:ring-offset-neutral-950' 
+                        : 'ring-1 ring-neutral-300 dark:ring-neutral-600 hover:ring-neutral-400 dark:hover:ring-white/60'
+                      }`}
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
           </SelectContent>
         </Select>
       </div>
-
-      <ColorPicker color={color} onColorChange={onColorChange} />
     </div>
   );
 };

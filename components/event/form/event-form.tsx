@@ -100,6 +100,7 @@ export const EventForm = ({ event, onSave, onDataChange, onGenerateMeeting, isGe
         reminders: [],
         color: newData.color,
         account: newData.calendar,
+        calendar: newData.calendar, // Store the calendar ID
         isAllDay: newData.isAllDay,
         repeat: newData.repeat as RepeatType,
         visibility: newData.visibility as 'public' | 'private',
@@ -181,7 +182,7 @@ export const EventForm = ({ event, onSave, onDataChange, onGenerateMeeting, isGe
         />
       </div>
 
-              <EventSettings
+        <EventSettings
           calendar={eventData.calendar}
           color={eventData.color}
           meetingType={eventData.meetingType}
