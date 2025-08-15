@@ -25,6 +25,14 @@ const Premium = () => {
                 if (!session) {
                     authClient.signIn.social({
                         provider: 'google',
+                        scopes: [
+                            'https://www.googleapis.com/auth/calendar.events',
+                            'https://www.googleapis.com/auth/calendar.readonly',
+                            'https://www.googleapis.com/auth/calendar',
+                            'https://www.googleapis.com/auth/calendar.calendarlist',
+                            'https://www.googleapis.com/auth/calendar.calendarlist.readonly',
+                            'https://www.googleapis.com/auth/calendar.freebusy',
+                        ],
                         callbackURL: `${window.location.origin}/calendar`,
                         errorCallbackURL: `${window.location.origin}/calendar`,
                         newUserCallbackURL: `${window.location.origin}/calendar`,
