@@ -72,11 +72,9 @@ export default function RootLayout({
         <body
             className={`${geist.variable} ${lora.variable} bg-neutral-950 text-foreground antialiased`}
         >
-            <ClerkProvider>
-                <ThemeProvider attribute="class" defaultTheme="dark">
-                    {children}
-                </ThemeProvider>
-            </ClerkProvider>
+			<ThemeProvider attribute="class" defaultTheme="dark">
+				{children}
+			</ThemeProvider>
             <Toaster duration={2000} />
             <Analytics />
         </body>
