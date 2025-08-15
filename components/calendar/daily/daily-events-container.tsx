@@ -30,7 +30,7 @@ export const DailyEventsContainer = ({
   };
 
   return (
-    <div onClick={handleContainerClick} className="relative w-full h-full">
+    <div onClick={handleContainerClick} className="absolute inset-0 pointer-events-none">
       <AnimatePresence initial={false}>
         {events?.map((event: Event) => {
           let eventsInSamePeriod = 1;
@@ -55,7 +55,7 @@ export const DailyEventsContainer = ({
           return (
             <motion.div
               animate={{ opacity: 1, scale: 1 }}
-              className="absolute flex flex-grow flex-col transition-all duration-1000"
+              className="absolute flex flex-grow flex-col transition-all duration-300 pointer-events-auto"
               exit={{ opacity: 0, scale: 0.9 }}
               initial={{ opacity: 0, scale: 0.9 }}
               key={event.id}

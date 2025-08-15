@@ -158,23 +158,25 @@ export default function DailyView({
                 ))}
               </div>
               <div className="relative flex flex-grow flex-col">
-                <DailyTimeGrid
-                  contextMenuTime={contextMenuTime}
-                  date={date}
-                  detailedHour={detailedHour}
-                  onAddEvent={handleAddEventDay}
-                  onAskAI={toggleChatSidebar}
-                  onContextMenuOpen={handleContextMenuOpen}
-                  session={session}
-                  setContextMenuTime={setContextMenuTime}
-                />
-                {dayEvents && (
-                  <DailyEventsContainer
-                    events={dayEvents}
-                    onResizeEnd={handleResizeEnd}
-                    updateEventTime={updateEventTime}
+                <div className="relative">
+                  <DailyTimeGrid
+                    contextMenuTime={contextMenuTime}
+                    date={date}
+                    detailedHour={detailedHour}
+                    onAddEvent={handleAddEventDay}
+                    onAskAI={toggleChatSidebar}
+                    onContextMenuOpen={handleContextMenuOpen}
+                    session={session}
+                    setContextMenuTime={setContextMenuTime}
                   />
-                )}
+                  {dayEvents && (
+                    <DailyEventsContainer
+                      events={dayEvents}
+                      onResizeEnd={handleResizeEnd}
+                      updateEventTime={updateEventTime}
+                    />
+                  )}
+                </div>
               </div>
             </motion.div>
 
