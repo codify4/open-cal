@@ -9,7 +9,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { SidebarMenuButton, useSidebar } from '@/components/ui/sidebar';
 import { toast } from 'sonner';
-import { authClient } from '@/lib/auth-client';
+import { useUser } from '@clerk/nextjs';
 import { getColorClasses, emailColorFromString } from '@/lib/calendar-utils/calendar-color-utils';
 import type { EmailAccount } from '@/types/calendar';
 
@@ -32,24 +32,15 @@ export function AccountDropdown({
 	);
 	const canAddMoreAccounts = Boolean(emailAccounts.length === 0);
 
+	const { user } = useUser();
+	
 	const handleAddAccount = async () => {
 		if (!canAddMoreAccounts) {
 			toast('Upgrade required', { description: 'Upgrade to add more calendar accounts.' });
 			return;
 		}
-		await authClient.linkSocial({
-			provider: 'google',
-			scopes: [
-				'https://www.googleapis.com/auth/calendar.events',
-				'https://www.googleapis.com/auth/calendar.readonly',
-				'https://www.googleapis.com/auth/calendar',
-				'https://www.googleapis.com/auth/calendar.calendarlist',
-				'https://www.googleapis.com/auth/calendar.calendarlist.readonly',
-				'https://www.googleapis.com/auth/calendar.freebusy',
-			],
-			callbackURL: `${window.location.origin}/calendar`,
-			errorCallbackURL: `${window.location.origin}/calendar`,
-		});
+		// TODO: Implement Google OAuth with Clerk
+		toast('Google OAuth integration coming soon');
 	};
 
 	return (

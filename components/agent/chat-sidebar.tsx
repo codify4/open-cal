@@ -12,7 +12,7 @@ import { useChatStore } from '@/providers/chat-store-provider';
 import { useRateLimit } from '@/hooks/use-rate-limit';
 import { useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
-import { authClient } from '@/lib/auth-client';
+import { SignedIn, SignedOut, SignInButton, useUser } from '@clerk/nextjs';
 
 interface ChatSidebarProps {
   isFullscreen: boolean;
@@ -33,8 +33,10 @@ export function ChatSidebar({
   const [regeneratingMessageId, setRegeneratingMessageId] = useState<string | null>(null);
   
   const { messagesLeft, isLimited, sendMessage: sendRateLimitedMessage, refreshRateLimit } = useRateLimit();
-  const currentUser = useQuery(api.auth.getCurrentUser, {});
-  const { data: session } = authClient.useSession();
+  const { user: clerkUser, isSignedIn } = useUser();
+  const currentUser = useQuery(api.auth.getCurrentUser, { 
+    clerkUserId: clerkUser?.id 
+  });
   
   const chatMessages = useChatStore((state) => state.messages);
   const chatInput = useChatStore((state) => state.input);
@@ -59,13 +61,7 @@ export function ChatSidebar({
     options?: { experimental_attachments?: FileList }
   ) => {
     event?.preventDefault?.();
-    if (!session) {
-      authClient.signIn.social({
-        provider: 'google',
-        callbackURL: `${window.location.origin}/calendar`,
-        errorCallbackURL: `${window.location.origin}/calendar`,
-        newUserCallbackURL: `${window.location.origin}/calendar`,
-      });
+    if (!isSignedIn) {
       return;
     }
     if (input.trim()) {
@@ -86,13 +82,7 @@ export function ChatSidebar({
   };
 
   const append = (message: { role: 'user'; content: string }) => {
-    if (!session) {
-      authClient.signIn.social({
-        provider: 'google',
-        callbackURL: `${window.location.origin}/calendar`,
-        errorCallbackURL: `${window.location.origin}/calendar`,
-        newUserCallbackURL: `${window.location.origin}/calendar`,
-      });
+    if (!isSignedIn) {
       return;
     }
     const { isLimited } = sendRateLimitedMessage();
@@ -102,13 +92,7 @@ export function ChatSidebar({
   };
 
   const handleNewChat = () => {
-    if (!session) {
-      authClient.signIn.social({
-        provider: 'google',
-        callbackURL: `${window.location.origin}/calendar`,
-        errorCallbackURL: `${window.location.origin}/calendar`,
-        newUserCallbackURL: `${window.location.origin}/calendar`,
-      });
+    if (!isSignedIn) {
       return;
     }
     setMessages([]);
@@ -225,28 +209,48 @@ export function ChatSidebar({
       </div>
 
       <div className="mt-3 flex-1 min-h-0">
-        <Chat
-          append={append}
-          className="h-full bg-transparent"
-          handleInputChange={handleInputChange}
-          handleSubmit={handleSubmit}
-          input={input}
-          isGenerating={isGenerating}
-          messages={messages}
-          stop={stop}
-          disabled={!session || isLimited}
-          onRegenerate={handleRegenerate}
-          isRegenerating={isRegenerating && regeneratingMessageId !== null}
-          onCopy={handleCopy}
-          suggestions={[
-            'free time for coffee',
-            'work meetings',
-            'add a new task',
-            'meeting with Mike',
-            'pr review',
-            "mom's birthday",
-          ]}
-        />
+        <SignedOut>
+          <div className="flex h-full items-center justify-center">
+            <div className="text-center space-y-4">
+              <h3 className="text-lg font-medium text-neutral-900 dark:text-white">
+                Sign in to use AI Assistant
+              </h3>
+              <p className="text-neutral-600 dark:text-neutral-400">
+                Connect with your calendar AI to manage events and schedule
+              </p>
+              <SignInButton mode="modal">
+                <Button>
+                  Sign in to Chat
+                </Button>
+              </SignInButton>
+            </div>
+          </div>
+        </SignedOut>
+        
+        <SignedIn>
+          <Chat
+            append={append}
+            className="h-full bg-transparent"
+            handleInputChange={handleInputChange}
+            handleSubmit={handleSubmit}
+            input={input}
+            isGenerating={isGenerating}
+            messages={messages}
+            stop={stop}
+            disabled={!isSignedIn || isLimited}
+            onRegenerate={handleRegenerate}
+            isRegenerating={isRegenerating && regeneratingMessageId !== null}
+            onCopy={handleCopy}
+            suggestions={[
+              'free time for coffee',
+              'work meetings',
+              'add a new task',
+              'meeting with Mike',
+              'pr review',
+              "mom's birthday",
+            ]}
+          />
+        </SignedIn>
       </div>
     </div>
   );

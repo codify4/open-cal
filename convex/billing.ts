@@ -1,18 +1,25 @@
-import { mutation } from './_generated/server'
+import { mutation, query } from './_generated/server'
 import type { Id } from './_generated/dataModel'
 import { v } from 'convex/values'
 
 export const setUpgradePromptSeen = mutation({
-    args: { userId: v.string() },
+    args: { clerkUserId: v.string() },
     handler: async (ctx, args) => {
-        await ctx.db.patch(args.userId as Id<'users'>, { hasSeenUpgradePrompt: true })
+        const user = await ctx.db
+            .query('users')
+            .withIndex('by_clerkUserId', (q) => q.eq('clerkUserId', args.clerkUserId))
+            .unique()
+        
+        if (user) {
+            await ctx.db.patch(user._id, { hasSeenUpgradePrompt: true })
+        }
     },
 })
 
 export const markPaid = mutation({
     args: {
       webhookId: v.string(),
-      userId: v.string(),
+      clerkUserId: v.string(),
       subscriptionId: v.string(),
       variantId: v.number(),
     },
@@ -31,14 +38,42 @@ export const markPaid = mutation({
     
         if (already) return { skipped: true }
     
-        await ctx.db.patch(args.userId as Id<'users'>, {
-            isPro: true,
-            planVariantId: args.variantId,
-            lemonSubscriptionId: args.subscriptionId,
-        } as any)
+        const user = await ctx.db
+            .query('users')
+            .withIndex('by_clerkUserId', (q) => q.eq('clerkUserId', args.clerkUserId))
+            .unique()
+        
+        if (user) {
+            await ctx.db.patch(user._id, {
+                isPro: true,
+                planVariantId: args.variantId,
+                lemonSubscriptionId: args.subscriptionId,
+                updatedAt: Date.now(),
+            })
+        }
     
         return { ok: true }
     },
 })
 
+export const getUserSubscription = query({
+    args: { clerkUserId: v.string() },
+    handler: async (ctx, args) => {
+        const user = await ctx.db
+            .query('users')
+            .withIndex('by_clerkUserId', (q) => q.eq('clerkUserId', args.clerkUserId))
+            .unique()
+        
+        if (!user) return null
+        
+        return {
+            isPro: user.isPro || false,
+            planVariantId: user.planVariantId,
+            lemonSubscriptionId: user.lemonSubscriptionId,
+            billingInterval: user.billingInterval,
+            renewsAt: user.renewsAt,
+            endsAt: user.endsAt,
+        }
+    },
+})
 

@@ -7,7 +7,7 @@ interface DailyTimeGridProps {
   onContextMenuOpen: (e: React.MouseEvent) => void;
   onAddEvent: (timeString: string) => void;
   onAskAI: () => void;
-  session: any;
+  session: { user: any } | null;
   contextMenuTime: string | null;
   detailedHour: string | null;
   setContextMenuTime: (time: string | null) => void;

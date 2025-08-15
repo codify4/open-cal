@@ -9,7 +9,8 @@ import type { Event } from '@/lib/store/calendar-store';
 import { useCalendarStore } from '@/providers/calendar-store-provider';
 import { useGoogleCalendarRefresh } from '@/hooks/use-google-calendar-refresh';
 import { useOptimisticEventSync } from '@/hooks/use-optimistic-event-sync';
-import { authClient } from '@/lib/auth-client';
+import { SignedIn, SignedOut, SignInButton, useUser } from '@clerk/nextjs';
+import { Button } from '@/components/ui/button';
 import { hours, formatTimeFromPosition, getEventsForDay } from '@/lib/calendar-utils/calendar-view-utils';
 
 const containerVariants = {
@@ -55,7 +56,7 @@ export default function DailyView({
     visibleCalendarIds,
     updateEventTime,
   } = useCalendarStore((state) => state);
-  const { data: session } = authClient.useSession();
+  const { user: clerkUser, isSignedIn } = useUser();
   const { refreshEvents } = useGoogleCalendarRefresh();
   const { optimisticUpdate, commit } = useOptimisticEventSync();
 
@@ -92,10 +93,10 @@ export default function DailyView({
   }, [optimisticUpdate, commit]);
 
   useEffect(() => {
-    if (session?.user?.id && visibleCalendarIds.length > 0) {
+    if (clerkUser?.id && visibleCalendarIds.length > 0) {
       refreshEvents();
     }
-  }, [refreshEvents, session?.user?.id, visibleCalendarIds]);
+  }, [refreshEvents, clerkUser?.id, visibleCalendarIds]);
 
   const allEvents = useMemo(() => {
     const localEvents = events || [];
@@ -108,88 +109,102 @@ export default function DailyView({
   const dayEvents = useMemo(() => getEventsForDay(allEvents, date), [allEvents, date]);
 
   const handleAddEventDay = useCallback((timeString: string) => {
-    if (!session) {
-      authClient.signIn.social({
-        provider: 'google',
-        callbackURL: `${window.location.origin}/calendar`,
-        errorCallbackURL: `${window.location.origin}/calendar`,
-        newUserCallbackURL: `${window.location.origin}/calendar`,
-      });
+    if (!isSignedIn) {
       return;
     }
     openEventSidebarForNewEvent(date);
-  }, [session, date, openEventSidebarForNewEvent]);
+  }, [isSignedIn, date, openEventSidebarForNewEvent]);
 
   return (
     <div className="mt-0">
-      <AnimatePresence custom={direction} initial={false} mode="wait">
-        <motion.div
-          animate="center"
-          className="flex flex-col gap-4"
-          custom={direction}
-          exit="exit"
-          initial="enter"
-          key={currentDate.toISOString()}
-          transition={{
-            x: { type: 'spring', stiffness: 300, damping: 30 },
-            opacity: { duration: 0.2 },
-          }}
-          variants={pageTransitionVariants}
-        >
-          <div className="relative rounded-md bg-default-50 transition duration-400 hover:bg-default-100">
-            <motion.div
-              animate="visible"
-              className="relative flex rounded-xl ease-in-out"
-              initial="hidden"
-              onMouseLeave={() => setDetailedHour(null)}
-              onMouseMove={handleMouseMove}
-              ref={hoursColumnRef}
-              variants={containerVariants}
-            >
-              <div className="flex flex-col">
-                {hours.map((hour, index) => (
-                  <motion.div
-                    className="h-[64px] cursor-pointer border-default-200 p-4 text-left text-muted-foreground text-sm transition duration-300"
-                    key={`hour-${index}`}
-                    variants={itemVariants}
-                  >
-                    {hour}
-                  </motion.div>
-                ))}
-              </div>
-              <div className="relative flex flex-grow flex-col">
-                <div className="relative">
-                  <DailyTimeGrid
-                    contextMenuTime={contextMenuTime}
-                    date={date}
-                    detailedHour={detailedHour}
-                    onAddEvent={handleAddEventDay}
-                    onAskAI={toggleChatSidebar}
-                    onContextMenuOpen={handleContextMenuOpen}
-                    session={session}
-                    setContextMenuTime={setContextMenuTime}
-                  />
-                  {dayEvents && (
-                    <DailyEventsContainer
-                      events={dayEvents}
-                      onResizeEnd={handleResizeEnd}
-                      updateEventTime={updateEventTime}
-                    />
-                  )}
-                </div>
-              </div>
-            </motion.div>
-
-            {detailedHour && (
-              <CalendarTimeline
-                detailedHour={detailedHour}
-                position={timelinePosition}
-                variant="daily"
-              />
-            )}
+      <SignedOut>
+        <div className="flex h-96 items-center justify-center">
+          <div className="text-center space-y-4">
+            <h3 className="text-lg font-medium text-foreground">
+              Sign in to view your calendar
+            </h3>
+            <p className="text-muted-foreground">
+              Connect your account to start managing your schedule
+            </p>
+            <SignInButton mode="modal">
+              <Button>
+                Sign in to Continue
+              </Button>
+            </SignInButton>
           </div>
-        </motion.div>
-      </AnimatePresence>
+        </div>
+      </SignedOut>
+      
+      <SignedIn>
+        <AnimatePresence custom={direction} initial={false} mode="wait">
+          <motion.div
+            animate="center"
+            className="flex flex-col gap-4"
+            custom={direction}
+            exit="exit"
+            initial="enter"
+            key={currentDate.toISOString()}
+            transition={{
+              x: { type: 'spring', stiffness: 300, damping: 30 },
+              opacity: { duration: 0.2 },
+            }}
+            variants={pageTransitionVariants}
+          >
+            <div className="relative rounded-md bg-default-50 transition duration-400 hover:bg-default-100">
+              <motion.div
+                animate="visible"
+                className="relative flex rounded-xl ease-in-out"
+                initial="hidden"
+                onMouseLeave={() => setDetailedHour(null)}
+                onMouseMove={handleMouseMove}
+                ref={hoursColumnRef}
+                variants={containerVariants}
+              >
+                <div className="flex flex-col">
+                  {hours.map((hour, index) => (
+                    <motion.div
+                      className="h-[64px] cursor-pointer border-default-200 p-4 text-left text-muted-foreground text-sm transition duration-300"
+                      key={`hour-${index}`}
+                      variants={itemVariants}
+                    >
+                      {hour}
+                    </motion.div>
+                  ))}
+                </div>
+                <div className="relative flex flex-grow flex-col">
+                  <div className="relative">
+                    <DailyTimeGrid
+                      contextMenuTime={contextMenuTime}
+                      date={date}
+                      detailedHour={detailedHour}
+                      onAddEvent={handleAddEventDay}
+                      onAskAI={toggleChatSidebar}
+                      onContextMenuOpen={handleContextMenuOpen}
+                      session={{ user: isSignedIn ? clerkUser : null }}
+                      setContextMenuTime={setContextMenuTime}
+                    />
+                    {dayEvents && (
+                      <DailyEventsContainer
+                        events={dayEvents}
+                        onResizeEnd={handleResizeEnd}
+                        updateEventTime={updateEventTime}
+                      />
+                    )}
+                  </div>
+                </div>
+              </motion.div>
+
+              {detailedHour && (
+                <CalendarTimeline
+                  detailedHour={detailedHour}
+                  position={timelinePosition}
+                  variant="daily"
+                />
+              )}
+            </div>
+          </motion.div>
+        </AnimatePresence>
+      </SignedIn>
     </div>
   );
 }

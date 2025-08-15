@@ -3,6 +3,9 @@ import { v } from 'convex/values'
 
 export default defineSchema({
     users: defineTable({
+        clerkUserId: v.string(),
+        email: v.string(),
+        name: v.optional(v.string()),
         lemonCustomerId: v.optional(v.string()),
         isPro: v.optional(v.boolean()),
         hasSeenUpgradePrompt: v.optional(v.boolean()),
@@ -11,7 +14,12 @@ export default defineSchema({
         endsAt: v.optional(v.number()),
         lemonSubscriptionId: v.optional(v.string()),
         planVariantId: v.optional(v.number()),
-    }).index('by_lemonCustomerId', ['lemonCustomerId']),
+        createdAt: v.number(),
+        updatedAt: v.number(),
+    })
+        .index('by_clerkUserId', ['clerkUserId'])
+        .index('by_lemonCustomerId', ['lemonCustomerId'])
+        .index('by_email', ['email']),
     webhookEvents: defineTable({
         eventId: v.string(),
         processedAt: v.number(),
@@ -32,5 +40,3 @@ export default defineSchema({
         .index('by_googleUserId', ['googleUserId'])
         .index('by_userId_googleUserId', ['userId', 'googleUserId']),
 })
-
-

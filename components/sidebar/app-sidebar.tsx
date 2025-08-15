@@ -10,10 +10,11 @@ import {
   SidebarFooter,
 } from '@/components/ui/sidebar';
 import Premium from './premium';
-import { authClient } from '@/lib/auth-client';
+import { useUser } from '@clerk/nextjs';
+import { toast } from 'sonner';
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const { data: session, isPending } = authClient.useSession();
+  const { user, isLoaded } = useUser();
   const [selectedEmail, setSelectedEmail] = React.useState('');
   const [calendarList, setCalendarList] = React.useState<Array<{
     id: string;
@@ -62,38 +63,27 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   }, []);
 
   React.useEffect(() => {
-    // no auto-redirect; user will link Google via Better Auth when needed
-  }, [isPending, session]);
+    // no auto-redirect; user will link Google via Clerk when needed
+  }, [isLoaded, user]);
 
   React.useEffect(() => {
-    if (session?.user?.email) {
-      setSelectedEmail(session.user.email);
+    if (user?.primaryEmailAddress?.emailAddress) {
+      setSelectedEmail(user.primaryEmailAddress.emailAddress);
       setEmailAccounts([
-        { email: session.user.email, isDefault: true, color: 'blue' },
+        { email: user.primaryEmailAddress.emailAddress, isDefault: true, color: 'blue' },
       ]);
     }
-  }, [session?.user?.email]);
+  }, [user?.primaryEmailAddress?.emailAddress]);
 
   const handleAddAccount = async () => {
-    await authClient.linkSocial({
-      provider: 'google',
-      scopes: [
-        'https://www.googleapis.com/auth/calendar.events',
-        'https://www.googleapis.com/auth/calendar.readonly',
-        'https://www.googleapis.com/auth/calendar',
-        'https://www.googleapis.com/auth/calendar.calendarlist',
-        'https://www.googleapis.com/auth/calendar.calendarlist.readonly',
-        'https://www.googleapis.com/auth/calendar.freebusy',
-      ],
-      callbackURL: `${window.location.origin}/calendar`,
-      errorCallbackURL: `${window.location.origin}/calendar`,
-    });
+    // TODO: Implement Google OAuth with Clerk
+    toast('Google OAuth integration coming soon');
   };
 
-  const userForNav = session?.user ? {
-    name: session.user.name || session.user.email,
-    email: session.user.email,
-    avatar: (session.user as any)?.image || '/caly.svg',
+  const userForNav = user ? {
+    name: user.fullName || user.primaryEmailAddress?.emailAddress || '',
+    email: user.primaryEmailAddress?.emailAddress || '',
+    avatar: user.imageUrl || '/caly.svg',
   } : undefined;
 
   return (
@@ -118,12 +108,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <div className="mt-auto">
           <Premium />
         </div>
-        {session ? (
+        {user ? (
           <NavUser
             user={{
-              name: session.user.name || session.user.email,
-              email: session.user.email,
-              avatar: ((session.user as unknown as { image?: string })?.image) || '/vercel.svg',
+              name: user.fullName || user.primaryEmailAddress?.emailAddress || '',
+              email: user.primaryEmailAddress?.emailAddress || '',
+              avatar: user.imageUrl || '/vercel.svg',
             }}
             accounts={emailAccounts}
             calendars={calendarList}

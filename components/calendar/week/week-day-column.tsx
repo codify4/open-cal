@@ -15,7 +15,7 @@ interface WeekDayColumnProps {
   onContextMenuOpen: (e: React.MouseEvent) => void;
   onAddEvent: (dayIndex: number, timeString: string) => void;
   onAskAI: () => void;
-  session: any;
+  session: { user: any } | null;
   contextMenuTime: string | null;
   detailedHour: string | null;
   setContextMenuTime: (time: string | null) => void;

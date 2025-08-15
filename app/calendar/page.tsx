@@ -5,15 +5,15 @@ import CalendarView from '@/components/calendar/calendar-view';
 import { Button } from '@/components/ui/button';
 import { useCalendarStore } from '@/providers/calendar-store-provider';
 import MobileDialog from '@/components/wrappers/mobile-dialog';
-import { authClient } from '@/lib/auth-client';
+import { useUser } from '@clerk/nextjs';
 
 function CalendarPage() {
-  const { data: session, isPending } = authClient.useSession();
+  const { user, isLoaded } = useUser();
   const { isChatSidebarOpen, toggleChatSidebar } = useCalendarStore(
     (state) => state
   );
 
-  if (isPending) {
+  if (!isLoaded) {
     return (
       <div className="h-full grid place-items-center">
         <div className="flex flex-col items-center gap-3">

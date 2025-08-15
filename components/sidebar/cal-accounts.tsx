@@ -1,6 +1,7 @@
 'use client';
 
 import { Plus } from 'lucide-react';
+import { SignedIn, SignedOut, useUser } from '@clerk/nextjs';
 
 import {
 	SidebarGroup,
@@ -9,7 +10,7 @@ import {
 	SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
-import { authClient } from '@/lib/auth-client';
+import { toast } from 'sonner';
 import { SidebarGroupContent } from '@/components/ui/sidebar';
 import { AccountDropdown } from './account-dropdown';
 import { CalendarList } from './calendar-list';
@@ -25,7 +26,7 @@ export function NavCalendars({
 	selectedEmail,
 	user,
 }: NavCalendarsProps) {
-	const { data: session } = authClient.useSession();
+	const { user: clerkUser } = useUser();
 	const {
 		fetchedCalendars,
 		isLoadingCalendars,
@@ -46,54 +47,66 @@ export function NavCalendars({
 		refetchCalendars();
 	};
 
-	if (!session) {
-		return (
-			<SidebarGroup className="mt-0 group-data-[collapsible=icon]:hidden">
-				<SidebarGroupLabel>Account</SidebarGroupLabel>
+	const handleGoogleOAuth = async () => {
+		try {
+			if (clerkUser) {
+				// Redirect to Google OAuth through Clerk
+				window.location.href = '/api/auth/google';
+			} else {
+				toast.error('Please sign in first');
+			}
+		} catch (error) {
+			console.error('Google OAuth error:', error);
+			toast.error('Failed to connect Google Calendar');
+		}
+	};
+
+	return (
+		<SidebarGroup className="mt-0 group-data-[collapsible=icon]:hidden">
+			<SidebarGroupLabel>Account</SidebarGroupLabel>
+			
+			<SignedOut>
 				<SidebarGroupContent>
 					<Button
 						variant="outline"
 						size="sm"
 						className='w-full justify-start'
-						onClick={() =>
-							authClient.signIn.social({ provider: 'google', callbackURL: `${window.location.origin}/calendar` })
-						}
+						onClick={() => {
+							window.location.href = '/api/auth/signin';
+						}}
 					>
 						<Plus className="h-4 w-4 mr-2" />
-						Add account
+						Sign in to add accounts
 					</Button>
 				</SidebarGroupContent>
-			</SidebarGroup>
-		);
-	}
+			</SignedOut>
 
-	return (
-		<SidebarGroup className="mt-0 group-data-[collapsible=icon]:hidden">
-			<SidebarGroupLabel>Account</SidebarGroupLabel>
-			<SidebarMenu>
-				<SidebarMenuItem>
-					<AccountDropdown
-						emailAccounts={emailAccounts}
-						selectedEmail={selectedEmail}
-						onEmailChange={onEmailChange}
-						userEmail={user?.email}
-					/>
-				</SidebarMenuItem>
-			</SidebarMenu>
+			<SignedIn>
+				<SidebarMenu>
+					<SidebarMenuItem>
+						<AccountDropdown
+							emailAccounts={emailAccounts}
+							selectedEmail={selectedEmail}
+							onEmailChange={onEmailChange}
+							userEmail={user?.email}
+						/>
+					</SidebarMenuItem>
+				</SidebarMenu>
 
-			<div className="flex items-center justify-between mt-2">
-				<SidebarGroupLabel className="mt-0">Calendars</SidebarGroupLabel>
-				<CreateCalendarDropdown onCalendarCreated={handleCalendarCreated} />
-			</div>
-			<CalendarList
-				calendars={fetchedCalendars}
-				visibleCalendars={visibleCalendars}
-				colorOptions={colorOptions}
-				isLoading={isLoadingCalendars}
-				onToggle={wrappedCalendarToggle}
-				onColorChange={handleChangeCalendarColor}
-				onDelete={handleDeleteCalendar}
-			/>
+				<div className="flex items-center justify-between mt-2">
+					<SidebarGroupLabel className="mt-0">Calendars</SidebarGroupLabel>
+					<CreateCalendarDropdown onCalendarCreated={handleCalendarCreated} />
+				</div>
+				<CalendarList
+					calendars={fetchedCalendars}
+					visibleCalendars={visibleCalendars}
+					colorOptions={colorOptions}
+					isLoading={isLoadingCalendars}
+					onToggle={wrappedCalendarToggle}
+					onColorChange={handleChangeCalendarColor}
+					onDelete={handleDeleteCalendar}
+				/>
+			</SignedIn>
 		</SidebarGroup>
 	);
 }

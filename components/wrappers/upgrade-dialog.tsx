@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { getCheckoutURL } from '@/actions/billing'
-import { authClient } from '@/lib/auth-client'
+import { useUser } from '@clerk/nextjs'
 import { useQuery } from 'convex/react'
 import { api } from '@/convex/_generated/api'
 import { toast } from 'sonner'
@@ -16,8 +16,8 @@ import { Switch } from '@/components/ui/switch'
 import Image from 'next/image'
 
 export default function UpgradeDialog() {
-    const { data: session } = authClient.useSession()
-    const currentUser = useQuery(api.auth.getCurrentUser, {})
+    const { user: clerkUser, isSignedIn } = useUser()
+    const currentUser = useQuery(api.auth.getCurrentUser, { clerkUserId: clerkUser?.id })
     const [open, setOpen] = useState(false)
     const [isYearly, setIsYearly] = useState(true)
     const router = useRouter()
@@ -48,17 +48,17 @@ export default function UpgradeDialog() {
 
     useEffect(() => {
         const shouldShow = Boolean(
-            session && currentUser && !currentUser.isPro && !currentUser.hasSeenUpgradePrompt
+            isSignedIn && currentUser && !currentUser.isPro && !currentUser.hasSeenUpgradePrompt
         )
         setOpen(shouldShow)
-    }, [])
+    }, [isSignedIn, currentUser])
 
     const onClose = async () => {
         setOpen(false)
     }
 
     const handleUpgrade = async () => {
-        if (!session?.user?.id) return
+        if (!clerkUser?.id) return
         
         try {
             const variantId = isYearly 
@@ -66,8 +66,8 @@ export default function UpgradeDialog() {
                 : Number(process.env.NEXT_PUBLIC_LEMONSQUEEZY_VARIANT_MONTHLY_ID!)
             
             const checkoutUrl = await getCheckoutURL(variantId, {
-                userId: session.user.id,
-                email: session.user.email as string
+                userId: clerkUser.id,
+                email: clerkUser.primaryEmailAddress?.emailAddress || ''
             })
             
             if (checkoutUrl) {
@@ -80,7 +80,7 @@ export default function UpgradeDialog() {
         }
     }
 
-    if (!session || !currentUser || currentUser.isPro || currentUser.hasSeenUpgradePrompt) return null
+    if (!isSignedIn || !currentUser || currentUser.isPro || currentUser.hasSeenUpgradePrompt) return null
 
     return (
         <Dialog open={open} onOpenChange={(v) => (v ? setOpen(true) : onClose())}>

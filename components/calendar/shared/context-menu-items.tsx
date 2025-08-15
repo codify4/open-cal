@@ -1,6 +1,5 @@
 import { Plus, Sparkles } from 'lucide-react';
 import { ContextMenuItem } from '@/components/ui/context-menu';
-import { authClient } from '@/lib/auth-client';
 
 interface CalendarContextMenuItemsProps {
   onAddEvent: () => void;
@@ -16,16 +15,19 @@ export const CalendarContextMenuItems = ({
   onClose 
 }: CalendarContextMenuItemsProps) => {
   const handleAskAI = () => {
-    if (!session) {
-      authClient.signIn.social({
-        provider: 'google',
-        callbackURL: `${window.location.origin}/calendar`,
-        errorCallbackURL: `${window.location.origin}/calendar`,
-        newUserCallbackURL: `${window.location.origin}/calendar`,
-      });
+    if (!session?.user) {
+      return;
     } else if (onAskAI) {
       onAskAI();
     }
+    onClose?.();
+  };
+
+  const handleAddEvent = () => {
+    if (!session?.user) {
+      return;
+    }
+    onAddEvent();
     onClose?.();
   };
 
@@ -33,10 +35,7 @@ export const CalendarContextMenuItems = ({
     <>
       <ContextMenuItem
         className="cursor-pointer py-2"
-        onClick={() => {
-          onAddEvent();
-          onClose?.();
-        }}
+        onClick={handleAddEvent}
       >
         <Plus className="mr-2 h-4 w-4" />
         Add Event

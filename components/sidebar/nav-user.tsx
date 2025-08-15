@@ -17,7 +17,7 @@ import { useTheme } from 'next-themes';
 import { useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import { getCustomerPortalURL, getCheckoutURL } from '@/actions/billing';
-import { authClient } from '@/lib/auth-client';
+import { SignedIn, SignedOut, SignInButton, useClerk, useUser } from '@clerk/nextjs';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import {
@@ -42,7 +42,7 @@ import {
 import { Label } from '../ui/label';
 import { Separator } from '../ui/separator';
 import { Switch } from '../ui/switch';
-import type { EmailAccount, CalendarEntry } from '@/components/sidebar/cal-accounts';
+import type { EmailAccount, CalendarEntry } from '@/types/calendar';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 
@@ -88,6 +88,7 @@ export function NavUser({
   calendars: CalendarEntry[];
   onAddAccount: () => void;
 }) {
+  const { user: clerkUser } = useUser();
   const [activeSection, setActiveSection] = useState('profile');
 
   const renderSectionContent = () => {
@@ -185,6 +186,8 @@ function ProfileSection({
 }: {
   user: { name: string; email: string; avatar: string };
 }) {
+  const { signOut } = useClerk();
+  
   return (
     <div className="space-y-6">
       <div>
@@ -243,10 +246,9 @@ function ProfileSection({
       <div className="flex justify-end">
         <Button
           className="rounded-sm bg-red-500/10 text-red-500 hover:bg-red-500/20"
-          onClick={async () => {
-            await authClient.signOut()
-            window.location.href = '/calendar'
-          }}
+          onClick={() => signOut(() => {
+            window.location.href = '/calendar';
+          })}
         >
           <LogOut className="mr-2 h-4 w-4" />
           Logout
@@ -338,9 +340,11 @@ function AppearanceSection() {
 
 function BillingSection() {
   const [loadingPortal, setLoadingPortal] = useState(false)
-  const current = useQuery(api.auth.getCurrentUser, {})
+  const { user: clerkUser } = useUser()
+  const current = useQuery(api.auth.getCurrentUser, { 
+    clerkUserId: clerkUser?.id 
+  })
   const subscriptionId = current?.lemonSubscriptionId as string | undefined
-  const { data: session } = authClient.useSession()
   const router = useRouter()
 
   async function openPortal() {
@@ -380,7 +384,7 @@ function BillingSection() {
                 <div>
                   <h4 className="font-semibold text-neutral-900 dark:text-white">{current?.isPro ? 'Caly Pro' : 'Caly Free'}</h4>
                   {current?.isPro ? (
-                    <p className="text-neutral-600 dark:text-neutral-400 text-sm">{current?.variantId === process.env.NEXT_PUBLIC_LEMONSQUEEZY_VARIANT_YEARLY_ID ? '$120/year' : '$20/month'}</p>
+                    <p className="text-neutral-600 dark:text-neutral-400 text-sm">{current?.planVariantId === Number(process.env.NEXT_PUBLIC_LEMONSQUEEZY_VARIANT_YEARLY_ID) ? '$120/year' : '$20/month'}</p>
                   ) : (
                     <p className="text-neutral-600 dark:text-neutral-400 text-sm">Limited features</p>
                   )}
@@ -433,7 +437,7 @@ function BillingSection() {
                       Number(process.env.NEXT_PUBLIC_LEMONSQUEEZY_VARIANT_MONTHLY_ID!),
                       {
                         userId: String(current?._id),
-                        email: session?.user?.email as string,
+                        email: clerkUser?.primaryEmailAddress?.emailAddress as string,
                       }
                     )
                     if (checkoutUrl) router.push(checkoutUrl)
@@ -460,15 +464,16 @@ function IntegrationsSection({
   calendars: CalendarEntry[];
   onAddAccount: () => void;
 }) {
-  const current = useQuery(api.auth.getCurrentUser, {})
-  const colorMap: Record<EmailAccount['color'], string> = {
-    blue: 'bg-blue-500',
-    green: 'bg-green-500',
-    red: 'bg-red-500',
-    yellow: 'bg-yellow-500',
-    purple: 'bg-purple-500',
-    orange: 'bg-orange-500',
+  const { user: clerkUser } = useUser()
+  const current = useQuery(api.auth.getCurrentUser, { 
+    clerkUserId: clerkUser?.id 
+  });
+  
+  const handleAddAccount = () => {
+    if (!current?.isPro && accounts.length >= 1) return;
+    onAddAccount();
   };
+  
   return (
     <div className="scrollbar-hide max-h-[560px] space-y-6 overflow-y-auto scroll-smooth pr-2">
       <div>
@@ -488,38 +493,50 @@ function IntegrationsSection({
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            {accounts.length > 0 && (
-              <div className="space-y-3">
-                {accounts.map((account) => (
-                  <div
-                    className="flex items-center justify-between rounded-lg bg-neutral-100 dark:bg-neutral-800 p-3"
-                    key={account.email}
-                  >
-                    <div className="flex items-center space-x-3">
-                      <Image src={'g-cal.svg'} alt={account.email} width={32} height={32} />
-                      <div>
-                        <h4 className="font-semibold text-neutral-900 dark:text-white">
-                          {account.email}
-                        </h4>
+            <SignedOut>
+              <div className="text-center py-8">
+                <p className="text-neutral-600 dark:text-neutral-400 mb-4">
+                  Sign in to connect your Google Calendar
+                </p>
+                <SignInButton mode="modal">
+                  <Button variant="outline">
+                    Sign in to Connect
+                  </Button>
+                </SignInButton>
+              </div>
+            </SignedOut>
+            
+            <SignedIn>
+              {accounts.length > 0 && (
+                <div className="space-y-3">
+                  {accounts.map((account) => (
+                    <div
+                      className="flex items-center justify-between rounded-lg bg-neutral-100 dark:bg-neutral-800 p-3"
+                      key={account.email}
+                    >
+                      <div className="flex items-center space-x-3">
+                        <Image src={'g-cal.svg'} alt={account.email} width={32} height={32} />
+                        <div>
+                          <h4 className="font-semibold text-neutral-900 dark:text-white">
+                            {account.email}
+                          </h4>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
-              </div>
-            )}
+                  ))}
+                </div>
+              )}
 
-            <Button
-              className="w-full justify-start border-neutral-300 dark:border-neutral-600 border-dashed hover:border-neutral-400 dark:hover:border-neutral-500"
-              onClick={() => {
-                if (!current?.isPro && accounts.length >= 1) return
-                onAddAccount()
-              }}
-              variant="outline"
-              disabled={!current?.isPro && accounts.length >= 1}
-            >
-              <Plus className="mr-2 h-4 w-4" />
-              {!current?.isPro && accounts.length >= 1 ? 'Upgrade to add more accounts' : 'Connect Another Google Calendar Account'}
-            </Button>
+              <Button
+                className="w-full justify-start border-neutral-300 dark:border-neutral-600 border-dashed hover:border-neutral-400 dark:hover:border-neutral-500"
+                onClick={handleAddAccount}
+                variant="outline"
+                disabled={!current?.isPro && accounts.length >= 1}
+              >
+                <Plus className="mr-2 h-4 w-4" />
+                {!current?.isPro && accounts.length >= 1 ? 'Upgrade to add more accounts' : 'Connect Another Google Calendar Account'}
+              </Button>
+            </SignedIn>
           </CardContent>
         </Card>
 
@@ -534,14 +551,29 @@ function IntegrationsSection({
           <CardContent className="space-y-4">
             <div className="text-sm text-muted-foreground">Google Meet linking coming soon</div>
 
-            <Button
-              className="w-full justify-start border-neutral-300 dark:border-neutral-600 border-dashed hover:border-neutral-400 dark:hover:border-neutral-500"
-              onClick={onAddAccount}
-              variant="outline"
-            >
-              <Plus className="mr-2 h-4 w-4" />
-              Connect Another Google Meet Account
-            </Button>
+            <SignedIn>
+              <Button
+                className="w-full justify-start border-neutral-300 dark:border-neutral-600 border-dashed hover:border-neutral-400 dark:hover:border-neutral-500"
+                onClick={onAddAccount}
+                variant="outline"
+                disabled
+              >
+                <Plus className="mr-2 h-4 w-4" />
+                Connect Google Meet Account (Coming Soon)
+              </Button>
+            </SignedIn>
+            
+            <SignedOut>
+              <SignInButton mode="modal">
+                <Button
+                  className="w-full justify-start border-neutral-300 dark:border-neutral-600 border-dashed hover:border-neutral-400 dark:hover:border-neutral-500"
+                  variant="outline"
+                >
+                  <Plus className="mr-2 h-4 w-4" />
+                  Sign in to Connect Google Meet
+                </Button>
+              </SignInButton>
+            </SignedOut>
           </CardContent>
         </Card>
       </div>

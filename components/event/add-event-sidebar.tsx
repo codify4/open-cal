@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import type { Event } from '@/lib/store/calendar-store';
 import { useCalendarStore } from '@/providers/calendar-store-provider';
 import { Button } from '../ui/button';
+import { SignedIn, SignedOut, SignInButton } from '@clerk/nextjs';
 import {
   Select,
   SelectContent,
@@ -115,109 +116,129 @@ const AddEventSidebar = ({ onClick }: AddEventProps) => {
 
   return (
     <div className="flex h-full flex-col gap-6 p-2 px-1 text-foreground">
-      <div className="mt-2 flex items-center justify-between">
-        <div className="flex items-center">
-          <Select
-            onValueChange={(value) =>
-              setFormType(value as 'event' | 'birthday')
-            }
-            value={formType}
-          >
-            <SelectTrigger className="w-32 cursor-pointer rounded-sm border-border bg-transparent px-2 py-0 font-semibold text-sm text-foreground hover:bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent className="border-border bg-popover dark:bg-neutral-900">
-              <SelectItem
-                className="cursor-pointer text-popover-foreground hover:bg-accent"
-                value="event"
-              >
-                Event
-              </SelectItem>
-              <SelectItem
-                className="cursor-pointer text-popover-foreground hover:bg-accent"
-                value="birthday"
-              >
-                Birthday
-              </SelectItem>
-            </SelectContent>
-          </Select>
+      <SignedOut>
+        <div className="flex h-full items-center justify-center">
+          <div className="text-center space-y-4">
+            <h3 className="text-lg font-medium text-foreground">
+              Sign in to create events
+            </h3>
+            <p className="text-muted-foreground">
+              Connect your account to start managing your calendar
+            </p>
+            <SignInButton mode="modal">
+              <Button>
+                Sign in to Continue
+              </Button>
+            </SignInButton>
+          </div>
+        </div>
+      </SignedOut>
+      
+      <SignedIn>
+        <div className="mt-2 flex items-center justify-between">
+          <div className="flex items-center">
+            <Select
+              onValueChange={(value) =>
+                setFormType(value as 'event' | 'birthday')
+              }
+              value={formType}
+            >
+              <SelectTrigger className="w-32 cursor-pointer rounded-sm border-border bg-transparent px-2 py-0 font-semibold text-sm text-foreground hover:bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="border-border bg-popover dark:bg-neutral-900">
+                <SelectItem
+                  className="cursor-pointer text-popover-foreground hover:bg-accent"
+                  value="event"
+                >
+                  Event
+                </SelectItem>
+                <SelectItem
+                  className="cursor-pointer text-popover-foreground hover:bg-accent"
+                  value="birthday"
+                >
+                  Birthday
+                </SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  className="h-8 w-8 text-foreground hover:bg-accent"
+                  disabled={!(isNewEvent || hasUnsavedChanges)}
+                  onClick={handleManualSave}
+                  size="icon"
+                  variant="ghost"
+                >
+                  <Save className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent className="bg-popover font-semibold text-popover-foreground">
+                <p>Save</p>
+              </TooltipContent>
+            </Tooltip>
+
+            {isEditing && (
+              <EventActionsDropdown
+                onCopy={() => {}}
+                onCut={() => {}}
+                onDelete={handleDelete}
+                onDuplicate={() => {}}
+              />
+            )}
+
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  className="h-8 w-8 text-foreground hover:bg-accent"
+                  onClick={handleClose}
+                  size="icon"
+                  variant="ghost"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent className="bg-popover font-semibold text-popover-foreground">
+                <p>Close</p>
+              </TooltipContent>
+            </Tooltip>
+          </div>
         </div>
 
-        <div className="flex items-center gap-2">
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                className="h-8 w-8 text-foreground hover:bg-accent"
-                disabled={!(isNewEvent || hasUnsavedChanges)}
-                onClick={handleManualSave}
-                size="icon"
-                variant="ghost"
-              >
-                <Save className="h-4 w-4" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent className="bg-popover font-semibold text-popover-foreground">
-              <p>Save</p>
-            </TooltipContent>
-          </Tooltip>
-
-          {isEditing && (
-            <EventActionsDropdown
-              onCopy={() => {}}
-              onCut={() => {}}
-              onDelete={handleDelete}
-              onDuplicate={() => {}}
+        <div className="flex-1">
+          {formType === 'event' ? (
+            <EventForm
+              event={
+                selectedEvent ||
+                (eventCreationContext
+                  ? {
+                      id: `temp-${Date.now()}`,
+                      title: eventCreationContext.title || '',
+                      description: eventCreationContext.description || '',
+                      startDate: eventCreationContext.startDate,
+                      endDate: eventCreationContext.endDate,
+                      color: eventCreationContext.color || 'blue',
+                      type: eventCreationContext.type || 'event',
+                      location: '',
+                      attendees: [],
+                      reminders: [],
+                      repeat: 'none',
+                      visibility: 'public',
+                    }
+                  : null)
+              }
+              onSave={handleFormDataChange}
+              onGenerateMeeting={handleGenerateMeeting}
+              isGeneratingMeeting={isGeneratingMeeting}
             />
+          ) : (
+            <BirthdayForm event={selectedEvent} onSave={handleFormDataChange} />
           )}
-
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                className="h-8 w-8 text-foreground hover:bg-accent"
-                onClick={handleClose}
-                size="icon"
-                variant="ghost"
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent className="bg-popover font-semibold text-popover-foreground">
-              <p>Close</p>
-            </TooltipContent>
-          </Tooltip>
         </div>
-      </div>
-
-      <div className="flex-1">
-        {formType === 'event' ? (
-          <EventForm
-            event={
-              selectedEvent ||
-              (eventCreationContext
-                ? {
-                    id: `temp-${Date.now()}`,
-                    title: eventCreationContext.title || '',
-                    description: eventCreationContext.description || '',
-                    startDate: eventCreationContext.startDate,
-                    endDate: eventCreationContext.endDate,
-                    color: eventCreationContext.color || 'blue',
-                    type: eventCreationContext.type || 'event',
-                    location: '',
-                    attendees: [],
-                    reminders: [],
-                    repeat: 'none',
-                    visibility: 'public',
-                  }
-                : null)
-            }
-            onSave={handleFormDataChange}
-            onGenerateMeeting={handleGenerateMeeting}
-            isGeneratingMeeting={isGeneratingMeeting}
-          />
-        ) : (
-          <BirthdayForm event={selectedEvent} onSave={handleFormDataChange} />
-        )}
-      </div>
+      </SignedIn>
     </div>
   );
 };

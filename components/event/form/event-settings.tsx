@@ -11,7 +11,7 @@ import {
   SelectValue,
 } from '../../ui/select';
 import { Button } from '../../ui/button';
-import { authClient } from '@/lib/auth-client';
+import { useUser } from '@clerk/nextjs';
 import { getColorClasses, getCalendarColor } from '@/lib/calendar-utils/calendar-color-utils';
 import { CopyButton } from '../../agent/copy-button';
 import { ColorPicker } from './color-picker';
@@ -43,8 +43,8 @@ export const EventSettings = ({
   onGenerateMeeting,
   isGeneratingMeeting,
 }: EventSettingsProps) => {
-  const { data: session } = authClient.useSession();
-  const sessionEmail = session?.user?.email || '';
+  const { user: clerkUser } = useUser();
+  const sessionEmail = clerkUser?.primaryEmailAddress?.emailAddress || '';
   const { fetchedCalendars } = useCalendarManagement();
 
 
