@@ -73,13 +73,13 @@ export const useOptimisticEventSync = () => {
     return { snapshot, updatedEvent, revert };
   }, [events, googleEvents, findEvent, updateEventTime]);
 
-  const commit = useCallback(async (updatedEvent: Event): Promise<void> => {
+  const commit = useCallback(async (updatedEvent: Event, userId: string, userEmail?: string): Promise<void> => {
     if (!updatedEvent.googleEventId && !updatedEvent.googleCalendarId) {
       return;
     }
 
     try {
-      const result = await upsertGoogleEvent(updatedEvent);
+      const result = await upsertGoogleEvent(updatedEvent, userId, userEmail);
       
       if (result?.success && result.event) {
         replaceEvent(result.event);

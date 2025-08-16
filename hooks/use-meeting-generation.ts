@@ -10,7 +10,7 @@ export const useMeetingGeneration = () => {
         currentFormData.current = { ...currentFormData.current, ...eventData };
     };
 
-    const generateMeeting = async (selectedEvent: Event | null) => {
+    const generateMeeting = async (selectedEvent: Event | null, userId: string, userEmail?: string) => {
         if (isGeneratingMeeting || !selectedEvent) return;
 
         const hasGoogleMeet = selectedEvent.meetingType === 'google-meet' || currentFormData.current.meetingType === 'google-meet';
@@ -19,7 +19,7 @@ export const useMeetingGeneration = () => {
         setIsGeneratingMeeting(true);
         try {
             const eventToSave = { ...selectedEvent, ...currentFormData.current };
-            const result = await upsertGoogleEvent(eventToSave);
+            const result = await upsertGoogleEvent(eventToSave, userId, userEmail);
             return result;
         } finally {
             setIsGeneratingMeeting(false);

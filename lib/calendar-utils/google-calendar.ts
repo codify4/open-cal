@@ -1,7 +1,6 @@
 import { convertGoogleEventToLocalEvent, getGoogleColorIdFromLocal } from '@/lib/calendar-utils/calendar-utils';
 import type { Event } from '@/lib/store/calendar-store';
 import { toast } from 'sonner';
-import { useUser } from '@clerk/nextjs';
 import { getAccessToken } from '@/actions/access-token';
 
 export const buildGoogleEventPayload = (e: Event) => {
@@ -40,9 +39,16 @@ export const buildGoogleEventPayload = (e: Event) => {
     };
     
     if (e.meetingType === 'google-meet') {
+        const generateId = () => {
+            if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+                return crypto.randomUUID();
+            }
+            return Date.now().toString(36) + Math.random().toString(36).substr(2);
+        };
+        
         payload.conferenceData = {
             createRequest: {
-                requestId: crypto.randomUUID(),
+                requestId: generateId(),
                 conferenceSolutionKey: { type: 'hangoutsMeet' },
             },
         };
@@ -51,10 +57,9 @@ export const buildGoogleEventPayload = (e: Event) => {
     return payload;
 };
 
-export const upsertGoogleEvent = async (eventToSave: Event, provisionalId?: string) => {
+export const upsertGoogleEvent = async (eventToSave: Event, userId: string, userEmail?: string, provisionalId?: string) => {
     try {
-        const { user } = useUser();
-        if (!user?.id) return;
+        if (!userId) return;
 
         const accessToken = await getAccessToken();
         if (!accessToken) return;
@@ -71,6 +76,8 @@ export const upsertGoogleEvent = async (eventToSave: Event, provisionalId?: stri
         let body: string;
         let etag: string | undefined;
 
+        const payload = buildGoogleEventPayload(eventToSave);
+
         if (isUpdate) {
             const getResp = await fetch(`${baseUrl}/${encodeURIComponent(eventToSave.googleEventId!)}`, {
                 headers: {
@@ -81,9 +88,9 @@ export const upsertGoogleEvent = async (eventToSave: Event, provisionalId?: stri
             
             if (getResp.status === 404) {
                 isUpdate = false;
-                url = `${baseUrl}?sendUpdates=none`;
+                url = `${baseUrl}?sendUpdates=none${confSuffix}`;
                 method = 'POST';
-                body = JSON.stringify(buildGoogleEventPayload(eventToSave));
+                body = JSON.stringify(payload);
             } else {
                 if (!getResp.ok) {
                     const errText = await getResp.text();
@@ -94,7 +101,6 @@ export const upsertGoogleEvent = async (eventToSave: Event, provisionalId?: stri
 
                 const existing = await getResp.json();
                 etag = existing?.etag;
-                const payload = buildGoogleEventPayload(eventToSave);
                 const merged = {
                     ...existing,
                     summary: payload.summary,
@@ -112,7 +118,7 @@ export const upsertGoogleEvent = async (eventToSave: Event, provisionalId?: stri
                 body = JSON.stringify(merged);
             }
         } else {
-            body = JSON.stringify(buildGoogleEventPayload(eventToSave));
+            body = JSON.stringify(payload);
         }
 
         const response = await fetch(url, {
@@ -131,15 +137,8 @@ export const upsertGoogleEvent = async (eventToSave: Event, provisionalId?: stri
             const converted = convertGoogleEventToLocalEvent(
                 googleEvent,
                 calendarId,
-                user.primaryEmailAddress?.emailAddress
+                userEmail
             );
-            
-            if (googleEvent?.conferenceData || googleEvent?.hangoutLink) {
-                converted.meetingType = 'google-meet';
-                const videoEntry = googleEvent.conferenceData?.entryPoints?.find((e: any) => e.entryPointType === 'video');
-                converted.meetLink = googleEvent.hangoutLink || videoEntry?.uri || '';
-                converted.meetCode = googleEvent.conferenceData?.conferenceId || '';
-            }
             
             return { success: true, event: converted };
         }

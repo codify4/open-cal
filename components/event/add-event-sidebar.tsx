@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import type { Event } from '@/lib/store/calendar-store';
 import { useCalendarStore } from '@/providers/calendar-store-provider';
 import { Button } from '../ui/button';
-import { SignedIn, SignedOut, SignInButton } from '@clerk/nextjs';
+import { SignedIn, SignedOut, SignInButton, useUser } from '@clerk/nextjs';
 import {
   Select,
   SelectContent,
@@ -18,6 +18,7 @@ import { EventForm } from './form/event-form';
 import { useGoogleCalendarRefresh } from '@/hooks/use-google-calendar-refresh';
 import { useMeetingGeneration } from '@/hooks/use-meeting-generation';
 import { toast } from 'sonner';
+import { upsertGoogleEvent } from '@/lib/calendar-utils/google-calendar';
 
 interface AddEventProps {
   onClick: () => void;
@@ -27,6 +28,7 @@ const AddEventSidebar = ({ onClick }: AddEventProps) => {
   const [formType, setFormType] = useState<'event' | 'birthday'>('event');
   const autoSaveTimeoutRef = useRef<NodeJS.Timeout>(null);
   const googleSyncTimeoutRef = useRef<NodeJS.Timeout>(null);
+  const { user } = useUser();
 
   const {
     selectedEvent,
@@ -88,9 +90,9 @@ const AddEventSidebar = ({ onClick }: AddEventProps) => {
   };
 
   const handleGenerateMeeting = async () => {
-    if (!selectedEvent) return;
+    if (!selectedEvent || !user?.id) return;
     
-    const result = await generateMeeting(selectedEvent);
+    const result = await generateMeeting(selectedEvent, user.id, user.primaryEmailAddress?.emailAddress);
     if (result?.success && result.event) {
       saveEvent(result.event);
       updateSelectedEvent(result.event);
@@ -103,7 +105,25 @@ const AddEventSidebar = ({ onClick }: AddEventProps) => {
   const handleManualSave = async () => {
     if (currentFormData && Object.keys(currentFormData).length > 0 && selectedEvent) {
       const eventToSave = { ...selectedEvent, ...currentFormData };
-      saveEvent(eventToSave);
+      
+      // If Google Meet is enabled, save to Google Calendar first
+      if (eventToSave.meetingType === 'google-meet' && user?.id) {
+        const result = await upsertGoogleEvent(eventToSave, user.id, user.primaryEmailAddress?.emailAddress);
+        if (result?.success && result.event) {
+          saveEvent(result.event);
+          updateSelectedEvent(result.event);
+          updateFormData(result.event);
+          await refreshEvents();
+          toast.success('Event saved with Google Meet link');
+        } else {
+          toast.error('Failed to save event to Google Calendar');
+          return;
+        }
+      } else {
+        // Save to local store only
+        saveEvent(eventToSave);
+      }
+      
       closeEventSidebar();
       onClick();
     }

@@ -86,11 +86,13 @@ export default function DailyView({
     const result = optimisticUpdate(eventId, newStartDate, newEndDate);
     if (result) {
       const { updatedEvent, revert } = result;
-      commit(updatedEvent).catch(() => {
-        revert();
-      });
+      if (clerkUser?.id) {
+        commit(updatedEvent, clerkUser.id, clerkUser.primaryEmailAddress?.emailAddress).catch(() => {
+          revert();
+        });
+      }
     }
-  }, [optimisticUpdate, commit]);
+  }, [optimisticUpdate, commit, clerkUser]);
 
   useEffect(() => {
     if (clerkUser?.id && visibleCalendarIds.length > 0) {

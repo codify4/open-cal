@@ -21,6 +21,7 @@ import { ensureDate } from '@/lib/utils';
 import { useCalendarStore } from '@/providers/calendar-store-provider';
 import { useOptimisticEventSync } from '@/hooks/use-optimistic-event-sync';
 import AddEventSidebar from '../event/add-event-sidebar';
+import { useUser } from '@clerk/nextjs';
 
 
 export function CalendarLayoutClient({
@@ -29,6 +30,7 @@ export function CalendarLayoutClient({
   children: React.ReactNode;
 }) {
   const [activeEvent, setActiveEvent] = useState<Event | null>(null);
+  const { user } = useUser();
   const {
     isChatSidebarOpen,
     isEventSidebarOpen,
@@ -102,9 +104,11 @@ export function CalendarLayoutClient({
         if (result) {
           const { updatedEvent, revert } = result;
           // Commit to Google Calendar in the background
-          commit(updatedEvent).catch(() => {
-            revert();
-          });
+          if (user?.id) {
+            commit(updatedEvent, user.id, user.primaryEmailAddress?.emailAddress).catch(() => {
+              revert();
+            });
+          }
         } else {
           // Fallback: direct store update
           updateEventTime(draggedEvent.id, newStartDate, newEndDate);

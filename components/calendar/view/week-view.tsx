@@ -100,11 +100,13 @@ export default function WeeklyView() {
     const result = optimisticUpdate(eventId, newStartDate, newEndDate);
     if (result) {
       const { updatedEvent, revert } = result;
-      commit(updatedEvent).catch(() => {
-        revert();
-      });
+      if (clerkUser?.id) {
+        commit(updatedEvent, clerkUser.id, clerkUser.primaryEmailAddress?.emailAddress).catch(() => {
+          revert();
+        });
+      }
     }
-  }, [optimisticUpdate, commit]);
+  }, [optimisticUpdate, commit, clerkUser]);
 
   const handleAddEventWeek = useCallback(async (dayIndex: number, timeString: string) => {
     const targetDate = daysOfWeek[dayIndex % 7];

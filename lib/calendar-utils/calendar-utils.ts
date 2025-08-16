@@ -127,6 +127,10 @@ export const convertGoogleEventToLocalEvent = (
     
   const isAllDay = !googleEvent.start.dateTime;
   
+  const meetingType = googleEvent.conferenceData || googleEvent.hangoutLink ? 'google-meet' : 'none';
+  const meetLink = googleEvent.hangoutLink || googleEvent.conferenceData?.entryPoints?.find((e: any) => e.entryPointType === 'video')?.uri || '';
+  const meetCode = googleEvent.conferenceData?.conferenceId || '';
+  
   return {
     id: googleEvent.id,
     title: googleEvent.summary || 'Untitled Event',
@@ -147,6 +151,9 @@ export const convertGoogleEventToLocalEvent = (
     googleEventId: googleEvent.id,
     htmlLink: googleEvent.htmlLink,
     status: googleEvent.status,
+    meetingType,
+    meetLink,
+    meetCode,
   };
 };
 
