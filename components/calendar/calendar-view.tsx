@@ -59,6 +59,7 @@ export default function CalendarView({
 
     const { user } = useUser();
     const { refreshEvents: refreshGoogleEvents } = useGoogleCalendarRefresh();
+    const [hasGoogleCalendar, setHasGoogleCalendar] = useState(false);
 
     useEffect(() => {
         setClientSide(true);
@@ -69,6 +70,9 @@ export default function CalendarView({
             const token = await getAccessToken();
             if (token) {
                 setRefreshFunction(refreshGoogleEvents);
+                setHasGoogleCalendar(true);
+            } else {
+                setHasGoogleCalendar(false);
             }
         };
         fetchAccessToken();
@@ -211,7 +215,7 @@ export default function CalendarView({
                             <div className="flex w-full items-center justify-between gap-4 pb-2">
                                 <div className="flex items-center gap-2">
                                     <div className="mr-2 flex items-center gap-2">
-                                        <SidebarTrigger />
+                                        <SidebarTrigger disabled={!hasGoogleCalendar} title={!hasGoogleCalendar ? "Connect Google Calendar to access sidebar" : undefined} />
                                         <h1 className="font-semibold text-lg">
                                             {getViewTitle(viewType)}
                                         </h1>
@@ -223,6 +227,8 @@ export default function CalendarView({
                                             onClick={handlePrev}
                                             size="sm"
                                             variant="outline"
+                                            disabled={!hasGoogleCalendar}
+                                            title={!hasGoogleCalendar ? "Connect Google Calendar to navigate calendar" : undefined}
                                         >
                                             <ArrowLeft className="h-4 w-4" />
                                         </Button>
@@ -231,6 +237,8 @@ export default function CalendarView({
                                             onClick={handleNext}
                                             size="sm"
                                             variant="outline"
+                                            disabled={!hasGoogleCalendar}
+                                            title={!hasGoogleCalendar ? "Connect Google Calendar to navigate calendar" : undefined}
                                         >
                                             <ArrowRight className="h-4 w-4" />
                                         </Button>
@@ -240,8 +248,9 @@ export default function CalendarView({
                                     <Button
                                         className="hidden h-8 px-3 rounded-sm bg-muted text-sm sm:flex"
                                         onClick={refreshEvents}
-                                        disabled={isFetchingEvents}
+                                        disabled={isFetchingEvents || !hasGoogleCalendar}
                                         variant="outline"
+                                        title={!hasGoogleCalendar ? "Connect Google Calendar to refresh events" : undefined}
                                     >
                                         {isFetchingEvents && (<TextShimmer duration={1}>Refreshing...</TextShimmer>)}
                                         <RefreshCw className={`h-4 w-4 ${isFetchingEvents ? 'animate-spin' : ''}`} />
@@ -249,25 +258,27 @@ export default function CalendarView({
                                     <Button
                                         className="hidden h-8 w-20 rounded-sm bg-muted text-sm sm:flex"
                                         onClick={handleGoToToday}
+                                        disabled={!hasGoogleCalendar}
                                         variant="outline"
+                                        title={!hasGoogleCalendar ? "Connect Google Calendar to navigate calendar" : undefined}
                                     >
                                         Today
                                     </Button>
                                     <TabsList className="grid grid-cols-3">
-                                        <TabsTrigger value="day">
+                                        <TabsTrigger value="day" disabled={!hasGoogleCalendar} title={!hasGoogleCalendar ? "Connect Google Calendar to view calendar" : undefined}>
                                             <div className="flex items-center space-x-2">
                                                 <CalendarDaysIcon size={15} />
                                                 <span>Day</span>
                                             </div>
                                         </TabsTrigger>
-                                        <TabsTrigger value="week">
+                                        <TabsTrigger value="week" disabled={!hasGoogleCalendar} title={!hasGoogleCalendar ? "Connect Google Calendar to view calendar" : undefined}>
                                             <div className="flex items-center space-x-2">
                                                 <BsCalendarWeek />
                                                 <span>Week</span>
                                             </div>
                                         </TabsTrigger>
 
-                                        <TabsTrigger value="month">
+                                        <TabsTrigger value="month" disabled={!hasGoogleCalendar} title={!hasGoogleCalendar ? "Connect Google Calendar to view calendar" : undefined}>
                                             <div className="flex items-center space-x-2">
                                                 <BsCalendarMonth />
                                                 <span>Month</span>
@@ -280,7 +291,13 @@ export default function CalendarView({
                         <TabsContent value="day">
                             <AnimatePresence mode="wait">
                                 <motion.div {...animationConfig}>
-                                    <DailyView />
+                                    {hasGoogleCalendar ? (
+                                        <DailyView />
+                                    ) : (
+                                        <div className="flex items-center justify-center p-8 text-muted-foreground">
+                                            Connect your Google Calendar to view events
+                                        </div>
+                                    )}
                                 </motion.div>
                             </AnimatePresence>
                         </TabsContent>
@@ -288,7 +305,13 @@ export default function CalendarView({
                         <TabsContent value="week">
                             <AnimatePresence mode="wait">
                                 <motion.div {...animationConfig}>
-                                    <WeeklyView />
+                                    {hasGoogleCalendar ? (
+                                        <WeeklyView />
+                                    ) : (
+                                        <div className="flex items-center justify-center p-8 text-muted-foreground">
+                                            Connect your Google Calendar to view events
+                                        </div>
+                                    )}
                                 </motion.div>
                             </AnimatePresence>
                         </TabsContent>
@@ -296,13 +319,32 @@ export default function CalendarView({
                         <TabsContent value="month">
                             <AnimatePresence mode="wait">
                                 <motion.div {...animationConfig}>
-                                    <MonthView />
+                                    {hasGoogleCalendar ? (
+                                        <MonthView />
+                                    ) : (
+                                        <div className="flex items-center justify-center p-8 text-muted-foreground">
+                                            Connect your Google Calendar to view events
+                                        </div>
+                                    )}
                                 </motion.div>
                             </AnimatePresence>
                         </TabsContent>
                     </Tabs>
                 </div>
             </div>
+            {!hasGoogleCalendar && (
+                <div className="flex items-center justify-center p-8 bg-muted/50 rounded-lg border border-dashed">
+                    <div className="text-center max-w-md">
+                        <h3 className="font-semibold text-lg mb-2">Connect Google Calendar</h3>
+                        <p className="text-sm text-muted-foreground mb-4">
+                            To view and manage your calendar events, please connect your Google Calendar account.
+                        </p>
+                        <Button variant="outline" size="sm">
+                            Connect Google Calendar
+                        </Button>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

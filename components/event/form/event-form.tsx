@@ -62,7 +62,7 @@ export const EventForm = ({ event, onSave, onDataChange, onGenerateMeeting, isGe
         location: event.location || '',
         attendees: event.attendees || [],
         reminders: [],
-        calendar: event.account || '',
+        calendar: event.calendar || event.account || '',
         color: event.color || 'blue',
         isAllDay: event.isAllDay || false,
         timezone: 'UTC',
@@ -99,7 +99,6 @@ export const EventForm = ({ event, onSave, onDataChange, onGenerateMeeting, isGe
         attendees: newData.attendees,
         reminders: [],
         color: newData.color,
-        account: newData.calendar,
         calendar: newData.calendar, // Store the calendar ID
         isAllDay: newData.isAllDay,
         repeat: newData.repeat as RepeatType,
@@ -111,6 +110,11 @@ export const EventForm = ({ event, onSave, onDataChange, onGenerateMeeting, isGe
       };
       onSave(eventData);
     }
+  };
+
+  // Special handling for calendar changes to ensure immediate update
+  const handleCalendarChange = (calendar: string) => {
+    updateEventData({ calendar });
   };
 
   const handleRepeatChange = (repeat: string) => {
@@ -186,7 +190,7 @@ export const EventForm = ({ event, onSave, onDataChange, onGenerateMeeting, isGe
           calendar={eventData.calendar}
           color={eventData.color}
           meetingType={eventData.meetingType}
-          onCalendarChange={(calendar) => updateEventData({ calendar })}
+          onCalendarChange={handleCalendarChange}
           onColorChange={(color) => updateEventData({ color })}
           onMeetingTypeChange={handleMeetingTypeChange}
           meetingUrl={eventData.meetingUrl}

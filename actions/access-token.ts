@@ -9,18 +9,26 @@ export async function getAccessToken() {
         return null;
     }
 
-    const provider = 'google'
+    const provider = 'google';
 
-    const client = await clerkClient()
+    try {
+        const client = await clerkClient();
+        const clerkResponse = await client.users.getUserOauthAccessToken(userId, provider);
+        const accessToken = clerkResponse.data[0]?.token || '';
 
-    const clerkResponse = await client.users.getUserOauthAccessToken(userId, provider)
+        if (!accessToken) {
+            await getToken({ template: 'google' });
+            return null;
+        }
 
-    const accessToken = clerkResponse.data[0]?.token || ''
-
-    if (!accessToken) {
-        await getToken({ template: 'google' });
+        return accessToken;
+    } catch (error: any) {
+        if (error.status === 422) {
+            console.warn('OAuth token not available, user may need to reconnect Google account');
+            return null;
+        }
+        
+        console.error('Error getting access token:', error);
         return null;
     }
-
-    return accessToken;
 }

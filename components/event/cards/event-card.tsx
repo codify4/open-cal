@@ -17,7 +17,8 @@ import { GraphicDoodle } from './graphics';
 import { useUser } from '@clerk/nextjs';
 import { useGoogleCalendarRefresh } from '@/hooks/use-google-calendar-refresh';
 import { toast } from 'sonner';
-import { getCardColor } from '@/lib/calendar-utils/calendar-color-utils';
+import { getCardColor, getCalendarColor } from '@/lib/calendar-utils/calendar-color-utils';
+import { useCalendarManagement } from '@/hooks/use-calendar-management';
 
 interface EventCardProps {
   event: Event;
@@ -67,10 +68,13 @@ export const EventCard = ({
   const [isClient, setIsClient] = useState(false);
   const { refreshEvents } = useGoogleCalendarRefresh();
   const { user: clerkUser } = useUser();
+  const { fetchedCalendars } = useCalendarManagement();
 
   useEffect(() => {
     setIsClient(true);
   }, []);
+
+
 
   const handleCardClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -132,15 +136,16 @@ export const EventCard = ({
     navigator.clipboard.writeText(JSON.stringify(event, null, 2));
   };
 
-  const getAccountColor = (account: string) => {
-    const accountMap: Record<string, string> = {
-      'john.doe@gmail.com': 'bg-red-500',
-      'jane.smith@outlook.com': 'bg-blue-500',
-      'work@company.com': 'bg-green-500',
-      'personal@icloud.com': 'bg-purple-500',
-    };
-    return accountMap[account] || getCardColor(event.color);
+  const getAccountColor = (calendarId: string) => {
+    const calendar = fetchedCalendars?.find((cal: any) => cal.id === calendarId);
+    if (calendar && calendar.backgroundColor) {
+      return calendar.backgroundColor;
+    }
+    // Fallback to event color if calendar not found
+    return getCardColor(event.color, isFocused);
   };
+
+
 
   const formatTime = (date: Date | string, showAMPM = true) => {
     const dateObj = typeof date === 'string' ? new Date(date) : date;
@@ -381,11 +386,11 @@ export const EventCard = ({
             <div
               className={cn(
                 'w-[2px] rounded-sm',
-                event.account
-                  ? getAccountColor(event.account)
-                  : getCardColor(event.color, isFocused),
                 minimized ? 'min-h-[20px]' : 'min-h-[30px]'
               )}
+              style={{
+                backgroundColor: event.calendar ? getAccountColor(event.calendar) : getCardColor(event.color, isFocused)
+              }}
             />
             <div className="flex flex-col items-start justify-between">
               <div className="flex min-w-0 flex-1 items-center gap-1">

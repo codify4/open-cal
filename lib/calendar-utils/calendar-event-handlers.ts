@@ -23,7 +23,7 @@ export const createGoogleEvent = async (
     const accessToken = await getAccessToken();
 
     if (!accessToken) {
-        throw new Error('No access token available');
+        throw new Error('Google Calendar not connected. Please connect your Google account to create events.');
     }
 
     const body = {
@@ -76,8 +76,9 @@ export const handleAddEvent = async (
         const accessToken = await getAccessToken();
 
         if (!accessToken) {
-        openEventSidebarForNewEvent(targetDate);
-        return;
+            toast.error('Google Calendar not connected. Please connect your Google account to create events.');
+            openEventSidebarForNewEvent(targetDate);
+            return;
         }
 
         const calendarId = visibleCalendarIds[0] || 'primary';

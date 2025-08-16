@@ -23,6 +23,9 @@ export const useGoogleCalendarRefresh = () => {
       if (user?.id) {
         const token = await getAccessToken();
         setAccessToken(token);
+        if (!token) {
+          toast.error('Google Calendar not connected. Please connect your Google account to sync events.');
+        }
       }
     };
     

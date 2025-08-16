@@ -62,7 +62,10 @@ export const upsertGoogleEvent = async (eventToSave: Event, userId: string, user
         if (!userId) return;
         
         const accessToken = await getAccessToken();
-        if (!accessToken) return;
+        if (!accessToken) {
+            toast.error('Google Calendar not connected. Please connect your Google account to save events.');
+            return;
+        }
 
         const calendarId = eventToSave.googleCalendarId || 'primary';
         let isUpdate = Boolean(eventToSave.googleEventId);
