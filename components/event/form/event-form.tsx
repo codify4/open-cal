@@ -21,9 +21,16 @@ interface EventFormProps {
 export const EventForm = ({ event, onSave, onDataChange, onGenerateMeeting, isGeneratingMeeting }: EventFormProps) => {
   type RepeatType = 'none' | 'daily' | 'weekly' | 'monthly' | 'yearly';
 
-  const formatTimeFromDate = (date: Date) => {
-    const hours = date.getHours().toString().padStart(2, '0');
-    const minutes = date.getMinutes().toString().padStart(2, '0');
+  const formatTimeFromDate = (date: Date | string | undefined) => {
+    if (!date) return '09:00';
+    
+    const dateObj = typeof date === 'string' ? new Date(date) : date;
+    if (!(dateObj instanceof Date) || isNaN(dateObj.getTime())) {
+      return '09:00';
+    }
+    
+    const hours = dateObj.getHours().toString().padStart(2, '0');
+    const minutes = dateObj.getMinutes().toString().padStart(2, '0');
     return `${hours}:${minutes}`;
   };
 
@@ -55,8 +62,8 @@ export const EventForm = ({ event, onSave, onDataChange, onGenerateMeeting, isGe
         ...eventData,
         title: event.title || '',
         description: event.description || '',
-        startDate: event.startDate,
-        endDate: event.endDate,
+        startDate: event.startDate instanceof Date ? event.startDate : new Date(event.startDate),
+        endDate: event.endDate instanceof Date ? event.endDate : new Date(event.endDate),
         startTime: formatTimeFromDate(event.startDate),
         endTime: formatTimeFromDate(event.endDate),
         location: event.location || '',
