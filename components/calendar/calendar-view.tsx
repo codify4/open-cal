@@ -10,11 +10,15 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
 import { useCalendarStore } from '@/providers/calendar-store-provider';
 import { useGoogleCalendarRefresh } from '@/hooks/use-google-calendar-refresh';
+import { useUser } from '@clerk/nextjs';
+import { useQuery } from 'convex/react';
+import { api } from '@/convex/_generated/api';
 import type { ClassNames, Views } from '@/types/index';
 import DailyView from './view/daily-view';
 import MonthView from './view/month-view';
 import WeeklyView from './view/week-view';
 import { TextShimmer } from '../agent/text-shimmer';
+import { getAccessToken } from '@/actions/access-token';
 
 const animationConfig = {
   initial: { opacity: 0, y: 20 },
@@ -53,6 +57,7 @@ export default function CalendarView({
         setRefreshFunction,
     } = useCalendarStore((state) => state);
 
+    const { user } = useUser();
     const { refreshEvents: refreshGoogleEvents } = useGoogleCalendarRefresh();
 
     useEffect(() => {
@@ -60,7 +65,13 @@ export default function CalendarView({
     }, []);
 
     useEffect(() => {
-        setRefreshFunction(refreshGoogleEvents);
+        const fetchAccessToken = async () => {
+            const token = await getAccessToken();
+            if (token) {
+                setRefreshFunction(refreshGoogleEvents);
+            }
+        };
+        fetchAccessToken();
     }, [setRefreshFunction, refreshGoogleEvents]);
 
     const [isMobile, setIsMobile] = useState(

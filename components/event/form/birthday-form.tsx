@@ -22,9 +22,22 @@ interface BirthdayFormProps {
 }
 
 export const BirthdayForm = ({ event, onSave }: BirthdayFormProps) => {
+  const ensureValidDate = (date: any): Date => {
+    if (date instanceof Date && !isNaN(date.getTime())) {
+      return date;
+    }
+    if (typeof date === 'string' || typeof date === 'number') {
+      const parsedDate = new Date(date);
+      if (!isNaN(parsedDate.getTime())) {
+        return parsedDate;
+      }
+    }
+    return new Date();
+  };
+
   const [birthdayData, setBirthdayData] = useState({
     title: '',
-    date: new Date(),
+    date: ensureValidDate(new Date()),
     recurrence: 'yearly',
     account: '',
     reminders: [] as Date[],
@@ -35,10 +48,10 @@ export const BirthdayForm = ({ event, onSave }: BirthdayFormProps) => {
     if (event) {
       setBirthdayData({
         title: event.title || '',
-        date: event.startDate,
+        date: ensureValidDate(event.startDate),
         recurrence: event.repeat || 'yearly',
         account: '',
-        reminders: event.reminders || [],
+        reminders: (event.reminders || []).map(reminder => ensureValidDate(reminder)),
       });
     }
   }, [event]);
@@ -46,6 +59,17 @@ export const BirthdayForm = ({ event, onSave }: BirthdayFormProps) => {
   // Auto-save functionality
   const updateBirthdayData = (updates: Partial<typeof birthdayData>) => {
     const newData = { ...birthdayData, ...updates };
+    
+    // Ensure date is always valid
+    if (updates.date) {
+      newData.date = ensureValidDate(updates.date);
+    }
+    
+    // Ensure reminders are always valid dates
+    if (updates.reminders) {
+      newData.reminders = updates.reminders.map(reminder => ensureValidDate(reminder));
+    }
+    
     setBirthdayData(newData);
 
     // Trigger auto-save
@@ -69,15 +93,29 @@ export const BirthdayForm = ({ event, onSave }: BirthdayFormProps) => {
   };
 
   const formatDate = (date: Date) => {
+    if (!(date instanceof Date) || isNaN(date.getTime())) {
+      return 'Invalid date';
+    }
     return format(date, 'EEE MMMM d');
   };
 
+  const getDayOfMonth = (date: Date) => {
+    if (!(date instanceof Date) || isNaN(date.getTime())) {
+      return 'Invalid date';
+    }
+    return format(date, 'd');
+  };
+
   const formatRecurrence = (recurrence: string) => {
+    if (!(birthdayData.date instanceof Date) || isNaN(birthdayData.date.getTime())) {
+      return 'Invalid date';
+    }
+    
     switch (recurrence) {
       case 'yearly':
         return `Every year on ${formatDate(birthdayData.date)}`;
       case 'monthly':
-        return `Every month on ${format(birthdayData.date, 'dd')}`;
+        return `Every month on ${getDayOfMonth(birthdayData.date)}`;
       default:
         return 'Never';
     }

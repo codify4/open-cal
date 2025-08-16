@@ -3,33 +3,33 @@ import type { Event } from '@/lib/store/calendar-store';
 import { upsertGoogleEvent } from '@/lib/calendar-utils/google-calendar';
 
 export const useMeetingGeneration = () => {
-  const [isGeneratingMeeting, setIsGeneratingMeeting] = useState(false);
-  const currentFormData = useRef<Partial<Event>>({});
+    const [isGeneratingMeeting, setIsGeneratingMeeting] = useState(false);
+    const currentFormData = useRef<Partial<Event>>({});
 
-  const updateFormData = (eventData: Partial<Event>) => {
-    currentFormData.current = { ...currentFormData.current, ...eventData };
-  };
+    const updateFormData = (eventData: Partial<Event>) => {
+        currentFormData.current = { ...currentFormData.current, ...eventData };
+    };
 
-  const generateMeeting = async (selectedEvent: Event | null) => {
-    if (isGeneratingMeeting || !selectedEvent) return;
+    const generateMeeting = async (selectedEvent: Event | null) => {
+        if (isGeneratingMeeting || !selectedEvent) return;
 
-    const hasGoogleMeet = selectedEvent.meetingType === 'google-meet' || currentFormData.current.meetingType === 'google-meet';
-    if (!hasGoogleMeet) return;
+        const hasGoogleMeet = selectedEvent.meetingType === 'google-meet' || currentFormData.current.meetingType === 'google-meet';
+        if (!hasGoogleMeet) return;
 
-    setIsGeneratingMeeting(true);
-    try {
-      const eventToSave = { ...selectedEvent, ...currentFormData.current };
-      const result = await upsertGoogleEvent(eventToSave);
-      return result;
-    } finally {
-      setIsGeneratingMeeting(false);
-    }
-  };
+        setIsGeneratingMeeting(true);
+        try {
+            const eventToSave = { ...selectedEvent, ...currentFormData.current };
+            const result = await upsertGoogleEvent(eventToSave);
+            return result;
+        } finally {
+            setIsGeneratingMeeting(false);
+        }
+    };
 
-  return {
-    isGeneratingMeeting,
-    currentFormData: currentFormData.current,
-    updateFormData,
-    generateMeeting,
-  };
+    return {
+        isGeneratingMeeting,
+        currentFormData: currentFormData.current,
+        updateFormData,
+        generateMeeting,
+    };
 };

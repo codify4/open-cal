@@ -108,17 +108,18 @@ export default function WeeklyView() {
 
   const handleAddEventWeek = useCallback(async (dayIndex: number, timeString: string) => {
     const targetDate = daysOfWeek[dayIndex % 7];
+    if (!clerkUser) return;
     await handleAddEvent(
       targetDate,
       timeString,
-      { user: isSignedIn ? clerkUser : null },
       visibleCalendarIds,
       saveEvent,
       openEventSidebarForEdit,
       openEventSidebarForNewEvent,
-      refreshEvents
+      refreshEvents,
+      clerkUser
     );
-  }, [daysOfWeek, isSignedIn, clerkUser, visibleCalendarIds, saveEvent, openEventSidebarForEdit, openEventSidebarForNewEvent, refreshEvents]);
+  }, [daysOfWeek, clerkUser, visibleCalendarIds, saveEvent, openEventSidebarForEdit, openEventSidebarForNewEvent, refreshEvents]);
 
   const getEventsForDay = useCallback((dayIndex: number) => {
     return getTimedEventsForDay(allEvents, daysOfWeek[dayIndex]);

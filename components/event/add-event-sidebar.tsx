@@ -36,7 +36,6 @@ const AddEventSidebar = ({ onClick }: AddEventProps) => {
     updateSelectedEvent,
     closeEventSidebar,
     saveEvent,
-    deleteEvent,
   } = useCalendarStore((state) => state);
 
   const { isGeneratingMeeting, currentFormData, updateFormData, generateMeeting } = useMeetingGeneration();
@@ -242,5 +241,5 @@ const AddEventSidebar = ({ onClick }: AddEventProps) => {
     </div>
   );
 };
-
 export default AddEventSidebar;
+

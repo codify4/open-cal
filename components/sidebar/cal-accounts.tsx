@@ -1,7 +1,6 @@
 'use client';
 
-import { Plus } from 'lucide-react';
-import { SignedIn, SignedOut, useUser } from '@clerk/nextjs';
+import { SignedIn, SignedOut, SignInButton } from '@clerk/nextjs';
 
 import {
 	SidebarGroup,
@@ -10,7 +9,6 @@ import {
 	SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
-import { toast } from 'sonner';
 import { SidebarGroupContent } from '@/components/ui/sidebar';
 import { AccountDropdown } from './account-dropdown';
 import { CalendarList } from './calendar-list';
@@ -26,7 +24,6 @@ export function NavCalendars({
 	selectedEmail,
 	user,
 }: NavCalendarsProps) {
-	const { user: clerkUser } = useUser();
 	const {
 		fetchedCalendars,
 		isLoadingCalendars,
@@ -47,37 +44,17 @@ export function NavCalendars({
 		refetchCalendars();
 	};
 
-	const handleGoogleOAuth = async () => {
-		try {
-			if (clerkUser) {
-				// Redirect to Google OAuth through Clerk
-				window.location.href = '/api/auth/google';
-			} else {
-				toast.error('Please sign in first');
-			}
-		} catch (error) {
-			console.error('Google OAuth error:', error);
-			toast.error('Failed to connect Google Calendar');
-		}
-	};
-
 	return (
 		<SidebarGroup className="mt-0 group-data-[collapsible=icon]:hidden">
 			<SidebarGroupLabel>Account</SidebarGroupLabel>
 			
 			<SignedOut>
 				<SidebarGroupContent>
-					<Button
-						variant="outline"
-						size="sm"
-						className='w-full justify-start'
-						onClick={() => {
-							window.location.href = '/api/auth/signin';
-						}}
-					>
-						<Plus className="h-4 w-4 mr-2" />
-						Sign in to add accounts
-					</Button>
+                    <SignInButton mode="modal">
+                        <Button>
+                            Sign in to Continue
+                        </Button>
+                    </SignInButton>
 				</SidebarGroupContent>
 			</SignedOut>
 
