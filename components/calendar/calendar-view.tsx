@@ -10,7 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
 import { useCalendarStore } from '@/providers/calendar-store-provider';
 import { useGoogleCalendarRefresh } from '@/hooks/use-google-calendar-refresh';
-import { useUser } from '@clerk/nextjs';
+import { SignedOut, useUser } from '@clerk/nextjs';
 import { useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import type { ClassNames, Views } from '@/types/index';
@@ -295,7 +295,9 @@ export default function CalendarView({
                                         <DailyView />
                                     ) : (
                                         <div className="flex items-center justify-center p-8 text-muted-foreground">
-                                            Connect your Google Calendar to view events
+                                            <div className="flex items-center gap-2">
+                                                <div className="h-4 w-4 animate-spin rounded-full border-2 border-muted-foreground border-t-transparent" />
+                                            </div>
                                         </div>
                                     )}
                                 </motion.div>
@@ -309,7 +311,9 @@ export default function CalendarView({
                                         <WeeklyView />
                                     ) : (
                                         <div className="flex items-center justify-center p-8 text-muted-foreground">
-                                            Connect your Google Calendar to view events
+                                            <div className="flex items-center gap-2">
+                                                <div className="h-4 w-4 animate-spin rounded-full border-2 border-muted-foreground border-t-transparent" />
+                                            </div>
                                         </div>
                                     )}
                                 </motion.div>
@@ -323,7 +327,9 @@ export default function CalendarView({
                                         <MonthView />
                                     ) : (
                                         <div className="flex items-center justify-center p-8 text-muted-foreground">
-                                            Connect your Google Calendar to view events
+                                            <div className="flex items-center gap-2">
+                                                <div className="h-4 w-4 animate-spin rounded-full border-2 border-muted-foreground border-t-transparent" />
+                                            </div>
                                         </div>
                                     )}
                                 </motion.div>
@@ -332,7 +338,7 @@ export default function CalendarView({
                     </Tabs>
                 </div>
             </div>
-            {!hasGoogleCalendar && (
+            <SignedOut>
                 <div className="flex items-center justify-center p-8 bg-muted/50 rounded-lg border border-dashed">
                     <div className="text-center max-w-md">
                         <h3 className="font-semibold text-lg mb-2">Connect Google Calendar</h3>
@@ -344,7 +350,7 @@ export default function CalendarView({
                         </Button>
                     </div>
                 </div>
-            )}
+            </SignedOut>
         </div>
     );
 }
