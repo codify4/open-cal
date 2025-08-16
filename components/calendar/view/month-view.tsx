@@ -161,7 +161,7 @@ export default function MonthView() {
                   onAddEvent={handleAddEvent}
                   onAskAI={() => toggleChatSidebar()}
                   onContextMenuAddEvent={handleContextMenuAddEvent}
-                  sessionPresent={isSignedIn}
+                  sessionPresent={isSignedIn!}
                 />
               );
             })}

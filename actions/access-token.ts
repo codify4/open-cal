@@ -3,7 +3,7 @@
 import { auth, clerkClient } from "@clerk/nextjs/server";
 
 export async function getAccessToken() {
-    const { userId } = await auth();
+    const { userId, getToken } = await auth();
 
     if (!userId) {
         return null;
@@ -18,6 +18,7 @@ export async function getAccessToken() {
     const accessToken = clerkResponse.data[0]?.token || ''
 
     if (!accessToken) {
+        await getToken({ template: 'google' });
         return null;
     }
 

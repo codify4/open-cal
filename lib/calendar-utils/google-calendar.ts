@@ -57,10 +57,10 @@ export const buildGoogleEventPayload = (e: Event) => {
     return payload;
 };
 
-export const upsertGoogleEvent = async (eventToSave: Event, userId: string, userEmail?: string, provisionalId?: string) => {
+export const upsertGoogleEvent = async (eventToSave: Event, userId: string, userEmail?: string) => {
     try {
         if (!userId) return;
-
+        
         const accessToken = await getAccessToken();
         if (!accessToken) return;
 

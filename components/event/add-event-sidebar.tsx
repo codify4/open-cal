@@ -108,7 +108,7 @@ const AddEventSidebar = ({ onClick }: AddEventProps) => {
       
       // If Google Meet is enabled, save to Google Calendar first
       if (eventToSave.meetingType === 'google-meet' && user?.id) {
-        const result = await upsertGoogleEvent(eventToSave, user.id, user.primaryEmailAddress?.emailAddress);
+        const result = await upsertGoogleEvent(eventToSave, user.primaryEmailAddress?.emailAddress);
         if (result?.success && result.event) {
           saveEvent(result.event);
           updateSelectedEvent(result.event);
