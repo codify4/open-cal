@@ -30,15 +30,11 @@ export function useCalendarManagement(onCalendarsFetched?: (calendars: GoogleCal
 	}, [userId]);
 
 	const fetchCalendars = React.useCallback(async () => {
-		console.log('🔐 fetchCalendars called, user:', { userId, hasUser: !!userId });
-		
 		if (!userId) {
-			console.log('❌ No user ID, returning early');
 			return;
 		}
 
 		if (!accessToken) {
-			console.log('❌ No access token, returning early');
 			return;
 		}
 
@@ -66,14 +62,19 @@ export function useCalendarManagement(onCalendarsFetched?: (calendars: GoogleCal
 				backgroundColor: cal.backgroundColor,
 			}));
 
-			setFetchedCalendars(calendars);
+			const sortedCalendars = calendars.sort((a, b) => {
+				if (a.primary && !b.primary) return -1;
+				if (!a.primary && b.primary) return 1;
+				return (a.summary || a.name || '').localeCompare(b.summary || b.name || '');
+			});
+
+			setFetchedCalendars(sortedCalendars);
 			
-			// Set all calendars as visible by default
-			const calendarIds = calendars.map(cal => cal.id);
+			const calendarIds = sortedCalendars.map(cal => cal.id);
 			setVisibleCalendarIds(calendarIds);
 			setVisibleCalendars(new Set(calendarIds));
 			
-			onCalendarsFetched?.(calendars);
+			onCalendarsFetched?.(sortedCalendars);
 
 			const googleColors = await fetch('https://www.googleapis.com/calendar/v3/colors', {
 				headers: {
@@ -91,18 +92,25 @@ export function useCalendarManagement(onCalendarsFetched?: (calendars: GoogleCal
 				setColorOptions(colors);
 			}
 		} catch (error) {
-			console.error('💥 fetchCalendars failed:', error);
 			toast.error('Failed to fetch calendars');
 		} finally {
-			console.log('🏁 fetchCalendars completed, setting loading to false');
 			setIsLoadingCalendars(false);
 		}
 	}, [userId, accessToken, setVisibleCalendarIds, onCalendarsFetched]);
 
 	const handleChangeCalendarColor = React.useCallback(async (calendarId: string, colorId: string) => {
 		if (!userId || !accessToken) return;
+		
+		setFetchedCalendars(prevCalendars => 
+			prevCalendars.map(cal => 
+				cal.id === calendarId 
+					? { ...cal, colorId, backgroundColor: colorOptions.find(c => c.id === colorId)?.background }
+					: cal
+			)
+		);
+		
 		try {
-			const response = await fetch(`https://www.googleapis.com/calendar/v3/calendars/${calendarId}`, {
+			const response = await fetch(`https://www.googleapis.com/calendar/v3/users/me/calendarList/${calendarId}`, {
 				method: 'PATCH',
 				headers: {
 					Authorization: `Bearer ${accessToken}`,
@@ -119,7 +127,16 @@ export function useCalendarManagement(onCalendarsFetched?: (calendars: GoogleCal
 			fetchCalendars();
 		} catch (error) {
 			console.error('Failed to update calendar color:', error);
-			toast.error('Failed to update calendar color');
+			
+			fetchCalendars();
+			
+			if (error instanceof Error && error.message.includes('403')) {
+				toast.error('Cannot modify this calendar - insufficient permissions');
+			} else if (error instanceof Error && error.message.includes('404')) {
+				toast.error('Calendar not found');
+			} else {
+				toast.error('Failed to update calendar color');
+			}
 		}
 	}, [userId, accessToken, colorOptions, fetchCalendars]);
 

@@ -32,6 +32,8 @@ export function CalendarDropdown({
 		onDelete(calendar.id);
 	};
 
+	const canModify = calendar.accessRole === 'owner' || calendar.accessRole === 'writer';
+
 	return (
 		<DropdownMenu>
 			<DropdownMenuTrigger asChild>
@@ -45,27 +47,34 @@ export function CalendarDropdown({
 				</SidebarMenuAction>
 			</DropdownMenuTrigger>
 			<DropdownMenuContent align="start" side="right" className="w-48 bg-white dark:bg-neutral-950" onClick={(e) => e.stopPropagation()}>
-				<div className="px-2 py-1 text-xs text-muted-foreground">Color</div>
-				<div className="grid grid-cols-6 gap-2 px-2 pb-2">
-					{colorOptions.map((option) => (
-						<button
-							key={option.id}
-							type="button"
-							className="h-4 w-4 rounded border cursor-pointer hover:scale-110 transition-transform duration-100"
-							style={{ backgroundColor: option.background, borderColor: option.background }}
-							onClick={() => handleColorChange(option.id)}
-							aria-label={`Set color ${option.id}`}
-						/>
-					))}
-				</div>
-				{!calendar.primary && (
+				{canModify && (
 					<>
-						<DropdownMenuSeparator className="mx-1" />
-                        <DropdownMenuItem className="text-red-500 focus:text-red-500 cursor-pointer flex items-center gap-2" onClick={handleDelete}>
-                            <Trash2 className="h-4 w-4 text-red-500" />
-                            Delete
-                        </DropdownMenuItem>
+						<div className="px-2 py-1 text-xs text-muted-foreground">Color</div>
+						<div className="grid grid-cols-6 gap-2 px-2 pb-2">
+							{colorOptions.map((option) => (
+								<button
+									key={option.id}
+									type="button"
+									className="h-4 w-4 rounded border cursor-pointer hover:scale-110 transition-transform duration-100"
+									style={{ backgroundColor: option.background, borderColor: option.background }}
+									onClick={() => handleColorChange(option.id)}
+									aria-label={`Set color ${option.id}`}
+								/>
+							))}
+						</div>
 					</>
+				)}
+				{!calendar.primary && canModify && (
+					<>
+						{canModify && <DropdownMenuSeparator className="mx-1" />}
+						<DropdownMenuItem className="text-red-500 focus:text-red-500 cursor-pointer flex items-center gap-2" onClick={handleDelete}>
+							<Trash2 className="h-4 w-4 text-red-500" />
+							Delete
+						</DropdownMenuItem>
+					</>
+				)}
+				{!canModify && (
+					<div className="px-2 py-1 text-xs text-muted-foreground">Read-only calendar</div>
 				)}
 			</DropdownMenuContent>
 		</DropdownMenu>

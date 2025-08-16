@@ -48,11 +48,6 @@ export function AccountDropdown({
 			<DropdownMenuTrigger asChild>
 				<SidebarMenuButton className="w-full cursor-pointer justify-between rounded-sm py-5 hover:bg-primary/10 hover:text-primary focus:bg-transparent focus:outline-none focus:ring-0 active:bg-transparent">
 					<div className="flex items-center gap-2">
-						<div
-							className={`h-3 w-3 rounded-full ${getColorClasses(
-								(selectedAccount?.color ?? emailColorFromString(selectedAccount?.email || userEmail || ''))
-							)}`}
-						/>
 						<div className="flex flex-col items-start">
 							<span className="truncate font-medium text-sm">
 								{selectedAccount?.email || userEmail || 'Select Account'}
@@ -83,11 +78,6 @@ export function AccountDropdown({
 						key={account.email}
 						onClick={() => onEmailChange(account.email)}
 					>
-						<div
-							className={`h-3 w-3 rounded-full ${getColorClasses(
-								account.color ?? emailColorFromString(account.email)
-							)}`}
-						/>
 						<div className="flex flex-col">
 							<span className="text-sm">{account.email}</span>
 							{account.isDefault && (

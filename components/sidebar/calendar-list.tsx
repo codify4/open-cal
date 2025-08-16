@@ -60,7 +60,7 @@ export function CalendarList({
 						<Checkbox
 							checked={visibleCalendars.has(calendar.id)}
 							className="cursor-pointer"
-							color={getCalendarColor(calendar)}
+							color={getCalendarColor(calendar, Object.fromEntries(colorOptions.map(opt => [opt.id, opt.background])))}
 							onCheckedChange={() => onToggle(calendar.id)}
 						/>
 						<span className="flex-1 truncate text-sm min-w-0">{calendar.summary || calendar.name}</span>
