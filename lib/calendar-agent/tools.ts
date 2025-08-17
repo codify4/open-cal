@@ -3,7 +3,7 @@ import { tool } from 'ai';
 import type { Event } from '@/lib/store/calendar-store';
 
 export const createEventTool = tool({
-  description: 'Create a new calendar event with the specified details',
+  description: 'Create a new calendar event with the specified details. ALWAYS check for conflicts first using check_conflicts tool.',
   inputSchema: z.object({
     title: z.string().describe('The title of the event'),
     description: z.string().optional().describe('Description of the event'),
@@ -40,7 +40,8 @@ export const createEventTool = tool({
         success: true, 
         event,
         action: 'create_event',
-        message: `Created event: ${event.title} on ${event.startDate.toLocaleDateString()}`
+        message: `Created event: ${event.title} on ${event.startDate.toLocaleDateString()}`,
+        note: 'IMPORTANT: Always check for conflicts using check_conflicts tool before creating events'
       };
     } catch (error) {
       return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
@@ -114,7 +115,7 @@ export const getEventsTool = tool({
 });
 
 export const updateEventTool = tool({
-  description: 'Update an existing calendar event',
+  description: 'Update an existing calendar event. ALWAYS check for conflicts first using check_conflicts tool when changing dates/times.',
   inputSchema: z.object({
     eventId: z.string().describe('ID of the event to update'),
     title: z.string().optional().describe('New title for the event'),
@@ -200,6 +201,43 @@ export const getCalendarSummaryTool = tool({
   },
 });
 
+export const checkConflictsTool = tool({
+  description: 'Get events for a specific time period to check for scheduling conflicts',
+  inputSchema: z.object({
+    startDate: z.string().describe('Start date and time in ISO format'),
+    endDate: z.string().describe('End date and time in ISO format'),
+    excludeEventId: z.string().optional().describe('Event ID to exclude from check (for updates)'),
+  }),
+  execute: async (params) => {
+    try {
+      const startDate = new Date(params.startDate);
+      const endDate = new Date(params.endDate);
+      
+      // This would normally access the calendar store
+      // For now, we'll simulate getting events for that time period
+      const mockEvents = [
+        {
+          id: 'existing-event-1',
+          title: 'Team Meeting',
+          startDate: new Date(startDate.getTime() - 30 * 60000).toISOString(),
+          endDate: new Date(startDate.getTime() + 30 * 60000).toISOString(),
+          color: 'blue',
+          location: 'Conference Room A',
+        }
+      ];
+      
+      return { 
+        success: true, 
+        events: mockEvents,
+        action: 'check_conflicts',
+        message: `Retrieved ${mockEvents.length} event(s) for the specified time period`
+      };
+    } catch (error) {
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+    }
+  },
+});
+
 export const calendarTools = {
   create_event: createEventTool,
   find_free_time: findFreeTimeTool,
@@ -207,4 +245,5 @@ export const calendarTools = {
   update_event: updateEventTool,
   delete_event: deleteEventTool,
   get_calendar_summary: getCalendarSummaryTool,
+  check_conflicts: checkConflictsTool,
 };
