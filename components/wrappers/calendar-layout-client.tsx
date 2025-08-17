@@ -22,6 +22,7 @@ import { useCalendarStore } from '@/providers/calendar-store-provider';
 import { useOptimisticEventSync } from '@/hooks/use-optimistic-event-sync';
 import AddEventSidebar from '../event/add-event-sidebar';
 import { useUser } from '@clerk/nextjs';
+import UpgradeDialog from '../wrappers/upgrade-dialog';
 
 
 export function CalendarLayoutClient({
@@ -43,6 +44,9 @@ export function CalendarLayoutClient({
     events,
     googleEvents,
     updateEventTime,
+    isUpgradeDialogOpen,
+    openUpgradeDialog,
+    closeUpgradeDialog,
   } = useCalendarStore((state) => state);
   const { optimisticUpdate, commit } = useOptimisticEventSync();
 

@@ -81,6 +81,8 @@ export interface CalendarState {
   optimisticUpdateCounter: number;
   // Per-event optimistic overrides to prevent flicker on background refresh
   optimisticOverrides: Record<string, { startDate: Date; endDate: Date }>;
+  
+  isUpgradeDialogOpen: boolean;
 }
 
 export interface CalendarActions {
@@ -132,6 +134,10 @@ export interface CalendarActions {
   setFetchingEvents: (isFetching: boolean) => void;
   setRefreshFunction: (refreshFn: () => Promise<void>) => void;
   refreshEvents: () => Promise<void>;
+  
+  // Upgrade Dialog Actions
+  openUpgradeDialog: () => void;
+  closeUpgradeDialog: () => void;
 }
 
 export type CalendarStore = CalendarState & CalendarActions;
@@ -213,6 +219,9 @@ export const defaultInitState: CalendarState = {
   // Optimistic update counter
   optimisticUpdateCounter: 0,
   optimisticOverrides: {},
+  
+  // Upgrade Dialog State
+  isUpgradeDialogOpen: false,
 };
 
 export const createCalendarStore = (
@@ -577,6 +586,9 @@ export const createCalendarStore = (
             await state.refreshFunction();
           }
         },
+        
+        openUpgradeDialog: () => set({ isUpgradeDialogOpen: true }),
+        closeUpgradeDialog: () => set({ isUpgradeDialogOpen: false }),
       }),
       {
         name: 'calendar-store',

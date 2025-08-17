@@ -1,71 +1,29 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { useState } from 'react'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { getCheckoutURL } from '@/actions/billing'
 import { useUser } from '@clerk/nextjs'
-import { useQuery } from 'convex/react'
-import { api } from '@/convex/_generated/api'
-import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
-import { Check } from 'lucide-react'
+import { Check, Sparkles } from 'lucide-react'
 import { plans } from '@/constants/pricing'
 import { BorderBeam } from '@/components/magicui/border-beam'
 import { Switch } from '@/components/ui/switch'
 import Image from 'next/image'
+import { toast } from 'sonner'
 
-export default function UpgradeDialog({ open, onOpenChange }: { open?: boolean, onOpenChange?: (open: boolean) => void }) {
-    const { user: clerkUser, isSignedIn } = useUser()
-    const currentUser = useQuery(api.auth.getCurrentUser, { clerkUserId: clerkUser?.id })
-    const [isYearly, setIsYearly] = useState(true)
-    const [internalOpen, setInternalOpen] = useState(false)
+export default function UpgradeDialog() {
+    const { user } = useUser()
     const router = useRouter()
-
-    const proPlans = plans.filter(plan => plan.name !== 'Free')
-    const monthlyPlan = proPlans.find(plan => plan.name === 'Pro')
-    const yearlyPlan = proPlans.find(plan => plan.name === 'Pro Yearly')
-
-    const currentPlan = isYearly ? {
-        ...yearlyPlan,
-        name: 'Pro',
-        price: '10',
-        period: ' / MONTH',
-        originalPrice: '20',
-        billingNote: 'Billed Annually',
-        isYearly: true
-    } : {
-        ...monthlyPlan,
-        period: ' / MONTH',
-        isYearly: false
-    }
-
-    useEffect(() => {
-        if (typeof window.createLemonSqueezy === 'function') {
-          window.createLemonSqueezy()
-        }
-      }, [])
-
-    useEffect(() => {
-        if (onOpenChange) {
-            const shouldShow = Boolean(
-                isSignedIn && currentUser && !currentUser.isPro && !currentUser.hasSeenUpgradePrompt
-            )
-            onOpenChange(shouldShow)
-        } else {
-            const shouldShow = Boolean(
-                isSignedIn && currentUser && !currentUser.isPro && !currentUser.hasSeenUpgradePrompt
-            )
-            setInternalOpen(shouldShow)
-        }
-    }, [isSignedIn, currentUser, onOpenChange])
-
-    const isControlled = onOpenChange !== undefined
-    const dialogOpen = isControlled ? open : internalOpen
-    const setDialogOpen = isControlled ? onOpenChange : setInternalOpen
+    const [isYearly, setIsYearly] = useState(true)
+    const [isOpen, setIsOpen] = useState(false)
 
     const handleUpgrade = async () => {
-        if (!clerkUser?.id) return
+        if (!user?.id) {
+            toast.error('Please sign in to upgrade')
+            return
+        }
         
         try {
             const variantId = isYearly 
@@ -73,24 +31,32 @@ export default function UpgradeDialog({ open, onOpenChange }: { open?: boolean, 
                 : Number(process.env.NEXT_PUBLIC_LEMONSQUEEZY_VARIANT_MONTHLY_ID!)
             
             const checkoutUrl = await getCheckoutURL(variantId, {
-                userId: clerkUser.id,
-                email: clerkUser.primaryEmailAddress?.emailAddress || ''
+                userId: user.id,
+                email: user.primaryEmailAddress?.emailAddress || ''
             })
             
             if (checkoutUrl) {
                 router.push(checkoutUrl)
             }
         } catch (error) {
-            toast('Error creating a checkout.', {
-                description: 'Please check the server console for more information.',
+            toast.error('Error creating checkout', {
+                description: 'Please try again later.',
             })
         }
     }
 
-    if (!isSignedIn || !currentUser || currentUser.isPro || currentUser.hasSeenUpgradePrompt) return null
-
     return (
-        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <Dialog open={isOpen} onOpenChange={setIsOpen}>
+            <DialogTrigger asChild>
+                <Button
+                    type="button"
+                    className="w-full text-xs text-left bg-neutral-800 hover:bg-neutral-700 text-white h-8 rounded-sm"
+                    onClick={() => setIsOpen(true)}
+                >
+                    <Sparkles className="w-3 h-3 text-white" />
+                    Get Caly Pro
+                </Button>
+            </DialogTrigger>
             <DialogContent className="max-w-md p-0 bg-card border rounded-xl" showCloseButton={true}>
                 <DialogTitle className="sr-only">Upgrade to Pro</DialogTitle>
                 <div className="relative p-6">
@@ -108,7 +74,7 @@ export default function UpgradeDialog({ open, onOpenChange }: { open?: boolean, 
                                 <Switch 
                                     checked={isYearly} 
                                     onCheckedChange={setIsYearly}
-                                    className="focus:ring-0 data-[state=checked]:bg-white"
+                                    className="focus:ring-0 dark:data-[state=checked]:bg-white cursor-pointer"
                                 />
                                 <div className="flex items-center gap-2">
                                     <span className={`text-sm font-medium ${isYearly ? 'text-foreground' : 'text-muted-foreground'}`}>
@@ -124,14 +90,12 @@ export default function UpgradeDialog({ open, onOpenChange }: { open?: boolean, 
 
                     <div className="mb-6">
                         <div className="flex items-baseline gap-1 mb-2">
-                            <span className="text-4xl font-bold">${currentPlan?.price}</span>
-                            {isYearly && (
-                                <span className="ml-1 text-lg text-muted-foreground line-through">
-                                    $20
-                                </span>
-                            )}
-                            <span className="text-muted-foreground">{currentPlan?.period}</span>
+                            <span className="text-4xl font-bold">${isYearly ? '10' : '20'}</span>
+                            <span className="text-muted-foreground">per month</span>
                         </div>
+                        {isYearly && (
+                            <p className="text-base text-muted-foreground">Billed annually at $120</p>
+                        )}
                     </div>
 
                     <div className="mb-6">
@@ -141,7 +105,7 @@ export default function UpgradeDialog({ open, onOpenChange }: { open?: boolean, 
                     </div>
 
                     <ul className="space-y-3 mb-8">
-                        {currentPlan?.features?.map((feature, index) => (
+                        {plans[0].features.map((feature, index) => (
                             <li key={index} className="flex items-start gap-3">
                                 <div className="mt-0.5 flex-shrink-0">
                                     <Check className="h-4 w-4 text-green-600" />
@@ -155,10 +119,10 @@ export default function UpgradeDialog({ open, onOpenChange }: { open?: boolean, 
 
                     <Button 
                         onClick={handleUpgrade}
-                        className="w-full py-3"
+                        className="w-full py-3 bg-neutral-900 hover:bg-neutral-800 text-white"
                         size="lg"
                     >
-                        {currentPlan?.cta}
+                        Get Caly Pro
                     </Button>
                 </div>
             </DialogContent>
