@@ -1,17 +1,17 @@
 'use client'
 
 import { useState } from 'react'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { getCheckoutURL } from '@/actions/billing'
 import { useUser } from '@clerk/nextjs'
 import { useRouter } from 'next/navigation'
 import { Check, Sparkles } from 'lucide-react'
 import { plans } from '@/constants/pricing'
-import { BorderBeam } from '@/components/magicui/border-beam'
 import { Switch } from '@/components/ui/switch'
 import Image from 'next/image'
 import { toast } from 'sonner'
+import { ShineBorder } from '../magicui/shine-border'
 
 export default function UpgradeDialog() {
     const { user } = useUser()
@@ -58,13 +58,10 @@ export default function UpgradeDialog() {
                 </Button>
             </DialogTrigger>
             <DialogContent className="max-w-md p-0 bg-card border rounded-xl" showCloseButton={true}>
+                <ShineBorder shineColor={["#A07CFE", "#FE8FB5", "#FFBE7B"]} borderWidth={3}/>
                 <DialogTitle className="sr-only">Upgrade to Pro</DialogTitle>
                 <div className="relative p-6">
-                    <BorderBeam
-                        className="from-[#ffaa40] via-[#9c40ff] to-transparent"
-                        duration={1}
-                        size={400}
-                    />
+                    
                     
                     <div className="flex items-center justify-between mb-6">
                         <Image src="/logo-name.svg" alt="Caly" width={70} height={60} className="rounded-full" />

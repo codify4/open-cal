@@ -188,7 +188,7 @@ export const deleteGoogleEvent = async (eventId: string, calendarId: string = 'p
         if (response.status === 404) {
             return { success: false, error: 'not_found' };
         }
-
+        
         if (response.status === 401) {
             toast.error('Access token expired. Please reconnect your Google account.');
             return { success: false, error: 'unauthorized' };

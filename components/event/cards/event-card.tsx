@@ -19,6 +19,7 @@ import { useGoogleCalendarRefresh } from '@/hooks/use-google-calendar-refresh';
 import { toast } from 'sonner';
 import { getCardColor, getCalendarColor } from '@/lib/calendar-utils/calendar-color-utils';
 import { useCalendarManagement } from '@/hooks/use-calendar-management';
+import { deleteGoogleEvent } from '@/lib/calendar-utils/google-calendar';
 
 interface EventCardProps {
   event: Event;
@@ -106,16 +107,29 @@ export const EventCard = ({
   const handleDelete = async () => {
     try {
       if (event.googleEventId && clerkUser) {
-        // TODO: Implement Google Calendar deletion with Clerk OAuth
-        // For now, just delete from local state
-        toast.info('Google Calendar sync coming soon');
+        const calendarId = event.googleCalendarId || 'primary';
+        const result = await deleteGoogleEvent(event.googleEventId, calendarId);
+        
+        if (!result.success) {
+          if (result.error === 'unauthorized') {
+            toast.error('Access token expired. Please reconnect your Google account.');
+            return;
+          }
+          if (result.error === 'not_found') {
+            toast.info('Event not found in Google Calendar, deleting locally');
+          } else {
+            toast.error('Failed to delete from Google Calendar');
+            return;
+          }
+        }
       }
-    } catch (_) {
+    } catch (error) {
       toast.error('Failed to delete event');
-    } finally {
-      deleteEvent(event.id);
-      await refreshEvents();
+      return;
     }
+    
+    deleteEvent(event.id);
+    await refreshEvents();
   };
 
   const handleDuplicate = () => {
