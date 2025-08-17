@@ -1,6 +1,6 @@
 import { google } from '@ai-sdk/google';
 import { streamText, UIMessage, convertToModelMessages, smoothStream } from 'ai';
-import { CALENDAR_AGENT_SYSTEM_PROMPT } from '@/lib/calendar-agent/system-prompt';
+import { generateCalendarAgentSystemPrompt } from '@/lib/calendar-agent/system-prompt';
 import { calendarTools } from '@/lib/calendar-agent/tools';
 
 export const maxDuration = 30;
@@ -14,7 +14,7 @@ export async function POST(req: Request) {
 
     const result = streamText({
         model: google('gemini-2.0-flash'),
-        system: CALENDAR_AGENT_SYSTEM_PROMPT,
+        system: generateCalendarAgentSystemPrompt(),
         messages: [
             ...convertToModelMessages(messages)
         ],
