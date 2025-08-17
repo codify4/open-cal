@@ -15,11 +15,11 @@ import { BorderBeam } from '@/components/magicui/border-beam'
 import { Switch } from '@/components/ui/switch'
 import Image from 'next/image'
 
-export default function UpgradeDialog() {
+export default function UpgradeDialog({ open, onOpenChange }: { open?: boolean, onOpenChange?: (open: boolean) => void }) {
     const { user: clerkUser, isSignedIn } = useUser()
     const currentUser = useQuery(api.auth.getCurrentUser, { clerkUserId: clerkUser?.id })
-    const [open, setOpen] = useState(false)
     const [isYearly, setIsYearly] = useState(true)
+    const [internalOpen, setInternalOpen] = useState(false)
     const router = useRouter()
 
     const proPlans = plans.filter(plan => plan.name !== 'Free')
@@ -47,15 +47,22 @@ export default function UpgradeDialog() {
       }, [])
 
     useEffect(() => {
-        const shouldShow = Boolean(
-            isSignedIn && currentUser && !currentUser.isPro && !currentUser.hasSeenUpgradePrompt
-        )
-        setOpen(shouldShow)
-    }, [isSignedIn, currentUser])
+        if (onOpenChange) {
+            const shouldShow = Boolean(
+                isSignedIn && currentUser && !currentUser.isPro && !currentUser.hasSeenUpgradePrompt
+            )
+            onOpenChange(shouldShow)
+        } else {
+            const shouldShow = Boolean(
+                isSignedIn && currentUser && !currentUser.isPro && !currentUser.hasSeenUpgradePrompt
+            )
+            setInternalOpen(shouldShow)
+        }
+    }, [isSignedIn, currentUser, onOpenChange])
 
-    const onClose = async () => {
-        setOpen(false)
-    }
+    const isControlled = onOpenChange !== undefined
+    const dialogOpen = isControlled ? open : internalOpen
+    const setDialogOpen = isControlled ? onOpenChange : setInternalOpen
 
     const handleUpgrade = async () => {
         if (!clerkUser?.id) return
@@ -83,8 +90,8 @@ export default function UpgradeDialog() {
     if (!isSignedIn || !currentUser || currentUser.isPro || currentUser.hasSeenUpgradePrompt) return null
 
     return (
-        <Dialog open={open} onOpenChange={(v) => (v ? setOpen(true) : onClose())}>
-            <DialogContent className="max-w-md p-0 bg-card border rounded-xl" showCloseButton={false}>
+        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+            <DialogContent className="max-w-md p-0 bg-card border rounded-xl" showCloseButton={true}>
                 <DialogTitle className="sr-only">Upgrade to Pro</DialogTitle>
                 <div className="relative p-6">
                     <BorderBeam
