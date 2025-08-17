@@ -16,6 +16,8 @@ import { CalendarToolCall } from '@/components/agent/calendar-tool-call';
 import { MessageFooter } from '@/components/agent/message-footer';
 import { cn, ensureDate } from '@/lib/utils';
 import { useCalendarStore, CalendarStoreContext } from '@/providers/calendar-store-provider';
+import { upsertGoogleEvent, deleteGoogleEvent } from '@/lib/calendar-utils/google-calendar';
+import { useUser } from '@clerk/nextjs';
 
 const chatBubbleVariants = cva(
   'group/message relative break-words p-2 text-sm sm:max-w-[75%] shadow-sm border',
@@ -132,6 +134,7 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
 }) => {
   const { addPendingAction } = useCalendarStore((state) => state);
   const calendarStoreContext = useContext(CalendarStoreContext);
+  const { user } = useUser();
   
   useEffect(() => {
     if (parts && parts.length > 0) {
@@ -281,32 +284,192 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
                       args={toolInvocation.args || {}}
                       result={toolInvocation.result}
                       isPending={toolInvocation.state === 'call'}
-                      onAccept={() => {
-                        if (toolInvocation.toolName === 'create_event' && toolInvocation.result?.event) {
-                          if (calendarStoreContext) {
-                            // Ensure dates are properly converted to Date objects
-                            const eventWithProperDates = {
-                              ...toolInvocation.result.event,
-                              startDate: ensureDate(toolInvocation.result.event.startDate),
-                              endDate: ensureDate(toolInvocation.result.event.endDate),
-                            };
-                            calendarStoreContext.getState().saveEvent(eventWithProperDates);
-                            calendarStoreContext.getState().setCurrentDate(eventWithProperDates.startDate);
+                      onAccept={async () => {
+                        if (calendarStoreContext && user?.id) {
+                          const store = calendarStoreContext.getState();
+                          
+                          try {
+                            switch (toolInvocation.toolName) {
+                              case 'create_event':
+                                if (toolInvocation.result?.event) {
+                                  const eventWithProperDates = {
+                                    ...toolInvocation.result.event,
+                                    startDate: ensureDate(toolInvocation.result.event.startDate),
+                                    endDate: ensureDate(toolInvocation.result.event.endDate),
+                                    googleCalendarId: store.visibleCalendarIds[0] || 'primary',
+                                  };
+                                  
+                                  const googleResult = await upsertGoogleEvent(
+                                    eventWithProperDates, 
+                                    user.id, 
+                                    user.primaryEmailAddress?.emailAddress
+                                  );
+                                  
+                                  if (googleResult?.success && googleResult.event) {
+                                    store.saveEvent(googleResult.event);
+                                    store.setCurrentDate(googleResult.event.startDate);
+                                  } else {
+                                    store.saveEvent(eventWithProperDates);
+                                    store.setCurrentDate(eventWithProperDates.startDate);
+                                  }
+                                  
+                                  store.refreshEvents();
+                                }
+                                break;
+                                
+                              case 'update_event':
+                                if (toolInvocation.result?.updates) {
+                                  const { eventId, ...updates } = toolInvocation.result.updates;
+                                  const existingEvent = store.events.find(e => e.id === eventId) || 
+                                                     store.googleEvents.find(e => e.id === eventId);
+                                  
+                                  if (existingEvent) {
+                                    const updatedEvent = {
+                                      ...existingEvent,
+                                      ...updates,
+                                      ...(updates.startDate && { startDate: ensureDate(updates.startDate) }),
+                                      ...(updates.endDate && { endDate: ensureDate(updates.endDate) }),
+                                    };
+                                    
+                                    // Update on Google Calendar first
+                                    const googleResult = await upsertGoogleEvent(
+                                      updatedEvent, 
+                                      user.id, 
+                                      user.primaryEmailAddress?.emailAddress
+                                    );
+                                    
+                                    if (googleResult?.success && googleResult.event) {
+                                      // Update with the Google Calendar response
+                                      store.replaceEvent(googleResult.event);
+                                    } else {
+                                      // If Google Calendar fails, update locally as fallback
+                                      store.replaceEvent(updatedEvent);
+                                    }
+                                    
+                                    // Refresh events to sync
+                                    store.refreshEvents();
+                                  }
+                                }
+                                break;
+                                
+                              case 'delete_event':
+                                if (toolInvocation.result?.eventId) {
+                                  const existingEvent = store.events.find(e => e.id === toolInvocation.result.eventId) || 
+                                                     store.googleEvents.find(e => e.id === toolInvocation.result.eventId);
+                                  
+                                  if (existingEvent?.googleEventId) {
+                                    // Delete from Google Calendar first
+                                    const googleResult = await deleteGoogleEvent(
+                                      existingEvent.googleEventId,
+                                      existingEvent.googleCalendarId || 'primary'
+                                    );
+                                    
+                                    if (googleResult.success) {
+                                      store.deleteEvent(toolInvocation.result.eventId);
+                                    } else {
+                                      store.deleteEvent(toolInvocation.result.eventId);
+                                    }
+                                  } else {
+                                    store.deleteEvent(toolInvocation.result.eventId);
+                                  }
+                                  
+                                  store.refreshEvents();
+                                }
+                                break;
+                                
+                              case 'find_free_time':
+                              case 'get_events':
+                              case 'get_calendar_summary':
+                                break;
+                            }
+                            
+                            // Update the pending action status
+                            if (toolInvocation.result?.action) {
+                              const pendingAction = store.pendingActions.find(
+                                action => action.toolName === toolInvocation.toolName
+                              );
+                              if (pendingAction) {
+                                store.updateActionStatus(pendingAction.id, 'accepted');
+                              }
+                            }
+                          } catch (error) {
+                            console.error('Error executing calendar action:', error);
+                            if (toolInvocation.result?.action) {
+                              const pendingAction = store.pendingActions.find(
+                                action => action.toolName === toolInvocation.toolName
+                              );
+                              if (pendingAction) {
+                                store.updateActionStatus(pendingAction.id, 'accepted');
+                              }
+                            }
                           }
                         }
                       }}
                       onDecline={() => {
-                        // Handle decline action
+                        if (calendarStoreContext) {
+                          const store = calendarStoreContext.getState();
+                          
+                          // Update the pending action status to declined
+                          if (toolInvocation.result?.action) {
+                            const pendingAction = store.pendingActions.find(
+                              action => action.toolName === toolInvocation.toolName
+                            );
+                            if (pendingAction) {
+                              store.updateActionStatus(pendingAction.id, 'declined');
+                            }
+                          }
+                        }
                       }}
                       onEdit={() => {
-                        if (toolInvocation.toolName === 'create_event' && toolInvocation.result?.event) {
-                          if (calendarStoreContext) {
-                            const eventWithProperDates = {
-                              ...toolInvocation.result.event,
-                              startDate: ensureDate(toolInvocation.result.event.startDate),
-                              endDate: ensureDate(toolInvocation.result.event.endDate),
-                            };
-                            calendarStoreContext.getState().openEventSidebarForEdit(eventWithProperDates);
+                        if (calendarStoreContext) {
+                          const store = calendarStoreContext.getState();
+                          
+                          switch (toolInvocation.toolName) {
+                            case 'create_event':
+                              if (toolInvocation.result?.event) {
+                                const eventWithProperDates = {
+                                  ...toolInvocation.result.event,
+                                  startDate: ensureDate(toolInvocation.result.event.startDate),
+                                  endDate: ensureDate(toolInvocation.result.event.endDate),
+                                };
+                                store.openEventSidebarForEdit(eventWithProperDates);
+                              }
+                              break;
+                              
+                            case 'update_event':
+                              if (toolInvocation.result?.updates) {
+                                const { eventId, ...updates } = toolInvocation.result.updates;
+                                const existingEvent = store.events.find(e => e.id === eventId) || 
+                                                   store.googleEvents.find(e => e.id === eventId);
+                                
+                                if (existingEvent) {
+                                  const updatedEvent = {
+                                    ...existingEvent,
+                                    ...updates,
+                                    ...(updates.startDate && { startDate: ensureDate(updates.startDate) }),
+                                    ...(updates.endDate && { endDate: ensureDate(updates.endDate) }),
+                                  };
+                                  store.openEventSidebarForEdit(updatedEvent);
+                                }
+                              }
+                              break;
+                              
+                            case 'find_free_time':
+                            case 'get_events':
+                            case 'get_calendar_summary':
+                            case 'delete_event':
+                              // These operations don't support editing in the event sidebar
+                              break;
+                          }
+                          
+                          // Update the pending action status to edited
+                          if (toolInvocation.result?.action) {
+                            const pendingAction = store.pendingActions.find(
+                              action => action.toolName === toolInvocation.toolName
+                            );
+                            if (pendingAction) {
+                              store.updateActionStatus(pendingAction.id, 'edited');
+                            }
                           }
                         }
                       }}

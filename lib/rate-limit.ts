@@ -1,5 +1,5 @@
 const RATE_LIMIT_KEY = 'digit_chat_rate_limit';
-const MAX_MESSAGES = 10;
+const MAX_MESSAGES = 30;
 const RESET_INTERVAL = 24 * 60 * 60 * 1000;
 const PRO_RATE_LIMIT_KEY = 'digit_chat_pro_rate_limit';
 const PRO_MAX_PER_MINUTE = 20;

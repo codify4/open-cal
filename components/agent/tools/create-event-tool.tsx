@@ -2,11 +2,9 @@
 
 import { Check, X, Edit, Clock, Calendar, Users, MapPin } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
 import { useCalendarStore } from '@/providers/calendar-store-provider';
 import { CalendarEventPreview } from '../calendar-event-preview';
 import { MessageFooter } from '../message-footer';
-import type { Event } from '@/lib/store/calendar-store';
 
 interface CreateEventToolProps {
   args: any;

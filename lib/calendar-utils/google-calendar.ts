@@ -162,3 +162,46 @@ export const upsertGoogleEvent = async (eventToSave: Event, userId: string, user
         return { success: false, error: 'network_error' };
     }
 };
+
+export const deleteGoogleEvent = async (eventId: string, calendarId: string = 'primary') => {
+    try {
+        const accessToken = await getAccessToken();
+        if (!accessToken) {
+            toast.error('Google Calendar not connected. Please connect your Google account to delete events.');
+            return { success: false, error: 'no_token' };
+        }
+
+        const url = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events/${encodeURIComponent(eventId)}?sendUpdates=none`;
+
+        const response = await fetch(url, {
+            method: 'DELETE',
+            headers: {
+                Authorization: `Bearer ${accessToken}`,
+                'Content-Type': 'application/json',
+            },
+        });
+
+        if (response.ok) {
+            return { success: true };
+        }
+
+        if (response.status === 404) {
+            return { success: false, error: 'not_found' };
+        }
+
+        if (response.status === 401) {
+            toast.error('Access token expired. Please reconnect your Google account.');
+            return { success: false, error: 'unauthorized' };
+        }
+
+        const errorText = await response.text();
+        console.error('Failed to delete Google event:', errorText);
+        
+        toast.error('Failed to delete event from Google Calendar');
+        return { success: false, error: 'api_error' };
+    } catch (err) {
+        console.error(err);
+        toast.error('Error deleting event');
+        return { success: false, error: 'network_error' };
+    }
+};

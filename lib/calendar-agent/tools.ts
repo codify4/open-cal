@@ -1,102 +1,6 @@
 import { z } from 'zod';
 import { tool } from 'ai';
 import type { Event } from '@/lib/store/calendar-store';
-import { createCalendarToolHandlers } from './tool-handlers';
-
-// Mock calendar store for tool execution
-const mockCalendarStore = {
-  events: [
-    {
-      id: 'test-event-1',
-      title: 'Test Meeting',
-      description: 'A test event',
-      startDate: new Date('2025-01-15T10:00:00Z'),
-      endDate: new Date('2025-01-15T11:00:00Z'),
-      color: 'blue',
-      type: 'event' as const,
-      location: 'Conference Room',
-      attendees: ['user@example.com'],
-      reminders: [],
-      repeat: 'none' as const,
-      visibility: 'public' as const,
-      isAllDay: false,
-      account: 'user@example.com',
-    },
-    {
-      id: 'july-30-meeting',
-      title: 'Team Standup',
-      description: 'Daily team standup meeting',
-      startDate: new Date('2025-07-30T09:00:00Z'),
-      endDate: new Date('2025-07-30T09:30:00Z'),
-      color: 'green',
-      type: 'event' as const,
-      location: 'Zoom Meeting',
-      attendees: ['user@example.com', 'colleague@example.com'],
-      reminders: [],
-      repeat: 'none' as const,
-      visibility: 'public' as const,
-      isAllDay: false,
-      account: 'user@example.com',
-    },
-    {
-      id: 'august-1-lunch',
-      title: 'Client Lunch',
-      description: 'Lunch meeting with important client',
-      startDate: new Date('2025-08-01T12:00:00Z'),
-      endDate: new Date('2025-08-01T13:30:00Z'),
-      color: 'purple',
-      type: 'event' as const,
-      location: 'Downtown Restaurant',
-      attendees: ['user@example.com', 'client@example.com'],
-      reminders: [],
-      repeat: 'none' as const,
-      visibility: 'public' as const,
-      isAllDay: false,
-      account: 'user@example.com',
-    },
-    {
-      id: 'august-2-birthday',
-      title: 'John\'s Birthday',
-      description: 'Team member birthday celebration',
-      startDate: new Date('2025-08-02T15:00:00Z'),
-      endDate: new Date('2025-08-02T16:00:00Z'),
-      color: 'pink',
-      type: 'event' as const,
-      location: 'Office Kitchen',
-      attendees: ['user@example.com', 'john@example.com', 'team@example.com'],
-      reminders: [],
-      repeat: 'none' as const,
-      visibility: 'public' as const,
-      isAllDay: false,
-      account: 'user@example.com',
-    },
-  ],
-  saveEvent: (event: any) => {
-    return event;
-  },
-  deleteEvent: (eventId: string) => {
-    return { success: true, eventId };
-  },
-  getEvents: (startDate?: Date, endDate?: Date) => {
-    return mockCalendarStore.events;
-  },
-  findFreeTime: (duration: number, startDate?: Date, endDate?: Date) => {
-    return [
-      {
-        start: new Date('2024-01-15T14:00:00Z'),
-        end: new Date('2024-01-15T15:00:00Z'),
-        duration: 60,
-      },
-      {
-        start: new Date('2024-01-16T10:00:00Z'),
-        end: new Date('2024-01-16T11:00:00Z'),
-        duration: 60,
-      },
-    ];
-  },
-};
-
-const toolHandlers = createCalendarToolHandlers(mockCalendarStore);
 
 export const createEventTool = tool({
   description: 'Create a new calendar event with the specified details',
@@ -114,7 +18,33 @@ export const createEventTool = tool({
     visibility: z.enum(['public', 'private']).optional().describe('Event visibility'),
   }),
   execute: async (params) => {
-    return await toolHandlers.createEvent(params);
+    try {
+      const event: Event = {
+        id: `event-${Date.now()}`,
+        title: params.title,
+        description: params.description,
+        startDate: new Date(params.startDate),
+        endDate: new Date(params.endDate),
+        location: params.location,
+        attendees: params.attendees || [],
+        color: params.color || 'blue',
+        type: 'event',
+        reminders: params.reminders?.map(r => new Date(r)) || [],
+        repeat: (params.repeat as any) || 'none',
+        visibility: (params.visibility as any) || 'public',
+        isAllDay: params.isAllDay || false,
+        account: 'user@example.com',
+      };
+      
+      return { 
+        success: true, 
+        event,
+        action: 'create_event',
+        message: `Created event: ${event.title} on ${event.startDate.toLocaleDateString()}`
+      };
+    } catch (error) {
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+    }
   },
 });
 
@@ -127,7 +57,34 @@ export const findFreeTimeTool = tool({
     preferredTime: z.string().optional().describe('Preferred time of day (e.g., "morning", "afternoon", "evening")'),
   }),
   execute: async (params) => {
-    return await toolHandlers.findFreeTime(params);
+    try {
+      const startDate = new Date(params.startDate);
+      const endDate = new Date(params.endDate);
+      const duration = params.duration;
+      
+      const freeSlots = [];
+      let currentTime = new Date(startDate);
+      
+      while (currentTime < endDate) {
+        const slotEnd = new Date(currentTime.getTime() + duration * 60000);
+        
+        freeSlots.push({
+          start: currentTime.toISOString(),
+          end: slotEnd.toISOString(),
+        });
+        
+        currentTime = new Date(currentTime.getTime() + 30 * 60000);
+      }
+      
+      return { 
+        success: true, 
+        freeSlots,
+        action: 'find_free_time',
+        message: `Found ${freeSlots.length} available time slots for ${duration} minutes`
+      };
+    } catch (error) {
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+    }
   },
 });
 
@@ -139,7 +96,20 @@ export const getEventsTool = tool({
     includeAllDay: z.boolean().optional().describe('Include all-day events'),
   }),
   execute: async (params) => {
-    return await toolHandlers.getEvents(params);
+    try {
+      const startDate = new Date(params.startDate);
+      const endDate = new Date(params.endDate);
+      
+      return { 
+        success: true, 
+        events: [],
+        action: 'get_events',
+        message: `Retrieved events from ${startDate.toLocaleDateString()} to ${endDate.toLocaleDateString()}`,
+        dateRange: { startDate: startDate.toISOString(), endDate: endDate.toISOString() }
+      };
+    } catch (error) {
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+    }
   },
 });
 
@@ -159,7 +129,30 @@ export const updateEventTool = tool({
     visibility: z.enum(['public', 'private']).optional().describe('New event visibility'),
   }),
   execute: async (params) => {
-    return await toolHandlers.updateEvent(params);
+    try {
+      const updates = {
+        eventId: params.eventId,
+        ...(params.title && { title: params.title }),
+        ...(params.description && { description: params.description }),
+        ...(params.startDate && { startDate: new Date(params.startDate) }),
+        ...(params.endDate && { endDate: new Date(params.endDate) }),
+        ...(params.location && { location: params.location }),
+        ...(params.attendees && { attendees: params.attendees }),
+        ...(params.color && { color: params.color }),
+        ...(params.isAllDay !== undefined && { isAllDay: params.isAllDay }),
+        ...(params.repeat && { repeat: params.repeat }),
+        ...(params.visibility && { visibility: params.visibility }),
+      };
+      
+      return { 
+        success: true, 
+        updates,
+        action: 'update_event',
+        message: `Updated event ${params.eventId}`
+      };
+    } catch (error) {
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+    }
   },
 });
 
@@ -169,7 +162,16 @@ export const deleteEventTool = tool({
     eventId: z.string().describe('ID of the event to delete'),
   }),
   execute: async (params) => {
-    return await toolHandlers.deleteEvent(params);
+    try {
+      return { 
+        success: true, 
+        eventId: params.eventId,
+        action: 'delete_event',
+        message: `Delete event ${params.eventId}`
+      };
+    } catch (error) {
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+    }
   },
 });
 
@@ -181,7 +183,20 @@ export const getCalendarSummaryTool = tool({
     includeStats: z.boolean().optional().describe('Include statistics about events'),
   }),
   execute: async (params) => {
-    return await toolHandlers.getCalendarSummary(params);
+    try {
+      const startDate = new Date(params.startDate);
+      const endDate = new Date(params.endDate);
+      
+      return { 
+        success: true, 
+        summary: { totalEvents: 0, events: [] },
+        action: 'get_calendar_summary',
+        message: `Calendar summary from ${startDate.toLocaleDateString()} to ${endDate.toLocaleDateString()}`,
+        dateRange: { startDate: startDate.toISOString(), endDate: endDate.toISOString() }
+      };
+    } catch (error) {
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+    }
   },
 });
 
