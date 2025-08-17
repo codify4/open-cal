@@ -164,7 +164,9 @@ export default function WeeklyView() {
             variants={pageTransitionVariants}
           >
             <div className="col-span-1 flex items-center justify-center border-border border-r border-b bg-card py-2">
-              <span className="font-medium text-muted-foreground text-xs">Time</span>
+              <span className="font-medium text-muted-foreground text-xs">
+                GMT {new Date().getTimezoneOffset() > 0 ? '-' : '+'}{Math.abs(new Date().getTimezoneOffset() / 60)}
+              </span>
             </div>
 
             <WeekHeader
