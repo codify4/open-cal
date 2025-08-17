@@ -91,7 +91,7 @@ export default function UpgradeDialog() {
                             <span className="text-muted-foreground">per month</span>
                         </div>
                         {isYearly && (
-                            <p className="text-base text-muted-foreground">Billed annually at $120</p>
+                            <p className="text-base text-black">Billed annually at $120</p>
                         )}
                     </div>
 
@@ -102,7 +102,7 @@ export default function UpgradeDialog() {
                     </div>
 
                     <ul className="space-y-3 mb-8">
-                        {plans[0].features.map((feature, index) => (
+                        {plans[1].features.map((feature, index) => (
                             <li key={index} className="flex items-start gap-3">
                                 <div className="mt-0.5 flex-shrink-0">
                                     <Check className="h-4 w-4 text-green-600" />
