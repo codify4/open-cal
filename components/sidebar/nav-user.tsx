@@ -49,18 +49,18 @@ const SETTINGS_SECTIONS = [
 
 export function NavUser({
   user,
-  accounts,
-  calendars,
-  onAddAccount,
+  accounts = [],
+  calendars = [],
+  onAddAccount = () => {},
 }: {
   user: {
     name: string;
     email: string;
     avatar: string;
   };
-  accounts: EmailAccount[];
-  calendars: CalendarEntry[];
-  onAddAccount: () => void;
+  accounts?: EmailAccount[];
+  calendars?: CalendarEntry[];
+  onAddAccount?: () => void;
 }) {
   const [activeSection, setActiveSection] = useState('profile');
 

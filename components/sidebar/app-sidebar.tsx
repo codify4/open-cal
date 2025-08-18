@@ -95,13 +95,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       <SidebarContent className="scrollbar-hide border-none bg-neutral-100 dark:bg-neutral-950">
         <CalendarPicker />
         <NavCalendars
-          emailAccounts={emailAccounts}
-          calendars={calendarList}
-          selectedEmail={selectedEmail}
-          onEmailChange={handleEmailChange}
           onCalendarToggle={handleCalendarToggle}
           onCalendarsFetched={handleCalendarsFetched}
-          user={userForNav}
         />
       </SidebarContent>
       <SidebarFooter className="border-none bg-neutral-100 dark:bg-neutral-950">

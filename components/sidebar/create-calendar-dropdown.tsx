@@ -15,9 +15,10 @@ import { useCalendarManagement } from '@/hooks/use-calendar-management';
 
 interface CreateCalendarDropdownProps {
 	onCalendarCreated: () => void;
+	targetAccount?: string;
 }
 
-export function CreateCalendarDropdown({ onCalendarCreated }: CreateCalendarDropdownProps) {
+export function CreateCalendarDropdown({ onCalendarCreated, targetAccount }: CreateCalendarDropdownProps) {
 	const [isOpen, setIsOpen] = useState(false);
 	const [isCreating, setIsCreating] = useState(false);
 	const [formData, setFormData] = useState({
@@ -27,7 +28,7 @@ export function CreateCalendarDropdown({ onCalendarCreated }: CreateCalendarDrop
 		colorId: '1', // Default to first color
 	});
 
-	const { createCalendar, colorOptions } = useCalendarManagement();
+	const { createCalendarForAccount, colorOptions } = useCalendarManagement();
 
 	useEffect(() => {
 		if (colorOptions.length > 0 && !formData.colorId) {
@@ -45,7 +46,7 @@ export function CreateCalendarDropdown({ onCalendarCreated }: CreateCalendarDrop
 
 		setIsCreating(true);
 		try {
-			await createCalendar(formData);
+			await createCalendarForAccount(formData, targetAccount);
 			toast.success('Calendar created successfully');
 			setFormData({
 				summary: '',

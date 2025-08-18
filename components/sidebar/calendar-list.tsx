@@ -5,8 +5,11 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { getCalendarColor } from '@/lib/calendar-utils/calendar-color-utils';
 import { CalendarDropdown } from './calendar-dropdown';
 import { useSessionList, useSession } from '@clerk/nextjs';
-import { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import type { GoogleCalendar, ColorOption } from '@/types/calendar';
+import { CreateCalendarDropdown } from './create-calendar-dropdown';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { ChevronDown, ChevronRight } from 'lucide-react';
 
 interface CalendarListProps {
 	calendars: GoogleCalendar[];
@@ -16,6 +19,7 @@ interface CalendarListProps {
 	onToggle: (calendarId: string) => void;
 	onColorChange: (calendarId: string, colorId: string) => void;
 	onDelete: (calendarId: string) => void;
+	onCalendarCreated: () => void;
 }
 
 export function CalendarList({
@@ -26,11 +30,11 @@ export function CalendarList({
 	onToggle,
 	onColorChange,
 	onDelete,
+	onCalendarCreated,
 }: CalendarListProps) {
-	const { sessions } = useSessionList();
 	const { session: currentSession } = useSession();
+	const [expandedAccounts, setExpandedAccounts] = useState<Set<string>>(new Set());
 
-	// Group calendars by account email
 	const groupedCalendars = useMemo(() => {
 		const groups: Record<string, GoogleCalendar[]> = {};
 		const currentEmail = currentSession?.user?.primaryEmailAddress?.emailAddress;
@@ -66,6 +70,25 @@ export function CalendarList({
 		return sortedGroups;
 	}, [calendars, currentSession]);
 
+	React.useEffect(() => {
+		const currentEmail = currentSession?.user?.primaryEmailAddress?.emailAddress;
+		if (currentEmail) {
+			setExpandedAccounts(prev => new Set(prev).add(currentEmail));
+		}
+	}, [currentSession]);
+
+	const toggleAccountExpansion = (accountEmail: string) => {
+		setExpandedAccounts(prev => {
+			const newSet = new Set(prev);
+			if (newSet.has(accountEmail)) {
+				newSet.delete(accountEmail);
+			} else {
+				newSet.add(accountEmail);
+			}
+			return newSet;
+		});
+	};
+
 	if (isLoading) {
 		return (
 			<SidebarMenu>
@@ -91,41 +114,63 @@ export function CalendarList({
 	}
 
 	return (
-		<div className="space-y-4">
-			{Object.entries(groupedCalendars).map(([accountEmail, accountCalendars]) => (
-				<div key={accountEmail}>
-					<SidebarGroupLabel className="px-2 text-xs font-medium text-muted-foreground">
-						{accountEmail}
-					</SidebarGroupLabel>
-					<SidebarMenu>
-						{accountCalendars.map((calendar) => (
-							<SidebarMenuItem key={calendar.id}>
-								<div
-									className="flex w-full cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 hover:bg-accent hover:text-accent-foreground"
-									onClick={() => onToggle(calendar.id)}
-								>
-									<Checkbox
-										checked={visibleCalendars.has(calendar.id)}
-										className="cursor-pointer"
-										color={getCalendarColor(calendar, Object.fromEntries(colorOptions.map(opt => [opt.id, opt.background])))}
-										onCheckedChange={() => onToggle(calendar.id)}
-									/>
-									<span className="flex-1 truncate text-sm min-w-0">{calendar.summary || calendar.name}</span>
-									{calendar.primary && calendar.account === currentSession?.user?.primaryEmailAddress?.emailAddress && (
-										<span className="text-xs text-muted-foreground truncate max-w-16 flex-shrink-0">Default</span>
+		<div className="space-y-2">
+			{Object.entries(groupedCalendars).map(([accountEmail, accountCalendars]) => {
+				const isExpanded = expandedAccounts.has(accountEmail);
+				
+				return (
+					<Collapsible key={accountEmail} open={isExpanded} onOpenChange={() => toggleAccountExpansion(accountEmail)}>
+						<CollapsibleTrigger asChild>
+							<SidebarGroupLabel className="px-2 text-xs font-medium text-muted-foreground flex justify-between items-center cursor-pointer hover:bg-accent hover:text-accent-foreground rounded-sm py-1.5">
+								<div className="flex items-center gap-1">
+									{isExpanded ? (
+										<ChevronDown className="h-3 w-3" />
+									) : (
+										<ChevronRight className="h-3 w-3" />
 									)}
-									<CalendarDropdown
-										calendar={calendar}
-										colorOptions={colorOptions}
-										onColorChange={onColorChange}
-										onDelete={onDelete}
+									<span className="truncate">{accountEmail}</span>
+								</div>
+								<div onClick={(e) => e.stopPropagation()}>
+									<CreateCalendarDropdown 
+										targetAccount={accountEmail}
+										onCalendarCreated={onCalendarCreated} 
 									/>
 								</div>
-							</SidebarMenuItem>
-						))}
-					</SidebarMenu>
-				</div>
-			))}
+							</SidebarGroupLabel>
+						</CollapsibleTrigger>
+
+						<CollapsibleContent>
+							<SidebarMenu>
+								{accountCalendars.map((calendar) => (
+									<SidebarMenuItem key={calendar.id}>
+										<div
+											className="flex w-full cursor-pointer items-center gap-2 rounded-sm px-2 py-1 hover:bg-accent hover:text-accent-foreground ml-4"
+											onClick={() => onToggle(calendar.id)}
+										>
+											<Checkbox
+												checked={visibleCalendars.has(calendar.id)}
+												className="cursor-pointer"
+												color={getCalendarColor(calendar, Object.fromEntries(colorOptions.map(opt => [opt.id, opt.background])))}
+												onCheckedChange={() => onToggle(calendar.id)}
+											/>
+											<span className="flex-1 truncate text-sm min-w-0">{calendar.summary || calendar.name}</span>
+											{calendar.primary && calendar.account === currentSession?.user?.primaryEmailAddress?.emailAddress && (
+												<span className="text-xs text-muted-foreground truncate max-w-16 flex-shrink-0">Default</span>
+											)}
+											<CalendarDropdown
+												calendar={calendar}
+												colorOptions={colorOptions}
+												onColorChange={onColorChange}
+												onDelete={onDelete}
+											/>
+										</div>
+									</SidebarMenuItem>
+								))}
+							</SidebarMenu>
+						</CollapsibleContent>
+					</Collapsible>
+				);
+			})}
 		</div>
 	);
 }

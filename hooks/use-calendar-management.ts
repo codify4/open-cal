@@ -279,6 +279,52 @@ export function useCalendarManagement(onCalendarsFetched?: (calendars: GoogleCal
 		return newCalendar;
 	}, [userId, accessToken, fetchCalendars]);
 
+	const createCalendarForAccount = React.useCallback(async (calendarData: {
+		summary: string;
+		description?: string;
+		timeZone: string;
+		colorId?: string;
+	}, targetAccountEmail?: string) => {
+		if (!userId) throw new Error('No user session');
+		
+		let targetAccessToken = accessToken;
+		
+		if (targetAccountEmail && sessions && sessions.length > 1) {
+			const targetSession = sessions.find(session => 
+				session.user?.primaryEmailAddress?.emailAddress === targetAccountEmail
+			);
+			
+			if (targetSession) {
+				targetAccessToken = await getAccessTokenForSession(targetSession.id);
+			}
+		}
+		
+		if (!targetAccessToken) throw new Error('Google Calendar not connected for target account');
+
+		const response = await fetch('https://www.googleapis.com/calendar/v3/calendars', {
+			method: 'POST',
+			headers: {
+				Authorization: `Bearer ${targetAccessToken}`,
+				'Content-Type': 'application/json',
+			},
+			body: JSON.stringify({
+				summary: calendarData.summary,
+				description: calendarData.description,
+				timeZone: calendarData.timeZone,
+				colorId: calendarData.colorId || '1',
+			}),
+		});
+
+		if (!response.ok) {
+			throw new Error(`HTTP error! status: ${response.status}`);
+		}
+
+		const newCalendar = await response.json();
+		toast.success('Calendar created successfully');
+		fetchCalendars();
+		return newCalendar;
+	}, [userId, accessToken, sessions, fetchCalendars]);
+
 	return {
 		fetchedCalendars,
 		isLoadingCalendars,
@@ -288,6 +334,7 @@ export function useCalendarManagement(onCalendarsFetched?: (calendars: GoogleCal
 		handleDeleteCalendar,
 		handleCalendarToggle,
 		createCalendar,
+		createCalendarForAccount,
 		refetchCalendars: fetchCalendars,
 	};
 }

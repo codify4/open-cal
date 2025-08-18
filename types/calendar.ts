@@ -13,13 +13,8 @@ export interface EmailAccount {
 }
 
 export interface NavCalendarsProps {
-	emailAccounts: EmailAccount[];
-	calendars: CalendarEntry[];
-	selectedEmail: string;
-	onEmailChange: (email: string) => void;
 	onCalendarToggle: (calendarId: string) => void;
 	onCalendarsFetched?: (calendars: GoogleCalendar[]) => void;
-	user?: { name: string; email: string; avatar: string };
 }
 
 export interface GoogleCalendar {
