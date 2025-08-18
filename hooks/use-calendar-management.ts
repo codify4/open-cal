@@ -2,21 +2,21 @@
 
 import * as React from 'react';
 import { toast } from 'sonner';
-import { useAuth, useUser } from '@clerk/nextjs';
-import { arrangeWarmToCoolGrid } from '@/lib/calendar-utils/calendar-color-utils';
+import { useAuth, useSessionList } from '@clerk/nextjs';
 import { useCalendarStore } from '@/providers/calendar-store-provider';
 import type { GoogleCalendar, ColorOption } from '@/types/calendar';
-import { getAccessToken } from '@/actions/access-token';
+import { getAccessToken, getAccessTokenForSession } from '@/actions/access-token';
 
 export function useCalendarManagement(onCalendarsFetched?: (calendars: GoogleCalendar[]) => void) {
     const { userId } = useAuth();
+    const { sessions } = useSessionList();
 	const [fetchedCalendars, setFetchedCalendars] = React.useState<GoogleCalendar[]>([]);
 	const [isLoadingCalendars, setIsLoadingCalendars] = React.useState(false);
 	const [visibleCalendars, setVisibleCalendars] = React.useState<Set<string>>(new Set());
 	const [colorOptions, setColorOptions] = React.useState<ColorOption[]>([]);
 	const [accessToken, setAccessToken] = React.useState<string | null>(null);
 
-	const { setVisibleCalendarIds } = useCalendarStore((state) => state);
+	const { setVisibleCalendarIds, setSessionCalendars, visibleCalendarIds } = useCalendarStore((state) => state);
 
 	React.useEffect(() => {
 		const fetchToken = async () => {
@@ -29,20 +29,17 @@ export function useCalendarManagement(onCalendarsFetched?: (calendars: GoogleCal
 		fetchToken();
 	}, [userId]);
 
-	const fetchCalendars = React.useCallback(async () => {
-		if (!userId) {
-			return;
+	React.useEffect(() => {
+		if (accessToken && userId) {
+			fetchCalendars();
 		}
+	}, [accessToken, userId]);
 
-		if (!accessToken) {
-			return;
-		}
-
-		setIsLoadingCalendars(true);
+	const fetchCalendarsForSession = React.useCallback(async (session: any, sessionAccessToken: string) => {
 		try {
 			const response = await fetch('https://www.googleapis.com/calendar/v3/users/me/calendarList', {
 				headers: {
-					Authorization: `Bearer ${accessToken}`,
+					Authorization: `Bearer ${sessionAccessToken}`,
 					'Content-Type': 'application/json',
 				},
 			});
@@ -60,6 +57,7 @@ export function useCalendarManagement(onCalendarsFetched?: (calendars: GoogleCal
 				accessRole: cal.accessRole,
 				colorId: cal.colorId,
 				backgroundColor: cal.backgroundColor,
+				account: session.user?.primaryEmailAddress?.emailAddress || '',
 			}));
 
 			const sortedCalendars = calendars.sort((a, b) => {
@@ -68,35 +66,93 @@ export function useCalendarManagement(onCalendarsFetched?: (calendars: GoogleCal
 				return (a.summary || a.name || '').localeCompare(b.summary || b.name || '');
 			});
 
-			setFetchedCalendars(sortedCalendars);
-			
-			const calendarIds = sortedCalendars.map(cal => cal.id);
-			setVisibleCalendarIds(calendarIds);
-			setVisibleCalendars(new Set(calendarIds));
-			
-			onCalendarsFetched?.(sortedCalendars);
+			return sortedCalendars;
+		} catch (error) {
+			console.error(`Failed to fetch calendars for session ${session.id}:`, error);
+			return [];
+		}
+	}, []);
 
-			const googleColors = await fetch('https://www.googleapis.com/calendar/v3/colors', {
-				headers: {
-					Authorization: `Bearer ${accessToken}`,
-					'Content-Type': 'application/json',
-				},
-			});
+	const fetchCalendars = React.useCallback(async () => {
+		if (!userId) {
+			return;
+		}
 
-			if (googleColors.ok) {
-				const colorData = await googleColors.json();
-				const colors: ColorOption[] = Object.entries(colorData.calendar || {}).map(([id, color]: [string, any]) => ({
-					id,
-					background: color.background,
-				}));
-				setColorOptions(colors);
+		setIsLoadingCalendars(true);
+		
+		try {
+			const allCalendars: GoogleCalendar[] = [];
+
+			if (sessions && sessions.length > 0) {
+				console.log('All sessions:', sessions.map(s => ({ id: s.id, email: s.user?.primaryEmailAddress?.emailAddress })));
+				
+				for (const session of sessions) {
+					try {
+						if (!session.user?.primaryEmailAddress?.emailAddress) {
+							console.warn(`Session ${session.id} has no user email, skipping`);
+							continue;
+						}
+						
+						const sessionToken = await getAccessTokenForSession(session.id);
+						if (sessionToken) {
+							const sessionCalendars = await fetchCalendarsForSession(session, sessionToken);
+							
+							sessionCalendars.forEach(calendar => {
+								if (!allCalendars.some(existing => existing.id === calendar.id)) {
+									allCalendars.push(calendar);
+								}
+							});
+							
+							setSessionCalendars(session.id, sessionCalendars);
+						} else {
+							console.warn(`No access token available for session ${session.id}`);
+						}
+					} catch (error) {
+						console.error(`Failed to fetch calendars for session ${session.id}:`, error);
+					}
+				}
+			}
+
+			if (allCalendars.length > 0) {
+				setFetchedCalendars(allCalendars);
+				
+				const calendarIds = allCalendars.map(cal => cal.id);
+				console.log('Setting visible calendar IDs:', calendarIds);
+				console.log('Calendar details:', allCalendars.map(cal => ({ id: cal.id, summary: cal.summary, account: cal.account })));
+				setVisibleCalendarIds(calendarIds);
+				setVisibleCalendars(new Set(calendarIds));
+				
+				onCalendarsFetched?.(allCalendars);
+			} else {
+				console.log('No calendars found for any sessions');
+				setFetchedCalendars([]);
+				setVisibleCalendarIds([]);
+				setVisibleCalendars(new Set());
+			}
+
+			if (accessToken) {
+				const googleColors = await fetch('https://www.googleapis.com/calendar/v3/colors', {
+					headers: {
+						Authorization: `Bearer ${accessToken}`,
+						'Content-Type': 'application/json',
+					},
+				});
+
+				if (googleColors.ok) {
+					const colorData = await googleColors.json();
+					const colors: ColorOption[] = Object.entries(colorData.calendar || {}).map(([id, color]: [string, any]) => ({
+						id,
+						background: color.background,
+					}));
+					setColorOptions(colors);
+				}
 			}
 		} catch (error) {
 			toast.error('Failed to fetch calendars');
 		} finally {
 			setIsLoadingCalendars(false);
 		}
-	}, [userId, accessToken, setVisibleCalendarIds, onCalendarsFetched]);
+	}, [userId, accessToken, sessions, fetchCalendarsForSession, setSessionCalendars, setVisibleCalendarIds, onCalendarsFetched]);
 
 	const handleChangeCalendarColor = React.useCallback(async (calendarId: string, colorId: string) => {
 		if (!userId || !accessToken) return;
@@ -156,15 +212,24 @@ export function useCalendarManagement(onCalendarsFetched?: (calendars: GoogleCal
 			}
 
 			toast.success('Calendar removed');
-			setVisibleCalendarIds(Array.from(visibleCalendars).filter(id => id !== calendarId));
+			
+			setVisibleCalendars(prev => {
+				const newSet = new Set(prev);
+				newSet.delete(calendarId);
+				return newSet;
+			});
+			
+			const newVisibleIds = visibleCalendarIds.filter(id => id !== calendarId);
+			setVisibleCalendarIds(newVisibleIds);
 			fetchCalendars();
 		} catch (error) {
 			console.error('Failed to remove calendar:', error);
 			toast.error('Failed to remove calendar');
 		}
-	}, [userId, accessToken, setVisibleCalendarIds, visibleCalendars, fetchCalendars]);
+	}, [userId, accessToken, setVisibleCalendarIds, visibleCalendarIds, fetchCalendars]);
 
 	const handleCalendarToggle = React.useCallback((calendarId: string) => {
+		console.log('Toggling calendar:', calendarId);
 		setVisibleCalendars(prev => {
 			const newSet = new Set(prev);
 			if (newSet.has(calendarId)) {
@@ -172,16 +237,14 @@ export function useCalendarManagement(onCalendarsFetched?: (calendars: GoogleCal
 			} else {
 				newSet.add(calendarId);
 			}
+			
+			const newVisibleIds = Array.from(newSet);
+			console.log('New visible calendar IDs:', newVisibleIds);
+			setVisibleCalendarIds(newVisibleIds);
+			
 			return newSet;
 		});
-
-		const currentVisibleIds = Array.from(visibleCalendars);
-		if (currentVisibleIds.includes(calendarId)) {
-			setVisibleCalendarIds(currentVisibleIds.filter(id => id !== calendarId));
-		} else {
-			setVisibleCalendarIds([...currentVisibleIds, calendarId]);
-		}
-	}, [visibleCalendars, setVisibleCalendarIds]);
+	}, [setVisibleCalendarIds]);
 
 	const createCalendar = React.useCallback(async (calendarData: {
 		summary: string;
@@ -214,13 +277,7 @@ export function useCalendarManagement(onCalendarsFetched?: (calendars: GoogleCal
 		toast.success('Calendar created successfully');
 		fetchCalendars();
 		return newCalendar;
-	}, [userId, accessToken, setVisibleCalendarIds, visibleCalendars, colorOptions, fetchCalendars]);
-
-	React.useEffect(() => {
-		if (userId) {
-			fetchCalendars();
-		}
-	}, [fetchCalendars]);
+	}, [userId, accessToken, fetchCalendars]);
 
 	return {
 		fetchedCalendars,

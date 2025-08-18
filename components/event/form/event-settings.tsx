@@ -11,7 +11,7 @@ import {
   SelectValue,
 } from '../../ui/select';
 import { Button } from '../../ui/button';
-import { useUser } from '@clerk/nextjs';
+import { useUser, useSessionList, useSession } from '@clerk/nextjs';
 import { getColorClasses, getCalendarColor } from '@/lib/calendar-utils/calendar-color-utils';
 import { CopyButton } from '../../agent/copy-button';
 import { ColorPicker } from './color-picker';
@@ -44,29 +44,33 @@ export const EventSettings = ({
   isGeneratingMeeting,
 }: EventSettingsProps) => {
   const { user: clerkUser } = useUser();
-  const sessionEmail = clerkUser?.primaryEmailAddress?.emailAddress || '';
+  const { sessions } = useSessionList();
+  const { session: currentSession } = useSession();
   const { fetchedCalendars } = useCalendarManagement();
-
-
 
   const groupedCalendars = React.useMemo(() => {
     const groups: Record<string, GoogleCalendar[]> = {};
     
-    if (sessionEmail) {
-      groups[sessionEmail] = [];
-    }
-    
-    fetchedCalendars.forEach(cal => {
-      if (sessionEmail) {
-        if (!groups[sessionEmail]) {
-          groups[sessionEmail] = [];
-        }
-        groups[sessionEmail].push(cal);
+    fetchedCalendars.forEach(calendar => {
+      const accountEmail = calendar.account || 
+        currentSession?.user?.primaryEmailAddress?.emailAddress || 
+        'Unknown Account';
+      if (!groups[accountEmail]) {
+        groups[accountEmail] = [];
       }
+      groups[accountEmail].push(calendar);
+    });
+    
+    Object.keys(groups).forEach(email => {
+      groups[email].sort((a, b) => {
+        if (a.primary && !b.primary) return -1;
+        if (!a.primary && b.primary) return 1;
+        return (a.summary || a.name || '').localeCompare(b.summary || b.name || '');
+      });
     });
     
     return groups;
-  }, [fetchedCalendars, sessionEmail]);
+  }, [fetchedCalendars, currentSession]);
 
   const selectedCalendar = React.useMemo(() => {
     if (!calendar) return null;
@@ -188,11 +192,13 @@ export const EventSettings = ({
             <SelectContent align='start' side='left' className="border-border bg-popover dark:bg-neutral-900">
               {Object.entries(groupedCalendars).map(([accountEmail, calendars]) => (
                <div key={accountEmail}>
-                 <span className='text-xs text-muted-foreground px-2'>{accountEmail}</span>
+                 <div className='text-xs text-muted-foreground px-2 py-2 font-medium border-b border-border'>
+                   {accountEmail}
+                 </div>
                  {calendars.map((cal) => (
                     <SelectItem
                       key={cal.id}
-                      className="text-popover-foreground hover:bg-accent"
+                      className="text-popover-foreground hover:bg-accent ml-2"
                       value={cal.id}
                     >
                       <div className="flex items-center gap-2">
@@ -201,6 +207,9 @@ export const EventSettings = ({
                           style={{ backgroundColor: getCalendarColor(cal) }}
                         />
                         {cal.summary || cal.name}
+                        {cal.primary && (
+                          <span className="text-xs text-muted-foreground">Default</span>
+                        )}
                       </div>
                     </SelectItem>
                   ))}

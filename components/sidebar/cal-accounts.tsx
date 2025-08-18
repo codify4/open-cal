@@ -45,9 +45,7 @@ export function NavCalendars({
 	};
 
 	return (
-		<SidebarGroup className="mt-0 group-data-[collapsible=icon]:hidden">
-			<SidebarGroupLabel>Account</SidebarGroupLabel>
-			
+		<SidebarGroup className="mt-0 group-data-[collapsible=icon]:hidden">			
 			<SignedOut>
 				<SidebarGroupContent>
                     <SignInButton mode="modal">
@@ -60,29 +58,18 @@ export function NavCalendars({
 
 			<SignedIn>
 				<SidebarMenu>
-					<SidebarMenuItem>
-						<AccountDropdown
-							emailAccounts={emailAccounts}
-							selectedEmail={selectedEmail}
-							onEmailChange={onEmailChange}
-							userEmail={user?.email}
-						/>
-					</SidebarMenuItem>
+                    <CreateCalendarDropdown onCalendarCreated={handleCalendarCreated} />
+                    <CalendarList
+                        calendars={fetchedCalendars}
+                        visibleCalendars={visibleCalendars}
+                        colorOptions={colorOptions}
+                        isLoading={isLoadingCalendars}
+                        onToggle={wrappedCalendarToggle}
+                        onColorChange={handleChangeCalendarColor}
+                        onDelete={handleDeleteCalendar}
+                    />
 				</SidebarMenu>
 
-				<div className="flex items-center justify-between mt-2">
-					<SidebarGroupLabel className="mt-0">Calendars</SidebarGroupLabel>
-					<CreateCalendarDropdown onCalendarCreated={handleCalendarCreated} />
-				</div>
-				<CalendarList
-					calendars={fetchedCalendars}
-					visibleCalendars={visibleCalendars}
-					colorOptions={colorOptions}
-					isLoading={isLoadingCalendars}
-					onToggle={wrappedCalendarToggle}
-					onColorChange={handleChangeCalendarColor}
-					onDelete={handleDeleteCalendar}
-				/>
 			</SignedIn>
 		</SidebarGroup>
 	);

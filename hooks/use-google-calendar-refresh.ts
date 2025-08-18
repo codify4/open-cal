@@ -58,6 +58,10 @@ export const useGoogleCalendarRefresh = () => {
         );
 
         if (!response.ok) {
+          if (response.status === 404) {
+            console.log(`Calendar ${calendarId} has no events or doesn't exist, skipping`);
+            continue;
+          }
           console.error(`Failed to fetch events for calendar ${calendarId}:`, response.status);
           continue;
         }

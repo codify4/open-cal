@@ -77,6 +77,10 @@ export interface CalendarState {
   visibleCalendarIds: string[];
   refreshFunction: (() => Promise<void>) | null;
   
+  // Multi-session support
+  sessionEvents: Record<string, Event[]>; // sessionId -> events
+  sessionCalendars: Record<string, any[]>; // sessionId -> calendars
+  
   // Optimistic update counter to force re-renders
   optimisticUpdateCounter: number;
   // Per-event optimistic overrides to prevent flicker on background refresh
@@ -134,6 +138,11 @@ export interface CalendarActions {
   setFetchingEvents: (isFetching: boolean) => void;
   setRefreshFunction: (refreshFn: () => Promise<void>) => void;
   refreshEvents: () => Promise<void>;
+  
+  // Multi-session actions
+  setSessionEvents: (sessionId: string, events: Event[]) => void;
+  setSessionCalendars: (sessionId: string, calendars: any[]) => void;
+  getAllVisibleEvents: () => Event[];
   
   // Upgrade Dialog Actions
   openUpgradeDialog: () => void;
@@ -215,6 +224,10 @@ export const defaultInitState: CalendarState = {
   eventsLastFetched: null,
   visibleCalendarIds: [],
   refreshFunction: null,
+  
+  // Multi-session support
+  sessionEvents: {},
+  sessionCalendars: {},
   
   // Optimistic update counter
   optimisticUpdateCounter: 0,
@@ -585,6 +598,35 @@ export const createCalendarStore = (
           if (state.refreshFunction) {
             await state.refreshFunction();
           }
+        },
+        
+        // Multi-session actions
+        setSessionEvents: (sessionId, events) =>
+          set((state) => ({
+            sessionEvents: {
+              ...state.sessionEvents,
+              [sessionId]: events,
+            },
+          })),
+
+        setSessionCalendars: (sessionId, calendars) =>
+          set((state) => ({
+            sessionCalendars: {
+              ...state.sessionCalendars,
+              [sessionId]: calendars,
+            },
+          })),
+
+        getAllVisibleEvents: () => {
+          const state = get();
+          const allEvents = [...state.events, ...state.googleEvents];
+          
+          // Add events from all sessions
+          Object.values(state.sessionEvents).forEach((sessionEvents) => {
+            allEvents.push(...sessionEvents);
+          });
+          
+          return allEvents;
         },
         
         openUpgradeDialog: () => set({ isUpgradeDialogOpen: true }),

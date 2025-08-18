@@ -30,6 +30,7 @@ export interface GoogleCalendar {
 	accessRole?: string;
 	colorId?: string;
 	backgroundColor?: string;
+	account?: string;
 }
 
 export interface ColorOption {
