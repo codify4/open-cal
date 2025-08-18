@@ -33,11 +33,10 @@ export function CalendarList({
 	// Group calendars by account email
 	const groupedCalendars = useMemo(() => {
 		const groups: Record<string, GoogleCalendar[]> = {};
+		const currentEmail = currentSession?.user?.primaryEmailAddress?.emailAddress;
 		
 		calendars.forEach(calendar => {
-			const accountEmail = calendar.account || 
-				currentSession?.user?.primaryEmailAddress?.emailAddress || 
-				'Unknown Account';
+			const accountEmail = calendar.account || currentEmail || 'Unknown Account';
 			if (!groups[accountEmail]) {
 				groups[accountEmail] = [];
 			}
@@ -52,7 +51,19 @@ export function CalendarList({
 			});
 		});
 		
-		return groups;
+		const sortedGroups: Record<string, GoogleCalendar[]> = {};
+		const currentAccountCalendars = groups[currentEmail || ''] || [];
+		const otherAccounts = Object.keys(groups).filter(email => email !== currentEmail);
+		
+		if (currentAccountCalendars.length > 0) {
+			sortedGroups[currentEmail || ''] = currentAccountCalendars;
+		}
+		
+		otherAccounts.forEach(email => {
+			sortedGroups[email] = groups[email];
+		});
+		
+		return sortedGroups;
 	}, [calendars, currentSession]);
 
 	if (isLoading) {
@@ -100,7 +111,7 @@ export function CalendarList({
 										onCheckedChange={() => onToggle(calendar.id)}
 									/>
 									<span className="flex-1 truncate text-sm min-w-0">{calendar.summary || calendar.name}</span>
-									{calendar.primary && (
+									{calendar.primary && calendar.account === currentSession?.user?.primaryEmailAddress?.emailAddress && (
 										<span className="text-xs text-muted-foreground truncate max-w-16 flex-shrink-0">Default</span>
 									)}
 									<CalendarDropdown
