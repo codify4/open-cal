@@ -62,7 +62,7 @@ export function AccountDropdown({
 	return (
 		<DropdownMenu>
 			<DropdownMenuTrigger asChild>
-				<SidebarMenuButton className="w-full cursor-pointer justify-between rounded-sm py-5 hover:bg-primary/10 hover:text-primary focus:bg-transparent focus:outline-none focus:ring-0 active:bg-transparent">
+				<SidebarMenuButton className="w-full cursor-pointer justify-between rounded-sm hover:bg-primary/5 hover:text-primary focus:bg-transparent focus:outline-none focus:ring-0 active:bg-transparent">
 					<div className="flex items-center gap-2">
 						<div className="flex flex-col items-start">
 							<span className="truncate font-medium text-sm">

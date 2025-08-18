@@ -1,8 +1,8 @@
 'use client';
 
-import { Plus } from 'lucide-react';
+import { User, Unplug, ArrowLeftRight } from 'lucide-react';
 import { useQuery } from 'convex/react';
-import { useUser } from '@clerk/nextjs';
+import { useUser, useSessionList, useSession } from '@clerk/nextjs';
 import { SignedIn, SignedOut, SignInButton } from '@clerk/nextjs';
 import { api } from '@/convex/_generated/api';
 import { Button } from '@/components/ui/button';
@@ -14,6 +14,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import Image from 'next/image';
+import { toast } from 'sonner';
 import type { EmailAccount, CalendarEntry } from '@/types/calendar';
 
 interface IntegrationsSectionProps {
@@ -28,6 +29,8 @@ export function IntegrationsSection({
   onAddAccount,
 }: IntegrationsSectionProps) {
   const { user: clerkUser } = useUser();
+  const { sessions, setActive } = useSessionList();
+  const { session: currentSession } = useSession();
   const current = useQuery(api.auth.getCurrentUser, { 
     clerkUserId: clerkUser?.id 
   });
@@ -35,6 +38,26 @@ export function IntegrationsSection({
   const handleAddAccount = () => {
     if (!current?.isPro && accounts.length >= 1) return;
     onAddAccount();
+  };
+
+  const handleSwitchAccount = async (sessionId: string) => {
+    if (!setActive) return;
+    try {
+      await setActive({ session: sessionId });
+      toast('Account switched successfully');
+    } catch (error) {
+      toast('Failed to switch account', { description: 'Please try again.' });
+    }
+  };
+
+  const handleSignOut = async (sessionId: string) => {
+    if (!setActive) return;
+    try {
+      await setActive({ session: sessionId });
+      toast('Account signed out successfully');
+    } catch (error) {
+      toast('Failed to sign out', { description: 'Please try again.' });
+    }
   };
   
   return (
@@ -49,56 +72,93 @@ export function IntegrationsSection({
       <div className="space-y-6">
         <Card className="border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900">
           <CardHeader>
-            <CardTitle className="text-neutral-900 dark:text-white">Google Calendar</CardTitle>
+            <CardTitle className="text-neutral-900 dark:text-white">Account Sessions</CardTitle>
             <CardDescription className="text-neutral-600 dark:text-neutral-400">
-              Connect your Google Calendar accounts to sync events and manage
-              your schedule
+              Manage your active account sessions and switch between accounts
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <SignedOut>
               <div className="text-center py-8">
+                <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-neutral-100 dark:bg-neutral-800">
+                  <User className="h-6 w-6 text-neutral-600 dark:text-neutral-400" />
+                </div>
                 <p className="text-neutral-600 dark:text-neutral-400 mb-4">
-                  Sign in to connect your Google Calendar
+                  Sign in to manage your account sessions
                 </p>
                 <SignInButton mode="modal">
                   <Button variant="outline">
-                    Sign in to Connect
+                    Sign in to Manage
                   </Button>
                 </SignInButton>
               </div>
             </SignedOut>
             
             <SignedIn>
-              {accounts.length > 0 && (
+              {sessions && sessions.length > 0 ? (
                 <div className="space-y-3">
-                  {accounts.map((account) => (
-                    <div
-                      className="flex items-center justify-between rounded-lg bg-neutral-100 dark:bg-neutral-800 p-3"
-                      key={account.email}
-                    >
-                      <div className="flex items-center space-x-3">
-                        <Image src={'g-cal.svg'} alt={account.email} width={32} height={32} />
-                        <div>
-                          <h4 className="font-semibold text-neutral-900 dark:text-white">
-                            {account.email}
-                          </h4>
+                  {sessions.map((session) => {
+                    const isActive = session.id === currentSession?.id;
+                    const sessionEmail = session.user?.primaryEmailAddress?.emailAddress;
+                    
+                    return (
+                      <div
+                        className="flex items-center justify-between rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 p-4 hover:bg-neutral-50 dark:hover:bg-neutral-700/50 transition-colors"
+                        key={session.id}
+                      >
+                        <div className="flex items-center space-x-3">
+                          <Image src="/g-cal.svg" alt="Google Calendar" width={24} height={24} />
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm font-medium text-neutral-600 dark:text-neutral-400">
+                                Google Calendar
+                              </span>
+                              {isActive && (
+                                <span className="inline-flex items-center rounded-full bg-primary/10 px-2 py-1 text-xs font-medium text-primary dark:bg-primary/20">
+                                  Current
+                                </span>
+                              )}
+                            </div>
+                            <h4 className="font-semibold text-neutral-900 dark:text-white text-base">
+                              {sessionEmail || 'Unknown email'}
+                            </h4>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {!isActive && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleSwitchAccount(session.id)}
+                              className="rounded-sm text-primary"
+                            >
+                            <ArrowLeftRight className="h-4 w-4" />
+                              Switch
+                            </Button>
+                          )}
+                          <Button
+                            size="sm"
+                            onClick={() => handleSignOut(session.id)}
+                            className="rounded-sm bg-red-500/10 text-red-500 hover:bg-red-500/20"
+                          >
+                            <Unplug className="h-4 w-4" />
+                            Disconnect
+                          </Button>
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-neutral-100 dark:bg-neutral-800">
+                    <User className="h-6 w-6 text-neutral-600 dark:text-neutral-400" />
+                  </div>
+                  <p className="text-neutral-600 dark:text-neutral-400">
+                    No active sessions found
+                  </p>
                 </div>
               )}
-
-              <Button
-                className="w-full justify-start border-neutral-300 dark:border-neutral-600 border-dashed hover:border-neutral-400 dark:hover:border-neutral-500"
-                onClick={handleAddAccount}
-                variant="outline"
-                disabled={!current?.isPro && accounts.length >= 1}
-              >
-                <Plus className="mr-2 h-4 w-4" />
-                {!current?.isPro && accounts.length >= 1 ? 'Upgrade to add more accounts' : 'Connect Another Google Calendar Account'}
-              </Button>
             </SignedIn>
           </CardContent>
         </Card>

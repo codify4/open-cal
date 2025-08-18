@@ -10,6 +10,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import Image from 'next/image';
 
 export function AppearanceSection() {
   const { theme, setTheme } = useTheme();
@@ -39,50 +40,47 @@ export function AppearanceSection() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-3 gap-4">
-              <button
-                className={`cursor-pointer rounded-lg border-2 p-4 transition-all ${
-                  selectedTheme === 'light'
-                    ? 'border-blue-500 bg-blue-500/10'
-                    : 'border-neutral-300 dark:border-neutral-700 hover:border-neutral-400 dark:hover:border-neutral-600'
-                }`}
-                onClick={() => handleThemeChange('light')}
-              >
-                <div className="mb-2 flex items-center space-x-2">
-                  <Sun className="h-4 w-4" />
-                  <span className="font-medium text-neutral-900 dark:text-white">Light</span>
+                <div className="flex flex-col items-center">
+                    <button
+                        className={`bg-white cursor-pointer rounded-lg p-3 duration-100 transition-colors ${
+                            selectedTheme === 'light'
+                                ? 'border-2 border-neutral-500'
+                                : 'border-neutral-300 dark:border-neutral-700 hover:border-neutral-400 dark:hover:border-neutral-600'
+                            }`}
+                        onClick={() => handleThemeChange('light')}
+                    >
+                        <Image src='/light-mode.png' alt='Light Mode' width={425} height={245} className='rounded-sm' />
+                    </button>
+                    <span className="text-sm text-black dark:text-white mt-2">Light</span>
                 </div>
-                <div className="h-8 rounded border-2 border-gray-200 bg-white" />
-              </button>
 
-              <button
-                className={`cursor-pointer rounded-lg border-2 p-4 transition-all ${
-                  selectedTheme === 'dark'
-                    ? 'border-blue-500 bg-blue-500/10'
-                    : 'border-neutral-300 dark:border-neutral-700 hover:border-neutral-400 dark:hover:border-neutral-600'
-                }`}
-                onClick={() => handleThemeChange('dark')}
-              >
-                <div className="mb-2 flex items-center space-x-2">
-                  <Moon className="h-4 w-4" />
-                  <span className="font-medium text-neutral-900 dark:text-white">Dark</span>
+                <div className="flex flex-col items-center">
+                    <button
+                        className={`bg-neutral-900 cursor-pointer rounded-lg p-3 duration-100 transition-colors ${
+                            selectedTheme === 'dark'
+                                ? 'border-2 border-neutral-500'
+                                : 'border-neutral-300 dark:border-neutral-700 hover:border-neutral-400 dark:hover:border-neutral-600'
+                            }`}
+                        onClick={() => handleThemeChange('dark')}
+                    >
+                        <Image src='/dark-mode.png' alt='Dark Mode' width={425} height={245} className='rounded-sm' />
+                    </button>
+                    <span className="text-sm text-black dark:text-white mt-2">Dark</span>
                 </div>
-                <div className="h-8 rounded border-2 border-neutral-700 bg-neutral-900" />
-              </button>
 
-              <button
-                className={`cursor-pointer rounded-lg border-2 p-4 transition-all ${
-                  selectedTheme === 'system'
-                    ? 'border-blue-500 bg-blue-500/10'
-                    : 'border-neutral-300 dark:border-neutral-700 hover:border-neutral-400 dark:hover:border-neutral-600'
-                }`}
-                onClick={() => handleThemeChange('system')}
-              >
-                <div className="mb-2 flex items-center space-x-2">
-                  <Settings className="h-4 w-4" />
-                  <span className="font-medium text-neutral-900 dark:text-white">System</span>
+                <div className="flex flex-col items-center">
+                    <button
+                        className={`cursor-pointer rounded-lg p-3 duration-100 transition-colors ${
+                        selectedTheme === 'system'
+                            ? 'border-2 border-neutral-500'
+                            : 'border-neutral-300 dark:border-neutral-700 hover:border-neutral-400 dark:hover:border-neutral-600'
+                        }`}
+                        onClick={() => handleThemeChange('system')}
+                    >
+                        <Image src='/dnl.png' alt='System Mode' width={425} height={245} className='rounded-sm' />
+                    </button>
+                    <span className="text-sm text-black dark:text-white mt-2">System</span>
                 </div>
-                <div className="h-8 rounded border-2 border-gray-200 bg-gradient-to-r from-white to-neutral-900" />
-              </button>
             </div>
           </CardContent>
         </Card>
