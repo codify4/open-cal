@@ -70,10 +70,10 @@ export function NavCalendars({
 							<Button 
 								variant="ghost" 
 								size="sm" 
-								className="w-full justify-start gap-2 text-muted-foreground hover:text-foreground hover:bg-accent/50 border-0 px-2 py-1.5 h-auto font-normal"
+								className="w-full justify-start gap-2 text-muted-foreground hover:text-foreground border-0 px-2 py-1.5 h-auto font-normal"
 							>
 								<Plus className="h-3 w-3" />
-								<span className="text-xs">Add Google Account</span>
+								<span className="text-xs">Add calendar account</span>
 							</Button>
 						</SignInButton>
 					</SidebarMenuItem>

@@ -1,6 +1,6 @@
 'use client';
 
-import { User, Unplug, ArrowLeftRight } from 'lucide-react';
+import { User, Unplug, ArrowLeftRight, Plus, ExternalLink, Zap } from 'lucide-react';
 import { useQuery } from 'convex/react';
 import { useUser, useSessionList, useSession } from '@clerk/nextjs';
 import { SignedIn, SignedOut, SignInButton } from '@clerk/nextjs';
@@ -72,7 +72,40 @@ export function IntegrationsSection({
       <div className="space-y-6">
         <Card className="border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900">
           <CardHeader>
-            <CardTitle className="text-neutral-900 dark:text-white">Account Sessions</CardTitle>
+            <CardTitle className="text-neutral-900 dark:text-white">Calendar accounts</CardTitle>
+            <CardDescription className="text-neutral-600 dark:text-neutral-400">
+              Connect your calendar services to sync events and manage schedules
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-3">
+              <div className="flex items-center justify-between rounded-sm border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 p-4">
+                <div className="flex items-center space-x-3">
+                  <Image src="/g-cal.svg" alt="Google Calendar" width={24} height={24} />
+                  <span className="text-neutral-900 dark:text-white font-medium">
+                    Add Google Calendar account
+                  </span>
+                </div>
+                <div className="flex items-center gap-3">
+                    <SignInButton mode="modal">
+                        <Button
+                            size="sm"
+                            className="bg-black hover:bg-black/80 text-white rounded-sm"
+                            onClick={(e) => e.preventDefault()}
+                        >
+                            <Zap className="h-4 w-4 mr-1" />
+                            Connect
+                        </Button>
+                    </SignInButton>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900">
+          <CardHeader>
+            <CardTitle className="text-neutral-900 dark:text-white">Connected Accounts</CardTitle>
             <CardDescription className="text-neutral-600 dark:text-neutral-400">
               Manage your active account sessions and switch between accounts
             </CardDescription>
@@ -103,47 +136,44 @@ export function IntegrationsSection({
                     
                     return (
                       <div
-                        className="flex items-center justify-between rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 p-4 hover:bg-neutral-50 dark:hover:bg-neutral-700/50 transition-colors"
+                        className="flex items-center justify-between rounded-md border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 p-4"
                         key={session.id}
                       >
-                        <div className="flex items-center space-x-3">
-                          <Image src="/g-cal.svg" alt="Google Calendar" width={24} height={24} />
-                          <div>
-                            <div className="flex items-center gap-2">
-                              <span className="text-sm font-medium text-neutral-600 dark:text-neutral-400">
-                                Google Calendar
-                              </span>
-                              {isActive && (
-                                <span className="inline-flex items-center rounded-full bg-primary/10 px-2 py-1 text-xs font-medium text-primary dark:bg-primary/20">
-                                  Current
-                                </span>
-                              )}
-                            </div>
-                            <h4 className="font-semibold text-neutral-900 dark:text-white text-base">
-                              {sessionEmail || 'Unknown email'}
-                            </h4>
+                        <div className="flex-1">
+                          <div className="flex items-center space-x-3 mb-2">
+                            <Image src="/g-cal.svg" alt="Google Calendar" width={24} height={24} />
+                            <span className="text-sm font-medium text-neutral-900 dark:text-white">
+                              Google Calendar
+                            </span>
                           </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          {!isActive && (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleSwitchAccount(session.id)}
-                              className="rounded-sm text-primary"
-                            >
-                            <ArrowLeftRight className="h-4 w-4" />
-                              Switch
-                            </Button>
-                          )}
-                          <Button
-                            size="sm"
-                            onClick={() => handleSignOut(session.id)}
-                            className="rounded-sm bg-red-500/10 text-red-500 hover:bg-red-500/20"
-                          >
-                            <Unplug className="h-4 w-4" />
-                            Disconnect
-                          </Button>
+                          <div className="border-t border-neutral-200 dark:border-neutral-600 mb-2"></div>
+                          <div className="flex items-center justify-between">
+                            <span className="text-neutral-900 dark:text-white text-sm">
+                                {sessionEmail || 'Unknown email'}
+                            </span>
+                            <div className="flex items-center gap-2">
+                                {!isActive && (
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => handleSwitchAccount(session.id)}
+                                        className="rounded-sm text-primary border-primary/20 hover:bg-primary/5"
+                                    >
+                                        <ArrowLeftRight className="h-4 w-4 mr-1" />
+                                        Switch
+                                    </Button>
+                                )}
+                                <Button
+                                    size="sm"
+                                    onClick={() => handleSignOut(session.id)}
+                                    className="rounded-sm bg-red-500/10 hover:bg-red-500/20 text-red-500 border-red-500"
+                                >
+                                    <Unplug className="h-4 w-4 mr-1" />
+                                    Disconnect
+                                </Button>
+                            </div>
+                          </div>
+                          
                         </div>
                       </div>
                     );
