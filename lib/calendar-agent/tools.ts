@@ -249,8 +249,8 @@ export const findFreeTimeTool = tool({
   },
 });
 
-export const getEventsTool = tool({
-  description: 'Get events for a specific time period',
+export const getSummaryTool = tool({
+  description: 'Get a summary of calendar events for a specific time period. Returns events in a compact list format.',
   inputSchema: z.object({
     startDate: z.string().describe('Start date in ISO format'),
     endDate: z.string().describe('End date in ISO format'),
@@ -261,11 +261,45 @@ export const getEventsTool = tool({
       const startDate = new Date(params.startDate);
       const endDate = new Date(params.endDate);
 
+      const accessToken = await getAccessToken();
+      if (!accessToken) {
+        return {
+          success: false,
+          error: 'Google Calendar not connected. Please connect your Google account.',
+        };
+      }
+
+      const timeMin = startDate.toISOString();
+      const timeMax = endDate.toISOString();
+      const calendarId = 'primary';
+            
+      const response = await fetch(
+        `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events?timeMin=${timeMin}&timeMax=${timeMax}&singleEvents=true&orderBy=startTime`,
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+      if (!response.ok) {
+        return {
+          success: false,
+          error: `Failed to fetch events from Google Calendar: ${response.status}`,
+        };
+      }
+
+      const data = await response.json();
+      const events = data.items?.map((event: any) =>
+        convertGoogleEventToLocalEvent(event, calendarId, 'user@example.com')
+      ) || [];
+
       return {
         success: true,
-        events: [],
-        action: 'get_events',
-        message: `Retrieved events from ${startDate.toLocaleDateString()} to ${endDate.toLocaleDateString()}`,
+        events,
+        action: 'get_summary',
+        message: `Calendar summary from ${startDate.toLocaleDateString()} to ${endDate.toLocaleDateString()}`,
         dateRange: {
           startDate: startDate.toISOString(),
           endDate: endDate.toISOString(),
@@ -364,42 +398,10 @@ export const deleteEventTool = tool({
   },
 });
 
-export const getCalendarSummaryTool = tool({
-  description: 'Get a summary of calendar events for a time period',
-  inputSchema: z.object({
-    startDate: z.string().describe('Start date in ISO format'),
-    endDate: z.string().describe('End date in ISO format'),
-    includeStats: z.boolean().optional().describe('Include statistics about events'),
-  }),
-  execute: async (params) => {
-    try {
-      const startDate = new Date(params.startDate);
-      const endDate = new Date(params.endDate);
-
-      return {
-        success: true,
-        summary: { totalEvents: 0, events: [] },
-        action: 'get_calendar_summary',
-        message: `Calendar summary from ${startDate.toLocaleDateString()} to ${endDate.toLocaleDateString()}`,
-        dateRange: {
-          startDate: startDate.toISOString(),
-          endDate: endDate.toISOString(),
-        },
-      };
-    } catch (error) {
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
-      };
-    }
-  },
-});
-
 export const calendarTools = {
   create_event: createEventTool,
   find_free_time: findFreeTimeTool,
-  get_events: getEventsTool,
+  get_summary: getSummaryTool,
   update_event: updateEventTool,
   delete_event: deleteEventTool,
-  get_calendar_summary: getCalendarSummaryTool,
 };

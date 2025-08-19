@@ -158,10 +158,9 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
           const calendarToolNames = [
             'create_event',
             'find_free_time',
-            'get_events',
+            'get_summary',
             'update_event',
             'delete_event',
-            'get_calendar_summary',
           ];
 
           if (
@@ -313,10 +312,9 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
               const calendarToolNames = [
                 'create_event',
                 'find_free_time',
-                'get_events',
+                'get_summary',
                 'update_event',
                 'delete_event',
-                'get_calendar_summary',
                 'check_conflicts',
               ];
 
@@ -472,8 +470,7 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
                                 break;
 
                               case 'find_free_time':
-                              case 'get_events':
-                              case 'get_calendar_summary':
+                              case 'get_summary':
                                 break;
                             }
 
@@ -579,8 +576,7 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
                               break;
 
                             case 'find_free_time':
-                            case 'get_events':
-                            case 'get_calendar_summary':
+                            case 'get_summary':
                             case 'delete_event':
                               // These operations don't support editing in the event sidebar
                               break;
