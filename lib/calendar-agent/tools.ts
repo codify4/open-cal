@@ -2,6 +2,8 @@ import { tool } from 'ai';
 import { z } from 'zod';
 import type { Event } from '@/lib/store/calendar-store';
 import { createGoogleEvent } from '@/lib/calendar-utils/google-calendar';
+import { getAccessToken } from '@/actions/access-token';
+import { convertGoogleEventToLocalEvent } from '@/lib/calendar-utils/calendar-utils';
 
 export const createEventTool = tool({
   description: 'Create a new calendar event with the specified details. This tool will automatically check for conflicts before creating the event.',
@@ -74,36 +76,169 @@ export const createEventTool = tool({
 });
 
 export const findFreeTimeTool = tool({
-  description: 'Find available time slots in the calendar for a given duration',
+  description: 'Find available free time periods in the calendar by analyzing gaps between existing events. Returns grouped free time periods (not individual slots) that meet the minimum duration requirement. For natural language queries like "tomorrow" or "this week", interpret as full day/period requests.',
   inputSchema: z.object({
-    duration: z.number().describe('Duration in minutes'),
-    startDate: z.string().describe('Start date to search from in ISO format'),
-    endDate: z.string().describe('End date to search until in ISO format'),
+    startDate: z.string().describe('Start date to search from in ISO format. For natural language like "tomorrow", use full day (00:00 to 23:59)'),
+    endDate: z.string().describe('End date to search until in ISO format. For natural language like "tomorrow", use full day (00:00 to 23:59)'),
+    duration: z.number().optional().describe('Minimum duration in minutes for free time periods (defaults to 30 minutes if not specified)'),
     preferredTime: z.string().optional().describe('Preferred time of day (e.g., "morning", "afternoon", "evening")'),
   }),
   execute: async (params) => {
     try {
       const startDate = new Date(params.startDate);
       const endDate = new Date(params.endDate);
-      const duration = params.duration;
+      const duration = params.duration || 30; // Default to 30 minutes if not specified
 
-      const freeSlots = [];
-      let currentTime = new Date(startDate);
-
-      while (currentTime < endDate) {
-        const slotEnd = new Date(currentTime.getTime() + duration * 60_000);
-        freeSlots.push({
-          start: currentTime.toISOString(),
-          end: slotEnd.toISOString(),
-        });
-        currentTime = new Date(currentTime.getTime() + 30 * 60_000);
+      if (duration <= 0) {
+        return {
+          success: false,
+          error: 'Duration must be greater than 0 minutes',
+        };
       }
+
+      if (startDate >= endDate) {
+        return {
+          success: false,
+          error: 'Start date must be before end date',
+        };
+      }
+
+      const totalDays = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+      
+      if (totalDays > 31) {
+        return {
+          success: false,
+          error: 'Search range cannot exceed 31 days. Please narrow your search period.',
+        };
+      }
+
+      const accessToken = await getAccessToken();
+      if (!accessToken) {
+        return {
+          success: false,
+          error: 'Google Calendar not connected. Please connect your Google account.',
+        };
+      }
+
+      const timeMin = startDate.toISOString();
+      const timeMax = endDate.toISOString();
+      const calendarId = 'primary';
+            
+      const response = await fetch(
+        `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events?timeMin=${timeMin}&timeMax=${timeMax}&singleEvents=true&orderBy=startTime`,
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+      if (!response.ok) {
+        return {
+          success: false,
+          error: `Failed to fetch events from Google Calendar: ${response.status}`,
+        };
+      }
+
+      const data = await response.json();
+      const events = data.items?.map((event: any) =>
+        convertGoogleEventToLocalEvent(event, calendarId, 'user@example.com')
+      ) || [];
+
+      // If no events, entire range is free
+      if (events.length === 0) {
+        const totalMinutes = Math.round((endDate.getTime() - startDate.getTime()) / 60_000);
+        return {
+          success: true,
+          freeSlots: [{
+            start: startDate.toISOString(),
+            end: endDate.toISOString(),
+          }],
+          totalSlots: 1,
+          totalFreeTime: totalMinutes,
+          largestSlot: totalMinutes,
+          message: `Entire time range is free (${Math.round(totalMinutes / 60 * 10) / 10} hours). No conflicting events found.`,
+        };
+      }
+
+      // Sort events by start time
+      events.sort((a: Event, b: Event) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime());
+
+      // Find free time periods by analyzing gaps between events
+      const freeSlots = [];
+      
+      // Check free time before first event
+      const firstEventStart = new Date(events[0].startDate);
+      if (firstEventStart > startDate) {
+        const freeTimeBefore = Math.round((firstEventStart.getTime() - startDate.getTime()) / 60_000);
+        if (freeTimeBefore >= duration) {
+          freeSlots.push({
+            start: startDate.toISOString(),
+            end: firstEventStart.toISOString(),
+          });
+        }
+      }
+
+      // Check gaps between events
+      for (let i = 0; i < events.length - 1; i++) {
+        const currentEventEnd = new Date(events[i].endDate);
+        const nextEventStart = new Date(events[i + 1].startDate);
+        
+        if (nextEventStart > currentEventEnd) {
+          const gapMinutes = Math.round((nextEventStart.getTime() - currentEventEnd.getTime()) / 60_000);
+          if (gapMinutes >= duration) {
+            freeSlots.push({
+              start: currentEventEnd.toISOString(),
+              end: nextEventStart.toISOString(),
+            });
+          }
+        }
+      }
+
+      // Check free time after last event
+      const lastEventEnd = new Date(events[events.length - 1].endDate);
+      if (lastEventEnd < endDate) {
+        const freeTimeAfter = Math.round((endDate.getTime() - lastEventEnd.getTime()) / 60_000);
+        if (freeTimeAfter >= duration) {
+          freeSlots.push({
+            start: lastEventEnd.toISOString(),
+            end: endDate.toISOString(),
+          });
+        }
+      }
+
+      if (freeSlots.length === 0) {
+        return {
+          success: true,
+          freeSlots: [],
+          totalSlots: 0,
+          totalFreeTime: 0,
+          largestSlot: 0,
+          message: `No free time periods of at least ${duration} minutes found. All time is occupied by events.`,
+        };
+      }
+
+      // Calculate total free time
+      const totalFreeTime = freeSlots.reduce((total, slot) => {
+        const slotStart = new Date(slot.start);
+        const slotEnd = new Date(slot.end);
+        return total + Math.round((slotEnd.getTime() - slotStart.getTime()) / 60_000);
+      }, 0);
+
+      const largestSlot = Math.max(...freeSlots.map(slot => {
+        const slotStart = new Date(slot.start);
+        const slotEnd = new Date(slot.end);
+        return Math.round((slotEnd.getTime() - slotStart.getTime()) / 60_000);
+      }));
 
       return {
         success: true,
         freeSlots,
-        action: 'find_free_time',
-        message: `Found ${freeSlots.length} available time slots for ${duration} minutes`,
+        totalSlots: freeSlots.length,
+        totalFreeTime,
+        largestSlot,
+        message: `Found ${freeSlots.length} free time period${freeSlots.length !== 1 ? 's' : ''} totaling ${Math.round(totalFreeTime / 60 * 10) / 10} hours`,
       };
     } catch (error) {
       return {

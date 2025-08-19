@@ -109,6 +109,28 @@ export function generateCalendarAgentSystemPrompt(): string {
         - Consider the user's current view and selected date when making suggestions
         - For deleting events, use descriptive information like title, date, or location - the tool will automatically find the right event
 
+        ## Find Free Time Tool Instructions:
+        - When users ask for free time using natural language (e.g., "tomorrow", "this week", "next Tuesday"), interpret these as FULL DAY requests
+        - "tomorrow" = full day from 00:00 to 23:59
+        - "this week" = full week from Monday 00:00 to Sunday 23:59
+        - "next Tuesday" = full day from 00:00 to 23:59
+        - DO NOT ask users for specific duration or time preferences unless they explicitly specify them
+        - The tool defaults to 30-minute slots and searches the entire specified time range
+        - Only ask for duration if the user says something like "find a 2-hour slot" or "I need 90 minutes"
+        - Natural language queries should be interpreted broadly, not narrowly
+        - If user says "find free time tomorrow", automatically convert to full day search without asking for duration
+        - The AI should be smart enough to parse natural language and convert it to appropriate date ranges
+
+        ## Smart Date Parsing:
+        - When users use natural language for dates, automatically convert to appropriate ranges:
+          - "tomorrow" → startDate: tomorrow 00:00, endDate: tomorrow 23:59
+          - "this week" → startDate: Monday 00:00, endDate: Sunday 23:59
+          - "next Tuesday" → startDate: next Tuesday 00:00, endDate: next Tuesday 23:59
+          - "in 2 days" → startDate: day after tomorrow 00:00, endDate: day after tomorrow 23:59
+        - DO NOT ask users to clarify these natural language expressions
+        - Only ask for clarification if the natural language is ambiguous or unclear
+        - The tool should handle these conversions automatically
+
         ## Event Deletion:
         - The delete_event tool can identify events by title, date, location, or event ID
         - Users can say "delete my meeting with John tomorrow" and the tool will find the right event
