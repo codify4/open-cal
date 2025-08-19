@@ -1,7 +1,7 @@
 'use client';
 
 import { useUser } from '@clerk/nextjs';
-import { Check, Sparkles } from 'lucide-react';
+import { Check, Rocket, Sparkles } from 'lucide-react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
@@ -110,7 +110,7 @@ export default function UpgradeDialog() {
               <span className="text-muted-foreground">per month</span>
             </div>
             {isYearly && (
-              <p className="text-base text-black">Billed annually at $120</p>
+              <p className="text-base text-black dark:text-white">Billed annually at $120</p>
             )}
           </div>
 
@@ -135,10 +135,11 @@ export default function UpgradeDialog() {
           </ul>
 
           <Button
-            className="w-full bg-neutral-900 py-3 text-white hover:bg-neutral-800"
+            className="w-full bg-neutral-900 dark:bg-neutral-100 dark:text-black py-3 text-white hover:bg-neutral-800 dark:hover:bg-neutral-200"
             onClick={handleUpgrade}
             size="lg"
           >
+            <Rocket className="h-4 w-4 transition-transform duration-300" />
             Get Caly Pro
           </Button>
         </div>

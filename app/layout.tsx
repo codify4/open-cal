@@ -1,7 +1,6 @@
+import { Analytics } from '@vercel/analytics/next';
 import type { Metadata } from 'next';
 import './globals.css';
-import { ClerkProvider } from '@clerk/nextjs';
-import { Analytics } from '@vercel/analytics/next';
 import { Geist, Lora } from 'next/font/google';
 import Script from 'next/script';
 import { ThemeProvider } from 'next-themes';
@@ -32,7 +31,7 @@ export const metadata: Metadata = {
     title: 'Caly',
     description:
       'An open-source calendar, offering a fresh alternative to traditional calendar applications. Deeply integrated with AI Agents to help you manage your time and never miss an important event ever again.',
-    url: 'https://caly-ai.vercel.app',
+    url: 'https://www.trycaly.cc',
     siteName: 'Caly',
     locale: 'en_US',
     type: 'website',
@@ -45,7 +44,7 @@ export const metadata: Metadata = {
     images: '/og-img.png',
   },
   alternates: {
-    canonical: 'https://caly-ai.vercel.app',
+    canonical: 'https://www.trycaly.cc',
   },
 };
 
