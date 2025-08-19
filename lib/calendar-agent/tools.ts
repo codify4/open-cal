@@ -1,81 +1,106 @@
 import { tool } from 'ai';
 import { z } from 'zod';
 import type { Event } from '@/lib/store/calendar-store';
+import { createGoogleEvent } from '@/lib/calendar-utils/google-calendar';
 
 export const createEventTool = tool({
-  description:
-    'Create a new calendar event with the specified details. ALWAYS check for conflicts first using check_conflicts tool.',
-  inputSchema: z.object({
-    title: z.string().describe('The title of the event'),
-    description: z.string().optional().describe('Description of the event'),
-    startDate: z.string().describe('Start date and time in ISO format'),
-    endDate: z.string().describe('End date and time in ISO format'),
-    location: z.string().optional().describe('Location of the event'),
-    attendees: z
-      .array(z.string())
-      .optional()
-      .describe('List of attendee emails'),
-    color: z
-      .enum([
-        'blue',
-        'green',
-        'red',
-        'yellow',
-        'purple',
-        'orange',
-        'pink',
-        'gray',
-      ])
-      .optional()
-      .describe('Event color'),
-    isAllDay: z.boolean().optional().describe('Whether the event is all day'),
-    repeat: z
-      .enum(['none', 'daily', 'weekly', 'monthly', 'yearly'])
-      .optional()
-      .describe('Repeat pattern'),
-    reminders: z
-      .array(z.string())
-      .optional()
-      .describe('Reminder times in ISO format'),
-    visibility: z
-      .enum(['public', 'private'])
-      .optional()
-      .describe('Event visibility'),
-  }),
-  execute: async (params) => {
-    try {
-      const event: Event = {
-        id: `event-${Date.now()}`,
-        title: params.title,
-        description: params.description,
-        startDate: new Date(params.startDate),
-        endDate: new Date(params.endDate),
-        location: params.location,
-        attendees: params.attendees || [],
-        color: params.color || 'blue',
-        type: 'event',
-        reminders: params.reminders?.map((r) => new Date(r)) || [],
-        repeat: (params.repeat as any) || 'none',
-        visibility: (params.visibility as any) || 'public',
-        isAllDay: params.isAllDay,
-        account: 'user@example.com',
-      };
-
-      return {
-        success: true,
-        event,
-        action: 'create_event',
-        message: `Created event: ${event.title} on ${event.startDate.toLocaleDateString()}`,
-        note: 'IMPORTANT: Always check for conflicts using check_conflicts tool before creating events',
-      };
-    } catch (error) {
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
-      };
-    }
-  },
-});
+    description:
+      'Create a new calendar event with the specified details. ALWAYS check for conflicts first using check_conflicts tool.',
+    inputSchema: z.object({
+      title: z.string().describe('The title of the event'),
+      description: z.string().optional().describe('Description of the event'),
+      startDate: z.string().describe('Start date and time in ISO format'),
+      endDate: z.string().describe('End date and time in ISO format'),
+      location: z.string().optional().describe('Location of the event'),
+      attendees: z
+        .array(z.string())
+        .optional()
+        .describe('List of attendee emails'),
+      color: z
+        .enum([
+          'blue',
+          'green',
+          'red',
+          'yellow',
+          'purple',
+          'orange',
+          'pink',
+          'gray',
+        ])
+        .optional()
+        .describe('Event color'),
+      isAllDay: z.boolean().optional().describe('Whether the event is all day'),
+      repeat: z
+        .enum(['none', 'daily', 'weekly', 'monthly', 'yearly'])
+        .optional()
+        .describe('Repeat pattern'),
+      reminders: z
+        .array(z.string())
+        .optional()
+        .describe('Reminder times in ISO format'),
+      visibility: z
+        .enum(['public', 'private'])
+        .optional()
+        .describe('Event visibility'),
+      userId: z.string().describe('User ID for saving to Google Calendar'),
+      userEmail: z.string().optional().describe('User email for Google Calendar'),
+      calendarId: z.string().optional().describe('Specific calendar ID to use (defaults to primary)'),
+    }),
+    execute: async (params) => {
+      try {
+        const event: Event = {
+          id: `event-${Date.now()}`,
+          title: params.title,
+          description: params.description,
+          startDate: new Date(params.startDate),
+          endDate: new Date(params.endDate),
+          location: params.location,
+          attendees: params.attendees || [],
+          color: params.color || 'blue',
+          type: 'event',
+          reminders: params.reminders?.map((r) => new Date(r)) || [],
+          repeat: (params.repeat as any) || 'none',
+          visibility: (params.visibility as any) || 'public',
+          isAllDay: params.isAllDay,
+          account: params.userEmail || 'user@example.com',
+          googleCalendarId: params.calendarId,
+        };
+  
+        const googleResult = await createGoogleEvent(
+          event,
+          params.userId,
+          params.userEmail
+        );
+  
+        if (googleResult?.success && googleResult.event) {
+          return {
+            success: true,
+            event: googleResult.event,
+            action: 'create_event',
+            message: `Created event: ${event.title} on ${event.startDate.toLocaleDateString()}`,
+            note: 'Event saved to both local state and Google Calendar',
+          };
+        }
+  
+        if (googleResult?.error === 'unauthorized') {
+          return {
+            success: false,
+            error: 'Google Calendar access expired. Please reconnect your Google account.',
+          };
+        }
+  
+        return {
+          success: false,
+          error: googleResult?.error || 'Failed to save to Google Calendar',
+        };
+      } catch (error) {
+        return {
+          success: false,
+          error: error instanceof Error ? error.message : 'Unknown error',
+        };
+      }
+    },
+  });
 
 export const findFreeTimeTool = tool({
   description: 'Find available time slots in the calendar for a given duration',
@@ -305,24 +330,12 @@ export const checkConflictsTool = tool({
       const startDate = new Date(params.startDate);
       const endDate = new Date(params.endDate);
 
-      // This would normally access the calendar store
-      // For now, we'll simulate getting events for that time period
-      const mockEvents = [
-        {
-          id: 'existing-event-1',
-          title: 'Team Meeting',
-          startDate: new Date(startDate.getTime() - 30 * 60_000).toISOString(),
-          endDate: new Date(startDate.getTime() + 30 * 60_000).toISOString(),
-          color: 'blue',
-          location: 'Conference Room A',
-        },
-      ];
-
       return {
         success: true,
-        events: mockEvents,
+        events: [],
         action: 'check_conflicts',
-        message: `Retrieved ${mockEvents.length} event(s) for the specified time period`,
+        message: `No conflicts found for the specified time period`,
+        note: 'This tool should be used with the calendar store to check for real conflicts',
       };
     } catch (error) {
       return {

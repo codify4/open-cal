@@ -1,102 +1,148 @@
 import type { Event } from '@/lib/store/calendar-store';
+import { createGoogleEvent, updateGoogleEvent, deleteGoogleEvent } from '@/lib/calendar-utils/google-calendar';
 
 export interface CalendarToolHandlers {
-  createEvent: (params: {
-    title: string;
-    description?: string;
-    startDate: string;
-    endDate: string;
-    location?: string;
-    attendees?: string[];
-    color?: string;
-    isAllDay?: boolean;
-    repeat?: string;
-    reminders?: string[];
-    visibility?: string;
-  }) => Promise<{ success: boolean; event?: Event; error?: string }>;
+    createEvent: (params: {
+        title: string;
+        description?: string;
+        startDate: string;
+        endDate: string;
+        location?: string;
+        attendees?: string[];
+        color?: string;
+        isAllDay?: boolean;
+        repeat?: string;
+        reminders?: string[];
+        visibility?: string;
+        userId: string;
+        userEmail?: string;
+        calendarId?: string;
+    }) => Promise<{ success: boolean; event?: Event; error?: string }>;
+    
 
-  findFreeTime: (params: {
-    duration: number;
-    startDate: string;
-    endDate: string;
-    preferredTime?: string;
-  }) => Promise<{
-    success: boolean;
-    freeSlots?: Array<{ start: string; end: string }>;
-    error?: string;
-  }>;
+    findFreeTime: (params: {
+        duration: number;
+        startDate: string;
+        endDate: string;
+        preferredTime?: string;
+    }) => Promise<{
+        success: boolean;
+        freeSlots?: Array<{ start: string; end: string }>;
+        error?: string;
+    }>;
 
-  getEvents: (params: {
-    startDate: string;
-    endDate: string;
-    includeAllDay?: boolean;
-  }) => Promise<{ success: boolean; events?: Event[]; error?: string }>;
+    getEvents: (params: {
+        startDate: string;
+        endDate: string;
+        includeAllDay?: boolean;
+    }) => Promise<{ success: boolean; events?: Event[]; error?: string }>;
 
-  updateEvent: (params: {
-    eventId: string;
-    title?: string;
-    description?: string;
-    startDate?: string;
-    endDate?: string;
-    location?: string;
-    attendees?: string[];
-    color?: string;
-    isAllDay?: boolean;
-    repeat?: string;
-    visibility?: string;
-  }) => Promise<{ success: boolean; event?: Event; error?: string }>;
+    updateEvent: (params: {
+        eventId: string;
+        title?: string;
+        description?: string;
+        startDate?: string;
+        endDate?: string;
+        location?: string;
+        attendees?: string[];
+        color?: string;
+        isAllDay?: boolean;
+        repeat?: string;
+        visibility?: string;
+    }) => Promise<{ success: boolean; event?: Event; error?: string }>;
 
-  deleteEvent: (params: {
-    eventId: string;
-  }) => Promise<{ success: boolean; error?: string }>;
+    deleteEvent: (params: {
+        eventId: string;
+    }) => Promise<{ success: boolean; error?: string }>;
 
-  getCalendarSummary: (params: {
-    startDate: string;
-    endDate: string;
-    includeStats?: boolean;
-  }) => Promise<{
-    success: boolean;
-    summary?: {
-      totalEvents: number;
-      events: any[];
-      stats?: { upcoming: number; past: number; allDay: number };
-    };
-    error?: string;
-  }>;
+    getCalendarSummary: (params: {
+        startDate: string;
+        endDate: string;
+        includeStats?: boolean;
+    }) => Promise<{
+        success: boolean;
+        summary?: {
+        totalEvents: number;
+        events: any[];
+        stats?: { upcoming: number; past: number; allDay: number };
+        };
+        error?: string;
+    }>;
 }
 
 export const createCalendarToolHandlers = (
-  calendarStore: any
-): CalendarToolHandlers => ({
-  createEvent: async (params) => {
-    try {
-      const event: Event = {
-        id: `event-${Date.now()}`,
-        title: params.title,
-        description: params.description,
-        startDate: new Date(params.startDate),
-        endDate: new Date(params.endDate),
-        location: params.location,
-        attendees: params.attendees || [],
-        color: params.color || 'blue',
-        type: 'event',
-        reminders: params.reminders?.map((r) => new Date(r)) || [],
-        repeat: (params.repeat as any) || 'none',
-        visibility: (params.visibility as any) || 'public',
-        isAllDay: params.isAllDay,
-        account: 'user@example.com',
-      };
-
-      // Don't actually save to the mock store, just return the event
-      // The frontend will save it to the real store when accepted
-      return { success: true, event };
-    } catch (error) {
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
-      };
-    }
-  },
+    calendarStore: any,
+    userId: string,
+    userEmail?: string,
+    availableCalendars?: Array<{ id: string; summary?: string; primary?: boolean }>
+  ): CalendarToolHandlers => ({
+    createEvent: async (params) => {
+      try {
+        let calendarId = params.calendarId;
+        
+        if (!calendarId && availableCalendars && availableCalendars.length > 0) {
+          const primaryCalendar = availableCalendars.find(cal => cal.primary);
+          calendarId = primaryCalendar?.id || availableCalendars[0].id;
+        }
+  
+        if (!calendarId) {
+          return {
+            success: false,
+            error: 'No calendar available. Please connect a Google Calendar first.',
+          };
+        }
+  
+        const event: Event = {
+          id: `event-${Date.now()}`,
+          title: params.title,
+          description: params.description,
+          startDate: new Date(params.startDate),
+          endDate: new Date(params.endDate),
+          location: params.location,
+          attendees: params.attendees || [],
+          color: params.color || 'blue',
+          type: 'event',
+          reminders: params.reminders?.map((r) => new Date(r)) || [],
+          repeat: (params.repeat as any) || 'none',
+          visibility: (params.visibility as any) || 'public',
+          isAllDay: params.isAllDay,
+          account: userEmail || 'user@example.com',
+          googleCalendarId: calendarId,
+        };
+  
+        const googleResult = await createGoogleEvent(event, userId, userEmail);
+        
+        if (googleResult?.success && googleResult.event) {
+          const savedEvent = googleResult.event;
+          calendarStore.saveEvent(savedEvent);
+          return { success: true, event: savedEvent };
+        }
+  
+        if (googleResult?.error === 'unauthorized') {
+          return {
+            success: false,
+            error: 'Google Calendar access expired. Please reconnect your Google account.',
+          };
+        }
+  
+        if (googleResult?.error === 'event_not_found') {
+          return {
+            success: false,
+            error: 'Event not found for update. Please create a new event instead.',
+          };
+        }
+  
+        return {
+          success: false,
+          error: googleResult?.error || 'Failed to save to Google Calendar',
+        };
+      } catch (error) {
+        return {
+          success: false,
+          error: error instanceof Error ? error.message : 'Unknown error',
+        };
+      }
+    },
 
   findFreeTime: async (params) => {
     try {
@@ -170,6 +216,10 @@ export const createCalendarToolHandlers = (
         return { success: false, error: 'Event not found' };
       }
 
+      if (!existingEvent.googleEventId) {
+        return { success: false, error: 'Event not synced with Google Calendar' };
+      }
+
       const updatedEvent: Event = {
         ...existingEvent,
         ...(params.title && { title: params.title }),
@@ -184,8 +234,32 @@ export const createCalendarToolHandlers = (
         ...(params.visibility && { visibility: params.visibility as any }),
       };
 
-      calendarStore.saveEvent(updatedEvent);
-      return { success: true, event: updatedEvent };
+      const googleResult = await updateGoogleEvent(updatedEvent, userId, userEmail);
+      
+      if (googleResult?.success && googleResult.event) {
+        const savedEvent = googleResult.event;
+        calendarStore.saveEvent(savedEvent);
+        return { success: true, event: savedEvent };
+      }
+
+      if (googleResult?.error === 'unauthorized') {
+        return {
+          success: false,
+          error: 'Google Calendar access expired. Please reconnect your Google account.',
+        };
+      }
+
+      if (googleResult?.error === 'event_not_found') {
+        return {
+          success: false,
+          error: 'Event not found in Google Calendar. It may have been deleted.',
+        };
+      }
+
+      return {
+        success: false,
+        error: googleResult?.error || 'Failed to update event in Google Calendar',
+      };
     } catch (error) {
       return {
         success: false,
@@ -196,6 +270,27 @@ export const createCalendarToolHandlers = (
 
   deleteEvent: async (params) => {
     try {
+      const existingEvent = calendarStore.events.find(
+        (e: Event) => e.id === params.eventId
+      );
+      if (!existingEvent) {
+        return { success: false, error: 'Event not found' };
+      }
+
+      if (existingEvent.googleEventId) {
+        const deleteResult = await deleteGoogleEvent(
+          existingEvent.googleEventId,
+          existingEvent.googleCalendarId
+        );
+        
+        if (deleteResult?.error === 'unauthorized') {
+          return {
+            success: false,
+            error: 'Google Calendar access expired. Please reconnect your Google account.',
+          };
+        }
+      }
+
       calendarStore.deleteEvent(params.eventId);
       return { success: true };
     } catch (error) {

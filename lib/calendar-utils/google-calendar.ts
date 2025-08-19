@@ -60,7 +60,7 @@ export const buildGoogleEventPayload = (e: Event) => {
   return payload;
 };
 
-export const upsertGoogleEvent = async (
+export const createGoogleEvent = async (
   eventToSave: Event,
   userId: string,
   userEmail?: string
@@ -77,67 +77,117 @@ export const upsertGoogleEvent = async (
     }
 
     const calendarId = eventToSave.googleCalendarId || 'primary';
-    let isUpdate = Boolean(eventToSave.googleEventId);
     const baseUrl = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events`;
     const confSuffix = '&conferenceDataVersion=1';
-    let url = isUpdate
-      ? `${baseUrl}/${encodeURIComponent(eventToSave.googleEventId!)}?sendUpdates=none${confSuffix}`
-      : `${baseUrl}?sendUpdates=none${confSuffix}`;
-
-    let method: 'PUT' | 'POST' = isUpdate ? 'PUT' : 'POST';
-    let body: string;
-    let etag: string | undefined;
+    const url = `${baseUrl}?sendUpdates=none${confSuffix}`;
 
     const payload = buildGoogleEventPayload(eventToSave);
-
-    if (isUpdate) {
-      const getResp = await fetch(
-        `${baseUrl}/${encodeURIComponent(eventToSave.googleEventId!)}`,
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-            Accept: 'application/json',
-          },
-        }
-      );
-
-      if (getResp.status === 404) {
-        isUpdate = false;
-        url = `${baseUrl}?sendUpdates=none${confSuffix}`;
-        method = 'POST';
-        body = JSON.stringify(payload);
-      } else {
-        if (!getResp.ok) {
-          const errText = await getResp.text();
-          console.error('Failed to fetch existing event:', errText);
-          toast.error('Failed to load event for update');
-          return;
-        }
-
-        const existing = await getResp.json();
-        etag = existing?.etag;
-        const merged = {
-          ...existing,
-          summary: payload.summary,
-          description: payload.description,
-          start: payload.start,
-          end: payload.end,
-          location: payload.location,
-          attendees: payload.attendees,
-          visibility: payload.visibility,
-          recurrence: payload.recurrence,
-          colorId: payload.colorId,
-          conferenceData: payload.conferenceData,
-        } as Record<string, unknown>;
-
-        body = JSON.stringify(merged);
-      }
-    } else {
-      body = JSON.stringify(payload);
-    }
+    const body = JSON.stringify(payload);
 
     const response = await fetch(url, {
-      method,
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+      },
+      body,
+    });
+
+    if (response.ok) {
+      const googleEvent = await response.json();
+      const converted = convertGoogleEventToLocalEvent(
+        googleEvent,
+        calendarId,
+        userEmail
+      );
+
+      return { success: true, event: converted };
+    }
+
+    if (response.status === 401) {
+      toast.error(
+        'Access token expired. Please reconnect your Google account.'
+      );
+      return { success: false, error: 'unauthorized' };
+    }
+
+    const errorText = await response.text();
+    console.error('Failed to create Google event:', errorText);
+
+    toast.error('Failed to save event to Google Calendar');
+    return { success: false, error: 'api_error' };
+  } catch (err) {
+    console.error(err);
+    toast.error('Error saving event');
+    return { success: false, error: 'network_error' };
+  }
+};
+
+export const updateGoogleEvent = async (
+  eventToSave: Event,
+  userId: string,
+  userEmail?: string
+) => {
+  try {
+    if (!userId || !eventToSave.googleEventId) return;
+
+    const accessToken = await getAccessToken();
+    if (!accessToken) {
+      toast.error(
+        'Google Calendar not connected. Please connect your Google account to save events.'
+      );
+      return;
+    }
+
+    const calendarId = eventToSave.googleCalendarId || 'primary';
+    const baseUrl = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events`;
+    const confSuffix = '&conferenceDataVersion=1';
+    const url = `${baseUrl}/${encodeURIComponent(eventToSave.googleEventId)}?sendUpdates=none${confSuffix}`;
+
+    const getResp = await fetch(
+      `${baseUrl}/${encodeURIComponent(eventToSave.googleEventId)}`,
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          Accept: 'application/json',
+        },
+      }
+    );
+
+    if (getResp.status === 404) {
+      return { success: false, error: 'event_not_found' };
+    }
+
+    if (!getResp.ok) {
+      const errText = await getResp.text();
+      console.error('Failed to fetch existing event:', errText);
+      toast.error('Failed to load event for update');
+      return;
+    }
+
+    const existing = await getResp.json();
+    const etag = existing?.etag;
+    const payload = buildGoogleEventPayload(eventToSave);
+    
+    const merged = {
+      ...existing,
+      summary: payload.summary,
+      description: payload.description,
+      start: payload.start,
+      end: payload.end,
+      location: payload.location,
+      attendees: payload.attendees,
+      visibility: payload.visibility,
+      recurrence: payload.recurrence,
+      colorId: payload.colorId,
+      conferenceData: payload.conferenceData,
+    } as Record<string, unknown>;
+
+    const body = JSON.stringify(merged);
+
+    const response = await fetch(url, {
+      method: 'PUT',
       headers: {
         Authorization: `Bearer ${accessToken}`,
         'Content-Type': 'application/json',
@@ -166,14 +216,26 @@ export const upsertGoogleEvent = async (
     }
 
     const errorText = await response.text();
-    console.error('Failed to upsert Google event:', errorText);
+    console.error('Failed to update Google event:', errorText);
 
-    toast.error('Failed to save event to Google Calendar');
+    toast.error('Failed to update event in Google Calendar');
     return { success: false, error: 'api_error' };
   } catch (err) {
     console.error(err);
-    toast.error('Error saving event');
+    toast.error('Error updating event');
     return { success: false, error: 'network_error' };
+  }
+};
+
+export const upsertGoogleEvent = async (
+  eventToSave: Event,
+  userId: string,
+  userEmail?: string
+) => {
+  if (eventToSave.googleEventId) {
+    return updateGoogleEvent(eventToSave, userId, userEmail);
+  } else {
+    return createGoogleEvent(eventToSave, userId, userEmail);
   }
 };
 

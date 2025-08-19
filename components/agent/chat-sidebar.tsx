@@ -5,6 +5,7 @@ import { SignedIn, SignedOut, SignInButton, useUser } from '@clerk/nextjs';
 import { useQuery } from 'convex/react';
 import {
   Maximize2,
+  MessageCircleDashed,
   MessageSquare,
   Minimize2,
   PanelLeft,
@@ -210,14 +211,14 @@ export function ChatSidebar({
                 variant="ghost"
               >
                 {mode === 'sidebar' ? (
-                  <PanelRight className="h-4 w-4" />
+                  <MessageCircleDashed className="h-4 w-4" />
                 ) : (
-                  <PanelLeft className="h-4 w-4" />
+                  <PanelRight className="h-4 w-4" />
                 )}
               </Button>
             </TooltipTrigger>
             <TooltipContent className="bg-black font-semibold text-white">
-              <p>Sidebar Mode</p>
+              <p>{mode === 'sidebar' ? 'Popup Mode' : 'Sidebar Mode'}</p>
             </TooltipContent>
           </Tooltip>
           <Tooltip>
