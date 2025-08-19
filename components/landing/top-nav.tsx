@@ -1,6 +1,6 @@
 'use client';
 
-import { Github, Menu, ChevronDown } from 'lucide-react';
+import { ChevronDown, Github, Menu } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
@@ -35,22 +35,37 @@ export default function TopNav() {
   ];
 
   const useCases = [
-    { name: 'For Founders', href: '/founders', description: 'Scale your startup' },
-    { name: 'For Developers', href: '/developers', description: 'Code more, schedule less' },
-    { name: 'For Productivity', href: '/productivity', description: 'Optimize your time' },
+    {
+      name: 'For Founders',
+      href: '/founders',
+      description: 'Scale your startup',
+    },
+    {
+      name: 'For Developers',
+      href: '/developers',
+      description: 'Code more, schedule less',
+    },
+    {
+      name: 'For Productivity',
+      href: '/productivity',
+      description: 'Optimize your time',
+    },
   ];
 
   if (!mounted) return null;
 
   return (
     <nav
-      className={`-translate-x-1/2 fixed top-0 left-1/2 z-50 mt-2 w-11/12 sm:w-2/3 self-center rounded-full border border-neutral-800 bg-black transition-all duration-500 ${
+      className={`-translate-x-1/2 fixed top-0 left-1/2 z-50 mt-2 w-11/12 self-center rounded-full border border-neutral-800 bg-black transition-all duration-500 sm:w-2/3 ${
         isScrolled ? 'w-2/4 bg-black/80 backdrop-blur-xl' : 'bg-black'
       }`}
     >
       <div className="container mx-auto px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
-          <Link href="/" className="flex flex-row items-center justify-center gap-1">
+          <Link
+            className="flex flex-row items-center justify-center gap-1"
+            href="/"
+          >
             <Image alt="Caly" height={50} src="/logo-name.svg" width={80} />
           </Link>
 
@@ -64,27 +79,37 @@ export default function TopNav() {
                 {item.name}
               </Link>
             ))}
-            
+
             <DropdownMenu>
-              <DropdownMenuTrigger className="flex items-center gap-1 font-medium text-muted-foreground text-sm bg-transparent hover:bg-transparent transition-colors hover:text-white p-0 mx-0 h-auto cursor-pointer">
+              <DropdownMenuTrigger className="mx-0 flex h-auto cursor-pointer items-center gap-1 bg-transparent p-0 font-medium text-muted-foreground text-sm transition-colors hover:bg-transparent hover:text-white">
                 Use Cases
                 <ChevronDown className="h-3 w-3" />
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-[280px] bg-black border-border">
+              <DropdownMenuContent
+                align="end"
+                className="w-[280px] border-border bg-black"
+              >
                 {useCases.map((useCase) => (
                   <DropdownMenuItem asChild key={useCase.name}>
-                    <Link href={useCase.href} className="flex flex-col items-start p-3 hover:bg-muted/20 cursor-pointer">
-                      <div className="font-medium text-white">{useCase.name}</div>
-                      <div className="text-xs text-muted-foreground">{useCase.description}</div>
+                    <Link
+                      className="flex cursor-pointer flex-col items-start p-3 hover:bg-muted/20"
+                      href={useCase.href}
+                    >
+                      <div className="font-medium text-white">
+                        {useCase.name}
+                      </div>
+                      <div className="text-muted-foreground text-xs">
+                        {useCase.description}
+                      </div>
                     </Link>
                   </DropdownMenuItem>
                 ))}
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
-          
+
           <div className="flex items-center">
-            <div className="items-center space-x-4 flex">
+            <div className="flex items-center space-x-4">
               <Link href="/github" target="_blank">
                 <Button className="h-9 bg-white px-6 text-black hover:bg-white/90">
                   <Github className="h-4 w-4" fill="black" />
@@ -109,14 +134,17 @@ export default function TopNav() {
                     </DropdownMenuItem>
                   ))}
                   <DropdownMenuItem className="font-medium text-white">
-                    <div className="flex items-center justify-between w-full">
+                    <div className="flex w-full items-center justify-between">
                       Use Cases
                       <ChevronDown className="h-3 w-3" />
                     </div>
                   </DropdownMenuItem>
                   {useCases.map((useCase) => (
                     <DropdownMenuItem asChild key={useCase.name}>
-                      <Link className="font-medium text-white pl-6" href={useCase.href}>
+                      <Link
+                        className="pl-6 font-medium text-white"
+                        href={useCase.href}
+                      >
                         {useCase.name}
                       </Link>
                     </DropdownMenuItem>

@@ -1,11 +1,15 @@
 import { useDroppable } from '@dnd-kit/core';
 import clsx from 'clsx';
 import { AnimatePresence, motion } from 'framer-motion';
+import { CalendarContextMenuItems } from '@/components/calendar/shared/context-menu-items';
 import { EventCard } from '@/components/event/cards/event-card';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
-import { ContextMenu, ContextMenuContent, ContextMenuTrigger } from '@/components/ui/context-menu';
-import { CalendarContextMenuItems } from '@/components/calendar/shared/context-menu-items';
+import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuTrigger,
+} from '@/components/ui/context-menu';
 import type { Event } from '@/lib/store/calendar-store';
 
 interface MonthDayCellProps {
@@ -45,22 +49,27 @@ export function MonthDayCell({
   return (
     <ContextMenu>
       <ContextMenuTrigger asChild>
-        <motion.div 
-          animate="center" 
-          className="group flex h-[150px] flex-col rounded border-none hover:z-50" 
-          exit="exit" 
-          initial="enter" 
+        <motion.div
+          animate="center"
+          className="group flex h-[150px] flex-col rounded border-none hover:z-50"
+          exit="exit"
+          initial="enter"
           variants={itemVariants}
         >
           <Card
-            className={clsx('relative flex h-full cursor-pointer overflow-hidden border p-4 shadow-md transition-colors', isOver ? 'bg-default-100' : undefined)}
+            className={clsx(
+              'relative flex h-full cursor-pointer overflow-hidden border p-4 shadow-md transition-colors',
+              isOver ? 'bg-default-100' : undefined
+            )}
             onClick={() => onAddEvent(dayNumber)}
             ref={setNodeRef}
           >
             <div
               className={clsx(
                 'relative mb-1 font-semibold text-3xl',
-                dayEvents.length > 0 ? 'text-primary-600' : 'text-muted-foreground',
+                dayEvents.length > 0
+                  ? 'text-primary-600'
+                  : 'text-muted-foreground',
                 isToday ? 'text-secondary-500' : ''
               )}
             >
@@ -100,10 +109,10 @@ export function MonthDayCell({
         <CalendarContextMenuItems
           onAddEvent={() => onContextMenuAddEvent(dayNumber)}
           onAskAI={() => {
-            if (!sessionPresent) {
-              onAddEvent(dayNumber);
-            } else {
+            if (sessionPresent) {
               onAskAI();
+            } else {
+              onAddEvent(dayNumber);
             }
           }}
           session={{ user: sessionPresent ? {} : null }}

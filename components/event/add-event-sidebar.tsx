@@ -1,9 +1,13 @@
+import { SignedIn, SignedOut, SignInButton, useUser } from '@clerk/nextjs';
 import { Save, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
+import { toast } from 'sonner';
+import { useGoogleCalendarRefresh } from '@/hooks/use-google-calendar-refresh';
+import { useMeetingGeneration } from '@/hooks/use-meeting-generation';
+import { upsertGoogleEvent } from '@/lib/calendar-utils/google-calendar';
 import type { Event } from '@/lib/store/calendar-store';
 import { useCalendarStore } from '@/providers/calendar-store-provider';
 import { Button } from '../ui/button';
-import { SignedIn, SignedOut, SignInButton, useUser } from '@clerk/nextjs';
 import {
   Select,
   SelectContent,
@@ -15,10 +19,6 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip';
 import { BirthdayForm } from './form/birthday-form';
 import EventActionsDropdown from './form/event-actions';
 import { EventForm } from './form/event-form';
-import { useGoogleCalendarRefresh } from '@/hooks/use-google-calendar-refresh';
-import { useMeetingGeneration } from '@/hooks/use-meeting-generation';
-import { toast } from 'sonner';
-import { upsertGoogleEvent } from '@/lib/calendar-utils/google-calendar';
 
 interface AddEventProps {
   onClick: () => void;
@@ -40,7 +40,12 @@ const AddEventSidebar = ({ onClick }: AddEventProps) => {
     saveEvent,
   } = useCalendarStore((state) => state);
 
-  const { isGeneratingMeeting, currentFormData, updateFormData, generateMeeting } = useMeetingGeneration();
+  const {
+    isGeneratingMeeting,
+    currentFormData,
+    updateFormData,
+    generateMeeting,
+  } = useMeetingGeneration();
   const { refreshEvents } = useGoogleCalendarRefresh();
 
   const isEditing = !!selectedEvent && !isNewEvent;
@@ -82,7 +87,7 @@ const AddEventSidebar = ({ onClick }: AddEventProps) => {
 
   const handleFormDataChange = (eventData: Partial<Event>) => {
     updateFormData(eventData);
-    
+
     if (selectedEvent) {
       const updatedEvent = { ...selectedEvent, ...eventData };
       updateSelectedEvent(updatedEvent);
@@ -90,9 +95,13 @@ const AddEventSidebar = ({ onClick }: AddEventProps) => {
   };
 
   const handleGenerateMeeting = async () => {
-    if (!selectedEvent || !user?.id) return;
-    
-    const result = await generateMeeting(selectedEvent, user.id, user.primaryEmailAddress?.emailAddress);
+    if (!(selectedEvent && user?.id)) return;
+
+    const result = await generateMeeting(
+      selectedEvent,
+      user.id,
+      user.primaryEmailAddress?.emailAddress
+    );
     if (result?.success && result.event) {
       saveEvent(result.event);
       updateSelectedEvent(result.event);
@@ -103,12 +112,20 @@ const AddEventSidebar = ({ onClick }: AddEventProps) => {
   };
 
   const handleManualSave = async () => {
-    if (currentFormData && Object.keys(currentFormData).length > 0 && selectedEvent) {
+    if (
+      currentFormData &&
+      Object.keys(currentFormData).length > 0 &&
+      selectedEvent
+    ) {
       const eventToSave = { ...selectedEvent, ...currentFormData };
-      
+
       // If Google Meet is enabled, save to Google Calendar first
       if (eventToSave.meetingType === 'google-meet' && user?.id) {
-        const result = await upsertGoogleEvent(eventToSave, user.id, user.primaryEmailAddress?.emailAddress);
+        const result = await upsertGoogleEvent(
+          eventToSave,
+          user.id,
+          user.primaryEmailAddress?.emailAddress
+        );
         if (result?.success && result.event) {
           saveEvent(result.event);
           updateSelectedEvent(result.event);
@@ -123,7 +140,7 @@ const AddEventSidebar = ({ onClick }: AddEventProps) => {
         // Save to local store only
         saveEvent(eventToSave);
       }
-      
+
       closeEventSidebar();
       onClick();
     }
@@ -137,22 +154,20 @@ const AddEventSidebar = ({ onClick }: AddEventProps) => {
     <div className="flex h-full flex-col gap-6 p-2 px-1 text-foreground">
       <SignedOut>
         <div className="flex h-full items-center justify-center">
-          <div className="text-center space-y-4">
-            <h3 className="text-lg font-medium text-foreground">
+          <div className="space-y-4 text-center">
+            <h3 className="font-medium text-foreground text-lg">
               Sign in to create events
             </h3>
             <p className="text-muted-foreground">
               Connect your account to start managing your calendar
             </p>
             <SignInButton mode="modal">
-              <Button>
-                Sign in to Continue
-              </Button>
+              <Button>Sign in to Continue</Button>
             </SignInButton>
           </div>
         </div>
       </SignedOut>
-      
+
       <SignedIn>
         <div className="mt-2 flex items-center justify-between">
           <div className="flex items-center">
@@ -162,7 +177,7 @@ const AddEventSidebar = ({ onClick }: AddEventProps) => {
               }
               value={formType}
             >
-              <SelectTrigger className="w-32 cursor-pointer rounded-sm border-border bg-transparent px-2 py-0 font-semibold text-sm text-foreground hover:bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0">
+              <SelectTrigger className="w-32 cursor-pointer rounded-sm border-border bg-transparent px-2 py-0 font-semibold text-foreground text-sm hover:bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent className="border-border bg-popover dark:bg-neutral-900">
@@ -249,9 +264,9 @@ const AddEventSidebar = ({ onClick }: AddEventProps) => {
                     }
                   : null)
               }
-              onSave={handleFormDataChange}
-              onGenerateMeeting={handleGenerateMeeting}
               isGeneratingMeeting={isGeneratingMeeting}
+              onGenerateMeeting={handleGenerateMeeting}
+              onSave={handleFormDataChange}
             />
           ) : (
             <BirthdayForm event={selectedEvent} onSave={handleFormDataChange} />
@@ -262,4 +277,3 @@ const AddEventSidebar = ({ onClick }: AddEventProps) => {
   );
 };
 export default AddEventSidebar;
-

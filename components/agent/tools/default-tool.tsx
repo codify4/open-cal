@@ -25,7 +25,7 @@ export function DefaultTool({
 }: DefaultToolProps) {
   return (
     <div>
-      <Card className="bg-neutral-100 dark:bg-neutral-800 border-neutral-200 dark:border-neutral-700">
+      <Card className="border-neutral-200 bg-neutral-100 dark:border-neutral-700 dark:bg-neutral-800">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Terminal className="h-4 w-4" />
@@ -36,14 +36,14 @@ export function DefaultTool({
           <div className="space-y-2">
             <div>
               <span className="font-medium">Arguments:</span>
-              <pre className="text-xs bg-gray-100 dark:bg-gray-800 p-2 rounded mt-1">
+              <pre className="mt-1 rounded bg-gray-100 p-2 text-xs dark:bg-gray-800">
                 {JSON.stringify(args, null, 2)}
               </pre>
             </div>
             {result && (
               <div>
                 <span className="font-medium">Result:</span>
-                <pre className="text-xs bg-gray-100 dark:bg-gray-800 p-2 rounded mt-1">
+                <pre className="mt-1 rounded bg-gray-100 p-2 text-xs dark:bg-gray-800">
                   {JSON.stringify(result, null, 2)}
                 </pre>
               </div>
@@ -52,11 +52,11 @@ export function DefaultTool({
         </CardContent>
       </Card>
       <MessageFooter
-        onRegenerate={onRegenerate}
         isRegenerating={isRegenerating}
         onCopy={onCopy}
         onRate={onRate}
+        onRegenerate={onRegenerate}
       />
     </div>
   );
-} 
+}

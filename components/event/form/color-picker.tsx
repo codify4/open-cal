@@ -34,7 +34,7 @@ const COLORS = [
   { id: 'neutral', bg: 'bg-neutral-500' },
   { id: 'stone', bg: 'bg-stone-500' },
   { id: 'sky', bg: 'bg-sky-500' },
-  { id: 'fuchsia', bg: 'bg-fuchsia-500' }
+  { id: 'fuchsia', bg: 'bg-fuchsia-500' },
 ];
 
 export const ColorPicker = ({ color, onColorChange }: ColorPickerProps) => {
@@ -42,11 +42,13 @@ export const ColorPicker = ({ color, onColorChange }: ColorPickerProps) => {
     <div className="flex items-center gap-2">
       <Tag className="h-4 w-4" />
       <Select onValueChange={onColorChange} value={color}>
-        <SelectTrigger className="h-8 w-full border-border bg-background text-sm text-foreground hover:bg-accent">
+        <SelectTrigger className="h-8 w-full border-border bg-background text-foreground text-sm hover:bg-accent">
           <SelectValue placeholder="Color">
             {color && (
               <div className="flex items-center gap-2">
-                <div className={`h-3 w-3 rounded-full ${COLORS.find(c => c.id === color)?.bg || 'bg-gray-500'}`} />
+                <div
+                  className={`h-3 w-3 rounded-full ${COLORS.find((c) => c.id === color)?.bg || 'bg-gray-500'}`}
+                />
                 {color.charAt(0).toUpperCase() + color.slice(1)}
               </div>
             )}
@@ -54,19 +56,21 @@ export const ColorPicker = ({ color, onColorChange }: ColorPickerProps) => {
         </SelectTrigger>
         <SelectContent className="border-border bg-popover dark:bg-neutral-900">
           <div className="p-2">
-            <div className="text-xs text-muted-foreground mb-2">Select Color</div>
+            <div className="mb-2 text-muted-foreground text-xs">
+              Select Color
+            </div>
             <div className="grid grid-cols-9 gap-2">
               {COLORS.map((colorOption) => (
                 <div
-                  key={colorOption.id}
                   className="flex items-center justify-center"
+                  key={colorOption.id}
                   onClick={() => onColorChange(colorOption.id)}
                 >
                   <div
-                    className={`h-5 w-5 rounded-full cursor-pointer transition-all duration-150 hover:scale-110 ${colorOption.bg} ${
-                      color === colorOption.id 
-                        ? 'ring-2 ring-black dark:ring-white ring-offset-1 ring-offset-white dark:ring-offset-neutral-950' 
-                        : 'ring-1 ring-neutral-300 dark:ring-neutral-600 hover:ring-neutral-400 dark:hover:ring-white/60'
+                    className={`h-5 w-5 cursor-pointer rounded-full transition-all duration-150 hover:scale-110 ${colorOption.bg} ${
+                      color === colorOption.id
+                        ? 'ring-2 ring-black ring-offset-1 ring-offset-white dark:ring-white dark:ring-offset-neutral-950'
+                        : 'ring-1 ring-neutral-300 hover:ring-neutral-400 dark:ring-neutral-600 dark:hover:ring-white/60'
                     }`}
                   />
                 </div>

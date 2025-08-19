@@ -1,34 +1,34 @@
 export interface CalendarEntry {
-	id: string;
-	name: string;
-	color: 'blue' | 'green' | 'red' | 'yellow' | 'purple' | 'orange';
-	isVisible: boolean;
-	type: 'calendar' | 'class' | 'project';
+  id: string;
+  name: string;
+  color: 'blue' | 'green' | 'red' | 'yellow' | 'purple' | 'orange';
+  isVisible: boolean;
+  type: 'calendar' | 'class' | 'project';
 }
 
 export interface EmailAccount {
-	email: string;
-	isDefault: boolean;
-	color: 'blue' | 'green' | 'red' | 'yellow' | 'purple' | 'orange';
+  email: string;
+  isDefault: boolean;
+  color: 'blue' | 'green' | 'red' | 'yellow' | 'purple' | 'orange';
 }
 
 export interface NavCalendarsProps {
-	onCalendarToggle: (calendarId: string) => void;
-	onCalendarsFetched?: (calendars: GoogleCalendar[]) => void;
+  onCalendarToggle: (calendarId: string) => void;
+  onCalendarsFetched?: (calendars: GoogleCalendar[]) => void;
 }
 
 export interface GoogleCalendar {
-	id: string;
-	summary?: string;
-	name?: string;
-	primary?: boolean;
-	accessRole?: string;
-	colorId?: string;
-	backgroundColor?: string;
-	account?: string;
+  id: string;
+  summary?: string;
+  name?: string;
+  primary?: boolean;
+  accessRole?: string;
+  colorId?: string;
+  backgroundColor?: string;
+  account?: string;
 }
 
 export interface ColorOption {
-	id: string;
-	background: string;
+  id: string;
+  background: string;
 }

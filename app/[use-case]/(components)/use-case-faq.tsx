@@ -1,5 +1,10 @@
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { Badge } from "@/components/ui/badge";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion';
+import { Badge } from '@/components/ui/badge';
 
 interface FAQ {
   question: string;
@@ -14,17 +19,21 @@ export function UseCaseFAQ({ faq }: UseCaseFAQProps) {
   return (
     <section className="py-24">
       <div className="container mx-auto px-4">
-        <div className="text-center space-y-4 mb-16">
+        <div className="mb-16 space-y-4 text-center">
           <Badge variant="secondary">FAQ</Badge>
-          <h2 className="text-3xl lg:text-4xl font-bold">
+          <h2 className="font-bold text-3xl lg:text-4xl">
             Frequently asked questions
           </h2>
         </div>
 
-        <div className="max-w-3xl mx-auto">
-          <Accordion type="single" collapsible className="space-y-4">
+        <div className="mx-auto max-w-3xl">
+          <Accordion className="space-y-4" collapsible type="single">
             {faq.map((item, index) => (
-              <AccordionItem key={index} value={`item-${index}`} className="border rounded-lg">
+              <AccordionItem
+                className="rounded-lg border"
+                key={index}
+                value={`item-${index}`}
+              >
                 <AccordionTrigger className="px-6 py-4 text-left">
                   {item.question}
                 </AccordionTrigger>
@@ -38,4 +47,4 @@ export function UseCaseFAQ({ faq }: UseCaseFAQProps) {
       </div>
     </section>
   );
-} 
+}

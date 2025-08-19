@@ -1,6 +1,6 @@
 'use client';
 
-import { Check, X, Edit, Clock, Calendar, Users, MapPin } from 'lucide-react';
+import { Calendar, Check, Clock, Edit, MapPin, Users, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useCalendarStore } from '@/providers/calendar-store-provider';
 import { CalendarEventPreview } from '../calendar-event-preview';
@@ -46,8 +46,10 @@ export function CreateEventTool({
     onEdit?.();
   };
 
-  const eventData = result?.event || (result && typeof result === 'object' && 'id' in result ? result : null);
-  
+  const eventData =
+    result?.event ||
+    (result && typeof result === 'object' && 'id' in result ? result : null);
+
   if (eventData) {
     return (
       <div>
@@ -58,10 +60,10 @@ export function CreateEventTool({
           onEdit={handleEdit}
         />
         <MessageFooter
-          onRegenerate={onRegenerate}
           isRegenerating={isRegenerating}
           onCopy={onCopy}
           onRate={onRate}
+          onRegenerate={onRegenerate}
         />
       </div>
     );
@@ -74,8 +76,8 @@ export function CreateEventTool({
           <Calendar className="h-4 w-4 text-blue-600" />
           <span className="font-medium">{args.title}</span>
         </div>
-        
-        <div className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
+
+        <div className="space-y-2 text-gray-600 text-sm dark:text-gray-400">
           <div className="flex items-center gap-2">
             <Clock className="h-3 w-3" />
             <span>
@@ -83,14 +85,14 @@ export function CreateEventTool({
               {new Date(args.startDate).toLocaleTimeString()}
             </span>
           </div>
-          
+
           {args.location && (
             <div className="flex items-center gap-2">
               <MapPin className="h-3 w-3" />
               <span>{args.location}</span>
             </div>
           )}
-          
+
           {args.attendees && args.attendees.length > 0 && (
             <div className="flex items-center gap-2">
               <Users className="h-3 w-3" />
@@ -98,27 +100,32 @@ export function CreateEventTool({
             </div>
           )}
         </div>
-        
+
         <div className="flex gap-2">
-          <Button size="sm" onClick={handleAccept} className="flex-1">
-            <Check className="h-3 w-3 mr-1" />
+          <Button className="flex-1" onClick={handleAccept} size="sm">
+            <Check className="mr-1 h-3 w-3" />
             Accept
           </Button>
-          <Button size="sm" variant="outline" onClick={handleDecline} className="flex-1">
-            <X className="h-3 w-3 mr-1" />
+          <Button
+            className="flex-1"
+            onClick={handleDecline}
+            size="sm"
+            variant="outline"
+          >
+            <X className="mr-1 h-3 w-3" />
             Decline
           </Button>
-          <Button size="sm" variant="outline" onClick={handleEdit}>
+          <Button onClick={handleEdit} size="sm" variant="outline">
             <Edit className="h-3 w-3" />
           </Button>
         </div>
       </div>
       <MessageFooter
-        onRegenerate={onRegenerate}
         isRegenerating={isRegenerating}
         onCopy={onCopy}
         onRate={onRate}
+        onRegenerate={onRegenerate}
       />
     </div>
   );
-} 
+}

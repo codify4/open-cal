@@ -1,18 +1,14 @@
 import Providers from '@/providers/providers';
 
 export const metadata = {
-    title: 'Caly',
-    description: 'An Open Source AI alternative to Google Calendar.',
+  title: 'Caly',
+  description: 'An Open Source AI alternative to Google Calendar.',
 };
 
 export default function CalendarLayout({
-    children,
+  children,
 }: {
-    children: React.ReactNode;
+  children: React.ReactNode;
 }) {
-  return (
-    <Providers>
-        {children}
-    </Providers>
-  );
+  return <Providers>{children}</Providers>;
 }

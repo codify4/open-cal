@@ -1,6 +1,8 @@
 'use client';
 
+import { useUser } from '@clerk/nextjs';
 import * as React from 'react';
+import { toast } from 'sonner';
 import { NavCalendars } from '@/components/sidebar/cal-accounts';
 import { CalendarPicker } from '@/components/sidebar/cal-day-picker';
 import { NavUser } from '@/components/sidebar/nav-user';
@@ -10,24 +12,26 @@ import {
   SidebarFooter,
 } from '@/components/ui/sidebar';
 import Premium from './premium';
-import { useUser } from '@clerk/nextjs';
-import { toast } from 'sonner';
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { user, isLoaded } = useUser();
   const [selectedEmail, setSelectedEmail] = React.useState('');
-  const [calendarList, setCalendarList] = React.useState<Array<{
-    id: string;
-    name: string;
-    color: 'blue' | 'green' | 'red' | 'yellow' | 'purple' | 'orange';
-    isVisible: boolean;
-    type: 'calendar' | 'class' | 'project';
-  }>>([]);
-  const [emailAccounts, setEmailAccounts] = React.useState<Array<{
-    email: string;
-    isDefault: boolean;
-    color: 'blue' | 'green' | 'red' | 'yellow' | 'purple' | 'orange';
-  }>>([]);
+  const [calendarList, setCalendarList] = React.useState<
+    Array<{
+      id: string;
+      name: string;
+      color: 'blue' | 'green' | 'red' | 'yellow' | 'purple' | 'orange';
+      isVisible: boolean;
+      type: 'calendar' | 'class' | 'project';
+    }>
+  >([]);
+  const [emailAccounts, setEmailAccounts] = React.useState<
+    Array<{
+      email: string;
+      isDefault: boolean;
+      color: 'blue' | 'green' | 'red' | 'yellow' | 'purple' | 'orange';
+    }>
+  >([]);
 
   const handleEmailChange = (email: string) => {
     setSelectedEmail(email);
@@ -40,9 +44,17 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         return prev.map((cal) =>
           cal.id === calendarId ? { ...cal, isVisible: !cal.isVisible } : cal
         );
-      } else {
-        return [...prev, { id: calendarId, name: '', color: 'blue', isVisible: true, type: 'calendar' }];
       }
+      return [
+        ...prev,
+        {
+          id: calendarId,
+          name: '',
+          color: 'blue',
+          isVisible: true,
+          type: 'calendar',
+        },
+      ];
     });
   };
 
@@ -54,10 +66,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       isVisible: true,
       type: 'calendar' as const,
     }));
-    
-    setCalendarList(prev => {
-      const existingIds = new Set(prev.map(cal => cal.id));
-      const newCalendarsToAdd = newCalendars.filter(cal => !existingIds.has(cal.id));
+
+    setCalendarList((prev) => {
+      const existingIds = new Set(prev.map((cal) => cal.id));
+      const newCalendarsToAdd = newCalendars.filter(
+        (cal) => !existingIds.has(cal.id)
+      );
       return [...prev, ...newCalendarsToAdd];
     });
   }, []);
@@ -70,7 +84,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     if (user?.primaryEmailAddress?.emailAddress) {
       setSelectedEmail(user.primaryEmailAddress.emailAddress);
       setEmailAccounts([
-        { email: user.primaryEmailAddress.emailAddress, isDefault: true, color: 'blue' },
+        {
+          email: user.primaryEmailAddress.emailAddress,
+          isDefault: true,
+          color: 'blue',
+        },
       ]);
     }
   }, [user?.primaryEmailAddress?.emailAddress]);
@@ -80,11 +98,13 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     toast('Google OAuth integration coming soon');
   };
 
-  const userForNav = user ? {
-    name: user.fullName || user.primaryEmailAddress?.emailAddress || '',
-    email: user.primaryEmailAddress?.emailAddress || '',
-    avatar: user.imageUrl || '/caly.svg',
-  } : undefined;
+  const userForNav = user
+    ? {
+        name: user.fullName || user.primaryEmailAddress?.emailAddress || '',
+        email: user.primaryEmailAddress?.emailAddress || '',
+        avatar: user.imageUrl || '/caly.svg',
+      }
+    : undefined;
 
   return (
     <Sidebar
@@ -95,8 +115,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       <SidebarContent className="scrollbar-hide border-none bg-neutral-100 dark:bg-neutral-950">
         <CalendarPicker />
         <NavCalendars
-          onCalendarToggle={handleCalendarToggle}
           onCalendarsFetched={handleCalendarsFetched}
+          onCalendarToggle={handleCalendarToggle}
         />
       </SidebarContent>
       <SidebarFooter className="border-none bg-neutral-100 dark:bg-neutral-950">
@@ -105,18 +125,18 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </div>
         {user ? (
           <NavUser
-            user={{
-              name: user.fullName || user.primaryEmailAddress?.emailAddress || '',
-              email: user.primaryEmailAddress?.emailAddress || '',
-              avatar: user.imageUrl || '/vercel.svg',
-            }}
             accounts={emailAccounts}
             calendars={calendarList}
             onAddAccount={handleAddAccount}
+            user={{
+              name:
+                user.fullName || user.primaryEmailAddress?.emailAddress || '',
+              email: user.primaryEmailAddress?.emailAddress || '',
+              avatar: user.imageUrl || '/vercel.svg',
+            }}
           />
         ) : null}
       </SidebarFooter>
     </Sidebar>
   );
 }
-

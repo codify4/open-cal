@@ -51,7 +51,9 @@ export const BirthdayForm = ({ event, onSave }: BirthdayFormProps) => {
         date: ensureValidDate(event.startDate),
         recurrence: event.repeat || 'yearly',
         account: '',
-        reminders: (event.reminders || []).map(reminder => ensureValidDate(reminder)),
+        reminders: (event.reminders || []).map((reminder) =>
+          ensureValidDate(reminder)
+        ),
       });
     }
   }, [event]);
@@ -59,17 +61,19 @@ export const BirthdayForm = ({ event, onSave }: BirthdayFormProps) => {
   // Auto-save functionality
   const updateBirthdayData = (updates: Partial<typeof birthdayData>) => {
     const newData = { ...birthdayData, ...updates };
-    
+
     // Ensure date is always valid
     if (updates.date) {
       newData.date = ensureValidDate(updates.date);
     }
-    
+
     // Ensure reminders are always valid dates
     if (updates.reminders) {
-      newData.reminders = updates.reminders.map(reminder => ensureValidDate(reminder));
+      newData.reminders = updates.reminders.map((reminder) =>
+        ensureValidDate(reminder)
+      );
     }
-    
+
     setBirthdayData(newData);
 
     // Trigger auto-save
@@ -107,10 +111,13 @@ export const BirthdayForm = ({ event, onSave }: BirthdayFormProps) => {
   };
 
   const formatRecurrence = (recurrence: string) => {
-    if (!(birthdayData.date instanceof Date) || isNaN(birthdayData.date.getTime())) {
+    if (
+      !(birthdayData.date instanceof Date) ||
+      isNaN(birthdayData.date.getTime())
+    ) {
       return 'Invalid date';
     }
-    
+
     switch (recurrence) {
       case 'yearly':
         return `Every year on ${formatDate(birthdayData.date)}`;
@@ -126,7 +133,7 @@ export const BirthdayForm = ({ event, onSave }: BirthdayFormProps) => {
       <div className="space-y-2">
         <Label className="sr-only">Birthday Title</Label>
         <Input
-          className="h-9 border-border bg-background font-medium text-sm text-foreground placeholder:text-muted-foreground focus-visible:ring-0 focus-visible:ring-offset-0"
+          className="h-9 border-border bg-background font-medium text-foreground text-sm placeholder:text-muted-foreground focus-visible:ring-0 focus-visible:ring-offset-0"
           onChange={(e) => updateBirthdayData({ title: e.target.value })}
           placeholder="Birthday"
           value={birthdayData.title}
@@ -139,7 +146,7 @@ export const BirthdayForm = ({ event, onSave }: BirthdayFormProps) => {
           <Popover>
             <PopoverTrigger asChild>
               <Button
-                className="h-8 rounded-sm border-border bg-background text-sm text-foreground hover:bg-accent"
+                className="h-8 rounded-sm border-border bg-background text-foreground text-sm hover:bg-accent"
                 variant="outline"
               >
                 {formatDate(birthdayData.date)}
@@ -175,7 +182,7 @@ export const BirthdayForm = ({ event, onSave }: BirthdayFormProps) => {
             onValueChange={(value) => updateBirthdayData({ account: value })}
             value={birthdayData.account}
           >
-            <SelectTrigger className="h-8 flex-1 border-border bg-background text-sm text-foreground hover:bg-accent">
+            <SelectTrigger className="h-8 flex-1 border-border bg-background text-foreground text-sm hover:bg-accent">
               <SelectValue placeholder="Select account">
                 {birthdayData.account && (
                   <div className="flex items-center gap-2">

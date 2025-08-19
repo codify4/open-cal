@@ -8,16 +8,17 @@ interface CalendarContextMenuItemsProps {
   onClose?: () => void;
 }
 
-export const CalendarContextMenuItems = ({ 
-  onAddEvent, 
-  onAskAI, 
+export const CalendarContextMenuItems = ({
+  onAddEvent,
+  onAskAI,
   session,
-  onClose 
+  onClose,
 }: CalendarContextMenuItemsProps) => {
   const handleAskAI = () => {
     if (!session?.user) {
       return;
-    } else if (onAskAI) {
+    }
+    if (onAskAI) {
       onAskAI();
     }
     onClose?.();
@@ -33,17 +34,11 @@ export const CalendarContextMenuItems = ({
 
   return (
     <>
-      <ContextMenuItem
-        className="cursor-pointer py-2"
-        onClick={handleAddEvent}
-      >
+      <ContextMenuItem className="cursor-pointer py-2" onClick={handleAddEvent}>
         <Plus className="mr-2 h-4 w-4" />
         Add Event
       </ContextMenuItem>
-      <ContextMenuItem
-        className="cursor-pointer py-2"
-        onClick={handleAskAI}
-      >
+      <ContextMenuItem className="cursor-pointer py-2" onClick={handleAskAI}>
         <Sparkles className="mr-2 h-4 w-4" />
         Ask AI
       </ContextMenuItem>

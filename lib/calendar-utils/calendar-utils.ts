@@ -15,7 +15,10 @@ const googleColorIdToLocal: Record<string, string> = {
   '11': 'red',
 };
 
-export const getEventColor = (colorId: string | undefined, _calendarId: string): string => {
+export const getEventColor = (
+  colorId: string | undefined,
+  _calendarId: string
+): string => {
   if (!colorId) return 'blue';
   return googleColorIdToLocal[colorId] || 'blue';
 };
@@ -46,15 +49,36 @@ const localToGoogleColorId: Record<string, string> = {
   fuchsia: '4',
 };
 
-export const getGoogleColorIdFromLocal = (localColor: string): string | undefined => {
+export const getGoogleColorIdFromLocal = (
+  localColor: string
+): string | undefined => {
   return localToGoogleColorId[localColor];
 };
 
 export const getRandomEventColor = (): string => {
   const colors = [
-    'blue', 'green', 'red', 'yellow', 'purple', 'orange', 'pink', 'gray',
-    'indigo', 'teal', 'cyan', 'lime', 'amber', 'emerald', 'violet', 'rose',
-    'slate', 'zinc', 'neutral', 'stone', 'sky', 'fuchsia'
+    'blue',
+    'green',
+    'red',
+    'yellow',
+    'purple',
+    'orange',
+    'pink',
+    'gray',
+    'indigo',
+    'teal',
+    'cyan',
+    'lime',
+    'amber',
+    'emerald',
+    'violet',
+    'rose',
+    'slate',
+    'zinc',
+    'neutral',
+    'stone',
+    'sky',
+    'fuchsia',
   ];
   return colors[Math.floor(Math.random() * colors.length)];
 };
@@ -89,9 +113,28 @@ export const getColorDisplayName = (color: string): string => {
 
 export const isValidColor = (color: string): boolean => {
   const validColors = [
-    'blue', 'green', 'red', 'yellow', 'purple', 'orange', 'pink', 'gray',
-    'indigo', 'teal', 'cyan', 'lime', 'amber', 'emerald', 'violet', 'rose',
-    'slate', 'zinc', 'neutral', 'stone', 'sky', 'fuchsia'
+    'blue',
+    'green',
+    'red',
+    'yellow',
+    'purple',
+    'orange',
+    'pink',
+    'gray',
+    'indigo',
+    'teal',
+    'cyan',
+    'lime',
+    'amber',
+    'emerald',
+    'violet',
+    'rose',
+    'slate',
+    'zinc',
+    'neutral',
+    'stone',
+    'sky',
+    'fuchsia',
   ];
   return validColors.includes(color);
 };
@@ -100,37 +143,47 @@ export const normalizeColor = (color: string): string => {
   return isValidColor(color) ? color : 'blue';
 };
 
-export const getRepeatType = (recurrence: string[] | undefined): Event['repeat'] => {
+export const getRepeatType = (
+  recurrence: string[] | undefined
+): Event['repeat'] => {
   if (!recurrence || recurrence.length === 0) return 'none';
-  
+
   const rule = recurrence[0];
   if (rule.includes('FREQ=DAILY')) return 'daily';
   if (rule.includes('FREQ=WEEKLY')) return 'weekly';
   if (rule.includes('FREQ=MONTHLY')) return 'monthly';
   if (rule.includes('FREQ=YEARLY')) return 'yearly';
-  
+
   return 'none';
 };
 
 export const convertGoogleEventToLocalEvent = (
-  googleEvent: any, 
+  googleEvent: any,
   calendarId: string,
   userEmail?: string
 ): Event => {
-  const startDate = googleEvent.start.dateTime 
+  const startDate = googleEvent.start.dateTime
     ? new Date(googleEvent.start.dateTime)
     : new Date(googleEvent.start.date);
-    
-  const endDate = googleEvent.end.dateTime 
+
+  const endDate = googleEvent.end.dateTime
     ? new Date(googleEvent.end.dateTime)
     : new Date(googleEvent.end.date);
-    
+
   const isAllDay = !googleEvent.start.dateTime;
-  
-  const meetingType = googleEvent.conferenceData || googleEvent.hangoutLink ? 'google-meet' : 'none';
-  const meetLink = googleEvent.hangoutLink || googleEvent.conferenceData?.entryPoints?.find((e: any) => e.entryPointType === 'video')?.uri || '';
+
+  const meetingType =
+    googleEvent.conferenceData || googleEvent.hangoutLink
+      ? 'google-meet'
+      : 'none';
+  const meetLink =
+    googleEvent.hangoutLink ||
+    googleEvent.conferenceData?.entryPoints?.find(
+      (e: any) => e.entryPointType === 'video'
+    )?.uri ||
+    '';
   const meetCode = googleEvent.conferenceData?.conferenceId || '';
-  
+
   return {
     id: googleEvent.id,
     title: googleEvent.summary || 'Untitled Event',
@@ -141,7 +194,10 @@ export const convertGoogleEventToLocalEvent = (
     type: 'event',
     location: googleEvent.location || '',
     attendees: googleEvent.attendees?.map((a: any) => a.email) || [],
-    reminders: googleEvent.reminders?.overrides?.map((r: any) => new Date(Date.now() + r.minutes * 60000)) || [],
+    reminders:
+      googleEvent.reminders?.overrides?.map(
+        (r: any) => new Date(Date.now() + r.minutes * 60_000)
+      ) || [],
     repeat: getRepeatType(googleEvent.recurrence),
     visibility: googleEvent.visibility || 'public',
     isAllDay,
@@ -157,29 +213,47 @@ export const convertGoogleEventToLocalEvent = (
   };
 };
 
-export const getWeekDateRange = (currentDate: Date): { startDate: Date; endDate: Date } => {
+export const getWeekDateRange = (
+  currentDate: Date
+): { startDate: Date; endDate: Date } => {
   const weekStartsOn = 1; // Monday
   const currentDayOfWeek = currentDate.getDay();
   const daysToSubtract = (currentDayOfWeek - weekStartsOn + 7) % 7;
-  
+
   const weekStart = new Date(currentDate);
   weekStart.setDate(currentDate.getDate() - daysToSubtract);
   weekStart.setHours(0, 0, 0, 0);
-  
+
   const weekEnd = new Date(weekStart);
   weekEnd.setDate(weekStart.getDate() + 6);
   weekEnd.setHours(23, 59, 59, 999);
-  
+
   return { startDate: weekStart, endDate: weekEnd };
 };
 
-export const getMonthDateRange = (currentDate: Date): { startDate: Date; endDate: Date } => {
-  const startDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
-  const endDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0, 23, 59, 59, 999);
+export const getMonthDateRange = (
+  currentDate: Date
+): { startDate: Date; endDate: Date } => {
+  const startDate = new Date(
+    currentDate.getFullYear(),
+    currentDate.getMonth(),
+    1
+  );
+  const endDate = new Date(
+    currentDate.getFullYear(),
+    currentDate.getMonth() + 1,
+    0,
+    23,
+    59,
+    59,
+    999
+  );
   return { startDate, endDate };
 };
 
-export const getDayDateRange = (currentDate: Date): { startDate: Date; endDate: Date } => {
+export const getDayDateRange = (
+  currentDate: Date
+): { startDate: Date; endDate: Date } => {
   const startDate = new Date(currentDate);
   startDate.setHours(0, 0, 0, 0);
   const endDate = new Date(currentDate);
@@ -187,7 +261,10 @@ export const getDayDateRange = (currentDate: Date): { startDate: Date; endDate: 
   return { startDate, endDate };
 };
 
-export const getDateRangeForView = (currentDate: Date, viewType: 'day' | 'week' | 'month'): { startDate: Date; endDate: Date } => {
+export const getDateRangeForView = (
+  currentDate: Date,
+  viewType: 'day' | 'week' | 'month'
+): { startDate: Date; endDate: Date } => {
   switch (viewType) {
     case 'day':
       return getDayDateRange(currentDate);

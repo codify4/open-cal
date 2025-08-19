@@ -1,5 +1,5 @@
-import { query, mutation } from './_generated/server'
-import { v } from 'convex/values'
+import { v } from 'convex/values';
+import { mutation, query } from './_generated/server';
 
 export const createUser = mutation({
   args: {
@@ -11,10 +11,10 @@ export const createUser = mutation({
     const existingUser = await ctx.db
       .query('users')
       .withIndex('by_clerkUserId', (q) => q.eq('clerkUserId', args.clerkUserId))
-      .unique()
+      .unique();
 
     if (existingUser) {
-      return existingUser._id
+      return existingUser._id;
     }
 
     const userId = await ctx.db.insert('users', {
@@ -25,11 +25,11 @@ export const createUser = mutation({
       hasSeenUpgradePrompt: false,
       createdAt: Date.now(),
       updatedAt: Date.now(),
-    })
+    });
 
-    return userId
+    return userId;
   },
-})
+});
 
 export const updateUser = mutation({
   args: {
@@ -41,36 +41,38 @@ export const updateUser = mutation({
     const user = await ctx.db
       .query('users')
       .withIndex('by_clerkUserId', (q) => q.eq('clerkUserId', args.clerkUserId))
-      .unique()
+      .unique();
 
     if (!user) {
-      throw new Error('User not found')
+      throw new Error('User not found');
     }
 
-    const updateData: any = { updatedAt: Date.now() }
-    if (args.email !== undefined) updateData.email = args.email
-    if (args.name !== undefined) updateData.name = args.name
+    const updateData: any = { updatedAt: Date.now() };
+    if (args.email !== undefined) updateData.email = args.email;
+    if (args.name !== undefined) updateData.name = args.name;
 
-    await ctx.db.patch(user._id, updateData)
-    return user._id
+    await ctx.db.patch(user._id, updateData);
+    return user._id;
   },
-})
+});
 
 export const getCurrentUser = query({
   args: {
     clerkUserId: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    if (!args.clerkUserId) return null
+    if (!args.clerkUserId) return null;
 
     const user = await ctx.db
       .query('users')
-      .withIndex('by_clerkUserId', (q) => q.eq('clerkUserId', args.clerkUserId!))
-      .unique()
+      .withIndex('by_clerkUserId', (q) =>
+        q.eq('clerkUserId', args.clerkUserId!)
+      )
+      .unique();
 
-    return user
+    return user;
   },
-})
+});
 
 export const getUserByEmail = query({
   args: {
@@ -80,11 +82,11 @@ export const getUserByEmail = query({
     const user = await ctx.db
       .query('users')
       .withIndex('by_email', (q) => q.eq('email', args.email))
-      .unique()
+      .unique();
 
-    return user
+    return user;
   },
-})
+});
 
 export const getGoogleAccessToken = query({
   args: {
@@ -94,24 +96,24 @@ export const getGoogleAccessToken = query({
     const user = await ctx.db
       .query('users')
       .withIndex('by_clerkUserId', (q) => q.eq('clerkUserId', args.clerkUserId))
-      .unique()
+      .unique();
 
-    if (!user) return null
+    if (!user) return null;
 
     const googleAccount = await ctx.db
       .query('googleAccounts')
       .withIndex('by_userId', (q) => q.eq('userId', user._id))
-      .unique()
+      .unique();
 
-    if (!googleAccount) return null
+    if (!googleAccount) return null;
 
     if (googleAccount.expiresAt < Date.now()) {
-      return null
+      return null;
     }
 
-    return googleAccount.accessToken
+    return googleAccount.accessToken;
   },
-})
+});
 
 export const saveGoogleAccount = mutation({
   args: {
@@ -127,16 +129,16 @@ export const saveGoogleAccount = mutation({
     const user = await ctx.db
       .query('users')
       .withIndex('by_clerkUserId', (q) => q.eq('clerkUserId', args.clerkUserId))
-      .unique()
+      .unique();
 
     if (!user) {
-      throw new Error('User not found')
+      throw new Error('User not found');
     }
 
     const existingAccount = await ctx.db
       .query('googleAccounts')
       .withIndex('by_userId', (q) => q.eq('userId', user._id))
-      .unique()
+      .unique();
 
     if (existingAccount) {
       await ctx.db.patch(existingAccount._id, {
@@ -147,24 +149,23 @@ export const saveGoogleAccount = mutation({
         expiresAt: args.expiresAt,
         scopes: args.scopes,
         updatedAt: Date.now(),
-      })
-      return existingAccount._id
-    } else {
-      const accountId = await ctx.db.insert('googleAccounts', {
-        userId: user._id,
-        googleUserId: args.googleUserId,
-        email: args.email,
-        accessToken: args.accessToken,
-        refreshToken: args.refreshToken,
-        expiresAt: args.expiresAt,
-        scopes: args.scopes,
-        createdAt: Date.now(),
-        updatedAt: Date.now(),
-      })
-      return accountId
+      });
+      return existingAccount._id;
     }
+    const accountId = await ctx.db.insert('googleAccounts', {
+      userId: user._id,
+      googleUserId: args.googleUserId,
+      email: args.email,
+      accessToken: args.accessToken,
+      refreshToken: args.refreshToken,
+      expiresAt: args.expiresAt,
+      scopes: args.scopes,
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    });
+    return accountId;
   },
-})
+});
 
 export const deleteGoogleAccount = mutation({
   args: {
@@ -174,21 +175,21 @@ export const deleteGoogleAccount = mutation({
     const user = await ctx.db
       .query('users')
       .withIndex('by_clerkUserId', (q) => q.eq('clerkUserId', args.clerkUserId))
-      .unique()
+      .unique();
 
     if (!user) {
-      throw new Error('User not found')
+      throw new Error('User not found');
     }
 
     const googleAccount = await ctx.db
       .query('googleAccounts')
       .withIndex('by_userId', (q) => q.eq('userId', user._id))
-      .unique()
+      .unique();
 
     if (googleAccount) {
-      await ctx.db.delete(googleAccount._id)
+      await ctx.db.delete(googleAccount._id);
     }
 
-    return true
+    return true;
   },
-})
+});

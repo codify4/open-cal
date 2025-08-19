@@ -31,7 +31,9 @@ export const WeekHeader = ({
         className="sticky top-0 z-40 grid flex-grow gap-0 border-border border-b bg-card backdrop-blur"
         style={{
           gridTemplateColumns: colWidth.map((w) => `${w}fr`).join(' '),
-          transition: isResizing ? 'none' : 'grid-template-columns 0.3s ease-in-out',
+          transition: isResizing
+            ? 'none'
+            : 'grid-template-columns 0.3s ease-in-out',
         }}
       >
         {daysOfWeek.map((day, idx) => (
@@ -64,7 +66,9 @@ export const WeekHeader = ({
         className="grid gap-0 border-border border-b bg-card/50"
         style={{
           gridTemplateColumns: colWidth.map((w) => `${w}fr`).join(' '),
-          transition: isResizing ? 'none' : 'grid-template-columns 0.3s ease-in-out',
+          transition: isResizing
+            ? 'none'
+            : 'grid-template-columns 0.3s ease-in-out',
         }}
       >
         {daysOfWeek.map((day, dayIndex) => {

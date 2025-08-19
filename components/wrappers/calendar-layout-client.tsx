@@ -1,5 +1,6 @@
 'use client';
 
+import { useUser } from '@clerk/nextjs';
 import {
   DndContext,
   type DragEndEvent,
@@ -16,13 +17,11 @@ import {
   ResizablePanelGroup,
 } from '@/components/ui/resizable';
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
+import { useOptimisticEventSync } from '@/hooks/use-optimistic-event-sync';
 import type { Event } from '@/lib/store/calendar-store';
 import { ensureDate } from '@/lib/utils';
 import { useCalendarStore } from '@/providers/calendar-store-provider';
-import { useOptimisticEventSync } from '@/hooks/use-optimistic-event-sync';
 import AddEventSidebar from '../event/add-event-sidebar';
-import { useUser } from '@clerk/nextjs';
-
 
 export function CalendarLayoutClient({
   children,
@@ -103,13 +102,21 @@ export function CalendarLayoutClient({
           originalEndDate.getTime() - originalStartDate.getTime();
         const newEndDate = new Date(newStartDate.getTime() + duration);
         // Use optimistic update + background sync
-        const result = optimisticUpdate(draggedEvent.id, newStartDate, newEndDate);
-        
+        const result = optimisticUpdate(
+          draggedEvent.id,
+          newStartDate,
+          newEndDate
+        );
+
         if (result) {
           const { updatedEvent, revert } = result;
           // Commit to Google Calendar in the background
           if (user?.id) {
-            commit(updatedEvent, user.id, user.primaryEmailAddress?.emailAddress).catch(() => {
+            commit(
+              updatedEvent,
+              user.id,
+              user.primaryEmailAddress?.emailAddress
+            ).catch(() => {
               revert();
             });
           }
@@ -132,17 +139,20 @@ export function CalendarLayoutClient({
   return (
     <DndContext onDragEnd={handleDragEnd} onDragStart={handleDragStart}>
       <SidebarProvider className="scrollbar-hide">
-        <AppSidebar className="border-none dark:bg-neutral-950" variant="inset" />
+        <AppSidebar
+          className="border-none dark:bg-neutral-950"
+          variant="inset"
+        />
         <ResizablePanelGroup
-          className="bg-neutral-100 dark:bg-neutral-950 min-h-screen gap-1 md:p-1.5"
+          className="min-h-screen gap-1 bg-neutral-100 md:p-1.5 dark:bg-neutral-950"
           direction="horizontal"
         >
           <ResizablePanel
-            className="overflow-hidden p-0 md:rounded-xl shadow-2xs"
+            className="overflow-hidden p-0 shadow-2xs md:rounded-xl"
             defaultSize={isChatSidebarOpen ? 70 : 100}
             minSize={30}
           >
-            <SidebarInset className="h-screen overflow-hidden border bg-white dark:bg-neutral-900 md:rounded-xl">
+            <SidebarInset className="h-screen overflow-hidden border bg-white md:rounded-xl dark:bg-neutral-900">
               <div className="scrollbar-hide h-full overflow-y-auto">
                 {children}
               </div>
@@ -155,31 +165,31 @@ export function CalendarLayoutClient({
                 withHandle
               />
               <ResizablePanel
-                className="rounded-lg bg-white dark:bg-neutral-900 border p-2 max-h-svh"
+                className="max-h-svh rounded-lg border bg-white p-2 dark:bg-neutral-900"
                 defaultSize={30}
                 maxSize={50}
                 minSize={20}
               >
                 <div className="h-full rounded-xl shadow-sm">
                   <ChatSidebar
+                    className="bg-white dark:bg-neutral-900"
                     mode={chatMode}
                     onToggleFullscreen={toggleFullscreen}
-                    onToggleSidebar={closeChatSidebar}
                     onTogglePopup={() => setChatMode('popup')}
-                    className="bg-white dark:bg-neutral-900"
+                    onToggleSidebar={closeChatSidebar}
                   />
                 </div>
               </ResizablePanel>
             </>
           )}
           {isChatSidebarOpen && chatMode === 'popup' && (
-            <div className="fixed bottom-4 right-4 z-50 w-96 h-[600px] bg-white dark:bg-neutral-900 border rounded-xl shadow-lg">
+            <div className="fixed right-4 bottom-4 z-50 h-[600px] w-96 rounded-xl border bg-white shadow-lg dark:bg-neutral-900">
               <ChatSidebar
+                className="h-full"
                 mode="popup"
                 onToggleFullscreen={toggleFullscreen}
-                onToggleSidebar={closeChatSidebar}
                 onTogglePopup={() => setChatMode('sidebar')}
-                className="h-full"
+                onToggleSidebar={closeChatSidebar}
               />
             </div>
           )}
@@ -190,7 +200,7 @@ export function CalendarLayoutClient({
                 withHandle
               />
               <ResizablePanel
-                className="min-w-[400px] rounded-lg border bg-white dark:bg-neutral-900 p-2"
+                className="min-w-[400px] rounded-lg border bg-white p-2 dark:bg-neutral-900"
                 defaultSize={30}
                 maxSize={50}
                 minSize={20}
@@ -203,12 +213,12 @@ export function CalendarLayoutClient({
           )}
         </ResizablePanelGroup>
         {chatMode === 'fullscreen' && (
-          <div className="fixed inset-0 z-50 bg-white dark:bg-neutral-900 p-5">
+          <div className="fixed inset-0 z-50 bg-white p-5 dark:bg-neutral-900">
             <ChatSidebar
               mode="fullscreen"
               onToggleFullscreen={toggleFullscreen}
-              onToggleSidebar={closeChatSidebar}
               onTogglePopup={() => setChatMode('sidebar')}
+              onToggleSidebar={closeChatSidebar}
             />
           </div>
         )}

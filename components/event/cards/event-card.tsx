@@ -1,25 +1,28 @@
 'use client';
 
+import { useUser } from '@clerk/nextjs';
 import { useDraggable } from '@dnd-kit/core';
-import { Cake, Calendar, GripVertical, GripHorizontal } from 'lucide-react';
+import { Cake, Calendar, GripHorizontal, GripVertical } from 'lucide-react';
 import type React from 'react';
 import { useEffect, useRef, useState } from 'react';
+import { toast } from 'sonner';
 import {
   ContextMenu,
   ContextMenuContent,
   ContextMenuItem,
   ContextMenuTrigger,
 } from '@/components/ui/context-menu';
+import { useCalendarManagement } from '@/hooks/use-calendar-management';
+import { useGoogleCalendarRefresh } from '@/hooks/use-google-calendar-refresh';
+import {
+  getCalendarColor,
+  getCardColor,
+} from '@/lib/calendar-utils/calendar-color-utils';
+import { deleteGoogleEvent } from '@/lib/calendar-utils/google-calendar';
 import type { Event } from '@/lib/store/calendar-store';
 import { cn } from '@/lib/utils';
 import { useCalendarStore } from '@/providers/calendar-store-provider';
 import { GraphicDoodle } from './graphics';
-import { useUser } from '@clerk/nextjs';
-import { useGoogleCalendarRefresh } from '@/hooks/use-google-calendar-refresh';
-import { toast } from 'sonner';
-import { getCardColor, getCalendarColor } from '@/lib/calendar-utils/calendar-color-utils';
-import { useCalendarManagement } from '@/hooks/use-calendar-management';
-import { deleteGoogleEvent } from '@/lib/calendar-utils/google-calendar';
 
 interface EventCardProps {
   event: Event;
@@ -53,7 +56,9 @@ export const EventCard = ({
   const { attributes, listeners, setNodeRef, transform, isDragging } =
     useDraggable({ id: event.id, data: event });
   const [isResizing, setIsResizing] = useState(false);
-  const [resizeType, setResizeType] = useState<'vertical' | 'horizontal' | null>(null);
+  const [resizeType, setResizeType] = useState<
+    'vertical' | 'horizontal' | null
+  >(null);
   const [resizeStartY, setResizeStartY] = useState(0);
   const [resizeStartX, setResizeStartX] = useState(0);
   const [dragStartPos, setDragStartPos] = useState({ x: 0, y: 0 });
@@ -75,12 +80,10 @@ export const EventCard = ({
     setIsClient(true);
   }, []);
 
-
-
   const handleCardClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     setIsFocused(true);
-    
+
     if (onFocus) {
       onFocus(event.id);
     }
@@ -109,10 +112,12 @@ export const EventCard = ({
       if (event.googleEventId && clerkUser) {
         const calendarId = event.googleCalendarId || 'primary';
         const result = await deleteGoogleEvent(event.googleEventId, calendarId);
-        
+
         if (!result.success) {
           if (result.error === 'unauthorized') {
-            toast.error('Access token expired. Please reconnect your Google account.');
+            toast.error(
+              'Access token expired. Please reconnect your Google account.'
+            );
             return;
           }
           if (result.error === 'not_found') {
@@ -127,7 +132,7 @@ export const EventCard = ({
       toast.error('Failed to delete event');
       return;
     }
-    
+
     deleteEvent(event.id);
     await refreshEvents();
   };
@@ -151,15 +156,15 @@ export const EventCard = ({
   };
 
   const getAccountColor = (calendarId: string) => {
-    const calendar = fetchedCalendars?.find((cal: any) => cal.id === calendarId);
+    const calendar = fetchedCalendars?.find(
+      (cal: any) => cal.id === calendarId
+    );
     if (calendar && calendar.backgroundColor) {
       return calendar.backgroundColor;
     }
     // Fallback to event color if calendar not found
     return getCardColor(event.color, isFocused);
   };
-
-
 
   const formatTime = (date: Date | string, showAMPM = true) => {
     const dateObj = typeof date === 'string' ? new Date(date) : date;
@@ -238,7 +243,7 @@ export const EventCard = ({
   };
 
   const handleResizeMove = (e: MouseEvent) => {
-    if (!isResizing || !cardRef.current) return;
+    if (!(isResizing && cardRef.current)) return;
 
     if (resizeType === 'vertical' && originalStartDate) {
       const deltaY = e.clientY - resizeStartY;
@@ -281,7 +286,12 @@ export const EventCard = ({
     e.preventDefault();
 
     // Calculate final times and call onResizeEnd if vertical resize occurred
-    if (resizeType === 'vertical' && originalStartDate && onResizeEnd && cardRef.current) {
+    if (
+      resizeType === 'vertical' &&
+      originalStartDate &&
+      onResizeEnd &&
+      cardRef.current
+    ) {
       const newHeight = cardRef.current.offsetHeight;
       const pixelsPerHour = 64;
       const hoursChanged = newHeight / pixelsPerHour;
@@ -299,7 +309,7 @@ export const EventCard = ({
       const earliestEndTime = new Date(
         originalStartDate.getTime() + minimumDuration
       );
-      
+
       if (roundedEndTime >= earliestEndTime) {
         onResizeEnd(event.id, originalStartDate, roundedEndTime);
       }
@@ -379,13 +389,13 @@ export const EventCard = ({
             isFocused ? 'opacity-100' : 'opacity-80',
             className
           )}
+          onClick={handleCardClick}
           ref={cardRef}
           style={cardStyle}
-          onClick={handleCardClick}
         >
           <div
             className={
-              'absolute top-1 right-1 pointer-events-none size-8 overflow-hidden opacity-50'
+              'pointer-events-none absolute top-1 right-1 size-8 overflow-hidden opacity-50'
             }
           >
             <GraphicDoodle color={event.color} size="sm" />
@@ -403,22 +413,22 @@ export const EventCard = ({
                 minimized ? 'min-h-[20px]' : 'min-h-[30px]'
               )}
               style={{
-                backgroundColor: event.calendar ? getAccountColor(event.calendar) : getCardColor(event.color, isFocused)
+                backgroundColor: event.calendar
+                  ? getAccountColor(event.calendar)
+                  : getCardColor(event.color, isFocused),
               }}
             />
             <div className="flex flex-col items-start justify-between">
               <div className="flex min-w-0 flex-1 items-center gap-1">
                 {event.type === 'birthday' ? (
                   <Cake className="h-3 w-3" />
-                ) : (
-                  null
-                )}
-                <p className="font-medium text-xs leading-tight break-words text-start flex-1">
+                ) : null}
+                <p className="flex-1 break-words text-start font-medium text-xs leading-tight">
                   {event.title || 'Untitled Event'}
                 </p>
               </div>
               {!minimized && (
-                <p className="mt-0.5 text-[11px] opacity-80 leading-tight break-words">
+                <p className="mt-0.5 break-words text-[11px] leading-tight opacity-80">
                   {timeDisplay}
                 </p>
               )}
@@ -429,9 +439,11 @@ export const EventCard = ({
           {!(minimized || event.isAllDay) && (
             <div
               className={cn(
-                'absolute bottom-0 left-1/2 h-2 w-8 -translate-x-1/2 transform cursor-ns-resize rounded-b-md bg-gradient-to-t from-foreground/20 to-transparent transition-all duration-200 hover:from-foreground/30 hover:to-foreground/5',
-                isResizing && resizeType === 'vertical' ? 'from-foreground/40 opacity-100' : 'opacity-0 group-hover:opacity-60',
-                'flex z-20 items-end justify-center pb-0.5'
+                '-translate-x-1/2 absolute bottom-0 left-1/2 h-2 w-8 transform cursor-ns-resize rounded-b-md bg-gradient-to-t from-foreground/20 to-transparent transition-all duration-200 hover:from-foreground/30 hover:to-foreground/5',
+                isResizing && resizeType === 'vertical'
+                  ? 'from-foreground/40 opacity-100'
+                  : 'opacity-0 group-hover:opacity-60',
+                'z-20 flex items-end justify-center pb-0.5'
               )}
               onClick={(e) => {
                 e.preventDefault();
@@ -448,9 +460,11 @@ export const EventCard = ({
           {!(minimized || event.isAllDay) && (
             <div
               className={cn(
-                'absolute right-0 top-1/2 h-8 w-2 -translate-y-1/2 transform cursor-ew-resize rounded-r-md bg-gradient-to-l from-foreground/20 to-transparent transition-all duration-200 hover:from-foreground/30 hover:to-foreground/5',
-                isResizing && resizeType === 'horizontal' ? 'from-foreground/40 opacity-100' : 'opacity-0 group-hover:opacity-60',
-                'flex z-20 items-center justify-center pr-0.5'
+                '-translate-y-1/2 absolute top-1/2 right-0 h-8 w-2 transform cursor-ew-resize rounded-r-md bg-gradient-to-l from-foreground/20 to-transparent transition-all duration-200 hover:from-foreground/30 hover:to-foreground/5',
+                isResizing && resizeType === 'horizontal'
+                  ? 'from-foreground/40 opacity-100'
+                  : 'opacity-0 group-hover:opacity-60',
+                'z-20 flex items-center justify-center pr-0.5'
               )}
               onClick={(e) => {
                 e.preventDefault();
@@ -470,22 +484,13 @@ export const EventCard = ({
       </ContextMenuTrigger>
 
       <ContextMenuContent className="bg-popover">
-        <ContextMenuItem
-          className="cursor-pointer"
-          onClick={handleEdit}
-        >
+        <ContextMenuItem className="cursor-pointer" onClick={handleEdit}>
           Edit
         </ContextMenuItem>
-        <ContextMenuItem
-          className="cursor-pointer"
-          onClick={handleDuplicate}
-        >
+        <ContextMenuItem className="cursor-pointer" onClick={handleDuplicate}>
           Duplicate
         </ContextMenuItem>
-        <ContextMenuItem
-          className="cursor-pointer"
-          onClick={handleCopy}
-        >
+        <ContextMenuItem className="cursor-pointer" onClick={handleCopy}>
           Copy
         </ContextMenuItem>
         <ContextMenuItem

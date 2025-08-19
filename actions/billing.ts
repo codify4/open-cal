@@ -1,5 +1,9 @@
-"use server";
-import { lemonSqueezySetup, getSubscription, getCustomer } from '@lemonsqueezy/lemonsqueezy.js'
+'use server';
+import {
+  getCustomer,
+  getSubscription,
+  lemonSqueezySetup,
+} from '@lemonsqueezy/lemonsqueezy.js';
 
 export async function getCheckoutURL(
   variantId: number,
@@ -9,10 +13,10 @@ export async function getCheckoutURL(
   const storeId = process.env.LEMONSQUEEZY_STORE_ID;
   const appUrl = process.env.NEXT_PUBLIC_APP_URL;
 
-  if (!apiKey) throw new Error("Missing LEMONSQUEEZY_API_KEY.");
-  if (!storeId) throw new Error("Missing LEMONSQUEEZY_STORE_ID.");
-  if (!appUrl) throw new Error("Missing NEXT_PUBLIC_APP_URL.");
-  if (!user?.userId) throw new Error("User is not authenticated.");
+  if (!apiKey) throw new Error('Missing LEMONSQUEEZY_API_KEY.');
+  if (!storeId) throw new Error('Missing LEMONSQUEEZY_STORE_ID.');
+  if (!appUrl) throw new Error('Missing NEXT_PUBLIC_APP_URL.');
+  if (!user?.userId) throw new Error('User is not authenticated.');
 
   const url = 'https://api.lemonsqueezy.com/v1/checkouts';
   const body = {
@@ -22,23 +26,23 @@ export async function getCheckoutURL(
         product_options: {
           redirect_url: `${appUrl}/calendar`,
           receipt_button_text: 'Go to Calendar',
-          receipt_thank_you_note: 'Thank you for subscribing to Caly!'
+          receipt_thank_you_note: 'Thank you for subscribing to Caly!',
         },
         checkout_options: {
           embed: false,
           media: false,
-          logo: true
+          logo: true,
         },
         checkout_data: {
           email: user.email ?? undefined,
-          custom: { user_id: user.userId }
-        }
+          custom: { user_id: user.userId },
+        },
       },
       relationships: {
         store: { data: { type: 'stores', id: String(storeId) } },
-        variant: { data: { type: 'variants', id: String(variantId) } }
-      }
-    }
+        variant: { data: { type: 'variants', id: String(variantId) } },
+      },
+    },
   };
 
   const response = await fetch(url, {
@@ -46,9 +50,9 @@ export async function getCheckoutURL(
     headers: {
       Authorization: `Bearer ${apiKey}`,
       Accept: 'application/vnd.api+json',
-      'Content-Type': 'application/vnd.api+json'
+      'Content-Type': 'application/vnd.api+json',
     },
-    body: JSON.stringify(body)
+    body: JSON.stringify(body),
   });
 
   const json = await response.json().catch(() => null);
@@ -66,12 +70,12 @@ export async function getCheckoutURL(
 }
 
 export async function getCustomerPortalURL(subscriptionId: string) {
-    const apiKey = process.env.LEMONSQUEEZY_API_KEY
-    if (!apiKey) throw new Error('Missing LEMONSQUEEZY_API_KEY.')
-    if (!subscriptionId) throw new Error('Missing subscriptionId.')
-        
-    lemonSqueezySetup({ apiKey });
-    const { data } = await getSubscription(subscriptionId);
-    console.log(data?.data.attributes.urls)
-    return data?.data.attributes.urls.customer_portal
+  const apiKey = process.env.LEMONSQUEEZY_API_KEY;
+  if (!apiKey) throw new Error('Missing LEMONSQUEEZY_API_KEY.');
+  if (!subscriptionId) throw new Error('Missing subscriptionId.');
+
+  lemonSqueezySetup({ apiKey });
+  const { data } = await getSubscription(subscriptionId);
+  console.log(data?.data.attributes.urls);
+  return data?.data.attributes.urls.customer_portal;
 }

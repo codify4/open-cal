@@ -1,7 +1,12 @@
-import { useState, useEffect } from 'react';
-import { getCurrentRateLimit, updateRateLimit, getCurrentProRateLimit, updateProRateLimit } from '@/lib/rate-limit';
 import { useQuery } from 'convex/react';
+import { useEffect, useState } from 'react';
 import { api } from '@/convex/_generated/api';
+import {
+  getCurrentProRateLimit,
+  getCurrentRateLimit,
+  updateProRateLimit,
+  updateRateLimit,
+} from '@/lib/rate-limit';
 
 export function useRateLimit() {
   const [messagesLeft, setMessagesLeft] = useState(10);
@@ -10,11 +15,13 @@ export function useRateLimit() {
 
   useEffect(() => {
     if (currentUser?.isPro) {
-      const { messagesLeft: current, isLimited: limited } = getCurrentProRateLimit();
+      const { messagesLeft: current, isLimited: limited } =
+        getCurrentProRateLimit();
       setMessagesLeft(current);
       setIsLimited(limited);
     } else {
-      const { messagesLeft: current, isLimited: limited } = getCurrentRateLimit();
+      const { messagesLeft: current, isLimited: limited } =
+        getCurrentRateLimit();
       setMessagesLeft(current);
       setIsLimited(limited);
     }
@@ -22,7 +29,8 @@ export function useRateLimit() {
 
   const sendMessage = () => {
     if (currentUser?.isPro) {
-      const { messagesLeft: remaining, isLimited: limited } = updateProRateLimit();
+      const { messagesLeft: remaining, isLimited: limited } =
+        updateProRateLimit();
       setMessagesLeft(remaining);
       setIsLimited(limited);
       return { messagesLeft: remaining, isLimited: limited };
@@ -35,7 +43,8 @@ export function useRateLimit() {
 
   const refreshRateLimit = () => {
     if (currentUser?.isPro) {
-      const { messagesLeft: current, isLimited: limited } = getCurrentProRateLimit();
+      const { messagesLeft: current, isLimited: limited } =
+        getCurrentProRateLimit();
       setMessagesLeft(current);
       setIsLimited(limited);
       return;
@@ -51,4 +60,4 @@ export function useRateLimit() {
     sendMessage,
     refreshRateLimit,
   };
-} 
+}

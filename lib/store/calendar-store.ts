@@ -77,16 +77,16 @@ export interface CalendarState {
   eventsLastFetched: Date | null;
   visibleCalendarIds: string[];
   refreshFunction: (() => Promise<void>) | null;
-  
+
   // Multi-session support
   sessionEvents: Record<string, Event[]>; // sessionId -> events
   sessionCalendars: Record<string, any[]>; // sessionId -> calendars
-  
+
   // Optimistic update counter to force re-renders
   optimisticUpdateCounter: number;
   // Per-event optimistic overrides to prevent flicker on background refresh
   optimisticOverrides: Record<string, { startDate: Date; endDate: Date }>;
-  
+
   isUpgradeDialogOpen: boolean;
 }
 
@@ -127,25 +127,34 @@ export interface CalendarActions {
   goToNextMonth: () => void;
 
   // Calendar Agent Actions
-  addPendingAction: (action: Omit<PendingCalendarAction, 'id' | 'timestamp'>) => void;
-  updateActionStatus: (id: string, status: PendingCalendarAction['status']) => void;
+  addPendingAction: (
+    action: Omit<PendingCalendarAction, 'id' | 'timestamp'>
+  ) => void;
+  updateActionStatus: (
+    id: string,
+    status: PendingCalendarAction['status']
+  ) => void;
   removePendingAction: (id: string) => void;
   clearPendingActions: () => void;
   setProcessing: (isProcessing: boolean) => void;
 
   // Google Calendar Actions
-  fetchGoogleCalendarEvents: (calendarIds: string[], startDate: Date, endDate: Date) => Promise<void>;
+  fetchGoogleCalendarEvents: (
+    calendarIds: string[],
+    startDate: Date,
+    endDate: Date
+  ) => Promise<void>;
   setGoogleEvents: (events: Event[]) => void;
   setVisibleCalendarIds: (calendarIds: string[]) => void;
   setFetchingEvents: (isFetching: boolean) => void;
   setRefreshFunction: (refreshFn: () => Promise<void>) => void;
   refreshEvents: () => Promise<void>;
-  
+
   // Multi-session actions
   setSessionEvents: (sessionId: string, events: Event[]) => void;
   setSessionCalendars: (sessionId: string, calendars: any[]) => void;
   getAllVisibleEvents: () => Event[];
-  
+
   // Upgrade Dialog Actions
   openUpgradeDialog: () => void;
   closeUpgradeDialog: () => void;
@@ -155,9 +164,9 @@ export type CalendarStore = CalendarState & CalendarActions;
 
 export const defaultInitState: CalendarState = {
   // Chat sidebar state
-          isChatSidebarOpen: true,
-        isChatFullscreen: false,
-        chatMode: 'popup',
+  isChatSidebarOpen: true,
+  isChatFullscreen: false,
+  chatMode: 'popup',
 
   // Event sidebar state
   isEventSidebarOpen: false,
@@ -227,15 +236,15 @@ export const defaultInitState: CalendarState = {
   eventsLastFetched: null,
   visibleCalendarIds: [],
   refreshFunction: null,
-  
+
   // Multi-session support
   sessionEvents: {},
   sessionCalendars: {},
-  
+
   // Optimistic update counter
   optimisticUpdateCounter: 0,
   optimisticOverrides: {},
-  
+
   // Upgrade Dialog State
   isUpgradeDialogOpen: false,
 };
@@ -271,7 +280,9 @@ export const createCalendarStore = (
         replaceEvent: (event: Event) =>
           set((state) => {
             const eventIndex = state.events.findIndex((e) => e.id === event.id);
-            const googleEventIndex = state.googleEvents.findIndex((e) => e.id === event.id);
+            const googleEventIndex = state.googleEvents.findIndex(
+              (e) => e.id === event.id
+            );
 
             if (eventIndex < 0 && googleEventIndex < 0) {
               return state;
@@ -294,7 +305,10 @@ export const createCalendarStore = (
               optimisticUpdateCounter: state.optimisticUpdateCounter + 1,
               optimisticOverrides: {
                 ...state.optimisticOverrides,
-                [event.id]: { startDate: event.startDate, endDate: event.endDate },
+                [event.id]: {
+                  startDate: event.startDate,
+                  endDate: event.endDate,
+                },
               },
             } as CalendarState;
           }),
@@ -306,7 +320,9 @@ export const createCalendarStore = (
         ) =>
           set((state) => {
             const eventIndex = state.events.findIndex((e) => e.id === eventId);
-            const googleEventIndex = state.googleEvents.findIndex((e) => e.id === eventId);
+            const googleEventIndex = state.googleEvents.findIndex(
+              (e) => e.id === eventId
+            );
 
             if (eventIndex < 0 && googleEventIndex < 0) {
               return state;
@@ -370,12 +386,32 @@ export const createCalendarStore = (
         openEventSidebarForNewEvent: (startDate: Date) => {
           // Generate a random color for new events
           const randomColors = [
-            'blue', 'green', 'red', 'yellow', 'purple', 'orange', 'pink', 'gray',
-            'indigo', 'teal', 'cyan', 'lime', 'amber', 'emerald', 'violet', 'rose',
-            'slate', 'zinc', 'neutral', 'stone', 'sky', 'fuchsia'
+            'blue',
+            'green',
+            'red',
+            'yellow',
+            'purple',
+            'orange',
+            'pink',
+            'gray',
+            'indigo',
+            'teal',
+            'cyan',
+            'lime',
+            'amber',
+            'emerald',
+            'violet',
+            'rose',
+            'slate',
+            'zinc',
+            'neutral',
+            'stone',
+            'sky',
+            'fuchsia',
           ];
-          const randomColor = randomColors[Math.floor(Math.random() * randomColors.length)];
-          
+          const randomColor =
+            randomColors[Math.floor(Math.random() * randomColors.length)];
+
           set({
             isEventSidebarOpen: true,
             selectedEvent: null,
@@ -521,15 +557,15 @@ export const createCalendarStore = (
           set((state) => {
             // Check if this action already exists to prevent duplicates
             const existingAction = state.pendingActions.find(
-              (existing) => 
-                existing.toolName === action.toolName && 
+              (existing) =>
+                existing.toolName === action.toolName &&
                 JSON.stringify(existing.args) === JSON.stringify(action.args)
             );
-            
+
             if (existingAction) {
               return state; // Don't add duplicate
             }
-            
+
             // Limit to 10 pending actions to prevent localStorage quota issues
             const newActions = [
               ...state.pendingActions,
@@ -539,12 +575,12 @@ export const createCalendarStore = (
                 timestamp: new Date(),
               },
             ];
-            
+
             // Keep only the 10 most recent actions
             if (newActions.length > 10) {
               newActions.splice(0, newActions.length - 10);
             }
-            
+
             return { pendingActions: newActions };
           }),
 
@@ -557,19 +593,19 @@ export const createCalendarStore = (
 
         removePendingAction: (id) =>
           set((state) => ({
-            pendingActions: state.pendingActions.filter((action) => action.id !== id),
+            pendingActions: state.pendingActions.filter(
+              (action) => action.id !== id
+            ),
           })),
 
-        clearPendingActions: () =>
-          set({ pendingActions: [] }),
+        clearPendingActions: () => set({ pendingActions: [] }),
 
-        setProcessing: (isProcessing) =>
-          set({ isProcessing }),
+        setProcessing: (isProcessing) => set({ isProcessing }),
 
         // Google Calendar Actions
         fetchGoogleCalendarEvents: async (calendarIds, startDate, endDate) => {
           set({ isFetchingEvents: true });
-          
+
           try {
             // This will be implemented in the component that uses it
             // For now, just set fetching state
@@ -599,8 +635,7 @@ export const createCalendarStore = (
         setFetchingEvents: (isFetching) =>
           set({ isFetchingEvents: isFetching }),
 
-        setRefreshFunction: (refreshFn) =>
-          set({ refreshFunction: refreshFn }),
+        setRefreshFunction: (refreshFn) => set({ refreshFunction: refreshFn }),
 
         refreshEvents: async () => {
           const state = get();
@@ -608,7 +643,7 @@ export const createCalendarStore = (
             await state.refreshFunction();
           }
         },
-        
+
         // Multi-session actions
         setSessionEvents: (sessionId, events) =>
           set((state) => ({
@@ -629,15 +664,15 @@ export const createCalendarStore = (
         getAllVisibleEvents: () => {
           const state = get();
           const allEvents = [...state.events, ...state.googleEvents];
-          
+
           // Add events from all sessions
           Object.values(state.sessionEvents).forEach((sessionEvents) => {
             allEvents.push(...sessionEvents);
           });
-          
+
           return allEvents;
         },
-        
+
         openUpgradeDialog: () => set({ isUpgradeDialogOpen: true }),
         closeUpgradeDialog: () => set({ isUpgradeDialogOpen: false }),
       }),

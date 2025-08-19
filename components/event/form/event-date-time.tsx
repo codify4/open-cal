@@ -58,7 +58,7 @@ const TimePicker = ({
   return (
     <Select onValueChange={onChange} value={value}>
       <SelectTrigger
-        className="h-8 w-25 border-border bg-background text-sm text-foreground hover:bg-accent"
+        className="h-8 w-25 border-border bg-background text-foreground text-sm hover:bg-accent"
         size="sm"
       >
         <SelectValue>{formatTime(value)}</SelectValue>
@@ -112,7 +112,7 @@ export const EventDateTime = ({
           <Popover>
             <PopoverTrigger asChild>
               <Button
-                className="h-8 border-border bg-background text-sm text-foreground hover:bg-accent"
+                className="h-8 border-border bg-background text-foreground text-sm hover:bg-accent"
                 variant="outline"
               >
                 {formatDate(startDate)}
@@ -120,7 +120,7 @@ export const EventDateTime = ({
             </PopoverTrigger>
             <PopoverContent
               align="start"
-              className="w-auto border-border bg-popover dark:bg-neutral-900 p-0"
+              className="w-auto border-border bg-popover p-0 dark:bg-neutral-900"
             >
               <div className="border-border border-b p-2">
                 <CalendarComponent

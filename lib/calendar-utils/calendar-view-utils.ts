@@ -6,7 +6,10 @@ export const hours = Array.from({ length: 24 }, (_, i) => {
   return `${hour}:00 ${ampm}`;
 });
 
-export const getDaysInWeek = (date: Date, weekStartsOn: 'monday' | 'sunday' = 'monday') => {
+export const getDaysInWeek = (
+  date: Date,
+  weekStartsOn: 'monday' | 'sunday' = 'monday'
+) => {
   const startDay = weekStartsOn === 'monday' ? 1 : 0;
   const currentDayOfWeek = date.getDay();
   const daysToSubtract = (currentDayOfWeek - startDay + 7) % 7;
@@ -70,9 +73,12 @@ export const getTimedEventsForDay = (events: Event[], targetDate: Date) => {
   return getEventsForDay(events, targetDate).filter((event) => {
     const eventDate = new Date(event.startDate);
     const eventEndDate = new Date(event.endDate);
-    const isAllDay = event.isAllDay || 
-      (eventDate.getHours() === 0 && eventDate.getMinutes() === 0 &&
-       eventEndDate.getHours() === 23 && eventEndDate.getMinutes() === 59) ||
+    const isAllDay =
+      event.isAllDay ||
+      (eventDate.getHours() === 0 &&
+        eventDate.getMinutes() === 0 &&
+        eventEndDate.getHours() === 23 &&
+        eventEndDate.getMinutes() === 59) ||
       event.type === 'birthday';
     return !isAllDay;
   });
@@ -82,9 +88,12 @@ export const getAllDayEventsForDay = (events: Event[], targetDate: Date) => {
   return getEventsForDay(events, targetDate).filter((event) => {
     const eventDate = new Date(event.startDate);
     const eventEndDate = new Date(event.endDate);
-    const isAllDay = event.isAllDay || 
-      (eventDate.getHours() === 0 && eventDate.getMinutes() === 0 &&
-       eventEndDate.getHours() === 23 && eventEndDate.getMinutes() === 59) ||
+    const isAllDay =
+      event.isAllDay ||
+      (eventDate.getHours() === 0 &&
+        eventDate.getMinutes() === 0 &&
+        eventEndDate.getHours() === 23 &&
+        eventEndDate.getMinutes() === 59) ||
       event.type === 'birthday';
     return isAllDay;
   });
@@ -146,7 +155,8 @@ export const groupEventsByTimePeriod = (events: Event[]) => {
       }
 
       group.sort(
-        (a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime()
+        (a, b) =>
+          new Date(a.startDate).getTime() - new Date(b.startDate).getTime()
       );
 
       groups.push(group);

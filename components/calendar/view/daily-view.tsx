@@ -1,17 +1,21 @@
 'use client';
 
+import { SignedIn, SignedOut, SignInButton, useUser } from '@clerk/nextjs';
 import { AnimatePresence, motion } from 'framer-motion';
-import { useCallback, useRef, useState, useMemo, useEffect } from 'react';
-import { CalendarTimeline } from '@/components/calendar/shared/calendar-timeline';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { DailyEventsContainer } from '@/components/calendar/daily/daily-events-container';
 import { DailyTimeGrid } from '@/components/calendar/daily/daily-time-grid';
-import type { Event } from '@/lib/store/calendar-store';
-import { useCalendarStore } from '@/providers/calendar-store-provider';
+import { CalendarTimeline } from '@/components/calendar/shared/calendar-timeline';
+import { Button } from '@/components/ui/button';
 import { useGoogleCalendarRefresh } from '@/hooks/use-google-calendar-refresh';
 import { useOptimisticEventSync } from '@/hooks/use-optimistic-event-sync';
-import { SignedIn, SignedOut, SignInButton, useUser } from '@clerk/nextjs';
-import { Button } from '@/components/ui/button';
-import { hours, formatTimeFromPosition, getEventsForDay } from '@/lib/calendar-utils/calendar-view-utils';
+import {
+  formatTimeFromPosition,
+  getEventsForDay,
+  hours,
+} from '@/lib/calendar-utils/calendar-view-utils';
+import type { Event } from '@/lib/store/calendar-store';
+import { useCalendarStore } from '@/providers/calendar-store-provider';
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -61,7 +65,8 @@ export default function DailyView({
   const { optimisticUpdate, commit } = useOptimisticEventSync();
 
   const direction = navigationDirection;
-  const date = currentDate instanceof Date ? currentDate : new Date(currentDate);
+  const date =
+    currentDate instanceof Date ? currentDate : new Date(currentDate);
 
   const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     if (!hoursColumnRef.current) return;
@@ -82,17 +87,24 @@ export default function DailyView({
     setContextMenuTime(timeString);
   }, []);
 
-  const handleResizeEnd = useCallback((eventId: string, newStartDate: Date, newEndDate: Date) => {
-    const result = optimisticUpdate(eventId, newStartDate, newEndDate);
-    if (result) {
-      const { updatedEvent, revert } = result;
-      if (clerkUser?.id) {
-        commit(updatedEvent, clerkUser.id, clerkUser.primaryEmailAddress?.emailAddress).catch(() => {
-          revert();
-        });
+  const handleResizeEnd = useCallback(
+    (eventId: string, newStartDate: Date, newEndDate: Date) => {
+      const result = optimisticUpdate(eventId, newStartDate, newEndDate);
+      if (result) {
+        const { updatedEvent, revert } = result;
+        if (clerkUser?.id) {
+          commit(
+            updatedEvent,
+            clerkUser.id,
+            clerkUser.primaryEmailAddress?.emailAddress
+          ).catch(() => {
+            revert();
+          });
+        }
       }
-    }
-  }, [optimisticUpdate, commit, clerkUser]);
+    },
+    [optimisticUpdate, commit, clerkUser]
+  );
 
   useEffect(() => {
     if (clerkUser?.id && visibleCalendarIds.length > 0) {
@@ -103,40 +115,48 @@ export default function DailyView({
   const allEvents = useMemo(() => {
     const localEvents = events || [];
     const googleCalEvents = googleEvents || [];
-    const googleEventsMap = new Map(googleCalEvents.map(event => [event.id, event]));
-    const filteredLocalEvents = localEvents.filter(event => !googleEventsMap.has(event.id));
+    const googleEventsMap = new Map(
+      googleCalEvents.map((event) => [event.id, event])
+    );
+    const filteredLocalEvents = localEvents.filter(
+      (event) => !googleEventsMap.has(event.id)
+    );
     return [...filteredLocalEvents, ...googleCalEvents];
   }, [events, googleEvents]);
 
-  const dayEvents = useMemo(() => getEventsForDay(allEvents, date), [allEvents, date]);
+  const dayEvents = useMemo(
+    () => getEventsForDay(allEvents, date),
+    [allEvents, date]
+  );
 
-  const handleAddEventDay = useCallback((timeString: string) => {
-    if (!isSignedIn) {
-      return;
-    }
-    openEventSidebarForNewEvent(date);
-  }, [isSignedIn, date, openEventSidebarForNewEvent]);
+  const handleAddEventDay = useCallback(
+    (timeString: string) => {
+      if (!isSignedIn) {
+        return;
+      }
+      openEventSidebarForNewEvent(date);
+    },
+    [isSignedIn, date, openEventSidebarForNewEvent]
+  );
 
   return (
     <div className="mt-0">
       <SignedOut>
         <div className="flex h-96 items-center justify-center">
-          <div className="text-center space-y-4">
-            <h3 className="text-lg font-medium text-foreground">
+          <div className="space-y-4 text-center">
+            <h3 className="font-medium text-foreground text-lg">
               Sign in to view your calendar
             </h3>
             <p className="text-muted-foreground">
               Connect your account to start managing your schedule
             </p>
             <SignInButton mode="modal">
-              <Button>
-                Sign in to Continue
-              </Button>
+              <Button>Sign in to Continue</Button>
             </SignInButton>
           </div>
         </div>
       </SignedOut>
-      
+
       <SignedIn>
         <AnimatePresence custom={direction} initial={false} mode="wait">
           <motion.div

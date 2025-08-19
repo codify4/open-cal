@@ -1,22 +1,22 @@
+import { SignedIn, SignedOut, SignInButton, useUser } from '@clerk/nextjs';
 import { AnimatePresence, motion } from 'framer-motion';
-import { useCallback, useMemo, useRef, useState, useEffect } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { CalendarTimeline } from '@/components/calendar/shared/calendar-timeline';
-import { WeekHeader } from '@/components/calendar/week/week-header';
 import { WeekDayColumn } from '@/components/calendar/week/week-day-column';
-import type { Event } from '@/lib/store/calendar-store';
-import { useCalendarStore } from '@/providers/calendar-store-provider';
+import { WeekHeader } from '@/components/calendar/week/week-header';
+import { Button } from '@/components/ui/button';
 import { useGoogleCalendarRefresh } from '@/hooks/use-google-calendar-refresh';
 import { useOptimisticEventSync } from '@/hooks/use-optimistic-event-sync';
-import { SignedIn, SignedOut, SignInButton, useUser } from '@clerk/nextjs';
-import { Button } from '@/components/ui/button';
-import { 
-  hours, 
-  getDaysInWeek, 
-  formatTimeFromPosition, 
-  getTimedEventsForDay, 
-  getAllDayEventsForDay 
-} from '@/lib/calendar-utils/calendar-view-utils';
 import { handleAddEvent } from '@/lib/calendar-utils/calendar-event-handlers';
+import {
+  formatTimeFromPosition,
+  getAllDayEventsForDay,
+  getDaysInWeek,
+  getTimedEventsForDay,
+  hours,
+} from '@/lib/calendar-utils/calendar-view-utils';
+import type { Event } from '@/lib/store/calendar-store';
+import { useCalendarStore } from '@/providers/calendar-store-provider';
 
 const itemVariants = {
   hidden: { opacity: 0, y: 5 },
@@ -57,7 +57,8 @@ export default function WeeklyView() {
   const { optimisticUpdate, commit } = useOptimisticEventSync();
 
   const direction = navigationDirection;
-  const date = currentDate instanceof Date ? currentDate : new Date(currentDate);
+  const date =
+    currentDate instanceof Date ? currentDate : new Date(currentDate);
 
   useEffect(() => {
     if (clerkUser?.id && visibleCalendarIds.length > 0) {
@@ -68,8 +69,12 @@ export default function WeeklyView() {
   const allEvents = useMemo(() => {
     const localEvents = events || [];
     const googleCalEvents = googleEvents || [];
-    const googleEventsMap = new Map(googleCalEvents.map(event => [event.id, event]));
-    const filteredLocalEvents = localEvents.filter(event => !googleEventsMap.has(event.id));
+    const googleEventsMap = new Map(
+      googleCalEvents.map((event) => [event.id, event])
+    );
+    const filteredLocalEvents = localEvents.filter(
+      (event) => !googleEventsMap.has(event.id)
+    );
     return [...filteredLocalEvents, ...googleCalEvents];
   }, [events, googleEvents, optimisticUpdateCounter]);
 
@@ -84,7 +89,10 @@ export default function WeeklyView() {
 
     const allDayRowHeight = 32;
     const adjustedY = y - allDayRowHeight;
-    const position = Math.max(0, Math.min(rect.height - allDayRowHeight, Math.round(adjustedY)));
+    const position = Math.max(
+      0,
+      Math.min(rect.height - allDayRowHeight, Math.round(adjustedY))
+    );
     setTimelinePosition(position + allDayRowHeight);
   }, []);
 
@@ -96,61 +104,83 @@ export default function WeeklyView() {
     setContextMenuTime(timeString);
   }, []);
 
-  const handleResizeEnd = useCallback((eventId: string, newStartDate: Date, newEndDate: Date) => {
-    const result = optimisticUpdate(eventId, newStartDate, newEndDate);
-    if (result) {
-      const { updatedEvent, revert } = result;
-      if (clerkUser?.id) {
-        commit(updatedEvent, clerkUser.id, clerkUser.primaryEmailAddress?.emailAddress).catch(() => {
-          revert();
-        });
+  const handleResizeEnd = useCallback(
+    (eventId: string, newStartDate: Date, newEndDate: Date) => {
+      const result = optimisticUpdate(eventId, newStartDate, newEndDate);
+      if (result) {
+        const { updatedEvent, revert } = result;
+        if (clerkUser?.id) {
+          commit(
+            updatedEvent,
+            clerkUser.id,
+            clerkUser.primaryEmailAddress?.emailAddress
+          ).catch(() => {
+            revert();
+          });
+        }
       }
-    }
-  }, [optimisticUpdate, commit, clerkUser]);
+    },
+    [optimisticUpdate, commit, clerkUser]
+  );
 
-  const handleAddEventWeek = useCallback(async (dayIndex: number, timeString: string) => {
-    const targetDate = daysOfWeek[dayIndex % 7];
-    if (!clerkUser) return;
-    await handleAddEvent(
-      targetDate,
-      timeString,
+  const handleAddEventWeek = useCallback(
+    async (dayIndex: number, timeString: string) => {
+      const targetDate = daysOfWeek[dayIndex % 7];
+      if (!clerkUser) return;
+      await handleAddEvent(
+        targetDate,
+        timeString,
+        visibleCalendarIds,
+        saveEvent,
+        openEventSidebarForEdit,
+        openEventSidebarForNewEvent,
+        refreshEvents,
+        clerkUser
+      );
+    },
+    [
+      daysOfWeek,
+      clerkUser,
       visibleCalendarIds,
       saveEvent,
       openEventSidebarForEdit,
       openEventSidebarForNewEvent,
       refreshEvents,
-      clerkUser
-    );
-  }, [daysOfWeek, clerkUser, visibleCalendarIds, saveEvent, openEventSidebarForEdit, openEventSidebarForNewEvent, refreshEvents]);
+    ]
+  );
 
-  const getEventsForDay = useCallback((dayIndex: number) => {
-    return getTimedEventsForDay(allEvents, daysOfWeek[dayIndex]);
-  }, [allEvents, daysOfWeek]);
+  const getEventsForDay = useCallback(
+    (dayIndex: number) => {
+      return getTimedEventsForDay(allEvents, daysOfWeek[dayIndex]);
+    },
+    [allEvents, daysOfWeek]
+  );
 
-  const getAllDayEventsForDayIndex = useCallback((dayIndex: number) => {
-    return getAllDayEventsForDay(allEvents, daysOfWeek[dayIndex]);
-  }, [allEvents, daysOfWeek]);
+  const getAllDayEventsForDayIndex = useCallback(
+    (dayIndex: number) => {
+      return getAllDayEventsForDay(allEvents, daysOfWeek[dayIndex]);
+    },
+    [allEvents, daysOfWeek]
+  );
 
   return (
     <div className="flex flex-col gap-4">
       <SignedOut>
         <div className="flex h-96 items-center justify-center">
-          <div className="text-center space-y-4">
-            <h3 className="text-lg font-medium text-foreground">
+          <div className="space-y-4 text-center">
+            <h3 className="font-medium text-foreground text-lg">
               Sign in to view your calendar
             </h3>
             <p className="text-muted-foreground">
               Connect your account to start managing your schedule
             </p>
             <SignInButton mode="modal">
-              <Button>
-                Sign in to Continue
-              </Button>
+              <Button>Sign in to Continue</Button>
             </SignInButton>
           </div>
         </div>
       </SignedOut>
-      
+
       <SignedIn>
         <AnimatePresence custom={direction} initial={false} mode="wait">
           <motion.div
@@ -165,13 +195,14 @@ export default function WeeklyView() {
           >
             <div className="col-span-1 flex items-center justify-center border-border border-r border-b bg-card py-2">
               <span className="font-medium text-muted-foreground text-xs">
-                GMT {new Date().getTimezoneOffset() > 0 ? '-' : '+'}{Math.abs(new Date().getTimezoneOffset() / 60)}
+                GMT {new Date().getTimezoneOffset() > 0 ? '-' : '+'}
+                {Math.abs(new Date().getTimezoneOffset() / 60)}
               </span>
             </div>
 
             <WeekHeader
-              currentDate={date}
               colWidth={colWidth}
+              currentDate={date}
               daysOfWeek={daysOfWeek}
               getAllDayEventsForDay={getAllDayEventsForDayIndex}
               isResizing={isResizing}
@@ -200,7 +231,9 @@ export default function WeeklyView() {
                 className="col-span-8 grid h-full"
                 style={{
                   gridTemplateColumns: colWidth.map((w) => `${w}fr`).join(' '),
-                  transition: isResizing ? 'none' : 'grid-template-columns 0.3s ease-in-out',
+                  transition: isResizing
+                    ? 'none'
+                    : 'grid-template-columns 0.3s ease-in-out',
                 }}
               >
                 {detailedHour && (

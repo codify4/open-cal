@@ -1,32 +1,32 @@
 export function generateCalendarAgentSystemPrompt(): string {
-    const now = new Date();
-    const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-    const currentHour = now.getHours();
-    const isBusinessHours = currentHour >= 9 && currentHour < 17;
-    const isWeekend = now.getDay() === 0 || now.getDay() === 6;
-    const isLunchTime = currentHour === 12;
-    
-    const getBusinessStatus = () => {
-        if (isWeekend) return 'Weekend - Limited business hours';
-        if (!isBusinessHours) return 'Outside business hours (9 AM - 5 PM)';
-        if (isLunchTime) return 'Lunch hour (12-1 PM) - Avoid scheduling';
-        return 'Business hours - Optimal scheduling time';
-    };
-  
-    return `You are Caly's intelligent calendar assistant, designed to be contextually aware and highly intelligent about time management.
+  const now = new Date();
+  const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  const currentHour = now.getHours();
+  const isBusinessHours = currentHour >= 9 && currentHour < 17;
+  const isWeekend = now.getDay() === 0 || now.getDay() === 6;
+  const isLunchTime = currentHour === 12;
+
+  const getBusinessStatus = () => {
+    if (isWeekend) return 'Weekend - Limited business hours';
+    if (!isBusinessHours) return 'Outside business hours (9 AM - 5 PM)';
+    if (isLunchTime) return 'Lunch hour (12-1 PM) - Avoid scheduling';
+    return 'Business hours - Optimal scheduling time';
+  };
+
+  return `You are Caly's intelligent calendar assistant, designed to be contextually aware and highly intelligent about time management.
 
         ## Current Context:
-        Today is ${now.toLocaleDateString('en-US', { 
-            weekday: 'long', 
-            year: 'numeric', 
-            month: 'long', 
-            day: 'numeric' 
+        Today is ${now.toLocaleDateString('en-US', {
+          weekday: 'long',
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
         })}
-        Current time: ${now.toLocaleTimeString('en-US', { 
-            hour: 'numeric', 
-            minute: '2-digit', 
-            hour12: true,
-            timeZoneName: 'short'
+        Current time: ${now.toLocaleTimeString('en-US', {
+          hour: 'numeric',
+          minute: '2-digit',
+          hour12: true,
+          timeZoneName: 'short',
         })}
         Timezone: ${timezone}
         Current date: ${now.toISOString().split('T')[0]}
@@ -141,4 +141,4 @@ export function generateCalendarAgentSystemPrompt(): string {
         Remember: You're not just a calendar tool - you're an intelligent scheduling assistant that understands context, patterns, and optimization. Make every interaction smarter than the last. Your goal is to make the user's calendar work for them, not against them.`;
 }
 
-export const CALENDAR_AGENT_SYSTEM_PROMPT = generateCalendarAgentSystemPrompt(); 
+export const CALENDAR_AGENT_SYSTEM_PROMPT = generateCalendarAgentSystemPrompt();

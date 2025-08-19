@@ -19,7 +19,7 @@ export const calculateEventStyling = (
   periodOptions?: EventStylingOptions
 ) => {
   const overlappingEvents = findOverlappingEvents(event, dayEvents);
-  
+
   const useCustomPeriod =
     periodOptions?.adjustForPeriod &&
     periodOptions.eventsInSamePeriod !== undefined &&
@@ -30,7 +30,7 @@ export const calculateEventStyling = (
     : overlappingEvents.length;
   let indexInPeriod = useCustomPeriod
     ? periodOptions!.periodIndex!
-    : overlappingEvents.findIndex(oe => oe.event.id === event.id);
+    : overlappingEvents.findIndex((oe) => oe.event.id === event.id);
 
   if (numEventsInPeriod === 0 || indexInPeriod === -1) {
     numEventsInPeriod = 1;
@@ -41,8 +41,12 @@ export const calculateEventStyling = (
   let maxHeight = 0;
   let eventTop = 0;
 
-  const startDate = event.startDate instanceof Date ? event.startDate : new Date(event.startDate);
-  const endDate = event.endDate instanceof Date ? event.endDate : new Date(event.endDate);
+  const startDate =
+    event.startDate instanceof Date
+      ? event.startDate
+      : new Date(event.startDate);
+  const endDate =
+    event.endDate instanceof Date ? event.endDate : new Date(event.endDate);
 
   if (
     startDate &&
@@ -86,9 +90,12 @@ export const calculateEventStyling = (
     };
   }
 
-  const maxOverlaps = Math.max(...overlappingEvents.map(oe => oe.maxOverlaps));
-  const overlapLevel = overlappingEvents.find(oe => oe.event.id === event.id)?.overlapLevel || 0;
-  
+  const maxOverlaps = Math.max(
+    ...overlappingEvents.map((oe) => oe.maxOverlaps)
+  );
+  const overlapLevel =
+    overlappingEvents.find((oe) => oe.event.id === event.id)?.overlapLevel || 0;
+
   if (overlapLevel === 0) {
     return {
       height: `${finalHeight}px`,
@@ -106,47 +113,65 @@ export const calculateEventStyling = (
   return {
     height: `${finalHeight}px`,
     top: `${eventTop}px`,
-    zIndex: periodOptions?.focusedEventId === event.id ? 1000 : overlapLevel + 1,
+    zIndex:
+      periodOptions?.focusedEventId === event.id ? 1000 : overlapLevel + 1,
     left: `${leftPosition}%`,
     maxWidth: `${overlapWidth}%`,
     minWidth: `${overlapWidth}%`,
   };
 };
 
-function findOverlappingEvents(event: Event, dayEvents: Event[]): OverlappingEvent[] {
-  const eventStart = event.startDate instanceof Date ? event.startDate.getTime() : new Date(event.startDate).getTime();
-  const eventEnd = event.endDate instanceof Date ? event.endDate.getTime() : new Date(event.endDate).getTime();
+function findOverlappingEvents(
+  event: Event,
+  dayEvents: Event[]
+): OverlappingEvent[] {
+  const eventStart =
+    event.startDate instanceof Date
+      ? event.startDate.getTime()
+      : new Date(event.startDate).getTime();
+  const eventEnd =
+    event.endDate instanceof Date
+      ? event.endDate.getTime()
+      : new Date(event.endDate).getTime();
 
   const overlapping: OverlappingEvent[] = [];
-  
+
   for (const otherEvent of dayEvents) {
     if (otherEvent.id === event.id) continue;
-    
-    const otherStart = otherEvent.startDate instanceof Date ? otherEvent.startDate.getTime() : new Date(otherEvent.startDate).getTime();
-    const otherEnd = otherEvent.endDate instanceof Date ? otherEvent.endDate.getTime() : new Date(otherEvent.endDate).getTime();
-    
+
+    const otherStart =
+      otherEvent.startDate instanceof Date
+        ? otherEvent.startDate.getTime()
+        : new Date(otherEvent.startDate).getTime();
+    const otherEnd =
+      otherEvent.endDate instanceof Date
+        ? otherEvent.endDate.getTime()
+        : new Date(otherEvent.endDate).getTime();
+
     if (eventStart < otherEnd && otherStart < eventEnd) {
       overlapping.push({
         event: otherEvent,
         overlapLevel: 0,
-        maxOverlaps: 0
+        maxOverlaps: 0,
       });
     }
   }
 
   if (overlapping.length === 0) {
-    return [{
-      event,
-      overlapLevel: 0,
-      maxOverlaps: 1
-    }];
+    return [
+      {
+        event,
+        overlapLevel: 0,
+        maxOverlaps: 1,
+      },
+    ];
   }
 
-  const allOverlapping = [event, ...overlapping.map(oe => oe.event)];
+  const allOverlapping = [event, ...overlapping.map((oe) => oe.event)];
   const overlapGroups = groupOverlappingEvents(allOverlapping);
-  
+
   const result: OverlappingEvent[] = [];
-  
+
   for (const group of overlapGroups) {
     const maxOverlaps = group.length;
     for (let i = 0; i < group.length; i++) {
@@ -154,52 +179,70 @@ function findOverlappingEvents(event: Event, dayEvents: Event[]): OverlappingEve
       result.push({
         event: group[i],
         overlapLevel,
-        maxOverlaps
+        maxOverlaps,
       });
     }
   }
-  
+
   return result;
 }
 
 function groupOverlappingEvents(events: Event[]): Event[][] {
   if (events.length <= 1) return [events];
-  
+
   const sortedEvents = [...events].sort((a, b) => {
-    const aStart = a.startDate instanceof Date ? a.startDate.getTime() : new Date(a.startDate).getTime();
-    const bStart = b.startDate instanceof Date ? b.startDate.getTime() : new Date(b.startDate).getTime();
+    const aStart =
+      a.startDate instanceof Date
+        ? a.startDate.getTime()
+        : new Date(a.startDate).getTime();
+    const bStart =
+      b.startDate instanceof Date
+        ? b.startDate.getTime()
+        : new Date(b.startDate).getTime();
     return aStart - bStart;
   });
-  
+
   const groups: Event[][] = [];
   const visited = new Set<string>();
-  
+
   for (const event of sortedEvents) {
     if (visited.has(event.id)) continue;
-    
+
     const group: Event[] = [event];
     visited.add(event.id);
-    
+
     for (const otherEvent of sortedEvents) {
       if (visited.has(otherEvent.id)) continue;
-      
+
       if (eventsOverlap(event, otherEvent)) {
         group.push(otherEvent);
         visited.add(otherEvent.id);
       }
     }
-    
+
     groups.push(group);
   }
-  
+
   return groups;
 }
 
 function eventsOverlap(event1: Event, event2: Event): boolean {
-  const start1 = event1.startDate instanceof Date ? event1.startDate.getTime() : new Date(event1.startDate).getTime();
-  const end1 = event1.endDate instanceof Date ? event1.endDate.getTime() : new Date(event1.endDate).getTime();
-  const start2 = event2.startDate instanceof Date ? event2.startDate.getTime() : new Date(event2.startDate).getTime();
-  const end2 = event2.endDate instanceof Date ? event2.endDate.getTime() : new Date(event2.endDate).getTime();
-  
+  const start1 =
+    event1.startDate instanceof Date
+      ? event1.startDate.getTime()
+      : new Date(event1.startDate).getTime();
+  const end1 =
+    event1.endDate instanceof Date
+      ? event1.endDate.getTime()
+      : new Date(event1.endDate).getTime();
+  const start2 =
+    event2.startDate instanceof Date
+      ? event2.startDate.getTime()
+      : new Date(event2.startDate).getTime();
+  const end2 =
+    event2.endDate instanceof Date
+      ? event2.endDate.getTime()
+      : new Date(event2.endDate).getTime();
+
   return start1 < end2 && start2 < end1;
 }

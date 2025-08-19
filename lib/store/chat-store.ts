@@ -1,6 +1,6 @@
+import type { UIMessage } from 'ai';
 import { persist } from 'zustand/middleware';
 import { createStore } from 'zustand/vanilla';
-import type { UIMessage } from 'ai';
 
 export interface ChatState {
   messages: UIMessage[];
@@ -27,14 +27,11 @@ export const createChatStore = (initState: ChatState = defaultChatState) => {
       (set, get) => ({
         ...initState,
 
-        setMessages: (messages: UIMessage[]) =>
-          set({ messages }),
+        setMessages: (messages: UIMessage[]) => set({ messages }),
 
-        setInput: (input: string) =>
-          set({ input }),
+        setInput: (input: string) => set({ input }),
 
-        clearChat: () =>
-          set({ messages: [], input: '' }),
+        clearChat: () => set({ messages: [], input: '' }),
 
         addMessage: (message: UIMessage) =>
           set((state) => ({
@@ -46,4 +43,4 @@ export const createChatStore = (initState: ChatState = defaultChatState) => {
       }
     )
   );
-}; 
+};

@@ -1,6 +1,10 @@
-import { ContextMenu, ContextMenuContent, ContextMenuTrigger } from '@/components/ui/context-menu';
 import { CalendarContextMenuItems } from '@/components/calendar/shared/context-menu-items';
 import { TimeSlot } from '@/components/calendar/shared/time-slot';
+import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuTrigger,
+} from '@/components/ui/context-menu';
 
 interface DailyTimeGridProps {
   date: Date;
@@ -43,7 +47,8 @@ export const DailyTimeGrid = ({
             <ContextMenuContent className="w-40 bg-neutral-950">
               <CalendarContextMenuItems
                 onAddEvent={() => {
-                  const timeToUse = contextMenuTime || detailedHour || '12:00 PM';
+                  const timeToUse =
+                    contextMenuTime || detailedHour || '12:00 PM';
                   onAddEvent(timeToUse);
                 }}
                 onAskAI={onAskAI}

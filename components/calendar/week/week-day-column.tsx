@@ -1,12 +1,16 @@
 import { AnimatePresence, motion } from 'framer-motion';
-import { EventCard } from '@/components/event/cards/event-card';
-import { ContextMenu, ContextMenuContent, ContextMenuTrigger } from '@/components/ui/context-menu';
+import { useState } from 'react';
 import { CalendarContextMenuItems } from '@/components/calendar/shared/context-menu-items';
 import { TimeSlot } from '@/components/calendar/shared/time-slot';
-import type { Event } from '@/lib/store/calendar-store';
-import { calculateEventStyling } from '@/lib/calendar-utils/event-styling';
+import { EventCard } from '@/components/event/cards/event-card';
+import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuTrigger,
+} from '@/components/ui/context-menu';
 import { groupEventsByTimePeriod } from '@/lib/calendar-utils/calendar-view-utils';
-import { useState } from 'react';
+import { calculateEventStyling } from '@/lib/calendar-utils/event-styling';
+import type { Event } from '@/lib/store/calendar-store';
 
 interface WeekDayColumnProps {
   dayIndex: number;
@@ -20,7 +24,11 @@ interface WeekDayColumnProps {
   detailedHour: string | null;
   setContextMenuTime: (time: string | null) => void;
   onResizeEnd: (eventId: string, newStartDate: Date, newEndDate: Date) => void;
-  updateEventTime: (eventId: string, newStartDate: Date, newEndDate: Date) => void;
+  updateEventTime: (
+    eventId: string,
+    newStartDate: Date,
+    newEndDate: Date
+  ) => void;
 }
 
 export const WeekDayColumn = ({
@@ -57,8 +65,8 @@ export const WeekDayColumn = ({
       <ContextMenuTrigger asChild>
         <div
           className="relative z-20 col-span-1 overflow-hidden border-border border-r border-b text-center text-muted-foreground text-sm transition duration-300"
-          onContextMenu={onContextMenuOpen}
           onClick={handleColumnClick}
+          onContextMenu={onContextMenuOpen}
         >
           <AnimatePresence initial={false}>
             {visibleEvents?.map((event) => {
@@ -66,7 +74,9 @@ export const WeekDayColumn = ({
               let periodIndex = 0;
 
               for (let i = 0; i < timeGroups.length; i++) {
-                const groupIndex = timeGroups[i].findIndex((e) => e.id === event.id);
+                const groupIndex = timeGroups[i].findIndex(
+                  (e) => e.id === event.id
+                );
                 if (groupIndex !== -1) {
                   eventsInSamePeriod = timeGroups[i].length;
                   periodIndex = groupIndex;
@@ -103,11 +113,11 @@ export const WeekDayColumn = ({
                 >
                   <EventCard
                     event={event}
+                    onFocus={handleEventFocus}
                     onResize={(eventId, newStartDate, newEndDate) => {
                       updateEventTime(eventId, newStartDate, newEndDate);
                     }}
                     onResizeEnd={onResizeEnd}
-                    onFocus={handleEventFocus}
                   />
                 </motion.div>
               );

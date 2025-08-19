@@ -1,8 +1,17 @@
- 'use client';
+'use client';
 
-import * as React from 'react';
+import { useSession, useSessionList, useUser } from '@clerk/nextjs';
 import { Calendar, Video } from 'lucide-react';
 import Image from 'next/image';
+import * as React from 'react';
+import { useCalendarManagement } from '@/hooks/use-calendar-management';
+import {
+  getCalendarColor,
+  getColorClasses,
+} from '@/lib/calendar-utils/calendar-color-utils';
+import type { GoogleCalendar } from '@/types/calendar';
+import { CopyButton } from '../../agent/copy-button';
+import { Button } from '../../ui/button';
 import {
   Select,
   SelectContent,
@@ -10,13 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '../../ui/select';
-import { Button } from '../../ui/button';
-import { useUser, useSessionList, useSession } from '@clerk/nextjs';
-import { getColorClasses, getCalendarColor } from '@/lib/calendar-utils/calendar-color-utils';
-import { CopyButton } from '../../agent/copy-button';
 import { ColorPicker } from './color-picker';
-import { useCalendarManagement } from '@/hooks/use-calendar-management';
-import type { GoogleCalendar } from '@/types/calendar';
 
 interface EventSettingsProps {
   meetingType: string;
@@ -50,31 +53,34 @@ export const EventSettings = ({
 
   const groupedCalendars = React.useMemo(() => {
     const groups: Record<string, GoogleCalendar[]> = {};
-    
-    fetchedCalendars.forEach(calendar => {
-      const accountEmail = calendar.account || 
-        currentSession?.user?.primaryEmailAddress?.emailAddress || 
+
+    fetchedCalendars.forEach((calendar) => {
+      const accountEmail =
+        calendar.account ||
+        currentSession?.user?.primaryEmailAddress?.emailAddress ||
         'Unknown Account';
       if (!groups[accountEmail]) {
         groups[accountEmail] = [];
       }
       groups[accountEmail].push(calendar);
     });
-    
-    Object.keys(groups).forEach(email => {
+
+    Object.keys(groups).forEach((email) => {
       groups[email].sort((a, b) => {
         if (a.primary && !b.primary) return -1;
         if (!a.primary && b.primary) return 1;
-        return (a.summary || a.name || '').localeCompare(b.summary || b.name || '');
+        return (a.summary || a.name || '').localeCompare(
+          b.summary || b.name || ''
+        );
       });
     });
-    
+
     return groups;
   }, [fetchedCalendars, currentSession]);
 
   const selectedCalendar = React.useMemo(() => {
     if (!calendar) return null;
-    return fetchedCalendars.find(cal => cal.id === calendar) || null;
+    return fetchedCalendars.find((cal) => cal.id === calendar) || null;
   }, [calendar, fetchedCalendars]);
 
   const COLORS = [
@@ -99,20 +105,24 @@ export const EventSettings = ({
     { id: 'gray', bg: 'bg-gray-500' },
     { id: 'zinc', bg: 'bg-zinc-500' },
     { id: 'neutral', bg: 'bg-neutral-500' },
-    { id: 'stone', bg: 'bg-stone-500' }
+    { id: 'stone', bg: 'bg-stone-500' },
   ];
 
   return (
     <div className="flex flex-col gap-2 text-muted-foreground text-sm">
       <div className="flex items-center gap-2 ">
         <Video className="h-4 w-4" />
-        <Select onValueChange={onMeetingTypeChange} value={meetingType} disabled={isGeneratingMeeting}>
-          <SelectTrigger className="h-8 w-full border-border bg-background text-sm text-foreground hover:bg-accent cursor-pointer">
+        <Select
+          disabled={isGeneratingMeeting}
+          onValueChange={onMeetingTypeChange}
+          value={meetingType}
+        >
+          <SelectTrigger className="h-8 w-full cursor-pointer border-border bg-background text-foreground text-sm hover:bg-accent">
             <SelectValue placeholder="Add meeting" />
           </SelectTrigger>
           <SelectContent className="border-border bg-popover dark:bg-neutral-900">
             <SelectItem
-              className="text-popover-foreground hover:bg-accent cursor-pointer"
+              className="cursor-pointer text-popover-foreground hover:bg-accent"
               value="google-meet"
             >
               <div className="flex items-center gap-2">
@@ -125,26 +135,34 @@ export const EventSettings = ({
                 Google Meet
               </div>
             </SelectItem>
-            <SelectItem className="text-muted-foreground cursor-pointer" disabled value="none">
+            <SelectItem
+              className="cursor-pointer text-muted-foreground"
+              disabled
+              value="none"
+            >
               Zoom (Coming soon)
             </SelectItem>
-            <SelectItem className="text-muted-foreground cursor-pointer" disabled value="none">
+            <SelectItem
+              className="cursor-pointer text-muted-foreground"
+              disabled
+              value="none"
+            >
               Teams (Coming soon)
             </SelectItem>
           </SelectContent>
         </Select>
       </div>
       {meetingType === 'google-meet' && (
-        <div className="rounded-md border border-border p-3 ml-6 text-foreground">
+        <div className="ml-6 rounded-md border border-border p-3 text-foreground">
           <div className="flex flex-col gap-2">
             {meetingUrl ? (
               <>
                 <div className="flex items-center justify-between gap-2">
                   <a
-                    href={meetingUrl}
-                    target="_blank"
-                    rel="noopener"
                     className="truncate hover:underline"
+                    href={meetingUrl}
+                    rel="noopener"
+                    target="_blank"
                   >
                     {meetingUrl}
                   </a>
@@ -153,17 +171,35 @@ export const EventSettings = ({
                   </div>
                 </div>
                 {meetingCode ? (
-                  <div className="text-xs text-muted-foreground">Code: {meetingCode}</div>
+                  <div className="text-muted-foreground text-xs">
+                    Code: {meetingCode}
+                  </div>
                 ) : null}
-                <div className='flex items-center gap-2'>
-                  <Button size="sm" onClick={() => window.open(meetingUrl, '_blank', 'noopener')} className='bg-black hover:bg-black/80 dark:bg-white dark:hover:bg-white/80 text-white dark:text-black'>Join meeting</Button>
-                  <Button size="sm" variant="outline" onClick={() => onGenerateMeeting?.()}>Regenerate</Button>
+                <div className="flex items-center gap-2">
+                  <Button
+                    className="bg-black text-white hover:bg-black/80 dark:bg-white dark:text-black dark:hover:bg-white/80"
+                    onClick={() =>
+                      window.open(meetingUrl, '_blank', 'noopener')
+                    }
+                    size="sm"
+                  >
+                    Join meeting
+                  </Button>
+                  <Button
+                    onClick={() => onGenerateMeeting?.()}
+                    size="sm"
+                    variant="outline"
+                  >
+                    Regenerate
+                  </Button>
                 </div>
               </>
             ) : (
               <>
-                <div className="text-sm text-muted-foreground mb-2">
-                  {isGeneratingMeeting ? 'Generating Google Meet link...' : 'Google Meet will be created when you save the event.'}
+                <div className="mb-2 text-muted-foreground text-sm">
+                  {isGeneratingMeeting
+                    ? 'Generating Google Meet link...'
+                    : 'Google Meet will be created when you save the event.'}
                 </div>
               </>
             )}
@@ -174,13 +210,15 @@ export const EventSettings = ({
       <div className="flex items-center gap-2">
         <Calendar className="h-4 w-4" />
         <Select onValueChange={onCalendarChange} value={calendar}>
-          <SelectTrigger className="h-8 w-full border-border bg-background text-sm text-foreground hover:bg-accent">
+          <SelectTrigger className="h-8 w-full border-border bg-background text-foreground text-sm hover:bg-accent">
             <SelectValue placeholder="Select calendar">
               {selectedCalendar ? (
                 <div className="flex items-center gap-2">
                   <div
                     className={`h-3 w-3 rounded-full ${getCalendarColor(selectedCalendar)}`}
-                    style={{ backgroundColor: getCalendarColor(selectedCalendar) }}
+                    style={{
+                      backgroundColor: getCalendarColor(selectedCalendar),
+                    }}
                   />
                   {selectedCalendar.summary || selectedCalendar.name}
                 </div>
@@ -189,16 +227,21 @@ export const EventSettings = ({
               )}
             </SelectValue>
           </SelectTrigger>
-            <SelectContent align='start' side='left' className="border-border bg-popover dark:bg-neutral-900">
-              {Object.entries(groupedCalendars).map(([accountEmail, calendars]) => (
-               <div key={accountEmail}>
-                 <div className='text-xs text-muted-foreground px-2 py-2 font-medium border-b border-border'>
-                   {accountEmail}
-                 </div>
-                 {calendars.map((cal) => (
+          <SelectContent
+            align="start"
+            className="border-border bg-popover dark:bg-neutral-900"
+            side="left"
+          >
+            {Object.entries(groupedCalendars).map(
+              ([accountEmail, calendars]) => (
+                <div key={accountEmail}>
+                  <div className="border-border border-b px-2 py-2 font-medium text-muted-foreground text-xs">
+                    {accountEmail}
+                  </div>
+                  {calendars.map((cal) => (
                     <SelectItem
+                      className="ml-2 text-popover-foreground hover:bg-accent"
                       key={cal.id}
-                      className="text-popover-foreground hover:bg-accent ml-2"
                       value={cal.id}
                     >
                       <div className="flex items-center gap-2">
@@ -208,32 +251,41 @@ export const EventSettings = ({
                         />
                         {cal.summary || cal.name}
                         {cal.primary && (
-                          <span className="text-xs text-muted-foreground">Default</span>
+                          <span className="text-muted-foreground text-xs">
+                            Default
+                          </span>
                         )}
                       </div>
                     </SelectItem>
                   ))}
                 </div>
-              ))}
-              {Object.keys(groupedCalendars).length === 0 && (
-                <SelectItem className="text-muted-foreground" disabled value="none">
-                  No accounts connected
-                </SelectItem>
-              )}
+              )
+            )}
+            {Object.keys(groupedCalendars).length === 0 && (
+              <SelectItem
+                className="text-muted-foreground"
+                disabled
+                value="none"
+              >
+                No accounts connected
+              </SelectItem>
+            )}
             <div className="p-2">
-              <div className="text-xs text-muted-foreground mb-2">Select Color</div>
+              <div className="mb-2 text-muted-foreground text-xs">
+                Select Color
+              </div>
               <div className="grid grid-cols-11 gap-2">
                 {COLORS.map((colorOption) => (
                   <div
-                    key={colorOption.id}
                     className="flex items-center justify-center"
+                    key={colorOption.id}
                     onClick={() => onColorChange(colorOption.id)}
                   >
                     <div
-                      className={`h-4 w-4 rounded-full cursor-pointer transition-all duration-150 hover:scale-110 ${colorOption.bg} ${
-                      color === colorOption.id 
-                        ? 'ring-2 ring-black dark:ring-white ring-offset-1 ring-offset-white dark:ring-offset-neutral-950' 
-                        : 'ring-1 ring-neutral-300 dark:ring-neutral-600 hover:ring-neutral-400 dark:hover:ring-white/60'
+                      className={`h-4 w-4 cursor-pointer rounded-full transition-all duration-150 hover:scale-110 ${colorOption.bg} ${
+                        color === colorOption.id
+                          ? 'ring-2 ring-black ring-offset-1 ring-offset-white dark:ring-white dark:ring-offset-neutral-950'
+                          : 'ring-1 ring-neutral-300 hover:ring-neutral-400 dark:ring-neutral-600 dark:hover:ring-white/60'
                       }`}
                     />
                   </div>

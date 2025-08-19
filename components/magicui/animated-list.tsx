@@ -1,30 +1,30 @@
-"use client";
+'use client';
 
-import { cn } from "@/lib/utils";
-import { AnimatePresence, motion } from "motion/react";
+import { AnimatePresence, motion } from 'motion/react';
 import React, {
-  ComponentPropsWithoutRef,
+  type ComponentPropsWithoutRef,
   useEffect,
   useMemo,
   useState,
-} from "react";
+} from 'react';
+import { cn } from '@/lib/utils';
 
 export function AnimatedListItem({ children }: { children: React.ReactNode }) {
   const animations = {
     initial: { scale: 0, opacity: 0 },
     animate: { scale: 1, opacity: 1, originY: 0 },
     exit: { scale: 0, opacity: 0 },
-    transition: { type: "spring" as const, stiffness: 350, damping: 40 },
+    transition: { type: 'spring' as const, stiffness: 350, damping: 40 },
   };
 
   return (
-    <motion.div {...animations} layout className="mx-auto w-full">
+    <motion.div {...animations} className="mx-auto w-full" layout>
       {children}
     </motion.div>
   );
 }
 
-export interface AnimatedListProps extends ComponentPropsWithoutRef<"div"> {
+export interface AnimatedListProps extends ComponentPropsWithoutRef<'div'> {
   children: React.ReactNode;
   delay?: number;
 }
@@ -34,7 +34,7 @@ export const AnimatedList = React.memo(
     const [index, setIndex] = useState(0);
     const childrenArray = useMemo(
       () => React.Children.toArray(children),
-      [children],
+      [children]
     );
 
     useEffect(() => {
@@ -54,7 +54,7 @@ export const AnimatedList = React.memo(
 
     return (
       <div
-        className={cn(`flex flex-col items-center gap-4`, className)}
+        className={cn('flex flex-col items-center gap-4', className)}
         {...props}
       >
         <AnimatePresence>
@@ -66,7 +66,7 @@ export const AnimatedList = React.memo(
         </AnimatePresence>
       </div>
     );
-  },
+  }
 );
 
-AnimatedList.displayName = "AnimatedList";
+AnimatedList.displayName = 'AnimatedList';

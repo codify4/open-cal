@@ -1,9 +1,9 @@
 'use client';
 
 import { CreateEventTool } from './tools/create-event-tool';
+import { DefaultTool } from './tools/default-tool';
 import { FindFreeTimeTool } from './tools/find-free-time-tool';
 import { GetEventsTool } from './tools/get-events-tool';
-import { DefaultTool } from './tools/default-tool';
 import { PendingTool } from './tools/pending-tool';
 
 interface CalendarToolCallProps {
@@ -42,14 +42,14 @@ export function CalendarToolCall({
       return (
         <CreateEventTool
           args={args}
-          result={result}
+          isRegenerating={isRegenerating}
           onAccept={onAccept}
+          onCopy={onCopy}
           onDecline={onDecline}
           onEdit={onEdit}
-          onRegenerate={onRegenerate}
-          isRegenerating={isRegenerating}
-          onCopy={onCopy}
           onRate={onRate}
+          onRegenerate={onRegenerate}
+          result={result}
         />
       );
 
@@ -57,11 +57,11 @@ export function CalendarToolCall({
       return (
         <FindFreeTimeTool
           args={args}
-          result={result}
-          onRegenerate={onRegenerate}
           isRegenerating={isRegenerating}
           onCopy={onCopy}
           onRate={onRate}
+          onRegenerate={onRegenerate}
+          result={result}
         />
       );
 
@@ -69,25 +69,25 @@ export function CalendarToolCall({
       return (
         <GetEventsTool
           args={args}
-          result={result}
-          onRegenerate={onRegenerate}
           isRegenerating={isRegenerating}
           onCopy={onCopy}
           onRate={onRate}
+          onRegenerate={onRegenerate}
+          result={result}
         />
       );
 
     default:
       return (
         <DefaultTool
-          toolName={toolName}
           args={args}
-          result={result}
-          onRegenerate={onRegenerate}
           isRegenerating={isRegenerating}
           onCopy={onCopy}
           onRate={onRate}
+          onRegenerate={onRegenerate}
+          result={result}
+          toolName={toolName}
         />
       );
   }
-} 
+}

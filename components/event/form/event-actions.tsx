@@ -33,7 +33,7 @@ const EventActionsDropdown = ({
           <MoreHorizontal className="h-4 w-4" />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="min-w-[180px] border-border bg-popover dark:bg-neutral-900 p-2 text-popover-foreground">
+      <DropdownMenuContent className="min-w-[180px] border-border bg-popover p-2 text-popover-foreground dark:bg-neutral-900">
         <DropdownMenuItem
           className="flex cursor-pointer items-center justify-between p-1 text-popover-foreground hover:bg-accent"
           onClick={onCut}

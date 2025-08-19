@@ -6,7 +6,11 @@ interface CalendarTimelineProps {
   variant?: 'week' | 'daily';
 }
 
-export const CalendarTimeline = ({ position, detailedHour, variant = 'week' }: CalendarTimelineProps) => {
+export const CalendarTimeline = ({
+  position,
+  detailedHour,
+  variant = 'week',
+}: CalendarTimelineProps) => {
   const leftPosition = variant === 'week' ? '5px' : '100px';
   const width = variant === 'week' ? 'w-full' : 'w-[calc(100%-53px)]';
 

@@ -19,7 +19,7 @@ export const EventBasicInfo = ({
     <div className="space-y-2">
       <Label className="sr-only">Event Title</Label>
       <Input
-        className="h-9 border-border bg-background font-medium text-sm text-foreground placeholder:text-muted-foreground focus-visible:ring-0 focus-visible:ring-offset-0"
+        className="h-9 border-border bg-background font-medium text-foreground text-sm placeholder:text-muted-foreground focus-visible:ring-0 focus-visible:ring-offset-0"
         onChange={(e) => onTitleChange(e.target.value)}
         placeholder="Title"
         value={title}
@@ -27,7 +27,7 @@ export const EventBasicInfo = ({
 
       <Label className="sr-only">Event Description</Label>
       <Textarea
-        className="min-h-[60px] resize-none border-border  text-sm text-foreground placeholder:text-muted-foreground focus-visible:ring-0 focus-visible:ring-offset-0"
+        className="min-h-[60px] resize-none border-border text-foreground text-sm placeholder:text-muted-foreground focus-visible:ring-0 focus-visible:ring-offset-0"
         onChange={(e) => onDescriptionChange(e.target.value)}
         placeholder="Add description..."
         value={description}

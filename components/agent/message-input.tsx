@@ -13,9 +13,9 @@ import {
 import type React from 'react';
 import { useEffect, useRef, useState } from 'react';
 import { omit } from 'remeda';
+import { FilePreview } from '@/components/agent/file-preview';
 import { AudioVisualizer } from '@/components/ui/audio-visualizer';
 import { Button } from '@/components/ui/button';
-import { FilePreview } from '@/components/agent/file-preview';
 import { InterruptPrompt } from '@/components/ui/interrupt-prompt';
 import { useAudioRecording } from '@/hooks/use-audio-recording';
 import { useAutosizeTextArea } from '@/hooks/use-autosize-textarea';
@@ -217,7 +217,7 @@ export function MessageInput({
           <textarea
             aria-label="Write your prompt here"
             className={cn(
-              'z-10 w-full grow resize-none rounded-xl border border-input bg-background p-3 pr-24 text-sm text-foreground ring-offset-background transition-[border] placeholder:text-muted-foreground focus-visible:border-primary focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50',
+              'z-10 w-full grow resize-none rounded-xl border border-input bg-background p-3 pr-24 text-foreground text-sm ring-offset-background transition-[border] placeholder:text-muted-foreground focus-visible:border-primary focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50',
               showFileList && 'pb-16',
               showInterruptPrompt && 'border-orange-500 ring-orange-500/20',
               className
@@ -294,21 +294,21 @@ export function MessageInput({
         {isGenerating && stop ? (
           <Button
             aria-label="Stop generating"
-            className="h-8 w-8 bg-destructive text-destructive-foreground hover:bg-destructive/90 shadow-lg"
+            className="h-8 w-8 bg-destructive text-destructive-foreground shadow-lg hover:bg-destructive/90"
             onClick={() => {
               stop();
               setShowInterruptPrompt(false);
             }}
             size="icon"
-            type="button"
             title="Stop generation (Esc)"
+            type="button"
           >
             <Square className="h-3 w-3" fill="currentColor" />
           </Button>
         ) : (
           <Button
             aria-label="Send message"
-            className="h-8 w-8 transition-opacity bg-primary text-primary-foreground"
+            className="h-8 w-8 bg-primary text-primary-foreground transition-opacity"
             disabled={props.value === '' || isGenerating}
             size="icon"
             type="submit"

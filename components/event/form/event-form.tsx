@@ -18,17 +18,23 @@ interface EventFormProps {
   isGeneratingMeeting?: boolean;
 }
 
-export const EventForm = ({ event, onSave, onDataChange, onGenerateMeeting, isGeneratingMeeting }: EventFormProps) => {
+export const EventForm = ({
+  event,
+  onSave,
+  onDataChange,
+  onGenerateMeeting,
+  isGeneratingMeeting,
+}: EventFormProps) => {
   type RepeatType = 'none' | 'daily' | 'weekly' | 'monthly' | 'yearly';
 
   const formatTimeFromDate = (date: Date | string | undefined) => {
     if (!date) return '09:00';
-    
+
     const dateObj = typeof date === 'string' ? new Date(date) : date;
     if (!(dateObj instanceof Date) || isNaN(dateObj.getTime())) {
       return '09:00';
     }
-    
+
     const hours = dateObj.getHours().toString().padStart(2, '0');
     const minutes = dateObj.getMinutes().toString().padStart(2, '0');
     return `${hours}:${minutes}`;
@@ -62,8 +68,14 @@ export const EventForm = ({ event, onSave, onDataChange, onGenerateMeeting, isGe
         ...eventData,
         title: event.title || '',
         description: event.description || '',
-        startDate: event.startDate instanceof Date ? event.startDate : new Date(event.startDate),
-        endDate: event.endDate instanceof Date ? event.endDate : new Date(event.endDate),
+        startDate:
+          event.startDate instanceof Date
+            ? event.startDate
+            : new Date(event.startDate),
+        endDate:
+          event.endDate instanceof Date
+            ? event.endDate
+            : new Date(event.endDate),
         startTime: formatTimeFromDate(event.startDate),
         endTime: formatTimeFromDate(event.endDate),
         location: event.location || '',
@@ -71,7 +83,7 @@ export const EventForm = ({ event, onSave, onDataChange, onGenerateMeeting, isGe
         reminders: [],
         calendar: event.calendar || event.account || '',
         color: event.color || 'blue',
-        isAllDay: event.isAllDay || false,
+        isAllDay: event.isAllDay,
         timezone: 'UTC',
         repeat: (event.repeat || 'none') as RepeatType,
         availability: 'busy',
@@ -193,18 +205,18 @@ export const EventForm = ({ event, onSave, onDataChange, onGenerateMeeting, isGe
         />
       </div>
 
-        <EventSettings
-          calendar={eventData.calendar}
-          color={eventData.color}
-          meetingType={eventData.meetingType}
-          onCalendarChange={handleCalendarChange}
-          onColorChange={(color) => updateEventData({ color })}
-          onMeetingTypeChange={handleMeetingTypeChange}
-          meetingUrl={eventData.meetingUrl}
-          meetingCode={eventData.meetingCode}
-          onGenerateMeeting={handleGenerateMeeting}
-          isGeneratingMeeting={isGeneratingMeeting}
-        />
+      <EventSettings
+        calendar={eventData.calendar}
+        color={eventData.color}
+        isGeneratingMeeting={isGeneratingMeeting}
+        meetingCode={eventData.meetingCode}
+        meetingType={eventData.meetingType}
+        meetingUrl={eventData.meetingUrl}
+        onCalendarChange={handleCalendarChange}
+        onColorChange={(color) => updateEventData({ color })}
+        onGenerateMeeting={handleGenerateMeeting}
+        onMeetingTypeChange={handleMeetingTypeChange}
+      />
 
       <div className="flex flex-col gap-2">
         <EventAvailability

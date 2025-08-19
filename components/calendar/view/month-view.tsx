@@ -1,21 +1,24 @@
 'use client';
 
+import { SignedIn, SignedOut, SignInButton, useUser } from '@clerk/nextjs';
 import { AnimatePresence, motion } from 'framer-motion';
-import React, { useMemo, useEffect } from 'react';
-import { EventCard } from '@/components/event/cards/event-card';
+import React, { useEffect, useMemo } from 'react';
 import { MonthDayCell } from '@/components/calendar/month/month-day-cell';
+import { EventCard } from '@/components/event/cards/event-card';
+import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { useGoogleCalendarRefresh } from '@/hooks/use-google-calendar-refresh';
+import {
+  getDaysInMonth,
+  getEventsForDay,
+} from '@/lib/calendar-utils/calendar-view-utils';
 import type { Event } from '@/lib/store/calendar-store';
 import { useCalendarStore } from '@/providers/calendar-store-provider';
-import { useGoogleCalendarRefresh } from '@/hooks/use-google-calendar-refresh';
-import { SignedIn, SignedOut, SignInButton, useUser } from '@clerk/nextjs';
-import { Button } from '@/components/ui/button';
-import { getDaysInMonth, getEventsForDay } from '@/lib/calendar-utils/calendar-view-utils';
 
 const pageTransitionVariants = {
   enter: () => ({ opacity: 0 }),
@@ -43,7 +46,8 @@ export default function MonthView() {
   const direction = navigationDirection;
   const weekStartsOn = 'sunday' as 'sunday' | 'monday';
 
-  const date = currentDate instanceof Date ? currentDate : new Date(currentDate);
+  const date =
+    currentDate instanceof Date ? currentDate : new Date(currentDate);
   const daysInMonthArray = getDaysInMonth(date.getMonth(), date.getFullYear());
 
   useEffect(() => {
@@ -55,8 +59,12 @@ export default function MonthView() {
   const allEvents = useMemo(() => {
     const localEvents = events || [];
     const googleCalEvents = googleEvents || [];
-    const googleEventsMap = new Map(googleCalEvents.map(event => [event.id, event]));
-    const filteredLocalEvents = localEvents.filter(event => !googleEventsMap.has(event.id));
+    const googleEventsMap = new Map(
+      googleCalEvents.map((event) => [event.id, event])
+    );
+    const filteredLocalEvents = localEvents.filter(
+      (event) => !googleEventsMap.has(event.id)
+    );
     return [...filteredLocalEvents, ...googleCalEvents];
   }, [events, googleEvents]);
 
@@ -69,7 +77,14 @@ export default function MonthView() {
     if (!isSignedIn) {
       return;
     }
-    const startDate = new Date(date.getFullYear(), date.getMonth(), selectedDay, 0, 0, 0);
+    const startDate = new Date(
+      date.getFullYear(),
+      date.getMonth(),
+      selectedDay,
+      0,
+      0,
+      0
+    );
     openEventSidebarForNewEvent(startDate);
   };
 
@@ -77,39 +92,50 @@ export default function MonthView() {
     if (!isSignedIn) {
       return;
     }
-    const startDate = new Date(date.getFullYear(), date.getMonth(), selectedDay, 12, 0, 0);
+    const startDate = new Date(
+      date.getFullYear(),
+      date.getMonth(),
+      selectedDay,
+      12,
+      0,
+      0
+    );
     openEventSidebarForNewEvent(startDate);
   };
 
-  const daysOfWeek = weekStartsOn === 'monday'
-    ? ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
-    : ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  const daysOfWeek =
+    weekStartsOn === 'monday'
+      ? ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+      : ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
   const firstDayOfMonth = new Date(date.getFullYear(), date.getMonth(), 1);
-  const startOffset = (firstDayOfMonth.getDay() - (weekStartsOn === 'monday' ? 1 : 0) + 7) % 7;
+  const startOffset =
+    (firstDayOfMonth.getDay() - (weekStartsOn === 'monday' ? 1 : 0) + 7) % 7;
   const prevMonth = new Date(date.getFullYear(), date.getMonth() - 1, 1);
-  const lastDateOfPrevMonth = new Date(prevMonth.getFullYear(), prevMonth.getMonth() + 1, 0).getDate();
+  const lastDateOfPrevMonth = new Date(
+    prevMonth.getFullYear(),
+    prevMonth.getMonth() + 1,
+    0
+  ).getDate();
 
   return (
     <div>
       <SignedOut>
         <div className="flex h-96 items-center justify-center">
-          <div className="text-center space-y-4">
-            <h3 className="text-lg font-medium text-foreground">
+          <div className="space-y-4 text-center">
+            <h3 className="font-medium text-foreground text-lg">
               Sign in to view your calendar
             </h3>
             <p className="text-muted-foreground">
               Connect your account to start managing your schedule
             </p>
             <SignInButton mode="modal">
-              <Button>
-                Sign in to Continue
-              </Button>
+              <Button>Sign in to Continue</Button>
             </SignInButton>
           </div>
         </div>
       </SignedOut>
-      
+
       <SignedIn>
         <AnimatePresence custom={direction} initial={false} mode="wait">
           <motion.div
@@ -131,7 +157,10 @@ export default function MonthView() {
             }}
           >
             {daysOfWeek.map((day, idx) => (
-              <div className="my-8 text-left font-medium text-4xl tracking-tighter" key={idx}>
+              <div
+                className="my-8 text-left font-medium text-4xl tracking-tighter"
+                key={idx}
+              >
                 {day}
               </div>
             ))}
@@ -146,7 +175,11 @@ export default function MonthView() {
 
             {daysInMonthArray.map((day) => {
               const dayEventsForCell = getEventsForDayNumber(day);
-              const cellDate = new Date(date.getFullYear(), date.getMonth(), day);
+              const cellDate = new Date(
+                date.getFullYear(),
+                date.getMonth(),
+                day
+              );
               const isToday =
                 new Date().getDate() === day &&
                 new Date().getMonth() === date.getMonth() &&
@@ -174,12 +207,15 @@ export default function MonthView() {
               <DialogTitle>
                 Events for{' '}
                 {selectedEvents.length > 0 &&
-                  new Date(selectedEvents[0].startDate).toLocaleDateString('en-US', {
-                    weekday: 'long',
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric',
-                  })}
+                  new Date(selectedEvents[0].startDate).toLocaleDateString(
+                    'en-US',
+                    {
+                      weekday: 'long',
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric',
+                    }
+                  )}
               </DialogTitle>
             </DialogHeader>
             <div className="flex flex-col gap-2">

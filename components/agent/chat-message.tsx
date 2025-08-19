@@ -1,33 +1,40 @@
 'use client';
 
+import { useUser } from '@clerk/nextjs';
 import { cva, type VariantProps } from 'class-variance-authority';
 import { motion } from 'framer-motion';
 import { Ban, ChevronRight, Code2, Loader2, Terminal } from 'lucide-react';
 import type React from 'react';
-import { useMemo, useState, useEffect, useContext } from 'react';
+import { useContext, useEffect, useMemo, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { CalendarToolCall } from '@/components/agent/calendar-tool-call';
+import { FilePreview } from '@/components/agent/file-preview';
+import { MessageFooter } from '@/components/agent/message-footer';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { FilePreview } from '@/components/agent/file-preview';
-import { CalendarToolCall } from '@/components/agent/calendar-tool-call';
-import { MessageFooter } from '@/components/agent/message-footer';
+import {
+  deleteGoogleEvent,
+  upsertGoogleEvent,
+} from '@/lib/calendar-utils/google-calendar';
 import { cn, ensureDate } from '@/lib/utils';
-import { useCalendarStore, CalendarStoreContext } from '@/providers/calendar-store-provider';
-import { upsertGoogleEvent, deleteGoogleEvent } from '@/lib/calendar-utils/google-calendar';
-import { useUser } from '@clerk/nextjs';
+import {
+  CalendarStoreContext,
+  useCalendarStore,
+} from '@/providers/calendar-store-provider';
 
 const chatBubbleVariants = cva(
-  'group/message relative break-words p-2 text-sm sm:max-w-[75%] shadow-sm border',
+  'group/message relative break-words border p-2 text-sm shadow-sm sm:max-w-[75%]',
   {
     variants: {
       isUser: {
-        true: 'bg-primary text-primary-foreground ml-auto border-primary/20 rounded-l-lg rounded-tr-none rounded-br-lg',
-        false: 'bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100 border-neutral-200 dark:border-neutral-700 rounded-r-lg rounded-tl-none rounded-bl-lg',
+        true: 'ml-auto rounded-l-lg rounded-tr-none rounded-br-lg border-primary/20 bg-primary text-primary-foreground',
+        false:
+          'rounded-r-lg rounded-tl-none rounded-bl-lg border-neutral-200 bg-neutral-100 text-neutral-900 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-100',
       },
       animation: {
         none: '',
@@ -93,7 +100,11 @@ interface StepStartPart {
   type: 'step-start';
 }
 
-type MessagePart = TextPart | ReasoningPart | ToolInvocationPart | StepStartPart;
+type MessagePart =
+  | TextPart
+  | ReasoningPart
+  | ToolInvocationPart
+  | StepStartPart;
 
 export interface Message {
   id: string;
@@ -137,23 +148,32 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
   const { addPendingAction } = useCalendarStore((state) => state);
   const calendarStoreContext = useContext(CalendarStoreContext);
   const { user } = useUser();
-  
+
   useEffect(() => {
     if (parts && parts.length > 0) {
       parts.forEach((part) => {
         if (part.type === 'tool-invocation') {
           const toolInvocation = part.toolInvocation;
-          const calendarToolNames = ['create_event', 'find_free_time', 'get_events', 'update_event', 'delete_event', 'get_calendar_summary'];
-          
-          if (calendarToolNames.includes(toolInvocation.toolName)) {
-            if (toolInvocation.state === 'result' && toolInvocation.result) {
-              addPendingAction({
-                toolName: toolInvocation.toolName,
-                args: toolInvocation.args || {},
-                result: toolInvocation.result,
-                status: 'pending',
-              });
-            }
+          const calendarToolNames = [
+            'create_event',
+            'find_free_time',
+            'get_events',
+            'update_event',
+            'delete_event',
+            'get_calendar_summary',
+          ];
+
+          if (
+            calendarToolNames.includes(toolInvocation.toolName) &&
+            toolInvocation.state === 'result' &&
+            toolInvocation.result
+          ) {
+            addPendingAction({
+              toolName: toolInvocation.toolName,
+              args: toolInvocation.args || {},
+              result: toolInvocation.result,
+              status: 'pending',
+            });
           }
         }
       });
@@ -179,7 +199,7 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
   if (isUser) {
     return (
       <div className="flex items-start gap-3">
-        <div className="flex flex-col items-end flex-1">
+        <div className="flex flex-1 flex-col items-end">
           {files ? (
             <div className="mb-1 flex flex-wrap gap-2">
               {files.map((file, index) => {
@@ -189,8 +209,10 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
           ) : null}
 
           <div className={cn(chatBubbleVariants({ isUser, animation }))}>
-            <div className="prose prose-sm max-w-none dark:prose-invert">
-              <ReactMarkdown remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>
+            <div className="prose prose-sm dark:prose-invert max-w-none">
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                {content}
+              </ReactMarkdown>
             </div>
           </div>
 
@@ -208,7 +230,7 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
         </div>
 
         <Avatar className="h-8 w-8 flex-shrink-0">
-          <AvatarImage src={avatar} alt="User avatar" />
+          <AvatarImage alt="User avatar" src={avatar} />
           <AvatarFallback className="bg-primary text-primary-foreground text-sm">
             {avatarFallback || 'U'}
           </AvatarFallback>
@@ -221,39 +243,47 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
     return (
       <div className="flex items-start gap-3">
         <Avatar className="h-8 w-8 flex-shrink-0">
-          <AvatarImage src="/caly.svg" alt="AI Assistant" />
-          <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white text-sm">
-            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-2 0c0 .993-.241 1.929-.668 2.754l-1.524-1.525a3.997 3.997 0 00.078-2.183l1.562-1.562C15.802 8.249 16 9.1 16 10zm-5.165 3.913l1.58 1.58A5.98 5.98 0 0110 16a5.976 5.976 0 01-2.552-.552l1.562-1.562a4.006 4.006 0 001.9.903zm-4.677-2.796a4.002 4.002 0 01-.041-2.08l-.08.08-1.53-1.533A5.98 5.98 0 004 10c0 .954.223 1.856.619 2.657l1.54-1.54zm1.088-6.45A5.974 5.974 0 0110 4c.954 0 1.856.223 2.657.619l-1.54 1.54a4.002 4.002 0 00-2.346.033zm7.297 4.773a4.018 4.018 0 01-1.08 1.08l1.58 1.58a5.98 5.98 0 001.08-1.08l-1.58-1.58z" clipRule="evenodd" />
+          <AvatarImage alt="AI Assistant" src="/caly.svg" />
+          <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-sm text-white">
+            <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+              <path
+                clipRule="evenodd"
+                d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-2 0c0 .993-.241 1.929-.668 2.754l-1.524-1.525a3.997 3.997 0 00.078-2.183l1.562-1.562C15.802 8.249 16 9.1 16 10zm-5.165 3.913l1.58 1.58A5.98 5.98 0 0110 16a5.976 5.976 0 01-2.552-.552l1.562-1.562a4.006 4.006 0 001.9.903zm-4.677-2.796a4.002 4.002 0 01-.041-2.08l-.08.08-1.53-1.533A5.98 5.98 0 004 10c0 .954.223 1.856.619 2.657l1.54-1.54zm1.088-6.45A5.974 5.974 0 0110 4c.954 0 1.856.223 2.657.619l-1.54 1.54a4.002 4.002 0 00-2.346.033zm7.297 4.773a4.018 4.018 0 01-1.08 1.08l1.58 1.58a5.98 5.98 0 001.08-1.08l-1.58-1.58z"
+                fillRule="evenodd"
+              />
             </svg>
           </AvatarFallback>
         </Avatar>
 
-        <div className="flex flex-col items-start space-y-2 flex-1">
+        <div className="flex flex-1 flex-col items-start space-y-2">
           {parts.map((part, index) => {
             if (part.type === 'text') {
               return (
                 <div
-                  className={cn(
-                    'flex flex-col items-start w-full'
-                  )}
+                  className={cn('flex w-full flex-col items-start')}
                   key={`text-${index}`}
                 >
-                  <div className={cn(chatBubbleVariants({ isUser, animation }), 'relative')}>
+                  <div
+                    className={cn(
+                      chatBubbleVariants({ isUser, animation }),
+                      'relative'
+                    )}
+                  >
                     <div className="flex items-start gap-3">
-                        <div className="flex-1 min-w-0 prose prose-sm max-w-none dark:prose-invert">
-                          <ReactMarkdown remarkPlugins={[remarkGfm]}>{part.text}</ReactMarkdown>
-                        </div>
+                      <div className="prose prose-sm dark:prose-invert min-w-0 max-w-none flex-1">
+                        <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                          {part.text}
+                        </ReactMarkdown>
+                      </div>
                     </div>
-                    
                   </div>
 
                   {role === 'assistant' && (
                     <MessageFooter
-                      onRegenerate={onRegenerate}
                       isRegenerating={isRegenerating}
                       onCopy={onCopy}
                       onRate={onRate}
+                      onRegenerate={onRegenerate}
                     >
                       {footer}
                     </MessageFooter>
@@ -263,7 +293,8 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
                     <time
                       className={cn(
                         'mt-1 block px-1 text-xs opacity-50',
-                        animation !== 'none' && 'fade-in-0 animate-in duration-500'
+                        animation !== 'none' &&
+                          'fade-in-0 animate-in duration-500'
                       )}
                       dateTime={createdAt.toISOString()}
                     >
@@ -278,148 +309,213 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
             }
             if (part.type === 'tool-invocation') {
               const toolInvocation = part.toolInvocation;
-              const calendarToolNames = ['create_event', 'find_free_time', 'get_events', 'update_event', 'delete_event', 'get_calendar_summary'];
-              
+              const calendarToolNames = [
+                'create_event',
+                'find_free_time',
+                'get_events',
+                'update_event',
+                'delete_event',
+                'get_calendar_summary',
+              ];
+
               if (calendarToolNames.includes(toolInvocation.toolName)) {
                 return (
-                  <div key={`calendar-tool-${index}`} className="w-full">
+                  <div className="w-full" key={`calendar-tool-${index}`}>
                     <CalendarToolCall
-                      toolName={toolInvocation.toolName}
                       args={toolInvocation.args || {}}
-                      result={toolInvocation.result}
                       isPending={toolInvocation.state === 'call'}
+                      isRegenerating={isRegenerating}
                       onAccept={async () => {
                         if (calendarStoreContext && user?.id) {
                           const store = calendarStoreContext.getState();
-                          
+
                           try {
                             switch (toolInvocation.toolName) {
                               case 'create_event':
                                 if (toolInvocation.result?.event) {
                                   const eventWithProperDates = {
                                     ...toolInvocation.result.event,
-                                    startDate: ensureDate(toolInvocation.result.event.startDate),
-                                    endDate: ensureDate(toolInvocation.result.event.endDate),
-                                    googleCalendarId: store.visibleCalendarIds[0] || 'primary',
+                                    startDate: ensureDate(
+                                      toolInvocation.result.event.startDate
+                                    ),
+                                    endDate: ensureDate(
+                                      toolInvocation.result.event.endDate
+                                    ),
+                                    googleCalendarId:
+                                      store.visibleCalendarIds[0] || 'primary',
                                   };
-                                  
+
                                   const googleResult = await upsertGoogleEvent(
-                                    eventWithProperDates, 
-                                    user.id, 
+                                    eventWithProperDates,
+                                    user.id,
                                     user.primaryEmailAddress?.emailAddress
                                   );
-                                  
-                                  if (googleResult?.success && googleResult.event) {
+
+                                  if (
+                                    googleResult?.success &&
+                                    googleResult.event
+                                  ) {
                                     store.saveEvent(googleResult.event);
-                                    store.setCurrentDate(googleResult.event.startDate);
+                                    store.setCurrentDate(
+                                      googleResult.event.startDate
+                                    );
                                   } else {
                                     store.saveEvent(eventWithProperDates);
-                                    store.setCurrentDate(eventWithProperDates.startDate);
+                                    store.setCurrentDate(
+                                      eventWithProperDates.startDate
+                                    );
                                   }
-                                  
+
                                   store.refreshEvents();
                                 }
                                 break;
-                                
+
                               case 'update_event':
                                 if (toolInvocation.result?.updates) {
-                                  const { eventId, ...updates } = toolInvocation.result.updates;
-                                  const existingEvent = store.events.find(e => e.id === eventId) || 
-                                                     store.googleEvents.find(e => e.id === eventId);
-                                  
+                                  const { eventId, ...updates } =
+                                    toolInvocation.result.updates;
+                                  const existingEvent =
+                                    store.events.find(
+                                      (e) => e.id === eventId
+                                    ) ||
+                                    store.googleEvents.find(
+                                      (e) => e.id === eventId
+                                    );
+
                                   if (existingEvent) {
                                     const updatedEvent = {
                                       ...existingEvent,
                                       ...updates,
-                                      ...(updates.startDate && { startDate: ensureDate(updates.startDate) }),
-                                      ...(updates.endDate && { endDate: ensureDate(updates.endDate) }),
+                                      ...(updates.startDate && {
+                                        startDate: ensureDate(
+                                          updates.startDate
+                                        ),
+                                      }),
+                                      ...(updates.endDate && {
+                                        endDate: ensureDate(updates.endDate),
+                                      }),
                                     };
-                                    
+
                                     // Update on Google Calendar first
-                                    const googleResult = await upsertGoogleEvent(
-                                      updatedEvent, 
-                                      user.id, 
-                                      user.primaryEmailAddress?.emailAddress
-                                    );
-                                    
-                                    if (googleResult?.success && googleResult.event) {
+                                    const googleResult =
+                                      await upsertGoogleEvent(
+                                        updatedEvent,
+                                        user.id,
+                                        user.primaryEmailAddress?.emailAddress
+                                      );
+
+                                    if (
+                                      googleResult?.success &&
+                                      googleResult.event
+                                    ) {
                                       // Update with the Google Calendar response
                                       store.replaceEvent(googleResult.event);
                                     } else {
                                       // If Google Calendar fails, update locally as fallback
                                       store.replaceEvent(updatedEvent);
                                     }
-                                    
+
                                     // Refresh events to sync
                                     store.refreshEvents();
                                   }
                                 }
                                 break;
-                                
+
                               case 'delete_event':
                                 if (toolInvocation.result?.eventId) {
-                                  const existingEvent = store.events.find(e => e.id === toolInvocation.result.eventId) || 
-                                                     store.googleEvents.find(e => e.id === toolInvocation.result.eventId);
-                                  
+                                  const existingEvent =
+                                    store.events.find(
+                                      (e) =>
+                                        e.id === toolInvocation.result.eventId
+                                    ) ||
+                                    store.googleEvents.find(
+                                      (e) =>
+                                        e.id === toolInvocation.result.eventId
+                                    );
+
                                   if (existingEvent?.googleEventId) {
                                     // Delete from Google Calendar first
-                                    const googleResult = await deleteGoogleEvent(
-                                      existingEvent.googleEventId,
-                                      existingEvent.googleCalendarId || 'primary'
-                                    );
-                                    
+                                    const googleResult =
+                                      await deleteGoogleEvent(
+                                        existingEvent.googleEventId,
+                                        existingEvent.googleCalendarId ||
+                                          'primary'
+                                      );
+
                                     if (googleResult.success) {
-                                      store.deleteEvent(toolInvocation.result.eventId);
+                                      store.deleteEvent(
+                                        toolInvocation.result.eventId
+                                      );
                                     } else {
-                                      store.deleteEvent(toolInvocation.result.eventId);
+                                      store.deleteEvent(
+                                        toolInvocation.result.eventId
+                                      );
                                     }
                                   } else {
-                                    store.deleteEvent(toolInvocation.result.eventId);
+                                    store.deleteEvent(
+                                      toolInvocation.result.eventId
+                                    );
                                   }
-                                  
+
                                   store.refreshEvents();
                                 }
                                 break;
-                                
+
                               case 'find_free_time':
                               case 'get_events':
                               case 'get_calendar_summary':
                                 break;
                             }
-                            
+
                             // Update the pending action status
                             if (toolInvocation.result?.action) {
                               const pendingAction = store.pendingActions.find(
-                                action => action.toolName === toolInvocation.toolName
+                                (action) =>
+                                  action.toolName === toolInvocation.toolName
                               );
                               if (pendingAction) {
-                                store.updateActionStatus(pendingAction.id, 'accepted');
+                                store.updateActionStatus(
+                                  pendingAction.id,
+                                  'accepted'
+                                );
                               }
                             }
                           } catch (error) {
-                            console.error('Error executing calendar action:', error);
+                            console.error(
+                              'Error executing calendar action:',
+                              error
+                            );
                             if (toolInvocation.result?.action) {
                               const pendingAction = store.pendingActions.find(
-                                action => action.toolName === toolInvocation.toolName
+                                (action) =>
+                                  action.toolName === toolInvocation.toolName
                               );
                               if (pendingAction) {
-                                store.updateActionStatus(pendingAction.id, 'accepted');
+                                store.updateActionStatus(
+                                  pendingAction.id,
+                                  'accepted'
+                                );
                               }
                             }
                           }
                         }
                       }}
+                      onCopy={onCopy}
                       onDecline={() => {
                         if (calendarStoreContext) {
                           const store = calendarStoreContext.getState();
-                          
+
                           // Update the pending action status to declined
                           if (toolInvocation.result?.action) {
                             const pendingAction = store.pendingActions.find(
-                              action => action.toolName === toolInvocation.toolName
+                              (action) =>
+                                action.toolName === toolInvocation.toolName
                             );
                             if (pendingAction) {
-                              store.updateActionStatus(pendingAction.id, 'declined');
+                              store.updateActionStatus(
+                                pendingAction.id,
+                                'declined'
+                              );
                             }
                           }
                         }
@@ -427,37 +523,51 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
                       onEdit={() => {
                         if (calendarStoreContext) {
                           const store = calendarStoreContext.getState();
-                          
+
                           switch (toolInvocation.toolName) {
                             case 'create_event':
                               if (toolInvocation.result?.event) {
                                 const eventWithProperDates = {
                                   ...toolInvocation.result.event,
-                                  startDate: ensureDate(toolInvocation.result.event.startDate),
-                                  endDate: ensureDate(toolInvocation.result.event.endDate),
+                                  startDate: ensureDate(
+                                    toolInvocation.result.event.startDate
+                                  ),
+                                  endDate: ensureDate(
+                                    toolInvocation.result.event.endDate
+                                  ),
                                 };
-                                store.openEventSidebarForEdit(eventWithProperDates);
+                                store.openEventSidebarForEdit(
+                                  eventWithProperDates
+                                );
                               }
                               break;
-                              
+
                             case 'update_event':
                               if (toolInvocation.result?.updates) {
-                                const { eventId, ...updates } = toolInvocation.result.updates;
-                                const existingEvent = store.events.find(e => e.id === eventId) || 
-                                                   store.googleEvents.find(e => e.id === eventId);
-                                
+                                const { eventId, ...updates } =
+                                  toolInvocation.result.updates;
+                                const existingEvent =
+                                  store.events.find((e) => e.id === eventId) ||
+                                  store.googleEvents.find(
+                                    (e) => e.id === eventId
+                                  );
+
                                 if (existingEvent) {
                                   const updatedEvent = {
                                     ...existingEvent,
                                     ...updates,
-                                    ...(updates.startDate && { startDate: ensureDate(updates.startDate) }),
-                                    ...(updates.endDate && { endDate: ensureDate(updates.endDate) }),
+                                    ...(updates.startDate && {
+                                      startDate: ensureDate(updates.startDate),
+                                    }),
+                                    ...(updates.endDate && {
+                                      endDate: ensureDate(updates.endDate),
+                                    }),
                                   };
                                   store.openEventSidebarForEdit(updatedEvent);
                                 }
                               }
                               break;
-                              
+
                             case 'find_free_time':
                             case 'get_events':
                             case 'get_calendar_summary':
@@ -465,29 +575,33 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
                               // These operations don't support editing in the event sidebar
                               break;
                           }
-                          
+
                           // Update the pending action status to edited
                           if (toolInvocation.result?.action) {
                             const pendingAction = store.pendingActions.find(
-                              action => action.toolName === toolInvocation.toolName
+                              (action) =>
+                                action.toolName === toolInvocation.toolName
                             );
                             if (pendingAction) {
-                              store.updateActionStatus(pendingAction.id, 'edited');
+                              store.updateActionStatus(
+                                pendingAction.id,
+                                'edited'
+                              );
                             }
                           }
                         }
                       }}
-                      onRegenerate={onRegenerate}
-                      isRegenerating={isRegenerating}
-                      onCopy={onCopy}
                       onRate={onRate}
+                      onRegenerate={onRegenerate}
+                      result={toolInvocation.result}
+                      toolName={toolInvocation.toolName}
                     />
                   </div>
                 );
               }
-              
+
               return (
-                <div key={`tool-${index}`} className="w-full">
+                <div className="w-full" key={`tool-${index}`}>
                   <ToolCall toolInvocations={[toolInvocation]} />
                 </div>
               );
@@ -502,30 +616,37 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
   return (
     <div className="flex items-start gap-3">
       <Avatar className="h-8 w-8 flex-shrink-0">
-        <AvatarImage src="/caly.svg" alt="AI Assistant" />
-        <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white text-sm">
-          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-2 0c0 .993-.241 1.929-.668 2.754l-1.524-1.525a3.997 3.997 0 00.078-2.183l1.562-1.562C15.802 8.249 16 9.1 16 10zm-5.165 3.913l1.58 1.58A5.98 5.98 0 0110 16a5.976 5.976 0 01-2.552-.552l1.562-1.562a4.006 4.006 0 001.9.903zm-4.677-2.796a4.002 4.002 0 01-.041-2.08l-.08.08-1.53-1.533A5.98 5.98 0 004 10c0 .954.223 1.856.619 2.657l1.54-1.54zm1.088-6.45A5.974 5.974 0 0110 4c.954 0 1.856.223 2.657.619l-1.54 1.54a4.002 4.002 0 00-2.346.033zm7.297 4.773a4.018 4.018 0 01-1.08 1.08l1.58 1.58a5.98 5.98 0 001.08-1.08l-1.58-1.58z" clipRule="evenodd" />
+        <AvatarImage alt="AI Assistant" src="/caly.svg" />
+        <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-sm text-white">
+          <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+            <path
+              clipRule="evenodd"
+              d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-2 0c0 .993-.241 1.929-.668 2.754l-1.524-1.525a3.997 3.997 0 00.078-2.183l1.562-1.562C15.802 8.249 16 9.1 16 10zm-5.165 3.913l1.58 1.58A5.98 5.98 0 0110 16a5.976 5.976 0 01-2.552-.552l1.562-1.562a4.006 4.006 0 001.9.903zm-4.677-2.796a4.002 4.002 0 01-.041-2.08l-.08.08-1.53-1.533A5.98 5.98 0 004 10c0 .954.223 1.856.619 2.657l1.54-1.54zm1.088-6.45A5.974 5.974 0 0110 4c.954 0 1.856.223 2.657.619l-1.54 1.54a4.002 4.002 0 00-2.346.033zm7.297 4.773a4.018 4.018 0 01-1.08 1.08l1.58 1.58a5.98 5.98 0 001.08-1.08l-1.58-1.58z"
+              fillRule="evenodd"
+            />
           </svg>
         </AvatarFallback>
       </Avatar>
 
-      <div className="flex flex-col items-start flex-1">
-        <div className={cn(chatBubbleVariants({ isUser, animation }), 'relative')}>
-                      <div className="flex items-start gap-3">
-              <div className="flex-1 min-w-0 prose prose-sm max-w-none dark:prose-invert">
-                <ReactMarkdown remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>
-              </div>
+      <div className="flex flex-1 flex-col items-start">
+        <div
+          className={cn(chatBubbleVariants({ isUser, animation }), 'relative')}
+        >
+          <div className="flex items-start gap-3">
+            <div className="prose prose-sm dark:prose-invert min-w-0 max-w-none flex-1">
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                {content}
+              </ReactMarkdown>
             </div>
-          
+          </div>
         </div>
 
         {role === 'assistant' && (
           <MessageFooter
-            onRegenerate={onRegenerate}
             isRegenerating={isRegenerating}
             onCopy={onCopy}
             onRate={onRate}
+            onRegenerate={onRegenerate}
           >
             {footer}
           </MessageFooter>
