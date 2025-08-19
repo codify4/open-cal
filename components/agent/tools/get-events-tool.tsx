@@ -2,13 +2,7 @@
 
 import { Calendar, MapPin } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { MessageFooter } from '../message-footer';
 
 interface GetEventsToolProps {
@@ -62,22 +56,18 @@ export function GetEventsTool({
                   event.title?.toLowerCase().includes('birthday') ||
                   event.title?.toLowerCase().includes('birthday');
 
-                let badgeVariant: 'outline' | 'default' | 'secondary' =
-                  'outline';
+                let badgeVariant: 'outline' | 'default' | 'secondary' = 'outline';
                 let badgeClassName = 'ml-2';
 
                 if (isBirthday) {
                   badgeVariant = 'default';
-                  badgeClassName =
-                    'ml-2 bg-pink-500/10 text-pink-500 border-pink-500';
+                  badgeClassName = 'ml-2 bg-pink-500/10 text-pink-500 border-pink-500';
                 } else if (isAllDay) {
                   badgeVariant = 'secondary';
-                  badgeClassName =
-                    'ml-2 bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-900 dark:text-blue-300';
+                  badgeClassName = 'ml-2 bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-900 dark:text-blue-300';
                 } else {
                   badgeVariant = 'outline';
-                  badgeClassName =
-                    'ml-2 bg-green-500/10 text-green-500 border-green-500';
+                  badgeClassName = 'ml-2 bg-green-500/10 text-green-500 border-green-500';
                 }
 
                 return (
@@ -89,14 +79,11 @@ export function GetEventsTool({
                       <div className="font-medium">{event.title}</div>
                       <div className="text-muted-foreground text-sm">
                         {new Date(event.startDate).toLocaleDateString()} at{' '}
-                        {new Date(event.startDate).toLocaleTimeString(
-                          undefined,
-                          {
-                            hour: 'numeric',
-                            minute: '2-digit',
-                            hour12: true,
-                          }
-                        )}
+                        {new Date(event.startDate).toLocaleTimeString(undefined, {
+                          hour: 'numeric',
+                          minute: '2-digit',
+                          hour12: true,
+                        })}
                       </div>
                       {event.location && (
                         <div className="mt-1 flex flex-row items-center gap-1 text-muted-foreground text-xs">

@@ -2,13 +2,7 @@
 
 import { Clock } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { MessageFooter } from '../message-footer';
 
 interface FindFreeTimeToolProps {
@@ -37,8 +31,7 @@ export function FindFreeTimeTool({
           </CardTitle>
           <CardDescription>
             Found {result?.freeSlots?.length || 0} available time slot
-            {result?.freeSlots?.length !== 1 ? 's' : ''} for your requested
-            duration
+            {result?.freeSlots?.length !== 1 ? 's' : ''} for your requested duration
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -55,7 +48,7 @@ export function FindFreeTimeTool({
                 const durationMinutes = Math.round(
                   (endDate.getTime() - startDate.getTime()) / 60_000
                 );
-                const isAllDay = durationMinutes >= 1440; // 24 hours
+                const isAllDay = durationMinutes >= 1440;
 
                 return (
                   <div

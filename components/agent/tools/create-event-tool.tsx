@@ -1,6 +1,6 @@
 'use client';
 
-import { Calendar, Check, Clock, Edit, MapPin, Users, X } from 'lucide-react';
+import { Calendar, Check, Edit, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useCalendarStore } from '@/providers/calendar-store-provider';
 import { CalendarEventPreview } from '../calendar-event-preview';
@@ -50,6 +50,56 @@ export function CreateEventTool({
     result?.event ||
     (result && typeof result === 'object' && 'id' in result ? result : null);
 
+  if (result?.hasConflicts) {
+    return (
+      <div>
+        <div className="space-y-3">
+          <div className="flex items-center gap-2">
+            <Calendar className="h-4 w-4 text-red-600" />
+            <span className="font-medium text-red-700 dark:text-red-300">Scheduling Conflict Detected</span>
+          </div>
+
+          <div className="rounded-lg border border-red-200 bg-red-50 p-3 dark:border-red-800 dark:bg-red-950/20">
+            <div className="text-sm text-red-700 dark:text-red-300">
+              <p className="font-medium mb-2">The following events conflict with your requested time:</p>
+              {result.conflictingEvents?.map((conflict: any, index: number) => (
+                <div key={index} className="ml-2 mb-1">
+                  • <span className="font-medium">{conflict.title}</span> at {conflict.startTime} - {conflict.endTime}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="text-sm text-gray-600 dark:text-gray-400">
+            <p>Do you want to add this event anyway?</p>
+          </div>
+
+          <div className="flex gap-2">
+            <Button className="flex-1" onClick={handleAccept} size="sm">
+              <Check className="mr-1 h-3 w-3" />
+              Yes, Add Anyway
+            </Button>
+            <Button
+              className="flex-1"
+              onClick={handleDecline}
+              size="sm"
+              variant="outline"
+            >
+              <X className="mr-1 h-3 w-3" />
+              No, Find Better Time
+            </Button>
+          </div>
+        </div>
+        <MessageFooter
+          isRegenerating={isRegenerating}
+          onCopy={onCopy}
+          onRate={onRate}
+          onRegenerate={onRegenerate}
+        />
+      </div>
+    );
+  }
+
   if (eventData) {
     return (
       <div>
@@ -79,7 +129,7 @@ export function CreateEventTool({
 
         <div className="space-y-2 text-gray-600 text-sm dark:text-gray-400">
           <div className="flex items-center gap-2">
-            <Clock className="h-3 w-3" />
+            <Calendar className="h-3 w-3" />
             <span>
               {new Date(args.startDate).toLocaleDateString()} at{' '}
               {new Date(args.startDate).toLocaleTimeString()}
@@ -88,14 +138,14 @@ export function CreateEventTool({
 
           {args.location && (
             <div className="flex items-center gap-2">
-              <MapPin className="h-3 w-3" />
+              <Calendar className="h-3 w-3" />
               <span>{args.location}</span>
             </div>
           )}
 
           {args.attendees && args.attendees.length > 0 && (
             <div className="flex items-center gap-2">
-              <Users className="h-3 w-3" />
+              <Calendar className="h-3 w-3" />
               <span>{args.attendees.length} attendee(s)</span>
             </div>
           )}
@@ -116,7 +166,7 @@ export function CreateEventTool({
             Decline
           </Button>
           <Button onClick={handleEdit} size="sm" variant="outline">
-            <Edit className="h-3 w-3" />
+            <Edit className="mr-1 h-3 w-3" />
           </Button>
         </div>
       </div>

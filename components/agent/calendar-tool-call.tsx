@@ -2,10 +2,12 @@
 
 import { CreateEventTool } from './tools/create-event-tool';
 import { DefaultTool } from './tools/default-tool';
+import { DeleteEventTool } from './tools/delete-event-tool';
 import { FindFreeTimeTool } from './tools/find-free-time-tool';
+import { GetCalendarSummaryTool } from './tools/get-calendar-summary-tool';
 import { GetEventsTool } from './tools/get-events-tool';
 import { PendingTool } from './tools/pending-tool';
-
+import { UpdateEventTool } from './tools/update-event-tool';
 
 interface CalendarToolCallProps {
   toolName: string;
@@ -34,8 +36,6 @@ export function CalendarToolCall({
   onCopy,
   onRate,
 }: CalendarToolCallProps) {
-
-  
   if (isPending) {
     return <PendingTool toolName={toolName} />;
   }
@@ -44,6 +44,35 @@ export function CalendarToolCall({
     case 'create_event':
       return (
         <CreateEventTool
+          args={args}
+          isRegenerating={isRegenerating}
+          onAccept={onAccept}
+          onCopy={onCopy}
+          onDecline={onDecline}
+          onEdit={onEdit}
+          onRate={onRate}
+          onRegenerate={onRegenerate}
+          result={result}
+        />
+      );
+
+    case 'delete_event':
+      return (
+        <DeleteEventTool
+          args={args}
+          isRegenerating={isRegenerating}
+          onAccept={onAccept}
+          onCopy={onCopy}
+          onDecline={onDecline}
+          onRate={onRate}
+          onRegenerate={onRegenerate}
+          result={result}
+        />
+      );
+
+    case 'update_event':
+      return (
+        <UpdateEventTool
           args={args}
           isRegenerating={isRegenerating}
           onAccept={onAccept}
@@ -80,7 +109,17 @@ export function CalendarToolCall({
         />
       );
 
-
+    case 'get_calendar_summary':
+      return (
+        <GetCalendarSummaryTool
+          args={args}
+          isRegenerating={isRegenerating}
+          onCopy={onCopy}
+          onRate={onRate}
+          onRegenerate={onRegenerate}
+          result={result}
+        />
+      );
 
     default:
       return (
