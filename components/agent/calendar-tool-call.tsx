@@ -5,7 +5,7 @@ import { DefaultTool } from './tools/default-tool';
 import { FindFreeTimeTool } from './tools/find-free-time-tool';
 import { GetEventsTool } from './tools/get-events-tool';
 import { PendingTool } from './tools/pending-tool';
-import { CheckConflictsTool } from './tools/check-conflicts-tool';
+
 
 interface CalendarToolCallProps {
   toolName: string;
@@ -34,6 +34,8 @@ export function CalendarToolCall({
   onCopy,
   onRate,
 }: CalendarToolCallProps) {
+
+  
   if (isPending) {
     return <PendingTool toolName={toolName} />;
   }
@@ -78,17 +80,7 @@ export function CalendarToolCall({
         />
       );
 
-    case 'check_conflicts':
-      return (
-        <CheckConflictsTool
-          args={args}
-          isRegenerating={isRegenerating}
-          onCopy={onCopy}
-          onRate={onRate}
-          onRegenerate={onRegenerate}
-          result={result}
-        />
-      );
+
 
     default:
       return (

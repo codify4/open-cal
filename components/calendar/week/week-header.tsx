@@ -2,6 +2,7 @@ import clsx from 'clsx';
 import { motion } from 'framer-motion';
 import { EventCard } from '@/components/event/cards/event-card';
 import type { Event } from '@/lib/store/calendar-store';
+import { cn } from '@/lib/utils';
 
 interface WeekHeaderProps {
   daysOfWeek: Date[];
@@ -41,7 +42,7 @@ export const WeekHeader = ({
             <div className="flex flex-grow items-center justify-center border-border border-r bg-card py-2">
               <div className="text-center">
                 <div
-                  className={clsx(
+                  className={cn(
                     'font-medium text-muted-foreground text-xs',
                     new Date().getDate() === day.getDate() &&
                       new Date().getMonth() === currentDate.getMonth() &&

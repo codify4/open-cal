@@ -1,6 +1,9 @@
 'use client';
 
+import { useState, useEffect } from 'react';
+
 import {
+    AlertTriangle,
   Cake,
   Calendar,
   Check,
@@ -31,6 +34,40 @@ export function CalendarEventPreview({
 }: CalendarEventPreviewProps) {
   const { saveEvent, openEventSidebarForEdit, setCurrentDate } =
     useCalendarStore((state) => state);
+  
+  const [hasConflicts, setHasConflicts] = useState(false);
+  const [conflictingEvents, setConflictingEvents] = useState<any[]>([]);
+
+  // Check for conflicts when component mounts
+  useEffect(() => {
+    const checkConflicts = async () => {
+      try {
+        const response = await fetch('/api/calendar/check-conflicts', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            startDate: ensureDate(event.startDate).toISOString(),
+            endDate: ensureDate(event.endDate).toISOString(),
+            excludeEventId: event.id,
+          }),
+        });
+
+        if (response.ok) {
+          const result = await response.json();
+          if (result.hasConflicts) {
+            setHasConflicts(true);
+            setConflictingEvents(result.events);
+          }
+        }
+      } catch (error) {
+        console.error('Error checking conflicts:', error);
+      }
+    };
+
+    checkConflicts();
+  }, [event.startDate, event.endDate, event.id]);
 
   const formatTime = (date: Date | string) => {
     const dateObj = typeof date === 'string' ? new Date(date) : date;
@@ -66,6 +103,8 @@ export function CalendarEventPreview({
       startDate: ensureDate(event.startDate),
       endDate: ensureDate(event.endDate),
     };
+
+    // Save the event (conflicts are already shown in the UI above)
     saveEvent(eventWithProperDates);
     setCurrentDate(eventWithProperDates.startDate);
     onAccept();
@@ -78,6 +117,7 @@ export function CalendarEventPreview({
       startDate: ensureDate(event.startDate),
       endDate: ensureDate(event.endDate),
     };
+
     openEventSidebarForEdit(eventWithProperDates);
     onEdit();
   };
@@ -89,13 +129,26 @@ export function CalendarEventPreview({
   const timeDisplay = `${formatTime(event.startDate)}–${formatTime(event.endDate)}`;
 
   return (
-    <div
-      className={cn(
-        'group relative rounded-sm border p-2 text-xs transition-all duration-200 hover:shadow-md',
-        getColorClasses(event.color),
-        event.isAllDay && 'border-l-4'
+    <div className="space-y-2">
+      {hasConflicts && (
+        <div className="rounded-md bg-orange-50 border border-orange-200 p-3 text-sm text-orange-800 dark:bg-orange-950 dark:border-orange-800 dark:text-orange-200">
+          <div className="flex items-center gap-2 mb-2">
+            <AlertTriangle className="h-4 w-4 text-orange-600" />
+            <span className="font-medium">Scheduling Conflict Detected</span>
+          </div>
+          <p className="text-xs opacity-80">
+            This event conflicts with {conflictingEvents.length} existing event(s). You can edit it to resolve the conflict.
+          </p>
+        </div>
       )}
-    >
+      
+      <div
+        className={cn(
+          'group relative rounded-sm border p-2 text-xs transition-all duration-200 hover:shadow-md',
+          getColorClasses(event.color),
+          event.isAllDay && 'border-l-4'
+        )}
+      >
       <div className="-right-0 pointer-events-none absolute top-0 size-12 overflow-hidden">
         <GraphicDoodle color={event.color} size="md" />
       </div>
@@ -141,5 +194,6 @@ export function CalendarEventPreview({
         </Button>
       </div>
     </div>
+  </div>
   );
 }

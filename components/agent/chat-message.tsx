@@ -27,6 +27,7 @@ import {
   useCalendarStore,
 } from '@/providers/calendar-store-provider';
 
+
 const chatBubbleVariants = cva(
   'group/message relative break-words border p-2 text-sm shadow-sm sm:max-w-[75%]',
   {
@@ -151,7 +152,7 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
 
   useEffect(() => {
     if (parts && parts.length > 0) {
-      parts.forEach((part) => {
+      parts.forEach(async (part) => {
         if (part.type === 'tool-invocation') {
           const toolInvocation = part.toolInvocation;
           const calendarToolNames = [

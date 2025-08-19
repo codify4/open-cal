@@ -65,7 +65,7 @@ export const useGoogleCalendarRefresh = () => {
         if (!response.ok) {
           if (response.status === 404) {
             console.log(
-              `Calendar ${calendarId} has no events or doesn't exist, skipping`
+              `Calendar has no events or doesn't exist, skipping`
             );
             continue;
           }
