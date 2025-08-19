@@ -315,36 +315,37 @@ export const getCalendarSummaryTool = tool({
 });
 
 export const checkConflictsTool = tool({
-  description:
-    'Get events for a specific time period to check for scheduling conflicts',
-  inputSchema: z.object({
-    startDate: z.string().describe('Start date and time in ISO format'),
-    endDate: z.string().describe('End date and time in ISO format'),
-    excludeEventId: z
-      .string()
-      .optional()
-      .describe('Event ID to exclude from check (for updates)'),
-  }),
-  execute: async (params) => {
-    try {
-      const startDate = new Date(params.startDate);
-      const endDate = new Date(params.endDate);
-
-      return {
-        success: true,
-        events: [],
-        action: 'check_conflicts',
-        message: `No conflicts found for the specified time period`,
-        note: 'This tool should be used with the calendar store to check for real conflicts',
-      };
-    } catch (error) {
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
-      };
-    }
-  },
-});
+    description:
+      'Get events for a specific time period to check for scheduling conflicts',
+    inputSchema: z.object({
+      startDate: z.string().describe('Start date and time in ISO format'),
+      endDate: z.string().describe('End date and time in ISO format'),
+      excludeEventId: z
+        .string()
+        .optional()
+        .describe('Event ID to exclude from check (for updates)'),
+    }),
+    execute: async (params) => {
+      try {
+        const startDate = new Date(params.startDate);
+        const endDate = new Date(params.endDate);
+  
+        return {
+          success: true,
+          hasConflicts: false,
+          events: [],
+          action: 'check_conflicts',
+          message: 'No conflicts found for the specified time period',
+          note: 'This tool will be handled by the tool handlers to access real calendar data',
+        };
+      } catch (error) {
+        return {
+          success: false,
+          error: error instanceof Error ? error.message : 'Unknown error',
+        };
+      }
+    },
+  });
 
 export const calendarTools = {
   create_event: createEventTool,

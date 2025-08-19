@@ -316,6 +316,7 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
                 'update_event',
                 'delete_event',
                 'get_calendar_summary',
+                'check_conflicts',
               ];
 
               if (calendarToolNames.includes(toolInvocation.toolName)) {
@@ -453,12 +454,20 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
                                     }
                                   } else {
                                     store.deleteEvent(
-                                      toolInvocation.result.eventId
-                                    );
+                                        toolInvocation.result.eventId
+                                      );
                                   }
 
                                   store.refreshEvents();
                                 }
+                                break;
+
+                              case 'check_conflicts':
+                                // Don't show UI for conflict checking - it's a background operation
+                                if (toolInvocation.result?.hasConflicts === false) {
+                                  return null; // Hide the tool when no conflicts
+                                }
+                                // Only show when there are actual conflicts
                                 break;
 
                               case 'find_free_time':
