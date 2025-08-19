@@ -37,6 +37,7 @@ interface ChatPropsBase {
   onRegenerate?: (messageId: string) => void;
   isRegenerating?: boolean;
   onCopy?: (messageId: string) => void;
+  mode: 'popup' | 'sidebar' | 'fullscreen';
 }
 
 interface ChatPropsWithoutSuggestions extends ChatPropsBase {
@@ -68,6 +69,7 @@ export function Chat({
   onRegenerate,
   isRegenerating,
   onCopy,
+  mode,
 }: ChatProps) {
   const lastMessage = messages.at(-1);
   const isEmpty = messages.length === 0;
@@ -95,7 +97,7 @@ export function Chat({
     <ChatContainer className={className}>
       {isEmpty && append && suggestions ? (
         <div className="flex flex-1 flex-col items-center justify-center p-8">
-          <PromptSuggestions append={append} suggestions={suggestions} />
+          <PromptSuggestions append={append} suggestions={suggestions} mode={mode} />
         </div>
       ) : null}
 

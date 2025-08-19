@@ -5,6 +5,8 @@ import { motion } from 'framer-motion';
 import { Ban, ChevronRight, Code2, Loader2, Terminal } from 'lucide-react';
 import type React from 'react';
 import { useMemo, useState, useEffect, useContext } from 'react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import {
   Collapsible,
   CollapsibleContent,
@@ -187,7 +189,9 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
           ) : null}
 
           <div className={cn(chatBubbleVariants({ isUser, animation }))}>
-            {content}
+            <div className="prose prose-sm max-w-none dark:prose-invert">
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>
+            </div>
           </div>
 
           {showTimeStamp && createdAt ? (
@@ -237,9 +241,9 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
                 >
                   <div className={cn(chatBubbleVariants({ isUser, animation }), 'relative')}>
                     <div className="flex items-start gap-3">
-                      <div className="flex-1 min-w-0">
-                        {part.text}
-                      </div>
+                        <div className="flex-1 min-w-0 prose prose-sm max-w-none dark:prose-invert">
+                          <ReactMarkdown remarkPlugins={[remarkGfm]}>{part.text}</ReactMarkdown>
+                        </div>
                     </div>
                     
                   </div>
@@ -508,11 +512,11 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
 
       <div className="flex flex-col items-start flex-1">
         <div className={cn(chatBubbleVariants({ isUser, animation }), 'relative')}>
-          <div className="flex items-start gap-3">
-            <div className="flex-1 min-w-0">
-              {content}
+                      <div className="flex items-start gap-3">
+              <div className="flex-1 min-w-0 prose prose-sm max-w-none dark:prose-invert">
+                <ReactMarkdown remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>
+              </div>
             </div>
-          </div>
           
         </div>
 

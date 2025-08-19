@@ -6,9 +6,11 @@ import { Button } from '@/components/ui/button';
 import { useCalendarStore } from '@/providers/calendar-store-provider';
 import MobileDialog from '@/components/wrappers/mobile-dialog';
 import { useUser } from '@clerk/nextjs';
+import { useTheme } from 'next-themes';
 
 function CalendarPage() {
   const { user, isLoaded } = useUser();
+  const { theme } = useTheme();
   const { isChatSidebarOpen, toggleChatSidebar } = useCalendarStore(
     (state) => state
   );
@@ -31,11 +33,11 @@ function CalendarPage() {
 
       {!isChatSidebarOpen && (
         <Button
-          className="fixed right-4 bottom-4 z-50 h-12 w-12 rounded-full bg-black text-white shadow-lg hover:bg-black"
+          className="fixed right-4 bottom-4 z-50 h-10 w-10 rounded-full bg-black text-white border dark:border-none dark:shadow-lg hover:bg-black"
           onClick={toggleChatSidebar}
           size="icon"
         >
-          <Image alt="Caly" height={40} src="/caly.svg" width={40} className='rounded-full' />
+          <Image alt="Caly" height={40} src={theme === 'dark' ? "/caly.svg" : "/caly-light.svg"} width={40} className='rounded-full' />
         </Button>
       )}
     </div>

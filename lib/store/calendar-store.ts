@@ -51,6 +51,7 @@ export interface CalendarState {
   events: Event[];
   isChatSidebarOpen: boolean;
   isChatFullscreen: boolean;
+  chatMode: 'sidebar' | 'popup' | 'fullscreen';
 
   isEventSidebarOpen: boolean;
   selectedEvent: Event | null;
@@ -103,6 +104,7 @@ export interface CalendarActions {
   clearOptimisticOverride: (eventId: string) => void;
 
   toggleChatSidebar: () => void;
+  setChatMode: (mode: 'sidebar' | 'popup' | 'fullscreen') => void;
   setChatFullscreen: (fullscreen: boolean) => void;
 
   openEventSidebarForNewEvent: (startDate: Date) => void;
@@ -153,8 +155,9 @@ export type CalendarStore = CalendarState & CalendarActions;
 
 export const defaultInitState: CalendarState = {
   // Chat sidebar state
-  isChatSidebarOpen: false,
-  isChatFullscreen: false,
+          isChatSidebarOpen: true,
+        isChatFullscreen: false,
+        chatMode: 'popup',
 
   // Event sidebar state
   isEventSidebarOpen: false,
@@ -353,6 +356,12 @@ export const createCalendarStore = (
         toggleChatSidebar: () =>
           set((state) => ({
             isChatSidebarOpen: !state.isChatSidebarOpen,
+          })),
+        setChatMode: (mode: 'sidebar' | 'popup' | 'fullscreen') =>
+          set((state) => ({
+            chatMode: mode,
+            isChatSidebarOpen: mode !== 'fullscreen',
+            isChatFullscreen: mode === 'fullscreen',
           })),
         setChatFullscreen: (fullscreen: boolean) =>
           set({ isChatFullscreen: fullscreen }),

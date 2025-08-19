@@ -22,7 +22,6 @@ import { useCalendarStore } from '@/providers/calendar-store-provider';
 import { useOptimisticEventSync } from '@/hooks/use-optimistic-event-sync';
 import AddEventSidebar from '../event/add-event-sidebar';
 import { useUser } from '@clerk/nextjs';
-import UpgradeDialog from '../wrappers/upgrade-dialog';
 
 
 export function CalendarLayoutClient({
@@ -35,18 +34,15 @@ export function CalendarLayoutClient({
   const {
     isChatSidebarOpen,
     isEventSidebarOpen,
-    isChatFullscreen,
+    chatMode,
     toggleChatSidebar,
-    setChatFullscreen,
+    setChatMode,
     closeEventSidebar,
     setCurrentDate,
     currentDate,
     events,
     googleEvents,
     updateEventTime,
-    isUpgradeDialogOpen,
-    openUpgradeDialog,
-    closeUpgradeDialog,
   } = useCalendarStore((state) => state);
   const { optimisticUpdate, commit } = useOptimisticEventSync();
 
@@ -55,7 +51,11 @@ export function CalendarLayoutClient({
   };
 
   const toggleFullscreen = () => {
-    setChatFullscreen(!isChatFullscreen);
+    if (chatMode === 'fullscreen') {
+      setChatMode('popup');
+    } else {
+      setChatMode('fullscreen');
+    }
   };
 
   const handleDragStart = (event: DragStartEvent) => {
@@ -148,7 +148,7 @@ export function CalendarLayoutClient({
               </div>
             </SidebarInset>
           </ResizablePanel>
-          {isChatSidebarOpen && !isChatFullscreen && (
+          {isChatSidebarOpen && chatMode === 'sidebar' && (
             <>
               <ResizableHandle
                 className="opacity-0 transition-opacity duration-300 hover:opacity-100"
@@ -162,14 +162,26 @@ export function CalendarLayoutClient({
               >
                 <div className="h-full rounded-xl shadow-sm">
                   <ChatSidebar
-                    isFullscreen={false}
+                    mode={chatMode}
                     onToggleFullscreen={toggleFullscreen}
                     onToggleSidebar={closeChatSidebar}
+                    onTogglePopup={() => setChatMode('popup')}
                     className="bg-white dark:bg-neutral-900"
                   />
                 </div>
               </ResizablePanel>
             </>
+          )}
+          {isChatSidebarOpen && chatMode === 'popup' && (
+            <div className="fixed bottom-4 right-4 z-50 w-96 h-[600px] bg-white dark:bg-neutral-900 border rounded-xl shadow-lg">
+              <ChatSidebar
+                mode="popup"
+                onToggleFullscreen={toggleFullscreen}
+                onToggleSidebar={closeChatSidebar}
+                onTogglePopup={() => setChatMode('sidebar')}
+                className="h-full"
+              />
+            </div>
           )}
           {isEventSidebarOpen && (
             <>
@@ -190,12 +202,13 @@ export function CalendarLayoutClient({
             </>
           )}
         </ResizablePanelGroup>
-        {isChatFullscreen && (
+        {chatMode === 'fullscreen' && (
           <div className="fixed inset-0 z-50 bg-white dark:bg-neutral-900 p-5">
             <ChatSidebar
-              isFullscreen={true}
+              mode="fullscreen"
               onToggleFullscreen={toggleFullscreen}
               onToggleSidebar={closeChatSidebar}
+              onTogglePopup={() => setChatMode('sidebar')}
             />
           </div>
         )}
