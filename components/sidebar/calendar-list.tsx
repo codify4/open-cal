@@ -2,7 +2,7 @@
 
 import { useSession, useSessionList } from '@clerk/nextjs';
 import { ChevronDown, ChevronRight } from 'lucide-react';
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useCallback } from 'react';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
   Collapsible,
@@ -14,7 +14,6 @@ import {
   SidebarMenu,
   SidebarMenuItem,
 } from '@/components/ui/sidebar';
-import { getCalendarColor } from '@/lib/calendar-utils/calendar-color-utils';
 import type { ColorOption, GoogleCalendar } from '@/types/calendar';
 import { CalendarDropdown } from './calendar-dropdown';
 import { CreateCalendarDropdown } from './create-calendar-dropdown';
@@ -84,7 +83,7 @@ export function CalendarList({
     });
 
     return sortedGroups;
-  }, [calendars, currentSession]);
+  }, [calendars, currentSession?.user?.primaryEmailAddress?.emailAddress]);
 
   React.useEffect(() => {
     const currentEmail =
@@ -92,9 +91,9 @@ export function CalendarList({
     if (currentEmail) {
       setExpandedAccounts((prev) => new Set(prev).add(currentEmail));
     }
-  }, [currentSession]);
+  }, [currentSession?.user?.primaryEmailAddress?.emailAddress]);
 
-  const toggleAccountExpansion = (accountEmail: string) => {
+  const toggleAccountExpansion = useCallback((accountEmail: string) => {
     setExpandedAccounts((prev) => {
       const newSet = new Set(prev);
       if (newSet.has(accountEmail)) {
@@ -104,10 +103,9 @@ export function CalendarList({
       }
       return newSet;
     });
-  };
+  }, []);
 
-  const handleCalendarToggle = React.useCallback((calendarId: string) => {
-    console.log('Checkbox changed:', calendarId);
+  const handleCalendarToggle = useCallback((calendarId: string) => {
     onToggle(calendarId);
   }, [onToggle]);
 

@@ -10,14 +10,15 @@ import {
 import { useCalendarStore } from '@/providers/calendar-store-provider';
 import type { ColorOption, GoogleCalendar } from '@/types/calendar';
 
-// Global flag to prevent multiple instances from fetching calendars
 let isGlobalFetching = false;
 
 export function useCalendarManagement(
   onCalendarsFetched?: (calendars: GoogleCalendar[]) => void
 ) {
   const { userId } = useAuth();
-  const { sessions } = useSessionList();
+  const { sessions: rawSessions } = useSessionList();
+  const sessions = React.useMemo(() => rawSessions, [rawSessions?.map(s => s.id).join(',')]);
+
   const [fetchedCalendars, setFetchedCalendars] = React.useState<
     GoogleCalendar[]
   >([]);
@@ -32,27 +33,16 @@ export function useCalendarManagement(
   const { setVisibleCalendarIds, setSessionCalendars, visibleCalendarIds } =
     useCalendarStore((state) => state);
 
+  const onCalendarsFetchedRef = React.useRef(onCalendarsFetched);
   React.useEffect(() => {
-    const fetchToken = async () => {
-      if (userId) {
-        const token = await getAccessToken();
-        setAccessToken(token);
-      }
-    };
-
-    fetchToken();
-  }, [userId]);
+    onCalendarsFetchedRef.current = onCalendarsFetched;
+  }, [onCalendarsFetched]);
 
   React.useEffect(() => {
-    // Only initialize visible calendars once when we have data
-    if (visibleCalendarIds.length > 0 && visibleCalendars.size === 0) {
-      setVisibleCalendars(new Set(visibleCalendarIds));
-    } else if (fetchedCalendars.length > 0 && visibleCalendars.size === 0) {
-      // Fallback: if no visible calendars set but we have fetched calendars
-      const calendarIds = fetchedCalendars.map(cal => cal.id);
-      setVisibleCalendars(new Set(calendarIds));
+    if (userId) {
+      getAccessToken().then(setAccessToken);
     }
-  }, [visibleCalendarIds, fetchedCalendars, visibleCalendars.size]);
+  }, [userId]);
 
   const fetchCalendarsForSession = React.useCallback(
     async (session: any, sessionAccessToken: string) => {
@@ -83,15 +73,13 @@ export function useCalendarManagement(
           account: session.user?.primaryEmailAddress?.emailAddress || '',
         }));
 
-        const sortedCalendars = calendars.sort((a, b) => {
+        return calendars.sort((a, b) => {
           if (a.primary && !b.primary) return -1;
           if (!a.primary && b.primary) return 1;
           return (a.summary || a.name || '').localeCompare(
             b.summary || b.name || ''
           );
         });
-
-        return sortedCalendars;
       } catch (error) {
         console.error(
           `Failed to fetch calendars for session ${session.id}:`,
@@ -104,19 +92,7 @@ export function useCalendarManagement(
   );
 
   const fetchCalendars = React.useCallback(async () => {
-    if (!userId) {
-      return;
-    }
-
-    // Prevent duplicate calls from multiple instances
-    if (isGlobalFetching) {
-      console.log('Skipping fetchCalendars - global fetch in progress');
-      return;
-    }
-
-    // Prevent duplicate calls from same instance
-    if (hasFetchedCalendarsRef.current) {
-      console.log('Skipping fetchCalendars - already fetched');
+    if (!userId || isGlobalFetching || hasFetchedCalendarsRef.current) {
       return;
     }
 
@@ -128,21 +104,10 @@ export function useCalendarManagement(
       const allCalendars: GoogleCalendar[] = [];
 
       if (sessions && sessions.length > 0) {
-        console.log(
-          'All sessions:',
-          sessions.map((s) => ({
-            id: s.id,
-            email: s.user?.primaryEmailAddress?.emailAddress,
-          }))
-        );
-
         for (const session of sessions) {
-          try {
-            if (!session.user?.primaryEmailAddress?.emailAddress) {
-              console.warn(`Session ${session.id} has no user email, skipping`);
-              continue;
-            }
+          if (!session.user?.primaryEmailAddress?.emailAddress) continue;
 
+          try {
             const sessionToken = await getAccessTokenForSession(session.id);
             if (sessionToken) {
               const sessionCalendars = await fetchCalendarsForSession(
@@ -151,18 +116,12 @@ export function useCalendarManagement(
               );
 
               sessionCalendars.forEach((calendar) => {
-                if (
-                  !allCalendars.some((existing) => existing.id === calendar.id)
-                ) {
+                if (!allCalendars.some((existing) => existing.id === calendar.id)) {
                   allCalendars.push(calendar);
                 }
               });
 
               setSessionCalendars(session.id, sessionCalendars);
-            } else {
-              console.warn(
-                `No access token available for session ${session.id}`
-              );
             }
           } catch (error) {
             console.error(
@@ -176,14 +135,13 @@ export function useCalendarManagement(
       if (allCalendars.length > 0) {
         setFetchedCalendars(allCalendars);
 
-        const calendarIds = allCalendars.map((cal) => cal.id);        
-        // Only set visible calendars if they haven't been set yet
         if (visibleCalendars.size === 0) {
+          const calendarIds = allCalendars.map((cal) => cal.id);
           setVisibleCalendarIds(calendarIds);
           setVisibleCalendars(new Set(calendarIds));
         }
 
-        onCalendarsFetched?.(allCalendars);
+        onCalendarsFetchedRef.current?.(allCalendars);
       } else {
         setFetchedCalendars([]);
         setVisibleCalendarIds([]);
@@ -191,62 +149,53 @@ export function useCalendarManagement(
       }
 
       if (accessToken) {
-        const googleColors = await fetch(
-          'https://www.googleapis.com/calendar/v3/colors',
-          {
-            headers: {
-              Authorization: `Bearer ${accessToken}`,
-              'Content-Type': 'application/json',
-            },
-          }
-        );
+        try {
+          const googleColors = await fetch(
+            'https://www.googleapis.com/calendar/v3/colors',
+            {
+              headers: {
+                Authorization: `Bearer ${accessToken}`,
+                'Content-Type': 'application/json',
+              },
+            }
+          );
 
-        if (googleColors.ok) {
-          const colorData = await googleColors.json();
-          const colors: ColorOption[] = Object.entries(
-            colorData.calendar || {}
-          ).map(([id, color]: [string, any]) => ({
-            id,
-            background: color.background,
-          }));
-          setColorOptions(colors);
+          if (googleColors.ok) {
+            const colorData = await googleColors.json();
+            const colors: ColorOption[] = Object.entries(
+              colorData.calendar || {}
+            ).map(([id, color]: [string, any]) => ({
+              id,
+              background: color.background,
+            }));
+            setColorOptions(colors);
+          }
+        } catch (error) {
+          console.error('Failed to fetch colors:', error);
         }
       }
     } catch (error) {
       toast.error('Failed to fetch calendars');
-      // Reset the ref on error so we can retry
       hasFetchedCalendarsRef.current = false;
     } finally {
       setIsLoadingCalendars(false);
-      isGlobalFetching = false; // Reset global flag after fetch
+      isGlobalFetching = false;
     }
-  }, [
-    userId,
-    accessToken,
-    sessions,
-    fetchCalendarsForSession,
-    setSessionCalendars,
-    setVisibleCalendarIds,
-    onCalendarsFetched,
-  ]);
+  }, [userId, accessToken, sessions, fetchCalendarsForSession, setSessionCalendars, setVisibleCalendarIds]);
 
-  // Only fetch calendars once when sessions are available
   React.useEffect(() => {
     if (accessToken && userId && sessions && sessions.length > 0 && !hasFetchedCalendarsRef.current) {
       fetchCalendars();
     }
   }, [accessToken, userId, sessions, fetchCalendars]);
 
-  // Reset fetch state when sessions change
   React.useEffect(() => {
     hasFetchedCalendarsRef.current = false;
     setFetchedCalendars([]);
     setVisibleCalendars(new Set());
-    // Reset global flag when sessions change
     isGlobalFetching = false;
   }, [sessions]);
 
-  // Function to manually reset fetch state (useful for testing or manual refresh)
   const resetFetchState = React.useCallback(() => {
     hasFetchedCalendarsRef.current = false;
     isGlobalFetching = false;
@@ -289,11 +238,10 @@ export function useCalendarManagement(
         }
 
         toast.success('Calendar color updated');
-        fetchCalendars();
+        await fetchCalendars();
       } catch (error) {
         console.error('Failed to update calendar color:', error);
-
-        fetchCalendars();
+        await fetchCalendars();
 
         if (error instanceof Error && error.message.includes('403')) {
           toast.error('Cannot modify this calendar - insufficient permissions');
@@ -310,6 +258,7 @@ export function useCalendarManagement(
   const handleDeleteCalendar = React.useCallback(
     async (calendarId: string) => {
       if (!(userId && accessToken)) return;
+      
       try {
         const response = await fetch(
           `https://www.googleapis.com/calendar/v3/calendars/${calendarId}`,
@@ -338,34 +287,24 @@ export function useCalendarManagement(
           (id) => id !== calendarId
         );
         setVisibleCalendarIds(newVisibleIds);
-        fetchCalendars();
+        await fetchCalendars();
       } catch (error) {
         console.error('Failed to remove calendar:', error);
         toast.error('Failed to remove calendar');
       }
     },
-    [
-      userId,
-      accessToken,
-      setVisibleCalendarIds,
-      visibleCalendarIds,
-      fetchCalendars,
-    ]
+    [userId, accessToken, setVisibleCalendarIds, visibleCalendarIds, fetchCalendars]
   );
 
   const handleCalendarToggle = React.useCallback(
     (calendarId: string) => {
-      console.log('Toggling calendar:', calendarId);
       setVisibleCalendars((prev) => {
         const newSet = new Set(prev);
         if (newSet.has(calendarId)) {
           newSet.delete(calendarId);
-          console.log('Removing calendar:', calendarId);
         } else {
           newSet.add(calendarId);
-          console.log('Adding calendar:', calendarId);
         }
-        console.log('New visible calendars set:', Array.from(newSet));
         return newSet;
       });
     },
@@ -405,7 +344,7 @@ export function useCalendarManagement(
 
       const newCalendar = await response.json();
       toast.success('Calendar created successfully');
-      fetchCalendars();
+      await fetchCalendars();
       return newCalendar;
     },
     [userId, accessToken, fetchCalendars]
@@ -463,7 +402,7 @@ export function useCalendarManagement(
 
       const newCalendar = await response.json();
       toast.success('Calendar created successfully');
-      fetchCalendars();
+      await fetchCalendars();
       return newCalendar;
     },
     [userId, accessToken, sessions, fetchCalendars]

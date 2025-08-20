@@ -1,22 +1,7 @@
 'use client';
 
-import {
-  SignedIn,
-  SignedOut,
-  SignInButton,
-  useSession,
-  useSessionList,
-  useUser,
-} from '@clerk/nextjs';
-import { useQuery } from 'convex/react';
-import {
-  ArrowLeftRight,
-  ExternalLink,
-  Plus,
-  Unplug,
-  User,
-  Zap,
-} from 'lucide-react';
+import { SignedIn, SignedOut, SignInButton, useSession, useSessionList } from '@clerk/nextjs';
+import { ArrowLeftRight, Unplug, User, Zap } from 'lucide-react';
 import Image from 'next/image';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
@@ -27,31 +12,10 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { api } from '@/convex/_generated/api';
-import type { CalendarEntry, EmailAccount } from '@/types/calendar';
 
-interface IntegrationsSectionProps {
-  accounts: EmailAccount[];
-  calendars: CalendarEntry[];
-  onAddAccount: () => void;
-}
-
-export function IntegrationsSection({
-  accounts,
-  calendars,
-  onAddAccount,
-}: IntegrationsSectionProps) {
-  const { user: clerkUser } = useUser();
+export function IntegrationsSection() {
   const { sessions, setActive } = useSessionList();
   const { session: currentSession } = useSession();
-  const current = useQuery(api.auth.getCurrentUser, {
-    clerkUserId: clerkUser?.id,
-  });
-
-  const handleAddAccount = () => {
-    if (!current?.isPro && accounts.length >= 1) return;
-    onAddAccount();
-  };
 
   const handleSwitchAccount = async (sessionId: string) => {
     if (!setActive) return;

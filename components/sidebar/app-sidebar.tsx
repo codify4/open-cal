@@ -93,19 +93,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     }
   }, [user?.primaryEmailAddress?.emailAddress]);
 
-  const handleAddAccount = async () => {
-    // TODO: Implement Google OAuth with Clerk
-    toast('Google OAuth integration coming soon');
-  };
-
-  const userForNav = user
-    ? {
-        name: user.fullName || user.primaryEmailAddress?.emailAddress || '',
-        email: user.primaryEmailAddress?.emailAddress || '',
-        avatar: user.imageUrl || '/caly.svg',
-      }
-    : undefined;
-
   return (
     <Sidebar
       className="overflow-hidden border-none bg-neutral-100 dark:bg-neutral-950"
@@ -127,7 +114,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           <NavUser
             accounts={emailAccounts}
             calendars={calendarList}
-            onAddAccount={handleAddAccount}
             user={{
               name:
                 user.fullName || user.primaryEmailAddress?.emailAddress || '',

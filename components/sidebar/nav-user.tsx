@@ -51,7 +51,6 @@ export function NavUser({
   user,
   accounts = [],
   calendars = [],
-  onAddAccount = () => {},
 }: {
   user: {
     name: string;
@@ -60,7 +59,6 @@ export function NavUser({
   };
   accounts?: EmailAccount[];
   calendars?: CalendarEntry[];
-  onAddAccount?: () => void;
 }) {
   const [activeSection, setActiveSection] = useState('profile');
 
@@ -69,13 +67,7 @@ export function NavUser({
       case 'profile':
         return <ProfileSection user={user} />;
       case 'integrations':
-        return (
-          <IntegrationsSection
-            accounts={accounts}
-            calendars={calendars}
-            onAddAccount={onAddAccount}
-          />
-        );
+        return <IntegrationsSection />;
       case 'appearance':
         return <AppearanceSection />;
       case 'billing':
