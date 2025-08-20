@@ -5,12 +5,11 @@ import { SignedIn, SignedOut, SignInButton, useUser } from '@clerk/nextjs';
 import { useQuery } from 'convex/react';
 import {
   Maximize2,
-  MessageCircleDashed,
   MessageSquare,
   Minimize2,
-  PanelLeft,
   PanelRight,
   Plus,
+  Smartphone,
   X,
 } from 'lucide-react';
 import type * as React from 'react';
@@ -211,7 +210,7 @@ export function ChatSidebar({
                 variant="ghost"
               >
                 {mode === 'sidebar' ? (
-                  <MessageCircleDashed className="h-4 w-4" />
+                  <Smartphone className="h-4 w-4" />
                 ) : (
                   <PanelRight className="h-4 w-4" />
                 )}

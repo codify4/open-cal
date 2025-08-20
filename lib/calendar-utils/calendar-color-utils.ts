@@ -202,72 +202,103 @@ export const getCardColor = (color: string, focused = false) => {
     // Primary colors
     blue: focused
       ? 'bg-blue-500 border-blue-600 text-white dark:bg-blue-600 dark:text-blue-50'
-      : 'bg-blue-500/20 border-blue-500/30 text-blue-700 dark:bg-blue-500/40 dark:text-blue-100',
+      : 'bg-blue-200 border-blue-500/30 text-blue-700 dark:bg-blue-500/50 dark:text-blue-100',
     green: focused
       ? 'bg-green-500 border-green-600 text-white dark:bg-green-600 dark:text-green-50'
-      : 'bg-green-500/20 border-green-500/30 text-green-700 dark:bg-green-500/40 dark:text-green-100',
+      : 'bg-green-200 border-green-500/30 text-green-700 dark:bg-green-500/50 dark:text-green-100',
     red: focused
       ? 'bg-red-500 border-red-600 text-white dark:bg-red-600 dark:text-red-50'
-      : 'bg-red-500/20 border-red-500/30 text-red-700 dark:bg-red-500/40 dark:text-red-100',
+      : 'bg-red-200 border-red-500/30 text-red-700 dark:bg-red-500/50 dark:text-red-100',
     yellow: focused
       ? 'bg-yellow-500 border-yellow-600 text-white dark:bg-yellow-600 dark:text-yellow-50'
-      : 'bg-yellow-500/20 border-yellow-500/30 text-yellow-700 dark:bg-yellow-500/40 dark:text-yellow-100',
+      : 'bg-yellow-200 border-yellow-500/30 text-yellow-700 dark:bg-yellow-500/50 dark:text-yellow-100',
     purple: focused
       ? 'bg-purple-500 border-purple-600 text-white dark:bg-purple-600 dark:text-purple-50'
-      : 'bg-purple-500/20 border-purple-500/30 text-purple-700 dark:bg-purple-500/40 dark:text-purple-100',
+      : 'bg-purple-200 border-purple-500/30 text-purple-700 dark:bg-purple-500/50 dark:text-purple-100',
     orange: focused
       ? 'bg-orange-500 border-orange-600 text-white dark:bg-orange-600 dark:text-orange-50'
-      : 'bg-orange-500/20 border-orange-500/30 text-orange-700 dark:bg-orange-500/40 dark:text-orange-100',
+      : 'bg-orange-200 border-orange-500/30 text-orange-700 dark:bg-orange-500/50 dark:text-orange-100',
     pink: focused
       ? 'bg-pink-500 border-pink-600 text-white dark:bg-pink-600 dark:text-pink-50'
-      : 'bg-pink-500/20 border-pink-500/30 text-pink-700 dark:bg-pink-500/40 dark:text-pink-100',
+      : 'bg-pink-200 border-pink-500/30 text-pink-700 dark:bg-pink-500/50 dark:text-pink-100',
     gray: focused
       ? 'bg-gray-500 border-gray-600 text-white dark:bg-gray-600 dark:text-gray-50'
-      : 'bg-gray-500/20 border-gray-500/30 text-gray-700 dark:bg-gray-500/40 dark:text-gray-100',
+      : 'bg-gray-200 border-gray-500/30 text-gray-700 dark:bg-gray-500/50 dark:text-gray-100',
 
     // Extended colors
     indigo: focused
       ? 'bg-indigo-500 border-indigo-600 text-white dark:bg-indigo-600 dark:text-indigo-50'
-      : 'bg-indigo-500/20 border-indigo-500/30 text-indigo-700 dark:bg-indigo-500/40 dark:text-indigo-100',
+      : 'bg-indigo-200 border-indigo-500/30 text-indigo-700 dark:bg-indigo-500/50 dark:text-indigo-100',
     teal: focused
       ? 'bg-teal-500 border-teal-600 text-white dark:bg-teal-600 dark:text-teal-50'
-      : 'bg-teal-500/20 border-teal-500/30 text-teal-700 dark:bg-teal-500/40 dark:text-teal-100',
+      : 'bg-teal-200 border-teal-500/30 text-teal-700 dark:bg-teal-500/50 dark:text-teal-100',
     cyan: focused
       ? 'bg-cyan-500 border-cyan-600 text-white dark:bg-cyan-600 dark:text-cyan-50'
-      : 'bg-cyan-500/20 border-cyan-500/30 text-cyan-700 dark:bg-cyan-500/40 dark:text-cyan-100',
+      : 'bg-cyan-200 border-cyan-500/30 text-cyan-700 dark:bg-cyan-500/50 dark:text-cyan-100',
     lime: focused
       ? 'bg-lime-500 border-lime-600 text-white dark:bg-lime-600 dark:text-lime-50'
-      : 'bg-lime-500/20 border-lime-500/30 text-lime-700 dark:bg-lime-500/40 dark:text-lime-100',
+      : 'bg-lime-200 border-lime-500/30 text-lime-700 dark:bg-lime-500/50 dark:text-lime-100',
     amber: focused
       ? 'bg-amber-500 border-amber-600 text-white dark:bg-amber-600 dark:text-amber-50'
-      : 'bg-amber-500/20 border-amber-500/30 text-amber-700 dark:bg-amber-500/40 dark:text-amber-100',
+      : 'bg-amber-200 border-amber-500/30 text-amber-700 dark:bg-amber-500/50 dark:text-amber-100',
     emerald: focused
       ? 'bg-emerald-500 border-emerald-600 text-white dark:bg-emerald-600 dark:text-emerald-50'
-      : 'bg-emerald-500/20 border-emerald-500/30 text-emerald-700 dark:bg-emerald-500/40 dark:text-emerald-100',
+      : 'bg-emerald-200 border-emerald-500/30 text-emerald-700 dark:bg-emerald-500/50 dark:text-emerald-100',
     violet: focused
       ? 'bg-violet-500 border-violet-600 text-white dark:bg-violet-600 dark:text-violet-50'
-      : 'bg-violet-500/20 border-violet-500/30 text-violet-700 dark:bg-violet-500/40 dark:text-violet-100',
+      : 'bg-violet-200 border-violet-500/30 text-violet-700 dark:bg-violet-500/50 dark:text-violet-100',
     rose: focused
       ? 'bg-rose-500 border-rose-600 text-white dark:bg-rose-600 dark:text-rose-50'
-      : 'bg-rose-500/20 border-rose-500/30 text-rose-700 dark:bg-rose-500/40 dark:text-rose-100',
+      : 'bg-rose-200 border-rose-500/30 text-rose-700 dark:bg-rose-500/50 dark:text-rose-100',
     slate: focused
       ? 'bg-slate-500 border-slate-600 text-white dark:bg-slate-600 dark:text-slate-50'
-      : 'bg-slate-500/20 border-slate-500/30 text-slate-700 dark:bg-slate-500/40 dark:text-slate-100',
+      : 'bg-slate-200 border-slate-500/30 text-slate-700 dark:bg-slate-500/50 dark:text-slate-100',
     zinc: focused
       ? 'bg-zinc-500 border-zinc-600 text-white dark:bg-zinc-600 dark:text-zinc-50'
-      : 'bg-zinc-500/20 border-zinc-500/30 text-zinc-700 dark:bg-zinc-500/40 dark:text-zinc-100',
+      : 'bg-zinc-200 border-zinc-500/30 text-zinc-700 dark:bg-zinc-500/50 dark:text-zinc-100',
     neutral: focused
       ? 'bg-neutral-500 border-neutral-600 text-white dark:bg-neutral-600 dark:text-neutral-50'
-      : 'bg-neutral-500/20 border-neutral-500/30 text-neutral-700 dark:bg-neutral-500/40 dark:text-neutral-100',
-    stone: focused
-      ? 'bg-stone-500 border-stone-600 text-white dark:bg-stone-600 dark:text-stone-50'
-      : 'bg-stone-500/20 border-stone-500/30 text-stone-700 dark:bg-stone-500/40 dark:text-stone-100',
+      : 'bg-neutral-200 border-neutral-500/30 text-neutral-700 dark:bg-neutral-500/50 dark:text-neutral-100',
     sky: focused
       ? 'bg-sky-500 border-sky-600 text-white dark:bg-sky-600 dark:text-sky-50'
-      : 'bg-sky-500/20 border-sky-500/30 text-sky-700 dark:bg-sky-500/40 dark:text-sky-100',
+      : 'bg-sky-200 border-sky-500/30 text-sky-700 dark:bg-sky-500/50 dark:text-sky-100',
     fuchsia: focused
       ? 'bg-fuchsia-500 border-fuchsia-600 text-white dark:bg-fuchsia-600 dark:text-fuchsia-50'
-      : 'bg-fuchsia-500/20 border-fuchsia-500/30 text-fuchsia-700 dark:bg-fuchsia-500/40 dark:text-fuchsia-100',
+      : 'bg-fuchsia-200 border-fuchsia-500/30 text-fuchsia-700 dark:bg-fuchsia-500/50 dark:text-fuchsia-100',
   };
   return colorMap[color] || colorMap.blue;
+};
+
+export const getActualColor = (colorValue: string) => {
+  if (colorValue.startsWith('#')) {
+    return colorValue;
+  }
+  if (colorValue.startsWith('rgb')) {
+    return colorValue;
+  }
+  
+  const tailwindToHex: Record<string, string> = {
+    'bg-blue-500': '#3b82f6',
+    'bg-green-500': '#10b981',
+    'bg-red-500': '#ef4444',
+    'bg-yellow-500': '#eab308',
+    'bg-purple-500': '#8b5cf6',
+    'bg-orange-500': '#f97316',
+    'bg-pink-500': '#ec4899',
+    'bg-indigo-500': '#6366f1',
+    'bg-teal-500': '#14b8a6',
+    'bg-cyan-500': '#06b6d4',
+    'bg-lime-500': '#84cc16',
+    'bg-amber-500': '#f59e0b',
+    'bg-emerald-500': '#10b981',
+    'bg-violet-500': '#8b5cf6',
+    'bg-rose-500': '#f43f5e',
+    'bg-slate-500': '#64748b',
+    'bg-gray-500': '#6b7280',
+    'bg-zinc-500': '#71717a',
+    'bg-neutral-500': '#737373',
+    'bg-stone-500': '#78716c',
+  };
+  
+  return tailwindToHex[colorValue] || '#3b82f6';
 };
