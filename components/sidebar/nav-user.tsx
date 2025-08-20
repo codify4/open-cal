@@ -100,44 +100,31 @@ export function NavUser({
             </SidebarMenuButton>
           </DialogTrigger>
           <DialogContent className="h-[600px] w-[1000px] bg-white p-0 dark:bg-neutral-950">
+            <DialogTitle className="sr-only">Settings</DialogTitle>
             <div className="flex h-full">
-              <div className="w-1/4 border-neutral-200 border-r px-3 py-4 dark:border-neutral-800">
-                <div className="mb-6">
-                  <DialogTitle className="font-semibold text-lg text-neutral-900 dark:text-white">
-                    Settings
-                  </DialogTitle>
-                  <p className="text-neutral-600 text-sm dark:text-neutral-400">
-                    Manage your account preferences
-                  </p>
-                </div>
-
-                <nav className="space-y-2">
+              <div className="w-48 border-neutral-200 border-r px-3 py-4 dark:border-neutral-800">
+                <nav>
                   {SETTINGS_SECTIONS.map((section) => {
                     const Icon = section.icon;
                     return (
                       <button
-                        className={`flex w-full cursor-pointer items-center space-x-3 rounded-lg p-2 text-sm transition-colors ${
+                        className={`flex w-full cursor-pointer items-center space-x-3 rounded-[10px] p-2 text-sm transition-colors hover:bg-neutral-100/50 dark:hover:bg-neutral-800/50 ${
                           activeSection === section.id
-                            ? 'bg-neutral-100 text-neutral-900 dark:bg-neutral-800 dark:text-white'
-                            : 'text-neutral-600 hover:bg-neutral-100/50 hover:text-neutral-900 dark:text-neutral-400 dark:hover:bg-neutral-800/50 dark:hover:text-white'
+                            ? 'text-neutral-900 dark:text-white '
+                            : 'text-neutral-600 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white'
                         }`}
                         key={section.id}
                         onClick={() => setActiveSection(section.id)}
                       >
                         <Icon className="h-4 w-4" />
-                        <div className="text-left">
-                          <div className="font-medium">{section.title}</div>
-                          <div className="text-neutral-500 text-xs dark:text-neutral-500">
-                            {section.description}
-                          </div>
-                        </div>
+                        <div className="font-medium">{section.title}</div>
                       </button>
                     );
                   })}
                 </nav>
               </div>
 
-              <div className="w-3/4 overflow-y-auto p-6">
+              <div className="flex-1 overflow-y-auto p-6">
                 {renderSectionContent()}
               </div>
             </div>

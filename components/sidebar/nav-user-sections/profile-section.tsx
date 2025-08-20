@@ -14,7 +14,6 @@ import {
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
-import { ClerkUserDialog } from './clerk-user-dialog';
 
 interface ProfileSectionProps {
   user: { name: string; email: string; avatar: string };
@@ -74,7 +73,6 @@ export function ProfileSection({ user }: ProfileSectionProps) {
                 </div>
               </div>
             </div>
-            <ClerkUserDialog />
           </div>
 
           <Separator className="bg-neutral-200 dark:border-neutral-800" />

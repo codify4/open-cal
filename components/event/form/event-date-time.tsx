@@ -106,10 +106,19 @@ export const EventDateTime = ({
           <Popover>
             <PopoverTrigger asChild>
               <Button
-                className="h-9 w-11/12 text-start border-border bg-background text-foreground hover:bg-accent"
+                className="h-9 w-11/12 text-start justify-start border-border bg-background text-foreground hover:bg-accent gap-4"
                 variant="outline"
               >
-                {formatDate(startDate)} • {!isAllDay ? `${formatTime(startTime)} - ${formatTime(endTime)}` : 'All day'}
+                <span>{formatDate(startDate)}</span>
+                {!isAllDay ? (
+                  <div>
+                    <span>{formatTime(startTime)}</span>
+                    <span className='mx-1'>-</span>
+                    <span>{formatTime(endTime)}</span>
+                  </div>
+                ) : (
+                  <span className="ml-1">All day</span>
+                )}
               </Button>
             </PopoverTrigger>
             <PopoverContent
