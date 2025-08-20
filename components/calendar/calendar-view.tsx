@@ -85,7 +85,7 @@ export default function CalendarView({
       }
 
       // Check if any other session has connected calendars
-      const hasConnectedSessions = sessions && sessions.length > 0;
+      const hasConnectedSessions = Boolean(sessions && sessions.length > 0);
       setHasAnyConnectedAccount(hasConnectedSessions);
     };
 

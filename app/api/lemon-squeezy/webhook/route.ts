@@ -58,7 +58,7 @@ export async function POST(request: NextRequest) {
 
   await fetchMutation(api.billing.markPaid, {
     webhookId: String(webhookId),
-    userId: String(userId),
+    clerkUserId: String(userId),
     subscriptionId: String(subscriptionId),
     variantId: Number(variantId),
   });

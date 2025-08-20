@@ -1,13 +1,13 @@
 import { httpRouter } from 'convex/server';
 import { api } from './_generated/api';
-import { action } from './_generated/server';
+import { httpAction } from './_generated/server';
 
 const http = httpRouter();
 
 http.route({
   path: '/auth/google',
   method: 'POST',
-  handler: action(async (ctx, request) => {
+  handler: httpAction(async (ctx, request) => {
     const {
       clerkUserId,
       googleUserId,
