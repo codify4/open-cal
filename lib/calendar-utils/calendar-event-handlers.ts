@@ -37,6 +37,7 @@ export const createGoogleEvent = async (
   };
 
   const url = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events?sendUpdates=none`;
+
   const resp = await fetch(url, {
     method: 'POST',
     headers: {
@@ -49,12 +50,13 @@ export const createGoogleEvent = async (
 
   if (!resp.ok) {
     const errText = await resp.text();
-    console.error('Failed to create Google event:', errText);
     throw new Error('Failed to create event');
   }
 
   const googleEvent = await resp.json();
-  return convertGoogleEventToLocalEvent(googleEvent, calendarId, userEmail);
+  const converted = convertGoogleEventToLocalEvent(googleEvent, calendarId, userEmail);
+  
+  return converted;
 };
 
 export const handleAddEvent = async (
@@ -68,12 +70,13 @@ export const handleAddEvent = async (
   user: { id: string; primaryEmailAddress?: { emailAddress?: string } | null }
 ) => {
   if (!timeString) {
-    console.error('Time string not provided.');
     return;
   }
 
   try {
-    if (!user?.id) return;
+    if (!user?.id) {
+      return;
+    }
 
     const accessToken = await getAccessToken();
 
@@ -85,13 +88,18 @@ export const handleAddEvent = async (
       return;
     }
 
-    const calendarId = visibleCalendarIds[0] || 'primary';
+    let workingCalendarId = 'primary';
+    if (visibleCalendarIds.length > 0) {
+      workingCalendarId = 'primary';
+    }
+
     const converted = await createGoogleEvent(
       targetDate,
       timeString,
-      calendarId,
+      workingCalendarId,
       user.primaryEmailAddress?.emailAddress || ''
     );
+    
     if (!converted) {
       throw new Error('Failed to create event');
     }
@@ -99,8 +107,8 @@ export const handleAddEvent = async (
     saveEvent(converted);
     openEventSidebarForEdit(converted);
     await refreshEvents();
+    
   } catch (e) {
-    console.error(e);
     toast.error('Failed to create event');
     openEventSidebarForNewEvent(targetDate);
   }

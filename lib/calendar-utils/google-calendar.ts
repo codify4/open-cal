@@ -66,9 +66,12 @@ export const createGoogleEvent = async (
   userEmail?: string
 ) => {
   try {
-    if (!userId) return;
+    if (!userId) {
+      return;
+    }
 
     const accessToken = await getAccessToken();
+    
     if (!accessToken) {
       toast.error(
         'Google Calendar not connected. Please connect your Google account to save events.'
@@ -77,7 +80,13 @@ export const createGoogleEvent = async (
     }
 
     const calendarId = eventToSave.googleCalendarId || 'primary';
-    const baseUrl = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events`;
+    
+    let workingCalendarId = calendarId;
+    if (calendarId.includes('@') && !calendarId.includes('group.calendar.google.com')) {
+      workingCalendarId = 'primary';
+    }
+    
+    const baseUrl = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(workingCalendarId)}/events`;
     const confSuffix = '&conferenceDataVersion=1';
     const url = `${baseUrl}?sendUpdates=none${confSuffix}`;
 
@@ -96,12 +105,13 @@ export const createGoogleEvent = async (
 
     if (response.ok) {
       const googleEvent = await response.json();
+      
       const converted = convertGoogleEventToLocalEvent(
         googleEvent,
-        calendarId,
+        workingCalendarId,
         userEmail
       );
-
+      
       return { success: true, event: converted };
     }
 
@@ -112,13 +122,9 @@ export const createGoogleEvent = async (
       return { success: false, error: 'unauthorized' };
     }
 
-    const errorText = await response.text();
-    console.error('Failed to create Google event:', errorText);
-
     toast.error('Failed to save event to Google Calendar');
     return { success: false, error: 'api_error' };
   } catch (err) {
-    console.error(err);
     toast.error('Error saving event');
     return { success: false, error: 'network_error' };
   }

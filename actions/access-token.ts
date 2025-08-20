@@ -1,6 +1,7 @@
 'use server';
 
 import { auth, clerkClient } from '@clerk/nextjs/server';
+import { headers } from 'next/headers';
 
 export async function getAccessToken() {
   const { userId, getToken } = await auth();
@@ -13,6 +14,26 @@ export async function getAccessToken() {
 
   try {
     const client = await clerkClient();
+    
+    const headersList = await headers();
+    const sessionId = headersList.get('x-clerk-session-id');
+    
+    if (sessionId) {
+      const session = await client.sessions.getSession(sessionId);
+      
+      if (session.userId && session.userId === userId) {
+        const clerkResponse = await client.users.getUserOauthAccessToken(
+          session.userId,
+          provider
+        );
+        const accessToken = clerkResponse.data[0]?.token || '';
+        
+        if (accessToken) {
+          return accessToken;
+        }
+      }
+    }
+
     const clerkResponse = await client.users.getUserOauthAccessToken(
       userId,
       provider
@@ -22,12 +43,11 @@ export async function getAccessToken() {
     if (!accessToken) {
       try {
         const freshToken = await getToken({ template: 'google' });
-        console.log('Fresh token:', freshToken);
         if (freshToken) {
           return freshToken;
         }
       } catch (refreshError) {
-        console.warn('Failed to refresh token, user may need to reconnect');
+        return null;
       }
       return null;
     }
@@ -41,12 +61,11 @@ export async function getAccessToken() {
           return freshToken;
         }
       } catch (refreshError) {
-        console.warn('Failed to refresh token, user may need to reconnect');
+        return null;
       }
       return null;
     }
 
-    console.error('Error getting access token:', error);
     return null;
   }
 }

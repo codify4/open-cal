@@ -45,6 +45,20 @@ export function useCalendarManagement(
     }
   }, [accessToken, userId]);
 
+  React.useEffect(() => {
+    if (visibleCalendarIds.length > 0 && visibleCalendars.size === 0) {
+      console.log('Initializing visible calendars from store:', visibleCalendarIds);
+      setVisibleCalendars(new Set(visibleCalendarIds));
+    }
+  }, [visibleCalendarIds, visibleCalendars.size]);
+
+  React.useEffect(() => {
+    if (fetchedCalendars.length > 0 && visibleCalendars.size === 0) {
+      const calendarIds = fetchedCalendars.map(cal => cal.id);
+      setVisibleCalendars(new Set(calendarIds));
+    }
+  }, [fetchedCalendars, visibleCalendars.size]);
+
   const fetchCalendarsForSession = React.useCallback(
     async (session: any, sessionAccessToken: string) => {
       try {
@@ -163,8 +177,25 @@ export function useCalendarManagement(
             account: cal.account,
           }))
         );
-        setVisibleCalendarIds(calendarIds);
-        setVisibleCalendars(new Set(calendarIds));
+        
+        // Only set initial state if user hasn't made selections yet
+        if (visibleCalendars.size === 0) {
+          setVisibleCalendarIds(calendarIds);
+          setVisibleCalendars(new Set(calendarIds));
+        } else {
+          // Keep user's current selection, but ensure all selected calendars still exist
+          const validSelectedIds = Array.from(visibleCalendars).filter(id => 
+            calendarIds.includes(id)
+          );
+          if (validSelectedIds.length === 0) {
+            // If none of the user's selections are valid, fall back to all calendars
+            setVisibleCalendarIds(calendarIds);
+            setVisibleCalendars(new Set(calendarIds));
+          } else {
+            // Update store with valid selections
+            setVisibleCalendarIds(validSelectedIds);
+          }
+        }
 
         onCalendarsFetched?.(allCalendars);
       } else {
@@ -209,6 +240,7 @@ export function useCalendarManagement(
     setSessionCalendars,
     setVisibleCalendarIds,
     onCalendarsFetched,
+    visibleCalendars,
   ]);
 
   const handleChangeCalendarColor = React.useCallback(
@@ -317,19 +349,23 @@ export function useCalendarManagement(
         const newSet = new Set(prev);
         if (newSet.has(calendarId)) {
           newSet.delete(calendarId);
+          console.log('Removing calendar:', calendarId);
         } else {
           newSet.add(calendarId);
+          console.log('Adding calendar:', calendarId);
         }
-
-        const newVisibleIds = Array.from(newSet);
-        console.log('New visible calendar IDs:', newVisibleIds);
-        setVisibleCalendarIds(newVisibleIds);
-
+        console.log('New visible calendars set:', Array.from(newSet));
         return newSet;
       });
     },
-    [setVisibleCalendarIds]
+    []
   );
+
+  React.useEffect(() => {
+    const newVisibleIds = Array.from(visibleCalendars);
+    console.log('Syncing visible calendar IDs to store:', newVisibleIds);
+    setVisibleCalendarIds(newVisibleIds);
+  }, [visibleCalendars, setVisibleCalendarIds]);
 
   const createCalendar = React.useCallback(
     async (calendarData: {

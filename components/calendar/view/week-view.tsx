@@ -1,6 +1,7 @@
 import { SignedIn, SignedOut, SignInButton, useUser } from '@clerk/nextjs';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { toast } from 'sonner';
 import { CalendarTimeline } from '@/components/calendar/shared/calendar-timeline';
 import { WeekDayColumn } from '@/components/calendar/week/week-day-column';
 import { WeekHeader } from '@/components/calendar/week/week-header';
@@ -51,6 +52,7 @@ export default function WeeklyView() {
     googleEvents,
     visibleCalendarIds,
     optimisticUpdateCounter,
+    setGoogleEvents,
   } = useCalendarStore((state) => state);
   const { user: clerkUser, isSignedIn } = useUser();
   const { refreshEvents } = useGoogleCalendarRefresh();
@@ -61,22 +63,35 @@ export default function WeeklyView() {
     currentDate instanceof Date ? currentDate : new Date(currentDate);
 
   useEffect(() => {
-    if (clerkUser?.id && visibleCalendarIds.length > 0) {
-      refreshEvents();
+    if (clerkUser?.id) {
+      if (visibleCalendarIds.length > 0) {
+        refreshEvents();
+      } else {
+        // Clear events when no calendars are visible
+        setGoogleEvents([]);
+      }
     }
-  }, [refreshEvents, clerkUser?.id, visibleCalendarIds]);
+  }, [refreshEvents, clerkUser?.id, visibleCalendarIds, setGoogleEvents]);
 
   const allEvents = useMemo(() => {
     const localEvents = events || [];
     const googleCalEvents = googleEvents || [];
+    
+    // Filter Google Calendar events based on visible calendars
+    const filteredGoogleEvents = googleCalEvents.filter((event) => {
+      // Check if the event's calendar is in the visible calendars
+      return event.googleCalendarId && visibleCalendarIds.includes(event.googleCalendarId);
+    });
+    
     const googleEventsMap = new Map(
-      googleCalEvents.map((event) => [event.id, event])
+      filteredGoogleEvents.map((event) => [event.id, event])
     );
     const filteredLocalEvents = localEvents.filter(
       (event) => !googleEventsMap.has(event.id)
     );
-    return [...filteredLocalEvents, ...googleCalEvents];
-  }, [events, googleEvents, optimisticUpdateCounter]);
+    
+    return [...filteredLocalEvents, ...filteredGoogleEvents];
+  }, [events, googleEvents, visibleCalendarIds, optimisticUpdateCounter]);
 
   const daysOfWeek = useMemo(() => getDaysInWeek(date), [date]);
 
@@ -126,7 +141,16 @@ export default function WeeklyView() {
   const handleAddEventWeek = useCallback(
     async (dayIndex: number, timeString: string) => {
       const targetDate = daysOfWeek[dayIndex % 7];
-      if (!clerkUser) return;
+      
+      if (!clerkUser) {
+        return;
+      }
+      
+      if (visibleCalendarIds.length === 0) {
+        toast.error('Please wait for calendars to load before creating events');
+        return;
+      }
+      
       await handleAddEvent(
         targetDate,
         timeString,

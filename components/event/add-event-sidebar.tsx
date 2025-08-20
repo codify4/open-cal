@@ -119,7 +119,6 @@ const AddEventSidebar = ({ onClick }: AddEventProps) => {
     ) {
       const eventToSave = { ...selectedEvent, ...currentFormData };
 
-      // If Google Meet is enabled, save to Google Calendar first
       if (eventToSave.meetingType === 'google-meet' && user?.id) {
         const result = await upsertGoogleEvent(
           eventToSave,
@@ -137,7 +136,6 @@ const AddEventSidebar = ({ onClick }: AddEventProps) => {
           return;
         }
       } else {
-        // Save to local store only
         saveEvent(eventToSave);
       }
 

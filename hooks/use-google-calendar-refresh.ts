@@ -1,7 +1,7 @@
-import { useUser } from '@clerk/nextjs';
-import { useCallback, useEffect, useState } from 'react';
+import { useSessionList, useUser } from '@clerk/nextjs';
+import { useCallback } from 'react';
 import { toast } from 'sonner';
-import { getAccessToken } from '@/actions/access-token';
+import { getAccessTokenForSession } from '@/actions/access-token';
 import {
   convertGoogleEventToLocalEvent,
   getDateRangeForView,
@@ -16,39 +16,51 @@ export const useGoogleCalendarRefresh = () => {
     visibleCalendarIds,
     setGoogleEvents,
     setFetchingEvents,
+    sessionCalendars,
   } = useCalendarStore((state) => state);
 
   const { user } = useUser();
-  const [accessToken, setAccessToken] = useState<string | null>(null);
-
-  useEffect(() => {
-    const fetchToken = async () => {
-      if (user?.id) {
-        const token = await getAccessToken();
-        setAccessToken(token);
-        if (!token) {
-          toast.error(
-            'Google Calendar not connected. Please connect your Google account to sync events.'
-          );
-        }
-      }
-    };
-
-    fetchToken();
-  }, [user?.id]);
+  const { sessions } = useSessionList();
 
   const refreshEvents = useCallback(async () => {
-    if (visibleCalendarIds.length === 0) return;
-    if (!(user?.id && accessToken)) return;
+    if (visibleCalendarIds.length === 0) {
+      return;
+    }
+    if (!user?.id) {
+      return;
+    }
 
     setFetchingEvents(true);
 
     try {
       const { startDate, endDate } = getDateRangeForView(currentDate, viewType);
-
       const allEvents: Event[] = [];
 
       for (const calendarId of visibleCalendarIds) {
+        let sessionAccessToken: string | null = null;
+        
+        for (const [sessionId, calendars] of Object.entries(sessionCalendars)) {
+          if (calendars.some(cal => cal.id === calendarId)) {
+            sessionAccessToken = await getAccessTokenForSession(sessionId);
+            break;
+          }
+        }
+
+        if (!sessionAccessToken && sessions) {
+          for (const session of sessions) {
+            const sessionEmail = session.user?.primaryEmailAddress?.emailAddress;
+            if (sessionEmail === calendarId) {
+              sessionAccessToken = await getAccessTokenForSession(session.id);
+              break;
+            }
+          }
+        }
+
+        if (!sessionAccessToken) {
+          console.warn(`No access token found for calendar: ${calendarId}`);
+          continue;
+        }
+
         const timeMin = startDate.toISOString();
         const timeMax = endDate.toISOString();
 
@@ -56,7 +68,7 @@ export const useGoogleCalendarRefresh = () => {
           `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events?timeMin=${timeMin}&timeMax=${timeMax}&singleEvents=true&orderBy=startTime`,
           {
             headers: {
-              Authorization: `Bearer ${accessToken}`,
+              Authorization: `Bearer ${sessionAccessToken}`,
               'Content-Type': 'application/json',
             },
           }
@@ -64,34 +76,26 @@ export const useGoogleCalendarRefresh = () => {
 
         if (!response.ok) {
           if (response.status === 404) {
-            console.log(
-              `Calendar has no events or doesn't exist, skipping`
-            );
+            console.warn(`Calendar not found or no access: ${calendarId}`);
             continue;
           }
-          console.error(
-            `Failed to fetch events for calendar ${calendarId}:`,
-            response.status
-          );
           continue;
         }
 
         const data = await response.json();
-        const events =
-          data.items?.map((event: any) =>
-            convertGoogleEventToLocalEvent(
-              event,
-              calendarId,
-              user.primaryEmailAddress?.emailAddress
-            )
-          ) || [];
+        const events = data.items?.map((event: any) =>
+          convertGoogleEventToLocalEvent(
+            event,
+            calendarId,
+            user.primaryEmailAddress?.emailAddress
+          )
+        ) || [];
 
         allEvents.push(...events);
       }
 
       setGoogleEvents(allEvents);
     } catch (error) {
-      console.error('Failed to fetch events:', error);
       toast.error('Failed to fetch calendar events');
     } finally {
       setFetchingEvents(false);
@@ -103,7 +107,7 @@ export const useGoogleCalendarRefresh = () => {
     setGoogleEvents,
     setFetchingEvents,
     user?.id,
-    accessToken,
+    sessionCalendars,
   ]);
 
   return { refreshEvents };

@@ -678,6 +678,17 @@ export const createCalendarStore = (
       }),
       {
         name: 'calendar-store',
+        partialize: (state) => ({
+          // Only persist essential UI state
+          currentDate: state.currentDate,
+          selectedDate: state.selectedDate,
+          viewType: state.viewType,
+          isChatSidebarOpen: state.isChatSidebarOpen,
+          isChatFullscreen: state.isChatFullscreen,
+          chatMode: state.chatMode,
+          isEventSidebarOpen: state.isEventSidebarOpen,
+          isUpgradeDialogOpen: state.isUpgradeDialogOpen,
+        }),
         onRehydrateStorage: () => (state) => {
           // Convert string dates back to Date objects after rehydration
           if (state) {
@@ -686,56 +697,6 @@ export const createCalendarStore = (
             }
             if (typeof state.selectedDate === 'string') {
               state.selectedDate = new Date(state.selectedDate);
-            }
-            // Convert event dates back to Date objects
-            if (state.events) {
-              state.events = state.events.map((event) => ({
-                ...event,
-                startDate:
-                  event.startDate instanceof Date
-                    ? event.startDate
-                    : new Date(event.startDate),
-                endDate:
-                  event.endDate instanceof Date
-                    ? event.endDate
-                    : new Date(event.endDate),
-                reminders:
-                  event.reminders?.map((reminder) =>
-                    reminder instanceof Date ? reminder : new Date(reminder)
-                  ) || [],
-              }));
-            }
-            // Convert selected event dates if it exists
-            if (state.selectedEvent) {
-              state.selectedEvent = {
-                ...state.selectedEvent,
-                startDate:
-                  state.selectedEvent.startDate instanceof Date
-                    ? state.selectedEvent.startDate
-                    : new Date(state.selectedEvent.startDate),
-                endDate:
-                  state.selectedEvent.endDate instanceof Date
-                    ? state.selectedEvent.endDate
-                    : new Date(state.selectedEvent.endDate),
-                reminders:
-                  state.selectedEvent.reminders?.map((reminder) =>
-                    reminder instanceof Date ? reminder : new Date(reminder)
-                  ) || [],
-              };
-            }
-            // Convert event creation context dates if it exists
-            if (state.eventCreationContext) {
-              state.eventCreationContext = {
-                ...state.eventCreationContext,
-                startDate:
-                  state.eventCreationContext.startDate instanceof Date
-                    ? state.eventCreationContext.startDate
-                    : new Date(state.eventCreationContext.startDate),
-                endDate:
-                  state.eventCreationContext.endDate instanceof Date
-                    ? state.eventCreationContext.endDate
-                    : new Date(state.eventCreationContext.endDate),
-              };
             }
             // Always default to week view
             state.viewType = 'week';

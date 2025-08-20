@@ -38,6 +38,7 @@ export default function MonthView() {
     toggleChatSidebar,
     googleEvents,
     visibleCalendarIds,
+    setGoogleEvents,
   } = useCalendarStore((state) => state);
   const { user: clerkUser, isSignedIn } = useUser();
   const { refreshEvents } = useGoogleCalendarRefresh();
@@ -51,22 +52,35 @@ export default function MonthView() {
   const daysInMonthArray = getDaysInMonth(date.getMonth(), date.getFullYear());
 
   useEffect(() => {
-    if (clerkUser?.id && visibleCalendarIds.length > 0) {
-      refreshEvents();
+    if (clerkUser?.id) {
+      if (visibleCalendarIds.length > 0) {
+        refreshEvents();
+      } else {
+        // Clear events when no calendars are visible
+        setGoogleEvents([]);
+      }
     }
-  }, [refreshEvents, clerkUser?.id, visibleCalendarIds]);
+  }, [refreshEvents, clerkUser?.id, visibleCalendarIds, setGoogleEvents]);
 
   const allEvents = useMemo(() => {
     const localEvents = events || [];
     const googleCalEvents = googleEvents || [];
+    
+    // Filter Google Calendar events based on visible calendars
+    const filteredGoogleEvents = googleCalEvents.filter((event) => {
+      // Check if the event's calendar is in the visible calendars
+      return event.googleCalendarId && visibleCalendarIds.includes(event.googleCalendarId);
+    });
+    
     const googleEventsMap = new Map(
-      googleCalEvents.map((event) => [event.id, event])
+      filteredGoogleEvents.map((event) => [event.id, event])
     );
     const filteredLocalEvents = localEvents.filter(
       (event) => !googleEventsMap.has(event.id)
     );
-    return [...filteredLocalEvents, ...googleCalEvents];
-  }, [events, googleEvents]);
+    
+    return [...filteredLocalEvents, ...filteredGoogleEvents];
+  }, [events, googleEvents, visibleCalendarIds]);
 
   const getEventsForDayNumber = (day: number): Event[] => {
     const targetDate = new Date(date.getFullYear(), date.getMonth(), day);

@@ -165,25 +165,20 @@ export function CalendarList({
                 <SidebarMenu>
                   {accountCalendars.map((calendar) => (
                     <SidebarMenuItem key={calendar.id}>
-                      <div
-                        className="ml-4 flex w-full cursor-pointer items-center gap-2 rounded-sm px-2 py-1 hover:bg-accent hover:text-accent-foreground"
-                        onClick={() => onToggle(calendar.id)}
-                      >
+                      <div className="ml-4 flex w-full items-center gap-2 rounded-sm px-2 py-1">
                         <Checkbox
                           checked={visibleCalendars.has(calendar.id)}
                           className="cursor-pointer"
-                          color={getCalendarColor(
-                            calendar,
-                            Object.fromEntries(
-                              colorOptions.map((opt) => [
-                                opt.id,
-                                opt.background,
-                              ])
-                            )
-                          )}
-                          onCheckedChange={() => onToggle(calendar.id)}
+                          color={colorOptions.find(opt => opt.id === calendar.colorId)?.background || '#3b82f6'}
+                          onCheckedChange={() => {
+                            console.log('Checkbox changed:', calendar.id);
+                            onToggle(calendar.id);
+                          }}
                         />
-                        <span className="min-w-0 flex-1 truncate text-sm">
+                        <span 
+                          className="min-w-0 flex-1 truncate text-sm cursor-pointer hover:text-accent-foreground"
+                          onClick={() => onToggle(calendar.id)}
+                        >
                           {calendar.summary || calendar.name}
                         </span>
                         {calendar.primary &&
