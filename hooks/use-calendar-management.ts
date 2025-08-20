@@ -298,17 +298,15 @@ export function useCalendarManagement(
 
   const handleCalendarToggle = React.useCallback(
     (calendarId: string) => {
-      setVisibleCalendars((prev) => {
-        const newSet = new Set(prev);
-        if (newSet.has(calendarId)) {
-          newSet.delete(calendarId);
-        } else {
-          newSet.add(calendarId);
-        }
-        return newSet;
-      });
+      const isCurrentlyVisible = visibleCalendarIds.includes(calendarId);
+      const newVisibleIds = isCurrentlyVisible
+        ? visibleCalendarIds.filter((id: string) => id !== calendarId)
+        : [...visibleCalendarIds, calendarId];
+      
+      setVisibleCalendarIds(newVisibleIds);
+      setVisibleCalendars(new Set(newVisibleIds));
     },
-    []
+    [visibleCalendarIds, setVisibleCalendarIds]
   );
 
   const createCalendar = React.useCallback(

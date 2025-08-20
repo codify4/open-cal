@@ -47,15 +47,23 @@ export const WeekHeader = ({
                     new Date().getDate() === day.getDate() &&
                       new Date().getMonth() === currentDate.getMonth() &&
                       new Date().getFullYear() === currentDate.getFullYear()
-                      ? 'text-destructive'
+                      ? ''
                       : ''
                   )}
                 >
-                  {getDayName(day.getDay())},{' '}
-                  {day.toLocaleDateString('en-US', {
-                    month: 'short',
-                    day: 'numeric',
-                  })}
+                  {getDayName(day.getDay())}{' '}
+                  <span className={cn(
+                    'text-xs',
+                    new Date().getDate() === day.getDate() &&
+                      new Date().getMonth() === currentDate.getMonth() &&
+                      new Date().getFullYear() === currentDate.getFullYear()
+                      ? 'bg-destructive rounded-[5px] p-0.5 text-white'
+                      : ''
+                  )}>
+                    {day.toLocaleDateString('en-US', {
+                      day: 'numeric',
+                    })}
+                  </span>
                 </div>
               </div>
             </div>

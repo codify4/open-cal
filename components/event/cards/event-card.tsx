@@ -380,7 +380,7 @@ export const EventCard = ({
       <ContextMenuTrigger>
         <div
           className={cn(
-            'group relative rounded-sm border p-2 text-xs transition-all duration-200 hover:shadow-md',
+            'group flex flex-row relative rounded-sm border-2 p-2 text-xs transition-all duration-200 hover:shadow-md',
             getCardColor(event.color, isFocused),
             event.isAllDay && 'border-l-4',
             isClient && isDragging && 'opacity-50',
@@ -393,20 +393,6 @@ export const EventCard = ({
           ref={cardRef}
           style={cardStyle}
         >
-          <div
-            className={
-              'pointer-events-none absolute top-1 right-1 size-8 overflow-hidden opacity-50'
-            }
-          >
-            <GraphicDoodle color={event.color} size="sm" />
-          </div>
-
-          <div
-            className="relative z-10 flex cursor-grab flex-row gap-2"
-            ref={isClient ? setNodeRef : undefined}
-            {...(isClient ? listeners : {})}
-            {...(isClient ? attributes : {})}
-          >
             <div
               className={cn(
                 'w-[2px] rounded-sm',
@@ -418,6 +404,20 @@ export const EventCard = ({
                   : getCardColor(event.color, isFocused),
               }}
             />
+          <div
+            className={
+              'pointer-events-none absolute top-1 right-1 size-8 overflow-hidden opacity-50'
+            }
+          >
+            <GraphicDoodle color={event.color} size="sm" />
+          </div>
+
+          <div
+            className="relative z-10 flex cursor-grab flex-col gap-2 ml-2"
+            ref={isClient ? setNodeRef : undefined}
+            {...(isClient ? listeners : {})}
+            {...(isClient ? attributes : {})}
+          >
             <div className="flex flex-col items-start justify-between">
               <div className="flex min-w-0 flex-1 items-center gap-1">
                 {event.type === 'birthday' ? (

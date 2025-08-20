@@ -38,39 +38,19 @@ export const useGoogleCalendarRefresh = () => {
 
     try {
       const { startDate, endDate } = getDateRangeForView(currentDate, viewType);
-      const allEvents: Event[] = [];
+      const timeMin = startDate.toISOString();
+      const timeMax = endDate.toISOString();
 
-      for (const calendarId of visibleCalendarIds) {
+      const accessToken = await getAccessToken();
+      if (!accessToken) {
+        console.warn('No access token available');
+        return;
+      }
+
+      const fetchPromises = visibleCalendarIds.map(async (calendarId) => {
         try {
-          const timeMin = startDate.toISOString();
-          const timeMax = endDate.toISOString();
-
-          let accessToken: string | null = null;
-          let sessionId: string | null = null;
-
-          for (const [sessionIdKey, calendars] of Object.entries(sessionCalendars)) {
-            const calendar = calendars.find((cal: any) => cal.id === calendarId);
-            if (calendar) {
-              sessionId = sessionIdKey;
-              break;
-            }
-          }
-
-          if (sessionId) {
-            accessToken = await getAccessTokenForSession(sessionId);
-          }
-
-          if (!accessToken) {
-            accessToken = await getAccessToken();
-          }
-
-          if (!accessToken) {
-            console.warn(`No access token available for calendar ${calendarId}`);
-            continue;
-          }
-
           const effectiveCalendarId = calendarId === user.primaryEmailAddress?.emailAddress ? 'primary' : calendarId;
-
+          
           const response = await fetch(
             `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(effectiveCalendarId)}/events?timeMin=${timeMin}&timeMax=${timeMax}&singleEvents=true&orderBy=startTime`,
             {
@@ -83,21 +63,26 @@ export const useGoogleCalendarRefresh = () => {
 
           if (response.ok) {
             const data = await response.json();
-            const events = data.items?.map((event: any) =>
+            return data.items?.map((event: any) =>
               convertGoogleEventToLocalEvent(
                 event,
                 calendarId,
                 user.primaryEmailAddress?.emailAddress
               )
             ) || [];
-            allEvents.push(...events);
           } else if (response.status === 404) {
             console.warn(`Calendar not accessible: ${calendarId}`);
+            return [];
           }
+          return [];
         } catch (error) {
           console.warn(`Failed to fetch events for ${calendarId}:`, error);
+          return [];
         }
-      }
+      });
+
+      const results = await Promise.all(fetchPromises);
+      const allEvents = results.flat();
 
       console.log(`Fetched ${allEvents.length} events total`);
       setGoogleEvents(allEvents);

@@ -16,7 +16,6 @@ import {
   getTimedEventsForDay,
   hours,
 } from '@/lib/calendar-utils/calendar-view-utils';
-import type { Event } from '@/lib/store/calendar-store';
 import { useCalendarStore } from '@/providers/calendar-store-provider';
 
 const itemVariants = {
@@ -77,7 +76,7 @@ export default function WeeklyView() {
   // Reset refresh flag when calendar IDs change
   useEffect(() => {
     hasRefreshedRef.current = false;
-  }, [visibleCalendarIds.join(',')]);
+  }, [visibleCalendarIds]);
 
   const allEvents = useMemo(() => {
     const localEvents = events || [];

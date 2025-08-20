@@ -1,6 +1,6 @@
 'use client';
 
-import { useSession, useSessionList } from '@clerk/nextjs';
+import { useSession } from '@clerk/nextjs';
 import { ChevronDown, ChevronRight } from 'lucide-react';
 import React, { useMemo, useState, useCallback } from 'react';
 import { Checkbox } from '@/components/ui/checkbox';
