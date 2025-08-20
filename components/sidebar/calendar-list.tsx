@@ -106,6 +106,11 @@ export function CalendarList({
     });
   };
 
+  const handleCalendarToggle = React.useCallback((calendarId: string) => {
+    console.log('Checkbox changed:', calendarId);
+    onToggle(calendarId);
+  }, [onToggle]);
+
   if (isLoading) {
     return (
       <SidebarMenu>
@@ -170,10 +175,7 @@ export function CalendarList({
                           checked={visibleCalendars.has(calendar.id)}
                           className="cursor-pointer"
                           color={colorOptions.find(opt => opt.id === calendar.colorId)?.background || '#3b82f6'}
-                          onCheckedChange={() => {
-                            console.log('Checkbox changed:', calendar.id);
-                            onToggle(calendar.id);
-                          }}
+                          onCheckedChange={() => handleCalendarToggle(calendar.id)}
                         />
                         <span 
                           className="min-w-0 flex-1 truncate text-sm cursor-pointer hover:text-accent-foreground"

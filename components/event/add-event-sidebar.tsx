@@ -71,7 +71,7 @@ const AddEventSidebar = ({ onClick }: AddEventProps) => {
 
       updateSelectedEvent(newEvent);
     }
-  }, [selectedEvent, eventCreationContext, updateSelectedEvent]);
+  }, [selectedEvent, eventCreationContext]);
 
   const handleClose = () => {
     if (autoSaveTimeoutRef.current) {
@@ -112,35 +112,44 @@ const AddEventSidebar = ({ onClick }: AddEventProps) => {
   };
 
   const handleManualSave = async () => {
+    console.log('handleManualSave called with:', { currentFormData, selectedEvent });
+    
     if (
       currentFormData &&
       Object.keys(currentFormData).length > 0 &&
       selectedEvent
     ) {
       const eventToSave = { ...selectedEvent, ...currentFormData };
+      console.log('Event to save:', eventToSave);
 
-      if (eventToSave.meetingType === 'google-meet' && user?.id) {
+      if (eventToSave.googleEventId && user?.id) {
+        console.log('Updating existing Google Calendar event...');
         const result = await upsertGoogleEvent(
           eventToSave,
           user.id,
           user.primaryEmailAddress?.emailAddress
         );
+        console.log('Google Calendar update result:', result);
+        
         if (result?.success && result.event) {
           saveEvent(result.event);
           updateSelectedEvent(result.event);
           updateFormData(result.event);
-          await refreshEvents();
-          toast.success('Event saved with Google Meet link');
+          toast.success('Event updated in Google Calendar');
         } else {
-          toast.error('Failed to save event to Google Calendar');
+          toast.error('Failed to update event in Google Calendar');
           return;
         }
       } else {
+        console.log('Saving local event...');
         saveEvent(eventToSave);
+        console.log('Local event saved');
       }
 
       closeEventSidebar();
       onClick();
+    } else {
+      console.log('No form data or selected event to save');
     }
   };
 

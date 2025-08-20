@@ -233,7 +233,6 @@ export function useCalendarManagement(
     setSessionCalendars,
     setVisibleCalendarIds,
     onCalendarsFetched,
-    visibleCalendars,
   ]);
 
   // Only fetch calendars once when sessions are available
