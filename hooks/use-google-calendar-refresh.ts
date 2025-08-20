@@ -1,7 +1,7 @@
-import { useSessionList, useUser } from '@clerk/nextjs';
-import { useCallback } from 'react';
+import { useUser } from '@clerk/nextjs';
+import { useCallback, useRef } from 'react';
 import { toast } from 'sonner';
-import { getAccessTokenForSession } from '@/actions/access-token';
+import { getAccessToken } from '@/actions/access-token';
 import {
   convertGoogleEventToLocalEvent,
   getDateRangeForView,
@@ -16,99 +16,74 @@ export const useGoogleCalendarRefresh = () => {
     visibleCalendarIds,
     setGoogleEvents,
     setFetchingEvents,
-    sessionCalendars,
   } = useCalendarStore((state) => state);
 
   const { user } = useUser();
-  const { sessions } = useSessionList();
+  const isRefreshingRef = useRef(false);
 
   const refreshEvents = useCallback(async () => {
-    if (visibleCalendarIds.length === 0) {
-      return;
-    }
-    if (!user?.id) {
+    if (visibleCalendarIds.length === 0 || !user?.id || isRefreshingRef.current) {
       return;
     }
 
+    console.log('Starting event refresh for calendars:', visibleCalendarIds.length);
+    isRefreshingRef.current = true;
     setFetchingEvents(true);
 
     try {
+      const accessToken = await getAccessToken();
+      if (!accessToken) {
+        toast.error('Google Calendar not connected');
+        return;
+      }
+
       const { startDate, endDate } = getDateRangeForView(currentDate, viewType);
       const allEvents: Event[] = [];
 
+      // Fetch events for each calendar
       for (const calendarId of visibleCalendarIds) {
-        let sessionAccessToken: string | null = null;
-        
-        for (const [sessionId, calendars] of Object.entries(sessionCalendars)) {
-          if (calendars.some(cal => cal.id === calendarId)) {
-            sessionAccessToken = await getAccessTokenForSession(sessionId);
-            break;
-          }
-        }
+        try {
+          const timeMin = startDate.toISOString();
+          const timeMax = endDate.toISOString();
 
-        if (!sessionAccessToken && sessions) {
-          for (const session of sessions) {
-            const sessionEmail = session.user?.primaryEmailAddress?.emailAddress;
-            if (sessionEmail === calendarId) {
-              sessionAccessToken = await getAccessTokenForSession(session.id);
-              break;
+          const response = await fetch(
+            `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events?timeMin=${timeMin}&timeMax=${timeMax}&singleEvents=true&orderBy=startTime`,
+            {
+              headers: {
+                Authorization: `Bearer ${accessToken}`,
+                'Content-Type': 'application/json',
+              },
             }
+          );
+
+          if (response.ok) {
+            const data = await response.json();
+            const events = data.items?.map((event: any) =>
+              convertGoogleEventToLocalEvent(
+                event,
+                calendarId,
+                user.primaryEmailAddress?.emailAddress
+              )
+            ) || [];
+            allEvents.push(...events);
+          } else if (response.status === 404) {
+            console.warn(`Calendar not accessible: ${calendarId}`);
           }
+        } catch (error) {
+          console.warn(`Failed to fetch events for ${calendarId}:`, error);
         }
-
-        if (!sessionAccessToken) {
-          console.warn(`No access token found for calendar: ${calendarId}`);
-          continue;
-        }
-
-        const timeMin = startDate.toISOString();
-        const timeMax = endDate.toISOString();
-
-        const response = await fetch(
-          `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events?timeMin=${timeMin}&timeMax=${timeMax}&singleEvents=true&orderBy=startTime`,
-          {
-            headers: {
-              Authorization: `Bearer ${sessionAccessToken}`,
-              'Content-Type': 'application/json',
-            },
-          }
-        );
-
-        if (!response.ok) {
-          if (response.status === 404) {
-            console.warn(`Calendar not found or no access: ${calendarId}`);
-            continue;
-          }
-          continue;
-        }
-
-        const data = await response.json();
-        const events = data.items?.map((event: any) =>
-          convertGoogleEventToLocalEvent(
-            event,
-            calendarId,
-            user.primaryEmailAddress?.emailAddress
-          )
-        ) || [];
-
-        allEvents.push(...events);
       }
 
+      console.log(`Fetched ${allEvents.length} events total`);
       setGoogleEvents(allEvents);
     } catch (error) {
+      console.error('Event refresh failed:', error);
       toast.error('Failed to fetch calendar events');
     } finally {
       setFetchingEvents(false);
+      isRefreshingRef.current = false;
     }
-  }, [
-    currentDate,
-    viewType,
-    visibleCalendarIds,
-    setGoogleEvents,
-    setFetchingEvents,
-    user?.id,
-    sessionCalendars,
-  ]);
+  }, [currentDate, viewType, visibleCalendarIds, setGoogleEvents, setFetchingEvents, user?.id]);
 
   return { refreshEvents };
 };

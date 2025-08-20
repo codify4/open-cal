@@ -2,7 +2,7 @@
 
 import { SignedIn, SignedOut, SignInButton, useUser } from '@clerk/nextjs';
 import { AnimatePresence, motion } from 'framer-motion';
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, useRef } from 'react';
 import { MonthDayCell } from '@/components/calendar/month/month-day-cell';
 import { EventCard } from '@/components/event/cards/event-card';
 import { Button } from '@/components/ui/button';
@@ -30,6 +30,8 @@ const pageTransitionVariants = {
 };
 
 export default function MonthView() {
+  const hasRefreshedRef = useRef(false);
+  
   const {
     currentDate,
     navigationDirection,
@@ -52,15 +54,19 @@ export default function MonthView() {
   const daysInMonthArray = getDaysInMonth(date.getMonth(), date.getFullYear());
 
   useEffect(() => {
-    if (clerkUser?.id) {
-      if (visibleCalendarIds.length > 0) {
-        refreshEvents();
-      } else {
-        // Clear events when no calendars are visible
-        setGoogleEvents([]);
-      }
+    if (clerkUser?.id && visibleCalendarIds.length > 0 && !hasRefreshedRef.current) {
+      hasRefreshedRef.current = true;
+      refreshEvents();
+    } else if (visibleCalendarIds.length === 0) {
+      // Clear events when no calendars are visible
+      setGoogleEvents([]);
     }
   }, [refreshEvents, clerkUser?.id, visibleCalendarIds, setGoogleEvents]);
+
+  // Reset refresh flag when calendar IDs change
+  useEffect(() => {
+    hasRefreshedRef.current = false;
+  }, [visibleCalendarIds.join(',')]);
 
   const allEvents = useMemo(() => {
     const localEvents = events || [];

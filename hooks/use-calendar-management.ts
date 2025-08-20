@@ -10,6 +10,9 @@ import {
 import { useCalendarStore } from '@/providers/calendar-store-provider';
 import type { ColorOption, GoogleCalendar } from '@/types/calendar';
 
+// Global flag to prevent multiple instances from fetching calendars
+let isGlobalFetching = false;
+
 export function useCalendarManagement(
   onCalendarsFetched?: (calendars: GoogleCalendar[]) => void
 ) {
@@ -24,6 +27,7 @@ export function useCalendarManagement(
   );
   const [colorOptions, setColorOptions] = React.useState<ColorOption[]>([]);
   const [accessToken, setAccessToken] = React.useState<string | null>(null);
+  const hasFetchedCalendarsRef = React.useRef(false);
 
   const { setVisibleCalendarIds, setSessionCalendars, visibleCalendarIds } =
     useCalendarStore((state) => state);
@@ -40,24 +44,17 @@ export function useCalendarManagement(
   }, [userId]);
 
   React.useEffect(() => {
-    if (accessToken && userId) {
-      fetchCalendars();
-    }
-  }, [accessToken, userId]);
-
-  React.useEffect(() => {
+    // Only initialize visible calendars once when we have data
     if (visibleCalendarIds.length > 0 && visibleCalendars.size === 0) {
       console.log('Initializing visible calendars from store:', visibleCalendarIds);
       setVisibleCalendars(new Set(visibleCalendarIds));
-    }
-  }, [visibleCalendarIds, visibleCalendars.size]);
-
-  React.useEffect(() => {
-    if (fetchedCalendars.length > 0 && visibleCalendars.size === 0) {
+    } else if (fetchedCalendars.length > 0 && visibleCalendars.size === 0) {
+      // Fallback: if no visible calendars set but we have fetched calendars
       const calendarIds = fetchedCalendars.map(cal => cal.id);
+      console.log('Initializing visible calendars from fetched data:', calendarIds);
       setVisibleCalendars(new Set(calendarIds));
     }
-  }, [fetchedCalendars, visibleCalendars.size]);
+  }, [visibleCalendarIds, fetchedCalendars, visibleCalendars.size]);
 
   const fetchCalendarsForSession = React.useCallback(
     async (session: any, sessionAccessToken: string) => {
@@ -113,7 +110,21 @@ export function useCalendarManagement(
       return;
     }
 
+    // Prevent duplicate calls from multiple instances
+    if (isGlobalFetching) {
+      console.log('Skipping fetchCalendars - global fetch in progress');
+      return;
+    }
+
+    // Prevent duplicate calls from same instance
+    if (hasFetchedCalendarsRef.current) {
+      console.log('Skipping fetchCalendars - already fetched');
+      return;
+    }
+
     setIsLoadingCalendars(true);
+    isGlobalFetching = true;
+    hasFetchedCalendarsRef.current = true;
 
     try {
       const allCalendars: GoogleCalendar[] = [];
@@ -169,32 +180,11 @@ export function useCalendarManagement(
 
         const calendarIds = allCalendars.map((cal) => cal.id);
         console.log('Setting visible calendar IDs:', calendarIds);
-        console.log(
-          'Calendar details:',
-          allCalendars.map((cal) => ({
-            id: cal.id,
-            summary: cal.summary,
-            account: cal.account,
-          }))
-        );
         
-        // Only set initial state if user hasn't made selections yet
+        // Only set visible calendars if they haven't been set yet
         if (visibleCalendars.size === 0) {
           setVisibleCalendarIds(calendarIds);
           setVisibleCalendars(new Set(calendarIds));
-        } else {
-          // Keep user's current selection, but ensure all selected calendars still exist
-          const validSelectedIds = Array.from(visibleCalendars).filter(id => 
-            calendarIds.includes(id)
-          );
-          if (validSelectedIds.length === 0) {
-            // If none of the user's selections are valid, fall back to all calendars
-            setVisibleCalendarIds(calendarIds);
-            setVisibleCalendars(new Set(calendarIds));
-          } else {
-            // Update store with valid selections
-            setVisibleCalendarIds(validSelectedIds);
-          }
         }
 
         onCalendarsFetched?.(allCalendars);
@@ -229,8 +219,11 @@ export function useCalendarManagement(
       }
     } catch (error) {
       toast.error('Failed to fetch calendars');
+      // Reset the ref on error so we can retry
+      hasFetchedCalendarsRef.current = false;
     } finally {
       setIsLoadingCalendars(false);
+      isGlobalFetching = false; // Reset global flag after fetch
     }
   }, [
     userId,
@@ -242,6 +235,30 @@ export function useCalendarManagement(
     onCalendarsFetched,
     visibleCalendars,
   ]);
+
+  // Only fetch calendars once when sessions are available
+  React.useEffect(() => {
+    if (accessToken && userId && sessions && sessions.length > 0 && !hasFetchedCalendarsRef.current) {
+      fetchCalendars();
+    }
+  }, [accessToken, userId, sessions, fetchCalendars]);
+
+  // Reset fetch state when sessions change
+  React.useEffect(() => {
+    hasFetchedCalendarsRef.current = false;
+    setFetchedCalendars([]);
+    setVisibleCalendars(new Set());
+    // Reset global flag when sessions change
+    isGlobalFetching = false;
+  }, [sessions]);
+
+  // Function to manually reset fetch state (useful for testing or manual refresh)
+  const resetFetchState = React.useCallback(() => {
+    hasFetchedCalendarsRef.current = false;
+    isGlobalFetching = false;
+    setFetchedCalendars([]);
+    setVisibleCalendars(new Set());
+  }, []);
 
   const handleChangeCalendarColor = React.useCallback(
     async (calendarId: string, colorId: string) => {
@@ -361,12 +378,6 @@ export function useCalendarManagement(
     []
   );
 
-  React.useEffect(() => {
-    const newVisibleIds = Array.from(visibleCalendars);
-    console.log('Syncing visible calendar IDs to store:', newVisibleIds);
-    setVisibleCalendarIds(newVisibleIds);
-  }, [visibleCalendars, setVisibleCalendarIds]);
-
   const createCalendar = React.useCallback(
     async (calendarData: {
       summary: string;
@@ -475,5 +486,6 @@ export function useCalendarManagement(
     createCalendar,
     createCalendarForAccount,
     refetchCalendars: fetchCalendars,
+    resetFetchState,
   };
 }

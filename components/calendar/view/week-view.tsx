@@ -40,6 +40,8 @@ export default function WeeklyView() {
   const [colWidth, setColWidth] = useState<number[]>(Array(7).fill(1));
   const [isResizing, setIsResizing] = useState<boolean>(false);
   const [contextMenuTime, setContextMenuTime] = useState<string | null>(null);
+  const hasRefreshedRef = useRef(false);
+  
   const {
     toggleChatSidebar,
     openEventSidebarForNewEvent,
@@ -63,15 +65,19 @@ export default function WeeklyView() {
     currentDate instanceof Date ? currentDate : new Date(currentDate);
 
   useEffect(() => {
-    if (clerkUser?.id) {
-      if (visibleCalendarIds.length > 0) {
-        refreshEvents();
-      } else {
-        // Clear events when no calendars are visible
-        setGoogleEvents([]);
-      }
+    if (clerkUser?.id && visibleCalendarIds.length > 0 && !hasRefreshedRef.current) {
+      hasRefreshedRef.current = true;
+      refreshEvents();
+    } else if (visibleCalendarIds.length === 0) {
+      // Clear events when no calendars are visible
+      setGoogleEvents([]);
     }
   }, [refreshEvents, clerkUser?.id, visibleCalendarIds, setGoogleEvents]);
+
+  // Reset refresh flag when calendar IDs change
+  useEffect(() => {
+    hasRefreshedRef.current = false;
+  }, [visibleCalendarIds.join(',')]);
 
   const allEvents = useMemo(() => {
     const localEvents = events || [];

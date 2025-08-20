@@ -207,24 +207,7 @@ export const defaultInitState: CalendarState = {
     'fuchsia',
   ],
   eventTypes: ['event', 'birthday'],
-  events: [
-    {
-      id: 'test-event-1',
-      title: 'Test Meeting',
-      description: 'A test event to verify functionality',
-      startDate: new Date(new Date().setHours(10, 0, 0, 0)),
-      endDate: new Date(new Date().setHours(11, 0, 0, 0)),
-      color: 'blue',
-      type: 'event',
-      location: '',
-      attendees: [],
-      reminders: [],
-      repeat: 'none',
-      visibility: 'public',
-      isAllDay: false,
-      account: 'john.doe@gmail.com',
-    },
-  ],
+  events: [],
 
   // Calendar Agent State
   pendingActions: [],
@@ -629,8 +612,15 @@ export const createCalendarStore = (
             };
           }),
 
-        setVisibleCalendarIds: (calendarIds) =>
-          set({ visibleCalendarIds: calendarIds }),
+        setVisibleCalendarIds: (calendarIds) => {
+          set((state) => {
+            // Only update if the IDs actually changed
+            if (JSON.stringify(state.visibleCalendarIds) === JSON.stringify(calendarIds)) {
+              return state;
+            }
+            return { visibleCalendarIds: calendarIds };
+          });
+        },
 
         setFetchingEvents: (isFetching) =>
           set({ isFetchingEvents: isFetching }),

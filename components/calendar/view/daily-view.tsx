@@ -46,6 +46,7 @@ export default function DailyView({
 }: {
   stopDayEventSummary?: boolean;
 }) {
+  const hasRefreshedRef = useRef(false);
   const hoursColumnRef = useRef<HTMLDivElement>(null);
   const [detailedHour, setDetailedHour] = useState<string | null>(null);
   const [timelinePosition, setTimelinePosition] = useState<number>(0);
@@ -108,15 +109,19 @@ export default function DailyView({
   );
 
   useEffect(() => {
-    if (clerkUser?.id) {
-      if (visibleCalendarIds.length > 0) {
-        refreshEvents();
-      } else {
-        // Clear events when no calendars are visible
-        setGoogleEvents([]);
-      }
+    if (clerkUser?.id && visibleCalendarIds.length > 0 && !hasRefreshedRef.current) {
+      hasRefreshedRef.current = true;
+      refreshEvents();
+    } else if (visibleCalendarIds.length === 0) {
+      // Clear events when no calendars are visible
+      setGoogleEvents([]);
     }
   }, [refreshEvents, clerkUser?.id, visibleCalendarIds, setGoogleEvents]);
+
+  // Reset refresh flag when calendar IDs change
+  useEffect(() => {
+    hasRefreshedRef.current = false;
+  }, [visibleCalendarIds.join(',')]);
 
   const allEvents = useMemo(() => {
     const localEvents = events || [];
