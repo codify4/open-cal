@@ -22,6 +22,10 @@ export interface Event {
   repeat?: 'none' | 'daily' | 'weekly' | 'monthly' | 'yearly';
   visibility?: 'public' | 'private';
   isAllDay?: boolean;
+  calendar?: {
+    summary?: string;
+    name?: string;
+  };
 }
 
 // Define the state interface for the scheduler
