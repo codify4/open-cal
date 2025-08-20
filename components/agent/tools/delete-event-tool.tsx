@@ -1,13 +1,13 @@
 'use client';
 
+import { useState } from 'react';
 import { Trash2, AlertTriangle, Calendar, Check, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { MessageFooter } from '../message-footer';
 import { useCalendarStore } from '@/providers/calendar-store-provider';
 import { deleteGoogleEvent } from '@/lib/calendar-utils/google-calendar';
 import { getAccessToken } from '@/actions/access-token';
-import { useState } from 'react';
+import { cn } from '@/lib/utils';
 
 interface DeleteEventToolProps {
   args: any;
@@ -176,31 +176,69 @@ export function DeleteEventTool({
     onDecline?.();
   };
 
+  const getColorClasses = (color: string) => {
+    const colorMap: Record<string, string> = {
+      blue: 'bg-blue-500/20 border-blue-500/30 text-blue-700 dark:bg-blue-500/40 dark:text-blue-100',
+      green: 'bg-green-500/20 border-green-500/30 text-green-700 dark:bg-green-500/40 dark:text-green-100',
+      purple: 'bg-purple-500/20 border-purple-500/30 text-purple-700 dark:bg-purple-500/40 dark:text-purple-100',
+      orange: 'bg-orange-500/20 border-orange-500/30 text-orange-700 dark:bg-orange-500/40 dark:text-orange-100',
+      red: 'bg-red-500/20 border-red-500/30 text-red-700 dark:bg-red-500/40 dark:text-red-100',
+      pink: 'bg-pink-500/20 border-pink-500/30 text-pink-700 dark:bg-pink-500/40 dark:text-pink-100',
+      yellow: 'bg-yellow-500/20 border-yellow-500/30 text-yellow-700 dark:bg-yellow-500/40 dark:text-yellow-100',
+      gray: 'bg-gray-500/20 border-gray-500/30 text-gray-700 dark:bg-gray-500/40 dark:text-gray-100',
+    };
+    return colorMap[color] || colorMap.blue;
+  };
+
+  const getColorAccent = (color: string) => {
+    const colorMap: Record<string, string> = {
+      blue: 'bg-blue-500/30',
+      green: 'bg-green-500/30',
+      purple: 'bg-purple-500/30',
+      orange: 'bg-orange-500/30',
+      red: 'bg-red-500/30',
+      pink: 'bg-pink-500/30',
+      yellow: 'bg-yellow-500/30',
+      gray: 'bg-gray-500/30',
+    };
+    return colorMap[color] || colorMap.blue;
+  };
+
   if (deleteResult?.success) {
     return (
-      <div>
-        <Card className="border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950/20">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-green-700 dark:text-green-300">
-              <Check className="h-4 w-4" />
-              Event Deleted
-            </CardTitle>
-            <CardDescription className="text-green-600 dark:text-green-400">
-              The event has been successfully deleted
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="text-sm text-green-600 dark:text-green-400">
+      <div className="space-y-2">
+        <div className="rounded-sm border border-green-200 bg-green-50 p-2 text-xs text-green-800 dark:bg-green-950 dark:border-green-800 dark:text-green-200">
+          <div className="flex flex-row gap-2">
+            <div className="w-[2px] bg-green-500/30" />
+            <div className="flex flex-col items-start justify-between w-full">
+              <div className="flex min-w-0 flex-1 items-center gap-1">
+                <Check className="h-3 w-3 text-green-600" />
+                <h4 className="truncate font-medium">Event Deleted Successfully</h4>
+              </div>
               {deleteResult.deletedEvent && (
-                <div className="space-y-1">
-                  <div><strong>Title:</strong> {deleteResult.deletedEvent.title}</div>
-                  <div><strong>Date:</strong> {new Date(deleteResult.deletedEvent.startDate).toLocaleDateString()}</div>
-                  <div><strong>Time:</strong> {new Date(deleteResult.deletedEvent.startDate).toLocaleTimeString()} - {new Date(deleteResult.deletedEvent.endDate).toLocaleTimeString()}</div>
+                <div className="mt-2 space-y-1 text-xs opacity-80">
+                  <p><strong>Title:</strong> {deleteResult.deletedEvent.title}</p>
+                  <p><strong>Date:</strong> {new Date(deleteResult.deletedEvent.startDate).toLocaleDateString()}</p>
+                  <p>
+                    <strong>Time:</strong>{' '}
+                    {new Date(deleteResult.deletedEvent.startDate).toLocaleTimeString('en-US', {
+                      hour: '2-digit',
+                      minute: '2-digit',
+                      hour12: true,
+                    })}{' '}
+                    -{' '}
+                    {new Date(deleteResult.deletedEvent.endDate).toLocaleTimeString('en-US', {
+                      hour: '2-digit',
+                      minute: '2-digit',
+                      hour12: true,
+                    })}
+                  </p>
                 </div>
               )}
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
+        
         <MessageFooter
           isRegenerating={isRegenerating}
           onCopy={onCopy}
@@ -213,18 +251,22 @@ export function DeleteEventTool({
 
   if (deleteResult?.error) {
     return (
-      <div>
-        <Card className="border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-950/20">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-red-700 dark:text-red-300">
-              <AlertTriangle className="h-4 w-4" />
-              Delete Failed
-            </CardTitle>
-            <CardDescription className="text-red-600 dark:text-red-400">
-              {deleteResult.error}
-            </CardDescription>
-          </CardHeader>
-        </Card>
+      <div className="space-y-2">
+        <div className="rounded-sm border border-red-200 bg-red-50 p-2 text-xs text-red-800 dark:bg-red-950 dark:border-red-800 dark:text-red-200">
+          <div className="flex flex-row gap-2">
+            <div className="w-[2px] bg-red-500/30" />
+            <div className="flex flex-col items-start justify-between w-full">
+              <div className="flex min-w-0 flex-1 items-center gap-1">
+                <AlertTriangle className="h-3 w-3 text-red-600" />
+                <h4 className="truncate font-medium">Delete Failed</h4>
+              </div>
+              <p className="mt-1 text-xs opacity-80">
+                {deleteResult.error}
+              </p>
+            </div>
+          </div>
+        </div>
+        
         <MessageFooter
           isRegenerating={isRegenerating}
           onCopy={onCopy}
@@ -236,44 +278,39 @@ export function DeleteEventTool({
   }
 
   return (
-    <div>
-      <div className="space-y-3">
-        <div className="flex items-center gap-2">
-          <Trash2 className="h-4 w-4 text-red-600" />
-          <span className="font-medium text-red-700 dark:text-red-300">Delete Event</span>
+    <div className="space-y-2">
+      <div className={cn(
+        'group relative rounded-sm border p-2 text-xs transition-all duration-200 hover:shadow-md',
+        getColorClasses(args.color || 'blue')
+      )}>
+        <div className="flex flex-row gap-2">
+          <div className={cn('w-[2px]', getColorAccent(args.color || 'blue'))} />
+          <div className="flex flex-col items-start justify-between w-full">
+            <div className="flex min-w-0 flex-1 items-center gap-1">
+              <Calendar className="h-3 w-3" />
+              <h4 className="truncate font-medium">
+                {args.title || 'Untitled Event'}
+              </h4>
+            </div>
+            
+            <div className="mt-1 space-y-1 text-xs opacity-80">
+              {args.startDate && (
+                <p>Date: {new Date(args.startDate).toLocaleDateString()}</p>
+              )}
+              {args.location && (
+                <p>Location: {args.location}</p>
+              )}
+              {args.eventId && (
+                <p>Event ID: {args.eventId}</p>
+              )}
+            </div>
+          </div>
         </div>
 
-        <div className="space-y-2 text-gray-600 text-sm dark:text-gray-400">
-          {args.title && (
-            <div className="flex items-center gap-2">
-              <Calendar className="h-3 w-3" />
-              <span><strong>Title:</strong> {args.title}</span>
-            </div>
-          )}
-          {args.startDate && (
-            <div className="flex items-center gap-2">
-              <Calendar className="h-3 w-3" />
-              <span><strong>Date:</strong> {new Date(args.startDate).toLocaleDateString()}</span>
-            </div>
-          )}
-          {args.location && (
-            <div className="flex items-center gap-2">
-              <Calendar className="h-3 w-3" />
-              <span><strong>Location:</strong> {args.location}</span>
-            </div>
-          )}
-          {args.eventId && (
-            <div className="flex items-center gap-2">
-              <Calendar className="h-3 w-3" />
-              <span><strong>Event ID:</strong> {args.eventId}</span>
-            </div>
-          )}
-        </div>
-
-        <div className="flex gap-2">
-          <Button 
-            className="flex-1 bg-red-600 hover:bg-red-700" 
-            onClick={handleAccept} 
+        <div className="mt-2 flex justify-end gap-2 pt-3">
+          <Button
+            className="bg-red-600 text-white hover:bg-red-700 h-7 rounded-[10px]"
+            onClick={handleAccept}
             size="sm"
             disabled={isDeleting}
           >
@@ -284,23 +321,31 @@ export function DeleteEventTool({
               </>
             ) : (
               <>
-                <Trash2 className="mr-1 h-3 w-3" />
+                <Trash2 className="h-4 w-4" />
                 Delete
               </>
             )}
           </Button>
-          <Button 
-            className="flex-1" 
-            onClick={handleDecline} 
-            size="sm" 
+          <Button
+            className="h-7 rounded-[10px] border-blue-200 text-blue-700 bg-transparent hover:bg-blue-50 hover:text-blue-800 dark:border-blue-700 dark:text-blue-300 dark:hover:bg-blue-900/30"
+            onClick={handleDecline}
+            size="sm"
             variant="outline"
             disabled={isDeleting}
           >
-            <X className="mr-1 h-3 w-3" />
+            <X className="h-4 w-4" />
             Cancel
           </Button>
         </div>
       </div>
+      
+      <div className="rounded-md bg-orange-50 border border-orange-200 p-2 text-xs text-orange-800 dark:bg-red-950 dark:border-red-800 dark:text-red-200">
+        <div className="flex items-center gap-2">
+          <AlertTriangle className="h-3 w-3 text-red-600" />
+          <span className="font-medium">This action cannot be undone</span>
+        </div>
+      </div>
+      
       <MessageFooter
         isRegenerating={isRegenerating}
         onCopy={onCopy}
