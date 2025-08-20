@@ -46,8 +46,11 @@ export const useGoogleCalendarRefresh = () => {
           const timeMin = startDate.toISOString();
           const timeMax = endDate.toISOString();
 
+          // Use 'primary' for primary calendars, otherwise use the calendar ID
+          const effectiveCalendarId = calendarId === user.primaryEmailAddress?.emailAddress ? 'primary' : calendarId;
+
           const response = await fetch(
-            `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events?timeMin=${timeMin}&timeMax=${timeMax}&singleEvents=true&orderBy=startTime`,
+            `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(effectiveCalendarId)}/events?timeMin=${timeMin}&timeMax=${timeMax}&singleEvents=true&orderBy=startTime`,
             {
               headers: {
                 Authorization: `Bearer ${accessToken}`,

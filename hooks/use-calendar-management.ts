@@ -46,12 +46,10 @@ export function useCalendarManagement(
   React.useEffect(() => {
     // Only initialize visible calendars once when we have data
     if (visibleCalendarIds.length > 0 && visibleCalendars.size === 0) {
-      console.log('Initializing visible calendars from store:', visibleCalendarIds);
       setVisibleCalendars(new Set(visibleCalendarIds));
     } else if (fetchedCalendars.length > 0 && visibleCalendars.size === 0) {
       // Fallback: if no visible calendars set but we have fetched calendars
       const calendarIds = fetchedCalendars.map(cal => cal.id);
-      console.log('Initializing visible calendars from fetched data:', calendarIds);
       setVisibleCalendars(new Set(calendarIds));
     }
   }, [visibleCalendarIds, fetchedCalendars, visibleCalendars.size]);
@@ -75,7 +73,7 @@ export function useCalendarManagement(
 
         const data = await response.json();
         const calendars: GoogleCalendar[] = data.items.map((cal: any) => ({
-          id: cal.id,
+          id: cal.primary ? 'primary' : cal.id,
           summary: cal.summary,
           name: cal.summary,
           primary: cal.primary,
@@ -178,9 +176,7 @@ export function useCalendarManagement(
       if (allCalendars.length > 0) {
         setFetchedCalendars(allCalendars);
 
-        const calendarIds = allCalendars.map((cal) => cal.id);
-        console.log('Setting visible calendar IDs:', calendarIds);
-        
+        const calendarIds = allCalendars.map((cal) => cal.id);        
         // Only set visible calendars if they haven't been set yet
         if (visibleCalendars.size === 0) {
           setVisibleCalendarIds(calendarIds);
@@ -189,7 +185,6 @@ export function useCalendarManagement(
 
         onCalendarsFetched?.(allCalendars);
       } else {
-        console.log('No calendars found for any sessions');
         setFetchedCalendars([]);
         setVisibleCalendarIds([]);
         setVisibleCalendars(new Set());
