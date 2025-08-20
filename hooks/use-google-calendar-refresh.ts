@@ -1,7 +1,7 @@
 import { useUser } from '@clerk/nextjs';
 import { useCallback, useRef } from 'react';
 import { toast } from 'sonner';
-import { getAccessToken } from '@/actions/access-token';
+import { getAccessToken, getAccessTokenForSession } from '@/actions/access-token';
 import {
   convertGoogleEventToLocalEvent,
   getDateRangeForView,
@@ -14,6 +14,7 @@ export const useGoogleCalendarRefresh = () => {
     currentDate,
     viewType,
     visibleCalendarIds,
+    sessionCalendars,
     setGoogleEvents,
     setFetchingEvents,
   } = useCalendarStore((state) => state);
@@ -26,27 +27,48 @@ export const useGoogleCalendarRefresh = () => {
       return;
     }
 
+    if (Object.keys(sessionCalendars).length === 0) {
+      console.log('Session calendars not yet populated, skipping refresh');
+      return;
+    }
+
     console.log('Starting event refresh for calendars:', visibleCalendarIds.length);
     isRefreshingRef.current = true;
     setFetchingEvents(true);
 
     try {
-      const accessToken = await getAccessToken();
-      if (!accessToken) {
-        toast.error('Google Calendar not connected');
-        return;
-      }
-
       const { startDate, endDate } = getDateRangeForView(currentDate, viewType);
       const allEvents: Event[] = [];
 
-      // Fetch events for each calendar
       for (const calendarId of visibleCalendarIds) {
         try {
           const timeMin = startDate.toISOString();
           const timeMax = endDate.toISOString();
 
-          // Use 'primary' for primary calendars, otherwise use the calendar ID
+          let accessToken: string | null = null;
+          let sessionId: string | null = null;
+
+          for (const [sessionIdKey, calendars] of Object.entries(sessionCalendars)) {
+            const calendar = calendars.find((cal: any) => cal.id === calendarId);
+            if (calendar) {
+              sessionId = sessionIdKey;
+              break;
+            }
+          }
+
+          if (sessionId) {
+            accessToken = await getAccessTokenForSession(sessionId);
+          }
+
+          if (!accessToken) {
+            accessToken = await getAccessToken();
+          }
+
+          if (!accessToken) {
+            console.warn(`No access token available for calendar ${calendarId}`);
+            continue;
+          }
+
           const effectiveCalendarId = calendarId === user.primaryEmailAddress?.emailAddress ? 'primary' : calendarId;
 
           const response = await fetch(
@@ -86,7 +108,7 @@ export const useGoogleCalendarRefresh = () => {
       setFetchingEvents(false);
       isRefreshingRef.current = false;
     }
-  }, [currentDate, viewType, visibleCalendarIds, setGoogleEvents, setFetchingEvents, user?.id]);
+  }, [currentDate, viewType, visibleCalendarIds, sessionCalendars, setGoogleEvents, setFetchingEvents, user?.id]);
 
   return { refreshEvents };
 };

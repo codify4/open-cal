@@ -73,7 +73,7 @@ export function useCalendarManagement(
 
         const data = await response.json();
         const calendars: GoogleCalendar[] = data.items.map((cal: any) => ({
-          id: cal.primary ? 'primary' : cal.id,
+          id: cal.id,
           summary: cal.summary,
           name: cal.summary,
           primary: cal.primary,
