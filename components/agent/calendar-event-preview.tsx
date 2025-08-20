@@ -170,21 +170,17 @@ export function CalendarEventPreview({
         </div>
       </div>
 
-      <div className="mt-2 flex gap-2 border-current/10 border-t pt-3">
+      <div className="mt-2 flex justify-end gap-2 pt-3">
         <Button
-          className="flex-1 bg-white text-black"
+          className="bg-white text-black hover:bg-gray-50 h-7 rounded-[10px]"
           onClick={handleAccept}
           size="sm"
         >
           <Check className="h-4 w-4" />
           Accept
         </Button>
-        <Button onClick={handleEdit} size="sm" variant="outline">
-          <Pencil className="h-4 w-4" />
-          Edit
-        </Button>
         <Button
-          className="text-red-600 hover:bg-red-50 hover:text-red-700 dark:text-red-400 dark:hover:bg-red-950/20 dark:hover:text-red-300"
+          className="h-7 rounded-[10px] border-blue-200 text-blue-700 bg-transparent hover:bg-blue-50 hover:text-blue-800 dark:border-blue-700 dark:text-blue-300 dark:hover:bg-blue-900/30"
           onClick={handleDecline}
           size="sm"
           variant="outline"

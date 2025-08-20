@@ -152,7 +152,7 @@ export function CreateEventTool({
         </div>
 
         <div className="flex gap-2">
-          <Button className="flex-1" onClick={handleAccept} size="sm">
+          <Button className="flex-1 h-5 bg-red-500" onClick={handleAccept} size="sm">
             <Check className="mr-1 h-3 w-3" />
             Accept
           </Button>
