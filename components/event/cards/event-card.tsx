@@ -96,7 +96,7 @@ export const EventCard = ({
         </div>
 
         <div
-          className="relative z-10 flex cursor-grab flex-col gap-2 ml-2"
+          className="relative z-10 flex cursor-grab flex-col gap-2"
           ref={isClient ? setNodeRef : undefined}
           {...(isClient ? listeners : {})}
           {...(isClient ? attributes : {})}
