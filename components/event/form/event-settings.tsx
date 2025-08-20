@@ -1,13 +1,12 @@
 'use client';
 
-import { useSession, useSessionList, useUser } from '@clerk/nextjs';
+import { useSession } from '@clerk/nextjs';
 import { Calendar, Video } from 'lucide-react';
 import Image from 'next/image';
 import * as React from 'react';
-import { useCalendarManagement } from '@/hooks/use-calendar-management';
+import { useCalendarStore } from '@/providers/calendar-store-provider';
 import {
   getCalendarColor,
-  getColorClasses,
 } from '@/lib/calendar-utils/calendar-color-utils';
 import type { GoogleCalendar } from '@/types/calendar';
 import { CopyButton } from '../../agent/copy-button';
@@ -19,7 +18,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '../../ui/select';
-import { ColorPicker } from './color-picker';
 
 interface EventSettingsProps {
   meetingType: string;
@@ -46,26 +44,40 @@ export const EventSettings = ({
   onGenerateMeeting,
   isGeneratingMeeting,
 }: EventSettingsProps) => {
-  const { user: clerkUser } = useUser();
-  const { sessions } = useSessionList();
   const { session: currentSession } = useSession();
-  const { fetchedCalendars } = useCalendarManagement();
+  const sessionCalendars = useCalendarStore((state) => state.sessionCalendars);
+
+  const allCalendars = React.useMemo(() => {
+    const calendars: GoogleCalendar[] = [];
+    Object.values(sessionCalendars).forEach((sessionCals) => {
+      if (Array.isArray(sessionCals)) {
+        calendars.push(...sessionCals);
+      }
+    });
+    return calendars;
+  }, [sessionCalendars]);
 
   const groupedCalendars = React.useMemo(() => {
+    if (!allCalendars.length) return {};
+    
+    const currentUserEmail = currentSession?.user?.primaryEmailAddress?.emailAddress;
     const groups: Record<string, GoogleCalendar[]> = {};
 
-    fetchedCalendars.forEach((calendar) => {
-      const accountEmail =
-        calendar.account ||
-        currentSession?.user?.primaryEmailAddress?.emailAddress ||
-        'Unknown Account';
+    allCalendars.forEach((calendar) => {
+      const accountEmail = calendar.account || currentUserEmail || 'Unknown Account';
       if (!groups[accountEmail]) {
         groups[accountEmail] = [];
       }
       groups[accountEmail].push(calendar);
     });
 
-    Object.keys(groups).forEach((email) => {
+    const sortedGroupKeys = Object.keys(groups).sort((a, b) => {
+      if (a === currentUserEmail) return -1;
+      if (b === currentUserEmail) return 1;
+      return a.localeCompare(b);
+    });
+
+    sortedGroupKeys.forEach((email) => {
       groups[email].sort((a, b) => {
         if (a.primary && !b.primary) return -1;
         if (!a.primary && b.primary) return 1;
@@ -75,13 +87,18 @@ export const EventSettings = ({
       });
     });
 
-    return groups;
-  }, [fetchedCalendars, currentSession]);
+    const sortedGroups: Record<string, GoogleCalendar[]> = {};
+    sortedGroupKeys.forEach((email) => {
+      sortedGroups[email] = groups[email];
+    });
+
+    return sortedGroups;
+  }, [allCalendars, currentSession?.user?.primaryEmailAddress?.emailAddress]);
 
   const selectedCalendar = React.useMemo(() => {
     if (!calendar) return null;
-    return fetchedCalendars.find((cal) => cal.id === calendar) || null;
-  }, [calendar, fetchedCalendars]);
+    return allCalendars.find((cal) => cal.id === calendar) || null;
+  }, [calendar, allCalendars]);
 
   const COLORS = [
     { id: 'red', bg: 'bg-red-500' },
@@ -118,7 +135,42 @@ export const EventSettings = ({
           value={meetingType}
         >
           <SelectTrigger className="h-8 w-full cursor-pointer border-border bg-background text-foreground text-sm hover:bg-accent">
-            <SelectValue placeholder="Add meeting" />
+            <SelectValue placeholder="Add meeting">
+              {meetingType === 'google-meet' && (
+                <div className="flex items-center gap-2">
+                  <Image
+                    alt="Google Meet"
+                    height={16}
+                    src="/g-meet.svg"
+                    width={16}
+                  />
+                  Google Meet
+                </div>
+              )}
+              {meetingType === 'zoom' && (
+                <div className="flex items-center gap-2">
+                  <Image
+                    alt="Zoom"
+                    height={16}
+                    src="/zoom.svg"
+                    width={16}
+                  />
+                  Zoom
+                </div>
+              )}
+              {meetingType === 'teams' && (
+                <div className="flex items-center gap-2">
+                  <Image
+                    alt="Teams"
+                    height={16}
+                    src="/teams.svg"
+                    width={16}
+                  />
+                  Teams
+                </div>
+              )}
+              {meetingType === 'none' && <span>None</span>}
+            </SelectValue>
           </SelectTrigger>
           <SelectContent className="border-border bg-popover dark:bg-neutral-900">
             <SelectItem
@@ -138,14 +190,14 @@ export const EventSettings = ({
             <SelectItem
               className="cursor-pointer text-muted-foreground"
               disabled
-              value="none"
+              value="zoom"
             >
               Zoom (Coming soon)
             </SelectItem>
             <SelectItem
               className="cursor-pointer text-muted-foreground"
               disabled
-              value="none"
+              value="teams"
             >
               Teams (Coming soon)
             </SelectItem>
@@ -212,7 +264,9 @@ export const EventSettings = ({
         <Select onValueChange={onCalendarChange} value={calendar}>
           <SelectTrigger className="h-8 w-full border-border bg-background text-foreground text-sm hover:bg-accent">
             <SelectValue placeholder="Select calendar">
-              {selectedCalendar ? (
+              {!allCalendars.length ? (
+                <span className="text-muted-foreground">Loading calendars...</span>
+              ) : selectedCalendar ? (
                 <div className="flex items-center gap-2">
                   <div
                     className={`h-3 w-3 rounded-full ${getCalendarColor(selectedCalendar)}`}
@@ -232,36 +286,11 @@ export const EventSettings = ({
             className="border-border bg-popover dark:bg-neutral-900"
             side="left"
           >
-            {Object.entries(groupedCalendars).map(
-              ([accountEmail, calendars]) => (
-                <div key={accountEmail}>
-                  <div className="border-border border-b px-2 py-2 font-medium text-muted-foreground text-xs">
-                    {accountEmail}
-                  </div>
-                  {calendars.map((cal) => (
-                    <SelectItem
-                      className="ml-2 text-popover-foreground hover:bg-accent"
-                      key={cal.id}
-                      value={cal.id}
-                    >
-                      <div className="flex items-center gap-2">
-                        <div
-                          className={`h-3 w-3 rounded-xs ${getCalendarColor(cal)}`}
-                          style={{ backgroundColor: getCalendarColor(cal) }}
-                        />
-                        {cal.summary || cal.name}
-                        {cal.primary && (
-                          <span className="text-muted-foreground text-xs">
-                            Default
-                          </span>
-                        )}
-                      </div>
-                    </SelectItem>
-                  ))}
-                </div>
-              )
-            )}
-            {Object.keys(groupedCalendars).length === 0 && (
+            {!allCalendars.length ? (
+              <SelectItem className="text-muted-foreground" disabled value="loading">
+                Loading calendars...
+              </SelectItem>
+            ) : Object.keys(groupedCalendars).length === 0 ? (
               <SelectItem
                 className="text-muted-foreground"
                 disabled
@@ -269,6 +298,36 @@ export const EventSettings = ({
               >
                 No accounts connected
               </SelectItem>
+            ) : (
+              Object.entries(groupedCalendars).map(
+                ([accountEmail, calendars]) => (
+                  <div key={accountEmail}>
+                    <div className="px-2 py-2 font-medium text-muted-foreground text-xs">
+                      {accountEmail}
+                    </div>
+                    {calendars.map((cal) => (
+                      <SelectItem
+                        className="hover:bg-transparent hover:text-foreground"
+                        key={cal.id}
+                        value={cal.id}
+                      >
+                        <div className="flex items-center gap-2">
+                          <div
+                            className={`h-3 w-3 rounded-xs ${getCalendarColor(cal)}`}
+                            style={{ backgroundColor: getCalendarColor(cal) }}
+                          />
+                          {cal.summary || cal.name}
+                          {cal.primary && (
+                            <span className="text-muted-foreground text-xs">
+                              Default
+                            </span>
+                          )}
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </div>
+                )
+              )
             )}
             <div className="p-2">
               <div className="mb-2 text-muted-foreground text-xs">

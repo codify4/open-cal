@@ -83,7 +83,7 @@ export const EventForm = ({
         reminders: [],
         calendar: event.calendar || event.account || '',
         color: event.color || 'blue',
-        isAllDay: event.isAllDay,
+        isAllDay: event.isAllDay ?? false,
         timezone: 'UTC',
         repeat: (event.repeat || 'none') as RepeatType,
         availability: 'busy',
