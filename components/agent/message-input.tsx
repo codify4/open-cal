@@ -8,20 +8,26 @@ import {
   Mic,
   Paperclip,
   Square,
-  X,
 } from 'lucide-react';
 import type React from 'react';
 import { useEffect, useRef, useState } from 'react';
 import { omit } from 'remeda';
-import { EventReferenceChip } from '@/components/agent/event-reference-chip';
 import { FilePreview } from '@/components/agent/file-preview';
 import { AudioVisualizer } from '@/components/ui/audio-visualizer';
 import { Button } from '@/components/ui/button';
 import { InterruptPrompt } from '@/components/ui/interrupt-prompt';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
 import { useAudioRecording } from '@/hooks/use-audio-recording';
 import { useAutosizeTextArea } from '@/hooks/use-autosize-textarea';
 import { useChatStore } from '@/providers/chat-store-provider';
+import { useCalendarStore } from '@/providers/calendar-store-provider';
+import { getEventReferenceChipColor, getCalendarColor, getDotColor } from '@/lib/calendar-utils/calendar-color-utils';
 import { cn } from '@/lib/utils';
+import { convertEventToReference, convertCalendarToReference } from '@/lib/store/chat-store';
 
 interface MessageInputBaseProps
   extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
@@ -60,6 +66,9 @@ export function MessageInput({
 }: MessageInputProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [showInterruptPrompt, setShowInterruptPrompt] = useState(false);
+  const [isPopoverOpen, setIsPopoverOpen] = useState(false);
+  const [cursorPosition, setCursorPosition] = useState(0);
+  const [cursorCoords, setCursorCoords] = useState({ x: 0, y: 0 });
 
   const {
     isListening,
@@ -81,6 +90,107 @@ export function MessageInput({
       setShowInterruptPrompt(false);
     }
   }, [isGenerating]);
+
+  const checkForAtSymbol = (value: string, cursorPos: number) => {
+    const textBeforeCursor = value.slice(0, cursorPos);
+    const lastAtSymbol = textBeforeCursor.lastIndexOf('@');
+    
+    if (lastAtSymbol !== -1) {
+      const textAfterAt = textBeforeCursor.slice(lastAtSymbol + 1);
+      const hasSpaceAfterAt = /\s/.test(textAfterAt);
+      
+      if (!hasSpaceAfterAt) {
+        setIsPopoverOpen(true);
+        calculateCursorCoords(cursorPos);
+        return;
+      }
+    }
+    
+    setIsPopoverOpen(false);
+  };
+
+  const calculateCursorCoords = (cursorPos: number) => {
+    if (!textAreaRef.current) return;
+    
+    const textarea = textAreaRef.current;
+    const textBeforeCursor = props.value.slice(0, cursorPos);
+    const lines = textBeforeCursor.split('\n');
+    const currentLine = lines[lines.length - 1];
+    const lineNumber = lines.length - 1;
+    
+    const lineHeight = 20;
+    const charWidth = 8;
+    
+    const x = currentLine.length * charWidth;
+    const y = lineNumber * lineHeight;
+    
+    setCursorCoords({ x, y });
+  };
+
+  const handleTextareaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const value = e.target.value;
+    const cursorPos = e.target.selectionStart || 0;
+    
+    setCursorPosition(cursorPos);
+    checkForAtSymbol(value, cursorPos);
+    
+    props.onChange?.(e);
+  };
+
+  const handleTextareaKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Escape' && isPopoverOpen) {
+      e.preventDefault();
+      setIsPopoverOpen(false);
+      return;
+    }
+    
+    onKeyDown(e);
+  };
+
+  const handleTextareaClick = (e: React.MouseEvent<HTMLTextAreaElement>) => {
+    const target = e.target as HTMLTextAreaElement;
+    const cursorPos = target.selectionStart || 0;
+    setCursorPosition(cursorPos);
+    checkForAtSymbol(props.value, cursorPos);
+  };
+
+  const handleTextareaSelect = (e: React.SyntheticEvent<HTMLTextAreaElement>) => {
+    const target = e.target as HTMLTextAreaElement;
+    const cursorPos = target.selectionStart || 0;
+    setCursorPosition(cursorPos);
+    checkForAtSymbol(props.value, cursorPos);
+  };
+
+  const insertReference = (reference: string, eventRef?: any, calendarRef?: any) => {
+    if (!textAreaRef.current) return;
+    
+    const textarea = textAreaRef.current;
+    const value = props.value;
+    const cursorPos = cursorPosition;
+    
+    const textBeforeCursor = value.slice(0, cursorPos);
+    const lastAtSymbol = textBeforeCursor.lastIndexOf('@');
+    
+    if (lastAtSymbol !== -1) {
+      const textAfterCursor = value.slice(cursorPos);
+      const newValue = value.slice(0, lastAtSymbol) + reference + textAfterCursor;
+      
+      props.onChange?.({ target: { value: newValue } } as any);
+      
+      const newCursorPos = lastAtSymbol + reference.length;
+      textarea.setSelectionRange(newCursorPos, newCursorPos);
+      setCursorPosition(newCursorPos);
+    }
+    
+    if (eventRef) {
+      addEventReference(eventRef);
+    }
+    if (calendarRef) {
+      addCalendarReference(calendarRef);
+    }
+    
+    setIsPopoverOpen(false);
+  };
 
   const addFiles = (files: File[] | null) => {
     if (props.allowAttachments) {
@@ -194,6 +304,11 @@ export function MessageInput({
     dependencies: [props.value, showFileList],
   });
 
+  const eventReferences = useChatStore((state) => state.eventReferences);
+  const calendarReferences = useChatStore((state) => state.calendarReferences);
+  const addEventReference = useChatStore((state) => state.addEventReference);
+  const addCalendarReference = useChatStore((state) => state.addCalendarReference);
+
   return (
     <div
       className="relative flex w-full"
@@ -264,19 +379,30 @@ export function MessageInput({
               </div>
             </div>
           )}
-          {/* @ Button and Event References at the top */}
-          <div className="mb-2 flex items-center gap-2">
-              <button
-                type="button"
-                className="flex h-6 w-6 items-center justify-center rounded-md bg-muted text-muted-foreground hover:bg-muted/80 transition-colors"
-                aria-label="Reference events or calendars"
-              >
-                <span className="text-sm font-medium">@</span>
-              </button>
-              
-              {/* Event Reference Chips */}
-              <EventReferencesInline />
-            </div>
+          <div className="absolute -top-8 left-0 right-0 flex items-center gap-2 overflow-hidden">
+                <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
+                    <PopoverTrigger asChild>
+                        <Button
+                            className="flex h-6 px-2 items-center justify-center rounded-md bg-muted text-muted-foreground hover:bg-muted/80 transition-colors flex-shrink-0"
+                            aria-label="Reference events or calendars"
+                            variant="outline"
+                        >
+                            <span className="text-sm font-medium">@</span>
+                            {eventReferences.length === 0 && calendarReferences.length === 0 && (
+                                <span className="text-xs">Add context</span>
+                            )}
+                        </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-72 p-3 bg-neutral-900" align="start">
+                        <EventReferencesPopover onSelect={insertReference} />
+                    </PopoverContent>
+                </Popover>
+                
+                <div className="flex gap-1 overflow-x-auto scrollbar-hide">
+                    <EventReferencesInline />
+                    <CalendarReferencesInline />
+                </div>
+             </div>
         </div>
       </div>
 
@@ -511,26 +637,213 @@ function EventReferencesInline() {
   }
 
   return (
-    <div className="flex flex-wrap gap-1">
+    <div className="flex gap-1">
       <AnimatePresence mode="popLayout">
-        {eventReferences.map((event) => (
+        {eventReferences.map((event, index) => (
           <div
-            key={event.id}
-            className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 rounded-md text-xs border border-blue-200 dark:border-blue-800/50 max-w-[120px]"
+            key={`event-${event.id}-${index}`}
+            className={`inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-medium ${getEventReferenceChipColor(event.color || 'blue')}`}
+
           >
             <span className="truncate font-medium" title={event.title}>
               {event.title}
             </span>
             <button
               onClick={() => removeEventReference(event.id)}
-              className="ml-1 h-4 w-4 rounded-full bg-blue-200 dark:bg-blue-800/50 hover:bg-blue-300 dark:hover:bg-blue-700/50 flex items-center justify-center transition-colors"
+              className="ml-1 h-4 w-4 rounded-full flex items-center justify-center transition-colors"
               aria-label={`Remove ${event.title} reference`}
             >
-              <span className="text-blue-600 dark:text-blue-400 text-xs">×</span>
+              <span className="text-xs">×</span>
             </button>
           </div>
         ))}
       </AnimatePresence>
+    </div>
+  );
+}
+
+function CalendarReferencesInline() {
+  const calendarReferences = useChatStore((state) => state.calendarReferences);
+  const removeCalendarReference = useChatStore((state) => state.removeCalendarReference);
+
+  if (calendarReferences.length === 0) {
+    return null;
+  }
+
+  return (
+    <div className="flex gap-1">
+      <AnimatePresence mode="popLayout">
+        {calendarReferences.map((calendar, index) => (
+          <div
+            key={`calendar-${calendar.id}-${index}`}
+            className={`inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-medium bg-neutral-800 text-neutral-200 border border-neutral-700`}
+          >
+            <div
+              className={`w-2.5 h-2.5 rounded-full flex-shrink-0`}
+              style={{ backgroundColor: calendar.color || '#3b82f6' }}
+            />
+            <span className="truncate font-medium" title={calendar.name}>
+              {calendar.name}
+            </span>
+            <button
+              onClick={() => removeCalendarReference(calendar.id)}
+              className="ml-1 h-4 w-4 rounded-full flex items-center justify-center transition-colors hover:bg-neutral-700"
+              aria-label={`Remove ${calendar.name} reference`}
+            >
+              <span className="text-xs">×</span>
+            </button>
+          </div>
+        ))}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+function EventReferencesPopover({ onSelect }: { onSelect: (reference: string, eventRef?: any, calendarRef?: any) => void }) {
+  const addEventReference = useChatStore((state) => state.addEventReference);
+  const addCalendarReference = useChatStore((state) => state.addCalendarReference);
+  const calendarEvents = useCalendarStore((state) => state.events);
+  const googleEvents = useCalendarStore((state) => state.googleEvents);
+  const sessionCalendars = useCalendarStore((state) => state.sessionCalendars);
+  
+  const allEvents = [...calendarEvents, ...googleEvents];
+  const allCalendars = Object.values(sessionCalendars).flat();
+  
+  const handleEventSelect = (event: any) => {
+    const eventRef = convertEventToReference(event);
+    onSelect(`@${event.title}`, eventRef);
+  };
+
+  const handleCalendarSelect = (calendar: any) => {
+    const calendarRef = convertCalendarToReference(calendar);
+    onSelect(`@${calendar.summary || calendar.name}`, undefined, calendarRef);
+  };
+
+  return (
+    <div className="space-y-3 overflow-y-auto scrollbar-hide">
+      <div className="space-y-2">
+        <h4 className="text-xs font-medium text-foreground">Events</h4>
+        <div className="space-y-1 max-h-32 overflow-y-auto">
+          {allEvents.length > 0 ? allEvents.map((event) => (
+            <button
+              key={event.id}
+              onClick={() => handleEventSelect(event)}
+              className="w-full flex items-center gap-2 p-1.5 rounded-[10px] hover:bg-neutral-800/50 transition-colors text-left cursor-pointer focus:outline-none"
+            >
+              <div 
+                className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${getDotColor(event.color || 'blue')}`}
+
+              />
+              <span className="text-xs text-foreground truncate">{event.title}</span>
+            </button>
+          )) : (
+            <p className="text-xs text-muted-foreground px-1.5">No events available</p>
+          )}
+        </div>
+      </div>
+      
+      <div className="space-y-2">
+        <h4 className="text-xs font-medium text-foreground">
+            Calendars
+        </h4>
+        <div className="space-y-1 max-h-20">
+          {allCalendars.length > 0 ? allCalendars.map((calendar) => (
+            <button
+              key={calendar.id}
+              onClick={() => handleCalendarSelect(calendar)}
+              className="w-full flex items-center gap-2 p-1.5 transition-colors text-left rounded-[10px] hover:bg-neutral-800/50 cursor-pointer"
+            >
+                <div className="flex items-center gap-2">
+                    <div
+                        className={`h-3 w-3 rounded-xs ${getCalendarColor(calendar)}`}
+                        style={{ backgroundColor: getCalendarColor(calendar) }}
+                    />
+                    <span className="text-xs text-foreground truncate">{calendar.summary || calendar.name}</span>
+                </div>
+            </button>
+          )) : (
+            <p className="text-xs text-muted-foreground px-1.5">No calendars available</p>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function InlineEventSuggestions({ onSelect }: { onSelect: (reference: string, eventRef?: any, calendarRef?: any) => void }) {
+  const addEventReference = useChatStore((state) => state.addEventReference);
+  const calendarEvents = useCalendarStore((state) => state.events);
+  const googleEvents = useCalendarStore((state) => state.googleEvents);
+  
+  const allEvents = [...calendarEvents, ...googleEvents].slice(0, 3);
+  
+  const handleEventSelect = (event: any) => {
+    const eventRef = convertEventToReference(event);
+    onSelect(`@${event.title}`, eventRef);
+  };
+
+  if (allEvents.length === 0) {
+    return (
+      <div className="flex items-center gap-1 px-1.5 py-0.5 rounded text-xs text-muted-foreground bg-muted/30">
+        <span>No events</span>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex gap-1">
+      {allEvents.map((event) => (
+        <button
+          key={event.id}
+          onClick={() => handleEventSelect(event)}
+          className="flex items-center gap-1 px-1.5 py-0.5 rounded text-xs bg-muted/50 hover:bg-muted transition-colors cursor-pointer border border-border/50"
+          title={event.title}
+        >
+          <div 
+            className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${getDotColor(event.color || 'blue')}`}
+          />
+          <span className="text-foreground truncate max-w-16">{event.title}</span>
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function InlineCalendarSuggestions({ onSelect }: { onSelect: (reference: string, eventRef?: any, calendarRef?: any) => void }) {
+  const addCalendarReference = useChatStore((state) => state.addCalendarReference);
+  const sessionCalendars = useCalendarStore((state) => state.sessionCalendars);
+  
+  const allCalendars = Object.values(sessionCalendars).flat().slice(0, 2);
+  
+  const handleCalendarSelect = (calendar: any) => {
+    const calendarRef = convertCalendarToReference(calendar);
+    onSelect(`@${calendar.summary || calendar.name}`, undefined, calendarRef);
+  };
+
+  if (allCalendars.length === 0) {
+    return (
+      <div className="flex items-center gap-1 px-1.5 py-0.5 rounded text-xs text-muted-foreground bg-muted/30">
+        <span>No calendars</span>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex gap-1">
+      {allCalendars.map((calendar) => (
+        <button
+          key={calendar.id}
+          onClick={() => handleCalendarSelect(calendar)}
+          className="flex items-center gap-1 px-1.5 py-0.5 rounded text-xs bg-muted/50 hover:bg-muted transition-colors cursor-pointer border border-border/50"
+          title={calendar.summary || calendar.name}
+        >
+          <div
+            className="h-1.5 w-1.5 rounded-xs flex-shrink-0"
+            style={{ backgroundColor: getCalendarColor(calendar) }}
+          />
+          <span className="text-foreground truncate max-w-12">{calendar.summary || calendar.name}</span>
+        </button>
+      ))}
     </div>
   );
 }

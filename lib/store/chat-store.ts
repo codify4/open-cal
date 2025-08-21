@@ -14,10 +14,19 @@ export interface EventReference {
   color?: string;
 }
 
+export interface CalendarReference {
+  id: string;
+  name: string;
+  summary?: string;
+  color?: string;
+  accessRole?: string;
+}
+
 export interface ChatState {
   messages: UIMessage[];
   input: string;
   eventReferences: EventReference[];
+  calendarReferences: CalendarReference[];
 }
 
 export interface ChatActions {
@@ -28,6 +37,9 @@ export interface ChatActions {
   addEventReference: (event: EventReference) => void;
   removeEventReference: (eventId: string) => void;
   clearEventReferences: () => void;
+  addCalendarReference: (calendar: CalendarReference) => void;
+  removeCalendarReference: (calendarId: string) => void;
+  clearCalendarReferences: () => void;
 }
 
 export type ChatStore = ChatState & ChatActions;
@@ -36,6 +48,7 @@ export const defaultChatState: ChatState = {
   messages: [],
   input: '',
   eventReferences: [],
+  calendarReferences: [],
 };
 
 export const createChatStore = (initState: ChatState = defaultChatState) => {
@@ -66,6 +79,18 @@ export const createChatStore = (initState: ChatState = defaultChatState) => {
           })),
 
         clearEventReferences: () => set({ eventReferences: [] }),
+
+        addCalendarReference: (calendar: CalendarReference) =>
+          set((state) => ({
+            calendarReferences: [...state.calendarReferences, calendar],
+          })),
+
+        removeCalendarReference: (calendarId: string) =>
+          set((state) => ({
+            calendarReferences: state.calendarReferences.filter(ref => ref.id !== calendarId),
+          })),
+
+        clearCalendarReferences: () => set({ calendarReferences: [] }),
       }),
       {
         name: 'chat-store',
@@ -86,5 +111,16 @@ export function convertEventToReference(event: any): EventReference {
     location: event.location,
     calendarId: event.calendar || event.googleCalendarId || 'default',
     color: event.color,
+  };
+}
+
+// Utility function to convert Calendar to CalendarReference
+export function convertCalendarToReference(calendar: any): CalendarReference {
+  return {
+    id: calendar.id,
+    name: calendar.name || calendar.summary || 'Unknown Calendar',
+    summary: calendar.summary,
+    color: calendar.backgroundColor || calendar.color,
+    accessRole: calendar.accessRole,
   };
 }

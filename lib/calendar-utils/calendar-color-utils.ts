@@ -270,35 +270,93 @@ export const getCardColor = (color: string, focused = false) => {
 };
 
 export const getActualColor = (colorValue: string) => {
-  if (colorValue.startsWith('#')) {
-    return colorValue;
-  }
-  if (colorValue.startsWith('rgb')) {
-    return colorValue;
-  }
-  
-  const tailwindToHex: Record<string, string> = {
-    'bg-blue-500': '#3b82f6',
-    'bg-green-500': '#10b981',
-    'bg-red-500': '#ef4444',
-    'bg-yellow-500': '#eab308',
-    'bg-purple-500': '#8b5cf6',
-    'bg-orange-500': '#f97316',
-    'bg-pink-500': '#ec4899',
-    'bg-indigo-500': '#6366f1',
-    'bg-teal-500': '#14b8a6',
-    'bg-cyan-500': '#06b6d4',
-    'bg-lime-500': '#84cc16',
-    'bg-amber-500': '#f59e0b',
-    'bg-emerald-500': '#10b981',
-    'bg-violet-500': '#8b5cf6',
-    'bg-rose-500': '#f43f5e',
-    'bg-slate-500': '#64748b',
-    'bg-gray-500': '#6b7280',
-    'bg-zinc-500': '#71717a',
-    'bg-neutral-500': '#737373',
-    'bg-stone-500': '#78716c',
+    if (colorValue.startsWith('#')) {
+      return colorValue;
+    }
+    if (colorValue.startsWith('rgb')) {
+      return colorValue;
+    }
+    
+    const tailwindToHex: Record<string, string> = {
+      'bg-blue-500': '#3b82f6',
+      'bg-green-500': '#10b981',
+      'bg-red-500': '#ef4444',
+      'bg-yellow-500': '#eab308',
+      'bg-purple-500': '#8b5cf6',
+      'bg-orange-500': '#f97316',
+      'bg-pink-500': '#ec4899',
+      'bg-indigo-500': '#6366f1',
+      'bg-teal-500': '#14b8a6',
+      'bg-cyan-500': '#06b6d4',
+      'bg-lime-500': '#84cc16',
+      'bg-amber-500': '#f59e0b',
+      'bg-emerald-500': '#10b981',
+      'bg-violet-500': '#8b5cf6',
+      'bg-rose-500': '#f43f5e',
+      'bg-slate-500': '#64748b',
+      'bg-gray-500': '#6b7280',
+      'bg-zinc-500': '#71717a',
+      'bg-neutral-500': '#737373',
+      'bg-stone-500': '#78716c',
+    };
+    
+    return tailwindToHex[colorValue] || '#3b82f6';
   };
   
-  return tailwindToHex[colorValue] || '#3b82f6';
+export const getEventReferenceChipColor = (color: string) => {
+    const colorMap: Record<string, string> = {
+      // Primary colors
+      blue: 'bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-200 border-blue-200 dark:border-blue-800/50',
+      green: 'bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-200 border-green-200 dark:border-green-800/50',
+      red: 'bg-red-100 dark:bg-red-900/50 text-red-800 dark:text-red-200 border-red-200 dark:border-red-800/50',
+      yellow: 'bg-yellow-100 dark:bg-yellow-900/50 text-yellow-800 dark:text-yellow-200 border-yellow-200 dark:border-yellow-800/50',
+      purple: 'bg-purple-100 dark:bg-purple-900/50 text-purple-800 dark:text-purple-200 border-purple-200 dark:border-purple-800/50',
+      orange: 'bg-orange-100 dark:bg-orange-900/50 text-orange-800 dark:text-orange-200 border-orange-200 dark:border-orange-800/50',
+      pink: 'bg-pink-100 dark:bg-pink-900/50 text-pink-800 dark:text-pink-200 border-pink-200 dark:border-pink-800/50',
+      gray: 'bg-gray-100 dark:bg-gray-900/50 text-gray-800 dark:text-gray-200 border-gray-200 dark:border-gray-800/50',
+  
+      // Extended colors
+      indigo: 'bg-indigo-100 dark:bg-indigo-900/50 text-indigo-800 dark:text-indigo-200 border-indigo-200 dark:border-indigo-800/50',
+      teal: 'bg-teal-100 dark:bg-teal-900/50 text-teal-800 dark:text-teal-200 border-teal-200 dark:border-teal-800/50',
+      cyan: 'bg-cyan-100 dark:bg-cyan-900/50 text-cyan-800 dark:text-cyan-200 border-cyan-200 dark:border-cyan-800/50',
+      lime: 'bg-lime-100 dark:bg-lime-900/50 text-lime-800 dark:text-lime-200 border-lime-200 dark:border-lime-800/50',
+      amber: 'bg-amber-100 dark:bg-amber-900/50 text-amber-800 dark:text-amber-200 border-amber-200 dark:border-amber-800/50',
+      emerald: 'bg-emerald-100 dark:bg-emerald-900/50 text-emerald-800 dark:text-emerald-200 border-emerald-200 dark:border-emerald-800/50',
+      violet: 'bg-violet-100 dark:bg-violet-900/50 text-violet-800 dark:text-violet-200 border-violet-200 dark:border-violet-800/50',
+      rose: 'bg-rose-100 dark:bg-rose-900/50 text-rose-800 dark:text-rose-200 border-rose-200 dark:border-rose-800/50',
+      slate: 'bg-slate-100 dark:bg-slate-900/50 text-slate-800 dark:text-slate-200 border-slate-200 dark:border-slate-800/50',
+      zinc: 'bg-zinc-100 dark:bg-zinc-900/50 text-zinc-800 dark:text-zinc-200 border-zinc-200 dark:border-zinc-800/50',
+      neutral: 'bg-neutral-100 dark:bg-neutral-900/50 text-neutral-800 dark:text-neutral-200 border-neutral-200 dark:border-neutral-800/50',
+      sky: 'bg-sky-100 dark:bg-sky-900/50 text-sky-800 dark:text-sky-200 border-sky-200 dark:border-sky-800/50',
+      fuchsia: 'bg-fuchsia-100 dark:bg-fuchsia-900/50 text-fuchsia-800 dark:text-fuchsia-200 border-fuchsia-200 dark:border-fuchsia-800/50',
+    };
+    
+    return colorMap[color] || colorMap.blue;
 };
+
+export const getDotColor = (color: string) => {
+    const colorMap: Record<string, string> = {
+      blue: 'bg-blue-500',
+      green: 'bg-green-500', 
+      red: 'bg-red-500',
+      yellow: 'bg-yellow-500',
+      purple: 'bg-purple-500',
+      orange: 'bg-orange-500',
+      pink: 'bg-pink-500',
+      gray: 'bg-gray-500',
+      indigo: 'bg-indigo-500',
+      teal: 'bg-teal-500',
+      cyan: 'bg-cyan-500',
+      lime: 'bg-lime-500',
+      amber: 'bg-amber-500',
+      emerald: 'bg-emerald-500',
+      violet: 'bg-violet-500',
+      rose: 'bg-rose-500',
+      slate: 'bg-slate-500',
+      zinc: 'bg-zinc-500',
+      neutral: 'bg-neutral-500',
+      sky: 'bg-sky-500',
+      fuchsia: 'bg-fuchsia-500',
+    };
+    return colorMap[color] || 'bg-blue-500';
+  };

@@ -1,26 +1,35 @@
 import { tool } from 'ai';
 import { z } from 'zod';
 import type { Event } from '@/lib/store/calendar-store';
-import type { EventReference } from '@/lib/store/chat-store';
+import type { EventReference, CalendarReference } from '@/lib/store/chat-store';
 import { createGoogleEvent } from '@/lib/calendar-utils/google-calendar';
 import { getAccessToken } from '@/actions/access-token';
 import { convertGoogleEventToLocalEvent } from '@/lib/calendar-utils/calendar-utils';
 
-// Helper function to enhance tool calls with event context
-function enhanceToolCallWithEventContext<T extends Record<string, any>>(
+// Helper function to enhance tool calls with event and calendar context
+function enhanceToolCallWithContext<T extends Record<string, any>>(
   toolCall: T,
-  eventReferences: EventReference[]
-): T & { eventContext?: { referencedEvents: EventReference[] } } {
-  if (eventReferences.length === 0) {
-    return toolCall;
-  }
-
-  return {
-    ...toolCall,
-    eventContext: {
+  eventReferences: EventReference[],
+  calendarReferences: CalendarReference[]
+): T & { 
+  eventContext?: { referencedEvents: EventReference[] };
+  calendarContext?: { referencedCalendars: CalendarReference[] };
+} {
+  const enhanced: any = { ...toolCall };
+  
+  if (eventReferences.length > 0) {
+    enhanced.eventContext = {
       referencedEvents: eventReferences,
-    },
-  };
+    };
+  }
+  
+  if (calendarReferences.length > 0) {
+    enhanced.calendarContext = {
+      referencedCalendars: calendarReferences,
+    };
+  }
+  
+  return enhanced;
 }
 
 export const createEventTool = tool({
@@ -53,6 +62,15 @@ export const createEventTool = tool({
         color: z.string().optional(),
       })).optional(),
     }).optional().describe('Context about referenced events for better scheduling decisions'),
+    calendarContext: z.object({
+      referencedCalendars: z.array(z.object({
+        id: z.string(),
+        name: z.string(),
+        summary: z.string().optional(),
+        color: z.string().optional(),
+        accessRole: z.string().optional(),
+      })).optional(),
+    }).optional().describe('Context about referenced calendars for better scheduling decisions'),
   }),
   execute: async (params) => {
     try {
@@ -74,6 +92,20 @@ export const createEventTool = tool({
         
         if (conflicts.length > 0) {
           contextNote += `\n⚠️ Note: New event may conflict with referenced events: ${conflicts.map(e => e.title).join(', ')}`;
+        }
+      }
+
+      if (params.calendarContext?.referencedCalendars?.length) {
+        const refCalendars = params.calendarContext.referencedCalendars;
+        contextNote += `\n\nCalendar Context: Referencing ${refCalendars.length} calendar(s): ${refCalendars.map(c => c.name).join(', ')}`;
+        
+        // If specific calendars are referenced, prefer using one of them
+        if (!params.calendarId && refCalendars.length > 0) {
+          const preferredCalendar = refCalendars[0];
+          if (preferredCalendar.id !== 'primary') {
+            params.calendarId = preferredCalendar.id;
+            contextNote += `\n📅 Using referenced calendar: ${preferredCalendar.name}`;
+          }
         }
       }
 

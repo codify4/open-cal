@@ -63,10 +63,12 @@ export function ChatSidebar({
   const chatMessages = useChatStore((state) => state.messages);
   const chatInput = useChatStore((state) => state.input);
   const eventReferences = useChatStore((state) => state.eventReferences);
+  const calendarReferences = useChatStore((state) => state.calendarReferences);
   const setChatMessages = useChatStore((state) => state.setMessages);
   const setChatInput = useChatStore((state) => state.setInput);
   const clearChat = useChatStore((state) => state.clearChat);
   const clearEventReferences = useChatStore((state) => state.clearEventReferences);
+  const clearCalendarReferences = useChatStore((state) => state.clearCalendarReferences);
 
   useEffect(() => {
     if (chatMessages.length > 0) {
@@ -94,11 +96,15 @@ export function ChatSidebar({
       if (!isLimited) {
         // Enhance message with event references if any
         let enhancedInput = input;
-        if (eventReferences.length > 0) {
+        if (eventReferences.length > 0 || calendarReferences.length > 0) {
           const eventContext = eventReferences.map(ref => 
             `@${ref.title} (${ref.startDate} - ${ref.endDate})`
           ).join(' ');
-          enhancedInput = `${eventContext}\n\n${input}`;
+          const calendarContext = calendarReferences.map(ref => 
+            `@${ref.name} (calendar)`
+          ).join(' ');
+          const allContext = [eventContext, calendarContext].filter(Boolean).join(' ');
+          enhancedInput = `${allContext}\n\n${input}`;
         }
         
         sendMessage({ text: enhancedInput });
@@ -132,6 +138,7 @@ export function ChatSidebar({
     setInput('');
     clearChat();
     clearEventReferences();
+    clearCalendarReferences();
     refreshRateLimit();
   };
 

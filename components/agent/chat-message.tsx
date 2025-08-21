@@ -26,6 +26,7 @@ import {
   CalendarStoreContext,
   useCalendarStore,
 } from '@/providers/calendar-store-provider';
+import { convertEventToReference, convertCalendarToReference } from '@/lib/store/chat-store';
 
 
 const chatBubbleVariants = cva(
@@ -114,6 +115,13 @@ export interface Message {
   createdAt?: Date;
   experimental_attachments?: Attachment[];
   parts?: MessagePart[];
+  calendarReferences?: Array<{
+    id: string;
+    name: string;
+    summary?: string;
+    color?: string;
+    accessRole?: string;
+  }>;
 }
 
 export interface ChatMessageProps extends Message {
@@ -145,6 +153,7 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
   isRegenerating,
   onCopy,
   onRate,
+  calendarReferences,
 }) => {
   const { addPendingAction } = useCalendarStore((state) => state);
   const calendarStoreContext = useContext(CalendarStoreContext);
@@ -216,6 +225,25 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
             </div>
           </div>
 
+          {calendarReferences && calendarReferences.length > 0 && (
+            <div className="mt-2 flex flex-wrap gap-1">
+              {calendarReferences.map((calendar) => (
+                <div
+                  key={calendar.id}
+                  className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-medium bg-neutral-800 text-neutral-200 border border-neutral-700"
+                >
+                  <div
+                    className="w-2.5 h-2.5 rounded-full flex-shrink-0"
+                    style={{ backgroundColor: calendar.color || '#3b82f6' }}
+                  />
+                  <span className="truncate font-medium" title={calendar.name}>
+                    {calendar.name}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+
           {showTimeStamp && createdAt ? (
             <time
               className={cn(
@@ -277,6 +305,25 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
                       </div>
                     </div>
                   </div>
+
+                  {calendarReferences && calendarReferences.length > 0 && (
+                    <div className="mt-2 flex flex-wrap gap-1">
+                      {calendarReferences.map((calendar) => (
+                        <div
+                          key={calendar.id}
+                          className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-medium bg-neutral-800 text-neutral-200 border border-neutral-700"
+                        >
+                          <div
+                            className="w-2.5 h-2.5 rounded-full flex-shrink-0"
+                            style={{ backgroundColor: calendar.color || '#3b82f6' }}
+                          />
+                          <span className="truncate font-medium" title={calendar.name}>
+                            {calendar.name}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
 
                   {role === 'assistant' && (
                     <MessageFooter
@@ -646,6 +693,25 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
             </div>
           </div>
         </div>
+
+        {calendarReferences && calendarReferences.length > 0 && (
+          <div className="mt-2 flex flex-wrap gap-1">
+            {calendarReferences.map((calendar) => (
+              <div
+                key={calendar.id}
+                className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-medium bg-neutral-800 text-neutral-200 border border-neutral-700"
+              >
+                <div
+                  className="w-2.5 h-2.5 rounded-full flex-shrink-0"
+                  style={{ backgroundColor: calendar.color || '#3b82f6' }}
+                />
+                <span className="truncate font-medium" title={calendar.name}>
+                  {calendar.name}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
 
         {role === 'assistant' && (
           <MessageFooter
