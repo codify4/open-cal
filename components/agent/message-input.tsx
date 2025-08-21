@@ -13,12 +13,14 @@ import {
 import type React from 'react';
 import { useEffect, useRef, useState } from 'react';
 import { omit } from 'remeda';
+import { EventReferenceChip } from '@/components/agent/event-reference-chip';
 import { FilePreview } from '@/components/agent/file-preview';
 import { AudioVisualizer } from '@/components/ui/audio-visualizer';
 import { Button } from '@/components/ui/button';
 import { InterruptPrompt } from '@/components/ui/interrupt-prompt';
 import { useAudioRecording } from '@/hooks/use-audio-recording';
 import { useAutosizeTextArea } from '@/hooks/use-autosize-textarea';
+import { useChatStore } from '@/providers/chat-store-provider';
 import { cn } from '@/lib/utils';
 
 interface MessageInputBaseProps
@@ -214,24 +216,26 @@ export function MessageInput({
 
       <div className="relative flex w-full items-center space-x-2">
         <div className="relative flex-1">
-          <textarea
-            aria-label="Write your prompt here"
-            className={cn(
-              'z-10 w-full grow resize-none rounded-xl border border-input bg-background p-3 pr-24 text-foreground text-sm ring-offset-background transition-[border] placeholder:text-muted-foreground focus-visible:border-primary focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50',
-              showFileList && 'pb-16',
-              showInterruptPrompt && 'border-orange-500 ring-orange-500/20',
-              className
-            )}
-            onKeyDown={onKeyDown}
-            onPaste={onPaste}
-            placeholder={placeholder}
-            ref={textAreaRef}
-            {...omit(props as MessageInputWithAttachmentsProps, [
-              'allowAttachments',
-              'files',
-              'setFiles',
-            ])}
-          />
+          <div className="relative">
+            <textarea
+              aria-label="Write your prompt here"
+              className={cn(
+                'z-10 w-full grow resize-none rounded-xl border border-input bg-background p-3 pr-24 text-foreground text-sm ring-offset-background transition-[border] placeholder:text-muted-foreground focus-visible:border-primary focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50',
+                showFileList && 'pb-16',
+                showInterruptPrompt && 'border-orange-500 ring-orange-500/20',
+                className
+              )}
+              onKeyDown={onKeyDown}
+              onPaste={onPaste}
+              placeholder={placeholder}
+              ref={textAreaRef}
+              {...omit(props as MessageInputWithAttachmentsProps, [
+                'allowAttachments',
+                'files',
+                'setFiles',
+              ])}
+            />
+          </div>
 
           {props.allowAttachments && (
             <div className="absolute inset-x-3 bottom-0 z-20 overflow-x-scroll py-3">
@@ -260,6 +264,19 @@ export function MessageInput({
               </div>
             </div>
           )}
+          {/* @ Button and Event References at the top */}
+          <div className="mb-2 flex items-center gap-2">
+              <button
+                type="button"
+                className="flex h-6 w-6 items-center justify-center rounded-md bg-muted text-muted-foreground hover:bg-muted/80 transition-colors"
+                aria-label="Reference events or calendars"
+              >
+                <span className="text-sm font-medium">@</span>
+              </button>
+              
+              {/* Event Reference Chips */}
+              <EventReferencesInline />
+            </div>
         </div>
       </div>
 
@@ -483,4 +500,37 @@ function RecordingControls({
   }
 
   return null;
+}
+
+function EventReferencesInline() {
+  const eventReferences = useChatStore((state) => state.eventReferences);
+  const removeEventReference = useChatStore((state) => state.removeEventReference);
+
+  if (eventReferences.length === 0) {
+    return null;
+  }
+
+  return (
+    <div className="flex flex-wrap gap-1">
+      <AnimatePresence mode="popLayout">
+        {eventReferences.map((event) => (
+          <div
+            key={event.id}
+            className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 rounded-md text-xs border border-blue-200 dark:border-blue-800/50 max-w-[120px]"
+          >
+            <span className="truncate font-medium" title={event.title}>
+              {event.title}
+            </span>
+            <button
+              onClick={() => removeEventReference(event.id)}
+              className="ml-1 h-4 w-4 rounded-full bg-blue-200 dark:bg-blue-800/50 hover:bg-blue-300 dark:hover:bg-blue-700/50 flex items-center justify-center transition-colors"
+              aria-label={`Remove ${event.title} reference`}
+            >
+              <span className="text-blue-600 dark:text-blue-400 text-xs">×</span>
+            </button>
+          </div>
+        ))}
+      </AnimatePresence>
+    </div>
+  );
 }

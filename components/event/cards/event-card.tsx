@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react';
 import { useCalendarManagement } from '@/hooks/use-calendar-management';
 import { getCardColor } from '@/lib/calendar-utils/calendar-color-utils';
 import { cn } from '@/lib/utils';
+import { useChatStore } from '@/providers/chat-store-provider';
+import { convertEventToReference } from '@/lib/store/chat-store';
 import { GraphicDoodle } from './graphics';
 import { EventCardContent } from './components/event-card-content';
 import { EventCardResizeHandles } from './components/event-card-resize-handles';
@@ -26,6 +28,7 @@ export const EventCard = ({
 }: EventCardProps) => {
   const [isClient, setIsClient] = useState(false);
   const { fetchedCalendars } = useCalendarManagement();
+  const addEventReference = useChatStore((state) => state.addEventReference);
 
   const {
     attributes,
@@ -43,7 +46,12 @@ export const EventCard = ({
   } = useEventCardResize(event, { onResize, onResizeEnd, onWidthResize });
 
   const { isFocused, cardRef, handleCardClick } = useEventCardFocus(onFocus);
-  const { handleEdit, handleDelete, handleDuplicate, handleCopy } = useEventCardActions();
+  const { handleEdit, handleDelete, handleDuplicate } = useEventCardActions();
+
+  const handleAskAI = (event: any) => {
+    const eventReference = convertEventToReference(event);
+    addEventReference(eventReference);
+  };
 
   const indicatorColor = useEventCardColor(event, fetchedCalendars, isFocused);
   const calculatedHeight = calculateEventHeight(event.startDate, event.endDate);
@@ -66,7 +74,7 @@ export const EventCard = ({
       onEdit={handleEdit}
       onDelete={handleDelete}
       onDuplicate={handleDuplicate}
-      onCopy={handleCopy}
+      onAskAI={handleAskAI}
     >
       <div
         className={cn(

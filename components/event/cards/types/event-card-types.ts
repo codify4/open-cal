@@ -39,5 +39,5 @@ export interface EventCardContextMenuProps {
   onEdit: (e: React.MouseEvent, event: Event) => void;
   onDelete: (event: Event) => void;
   onDuplicate: (event: Event) => void;
-  onCopy: (event: Event) => void;
+  onAskAI: (event: Event) => void;
 }

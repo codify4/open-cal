@@ -4,6 +4,7 @@ import {
   ContextMenuItem,
   ContextMenuTrigger,
 } from '@/components/ui/context-menu';
+import { Copy, MessageSquare, Pencil, Trash, Trash2 } from 'lucide-react';
 import type { EventCardContextMenuProps } from '../types/event-card-types';
 
 export const EventCardContextMenu = ({
@@ -12,28 +13,32 @@ export const EventCardContextMenu = ({
   onEdit,
   onDelete,
   onDuplicate,
-  onCopy,
+  onAskAI,
 }: EventCardContextMenuProps) => {
-  return (
-    <ContextMenu>
-      <ContextMenuTrigger>{children}</ContextMenuTrigger>
-      <ContextMenuContent className="bg-popover">
-        <ContextMenuItem className="cursor-pointer" onClick={(e) => onEdit(e, event)}>
-          Edit
-        </ContextMenuItem>
-        <ContextMenuItem className="cursor-pointer" onClick={() => onDuplicate(event)}>
-          Duplicate
-        </ContextMenuItem>
-        <ContextMenuItem className="cursor-pointer" onClick={() => onCopy(event)}>
-          Copy
-        </ContextMenuItem>
-        <ContextMenuItem
-          className="cursor-pointer text-destructive"
-          onClick={() => onDelete(event)}
-        >
-          Delete
-        </ContextMenuItem>
-      </ContextMenuContent>
-    </ContextMenu>
-  );
+    return (
+        <ContextMenu>
+            <ContextMenuTrigger>{children}</ContextMenuTrigger>
+            <ContextMenuContent className="bg-popover">
+                <ContextMenuItem className="cursor-pointer" onClick={() => onAskAI(event)}>
+                    <MessageSquare className="mr-2 h-4 w-4" />
+                    Ask AI
+                </ContextMenuItem>
+                <ContextMenuItem className="cursor-pointer" onClick={(e) => onEdit(e, event)}>
+                    <Pencil className="mr-2 h-4 w-4" />
+                    Edit
+                </ContextMenuItem>
+                <ContextMenuItem className="cursor-pointer" onClick={() => onDuplicate(event)}>
+                    <Copy className="mr-2 h-4 w-4" />
+                    Duplicate
+                </ContextMenuItem>
+                <ContextMenuItem
+                    className="cursor-pointer"
+                    onClick={() => onDelete(event)}
+                >
+                    <Trash2 className="mr-2 h-4 w-4 text-destructive" />
+                    <span className="text-destructive">Delete</span>
+                </ContextMenuItem>
+            </ContextMenuContent>
+        </ContextMenu>
+    );
 };

@@ -1,12 +1,30 @@
 import { tool } from 'ai';
 import { z } from 'zod';
 import type { Event } from '@/lib/store/calendar-store';
+import type { EventReference } from '@/lib/store/chat-store';
 import { createGoogleEvent } from '@/lib/calendar-utils/google-calendar';
 import { getAccessToken } from '@/actions/access-token';
 import { convertGoogleEventToLocalEvent } from '@/lib/calendar-utils/calendar-utils';
 
+// Helper function to enhance tool calls with event context
+function enhanceToolCallWithEventContext<T extends Record<string, any>>(
+  toolCall: T,
+  eventReferences: EventReference[]
+): T & { eventContext?: { referencedEvents: EventReference[] } } {
+  if (eventReferences.length === 0) {
+    return toolCall;
+  }
+
+  return {
+    ...toolCall,
+    eventContext: {
+      referencedEvents: eventReferences,
+    },
+  };
+}
+
 export const createEventTool = tool({
-  description: 'Create a new calendar event with the specified details. This tool will automatically check for conflicts before creating the event.',
+  description: 'Create a new calendar event with the specified details. This tool will automatically check for conflicts before creating the event. When event references are provided, consider their context for better scheduling decisions.',
   inputSchema: z.object({
     title: z.string().describe('The title of the event'),
     description: z.string().optional().describe('Description of the event'),
@@ -22,9 +40,43 @@ export const createEventTool = tool({
     userId: z.string().describe('User ID for saving to Google Calendar'),
     userEmail: z.string().optional().describe('User email for Google Calendar'),
     calendarId: z.string().optional().describe('Specific calendar ID to use (defaults to primary)'),
+    eventContext: z.object({
+      referencedEvents: z.array(z.object({
+        id: z.string(),
+        title: z.string(),
+        startDate: z.string(),
+        endDate: z.string(),
+        description: z.string().optional(),
+        attendees: z.array(z.string()).optional(),
+        location: z.string().optional(),
+        calendarId: z.string(),
+        color: z.string().optional(),
+      })).optional(),
+    }).optional().describe('Context about referenced events for better scheduling decisions'),
   }),
   execute: async (params) => {
     try {
+      // Handle event context for better scheduling decisions
+      let contextNote = '';
+      if (params.eventContext?.referencedEvents?.length) {
+        const refEvents = params.eventContext.referencedEvents;
+        contextNote = `\n\nEvent Context: Referencing ${refEvents.length} event(s): ${refEvents.map(e => e.title).join(', ')}`;
+        
+        // Check for potential conflicts with referenced events
+        const newEventStart = new Date(params.startDate);
+        const newEventEnd = new Date(params.endDate);
+        
+        const conflicts = refEvents.filter(ref => {
+          const refStart = new Date(ref.startDate);
+          const refEnd = new Date(ref.endDate);
+          return (newEventStart < refEnd && newEventEnd > refStart);
+        });
+        
+        if (conflicts.length > 0) {
+          contextNote += `\n⚠️ Note: New event may conflict with referenced events: ${conflicts.map(e => e.title).join(', ')}`;
+        }
+      }
+
       const event: Event = {
         id: `event-${Date.now()}`,
         title: params.title,
@@ -51,7 +103,7 @@ export const createEventTool = tool({
           event: googleResult.event,
           action: 'create_event',
           message: `Created event: ${event.title} on ${event.startDate.toLocaleDateString()}`,
-          note: 'Event saved to both local state and Google Calendar',
+          note: `Event saved to both local state and Google Calendar${contextNote}`,
         };
       }
 

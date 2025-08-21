@@ -65,14 +65,9 @@ export const useEventCardActions = () => {
     saveEvent(duplicatedEvent);
   };
 
-  const handleCopy = (event: Event) => {
-    navigator.clipboard.writeText(JSON.stringify(event, null, 2));
-  };
-
   return {
     handleEdit,
     handleDelete,
     handleDuplicate,
-    handleCopy,
   };
 };

@@ -62,9 +62,11 @@ export function ChatSidebar({
 
   const chatMessages = useChatStore((state) => state.messages);
   const chatInput = useChatStore((state) => state.input);
+  const eventReferences = useChatStore((state) => state.eventReferences);
   const setChatMessages = useChatStore((state) => state.setMessages);
   const setChatInput = useChatStore((state) => state.setInput);
   const clearChat = useChatStore((state) => state.clearChat);
+  const clearEventReferences = useChatStore((state) => state.clearEventReferences);
 
   useEffect(() => {
     if (chatMessages.length > 0) {
@@ -90,7 +92,16 @@ export function ChatSidebar({
       const { isLimited } = sendRateLimitedMessage();
 
       if (!isLimited) {
-        sendMessage({ text: input });
+        // Enhance message with event references if any
+        let enhancedInput = input;
+        if (eventReferences.length > 0) {
+          const eventContext = eventReferences.map(ref => 
+            `@${ref.title} (${ref.startDate} - ${ref.endDate})`
+          ).join(' ');
+          enhancedInput = `${eventContext}\n\n${input}`;
+        }
+        
+        sendMessage({ text: enhancedInput });
         setInput('');
         setChatInput('');
       }
@@ -120,6 +131,7 @@ export function ChatSidebar({
     setMessages([]);
     setInput('');
     clearChat();
+    clearEventReferences();
     refreshRateLimit();
   };
 
