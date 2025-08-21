@@ -71,17 +71,19 @@ export interface ClientCalendarTools {
   }) => Promise<{ success: boolean; events?: Event[]; error?: string }>;
 
   updateEvent: (params: {
-    eventId: string;
-    title?: string;
-    description?: string;
+    title: string;
     startDate?: string;
     endDate?: string;
-    location?: string;
-    attendees?: string[];
-    color?: string;
-    isAllDay?: boolean;
-    repeat?: string;
-    visibility?: string;
+    newTitle?: string;
+    newDescription?: string;
+    newStartDate?: string;
+    newEndDate?: string;
+    newLocation?: string;
+    newAttendees?: string[];
+    newColor?: string;
+    newIsAllDay?: boolean;
+    newRepeat?: string;
+    newVisibility?: string;
   }) => Promise<{ 
     success: boolean; 
     event?: Event; 

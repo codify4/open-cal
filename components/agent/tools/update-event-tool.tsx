@@ -4,7 +4,6 @@ import { Edit, Check, X, Calendar, Clock, MapPin, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { MessageFooter } from '../message-footer';
 import { useCalendarStore } from '@/providers/calendar-store-provider';
-import { updateGoogleEvent } from '@/lib/calendar-utils/google-calendar';
 import { getAccessToken } from '@/actions/access-token';
 import { useState, useEffect } from 'react';
 import { cn, ensureDate } from '@/lib/utils';
@@ -32,125 +31,13 @@ export function UpdateEventTool({
   onCopy,
   onRate,
 }: UpdateEventToolProps) {
-  const { events, replaceEvent, googleEvents, setGoogleEvents } = useCalendarStore((state) => state);
+  const { events, replaceEvent, googleEvents, setGoogleEvents, saveEvent, refreshEvents } = useCalendarStore((state) => state);
   const [isUpdating, setIsUpdating] = useState(false);
   const [updateResult, setUpdateResult] = useState<any>(null);
   const [existingEvent, setExistingEvent] = useState<any>(null);
 
-  // Fetch the existing event data when component mounts
   useEffect(() => {
     const fetchExistingEvent = async () => {
-      try {
-        const accessToken = await getAccessToken();
-        if (accessToken) {
-          const response = await fetch(
-            `https://www.googleapis.com/calendar/v3/calendars/primary/events?timeMin=${new Date().toISOString()}&maxResults=100&singleEvents=true&orderBy=startTime`,
-            {
-              headers: {
-                Authorization: `Bearer ${accessToken}`,
-                'Content-Type': 'application/json',
-              },
-            }
-          );
-
-          if (response.ok) {
-            const data = await response.json();
-            const googleEventsData = data.items || [];
-
-            // Find the event by ID - check multiple possible ID fields
-            const foundEvent = googleEventsData.find((event: any) => 
-              event.id === args.eventId || 
-              event.id === args.googleEventId ||
-              event.googleEventId === args.eventId
-            );
-            
-            if (foundEvent) {
-              const eventData = {
-                id: foundEvent.id,
-                title: foundEvent.summary,
-                startDate: new Date(foundEvent.start?.dateTime || foundEvent.start?.date),
-                endDate: new Date(foundEvent.end?.dateTime || foundEvent.end?.date),
-                location: foundEvent.location,
-                description: foundEvent.description,
-                color: 'blue',
-                type: 'event',
-                googleEventId: foundEvent.id,
-                googleCalendarId: 'primary',
-                isAllDay: !foundEvent.start?.dateTime,
-                attendees: foundEvent.attendees?.map((a: any) => a.email) || [],
-                visibility: foundEvent.visibility || 'public',
-              };
-              setExistingEvent(eventData);
-            } else {
-              // If we can't find the event by ID, create event data from args
-              if (args.startDate && args.endDate) {
-                const eventData = {
-                  id: args.eventId,
-                  title: args.title || 'Untitled Event',
-                  startDate: new Date(args.startDate),
-                  endDate: new Date(args.endDate),
-                  location: args.location || '',
-                  description: args.description || '',
-                  color: args.color || 'blue',
-                  type: 'event',
-                  googleEventId: args.eventId,
-                  googleCalendarId: 'primary',
-                  isAllDay: args.isAllDay || false,
-                  attendees: args.attendees || [],
-                  visibility: args.visibility || 'public',
-                };
-                setExistingEvent(eventData);
-              }
-            }
-          }
-        }
-      } catch (error) {
-        console.error('Failed to fetch existing event:', error);
-        // Fallback: create event data from args
-        if (args.startDate && args.endDate) {
-          const eventData = {
-            id: args.eventId,
-            title: args.title || 'Untitled Event',
-            startDate: new Date(args.startDate),
-            endDate: new Date(args.endDate),
-            location: args.location || '',
-            description: args.description || '',
-            color: args.color || 'blue',
-            type: 'event',
-            googleEventId: args.eventId,
-            googleCalendarId: 'primary',
-            isAllDay: args.isAllDay || false,
-            attendees: args.attendees || [],
-            visibility: args.visibility || 'public',
-          };
-          setExistingEvent(eventData);
-        }
-      }
-    };
-
-    fetchExistingEvent();
-  }, [args.eventId, args.startDate, args.endDate]);
-
-  const getColorClasses = (color: string) => {
-    const colorMap: Record<string, string> = {
-      blue: 'bg-blue-500/20 border-blue-500/30 text-blue-700 dark:bg-blue-500/40 dark:text-blue-100',
-      green: 'bg-green-500/20 border-green-500/30 text-green-700 dark:bg-green-500/40 dark:text-green-100',
-      purple: 'bg-purple-500/20 border-purple-500/30 text-purple-700 dark:bg-purple-500/40 dark:text-purple-100',
-      orange: 'bg-orange-500/20 border-orange-500/30 text-orange-700 dark:bg-orange-500/40 dark:text-orange-100',
-      red: 'bg-red-500/20 border-red-500/30 text-red-700 dark:bg-red-500/40 dark:text-red-100',
-      pink: 'bg-pink-500/20 border-pink-500/30 text-pink-700 dark:bg-pink-500/40 dark:text-pink-100',
-      yellow: 'bg-yellow-500/20 border-yellow-500/30 text-yellow-700 dark:bg-yellow-500/40 dark:text-yellow-100',
-      gray: 'bg-gray-500/20 border-gray-500/30 text-gray-700 dark:bg-gray-500/40 dark:text-gray-100',
-    };
-    return colorMap[color] || colorMap.blue;
-  };
-
-  const handleAccept = async () => {
-    setIsUpdating(true);
-    
-    try {
-      let eventToUpdate: any = null;
-      
       try {
         const accessToken = await getAccessToken();
         if (accessToken) {
@@ -180,13 +67,7 @@ export function UpdateEventTool({
                 
                 if (eventTitle === searchTitle) {
                   score += 10;
-                } else if (eventTitle.startsWith(searchTitle)) {
-                  score += 7;
-                } else if (eventTitle.endsWith(searchTitle)) {
-                  score += 6;
                 } else if (eventTitle.includes(searchTitle)) {
-                  score += 3;
-                } else if (new RegExp(`\\b${searchTitle.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i').test(eventTitle)) {
                   score += 5;
                 }
               }
@@ -195,18 +76,7 @@ export function UpdateEventTool({
                 const eventDate = new Date(googleEvent.start.dateTime);
                 const searchDate = new Date(args.startDate);
                 const dateMatch = eventDate.toDateString() === searchDate.toDateString();
-                if (dateMatch) score += 2;
-              }
-              
-              if (args.location && googleEvent.location) {
-                const searchLocation = args.location.toLowerCase().trim();
-                const eventLocation = googleEvent.location.toLowerCase().trim();
-                
-                if (eventLocation === searchLocation) {
-                  score += 2;
-                } else if (eventLocation.includes(searchLocation)) {
-                  score += 1;
-                }
+                if (dateMatch) score += 3;
               }
 
               if (score > bestScore) {
@@ -216,7 +86,7 @@ export function UpdateEventTool({
             }
 
             if (bestMatch && bestScore >= 5) {
-              eventToUpdate = {
+              const eventData = {
                 id: bestMatch.id,
                 title: bestMatch.summary,
                 startDate: new Date(bestMatch.start?.dateTime || bestMatch.start?.date),
@@ -231,120 +101,117 @@ export function UpdateEventTool({
                 attendees: bestMatch.attendees?.map((a: any) => a.email) || [],
                 visibility: bestMatch.visibility || 'public',
               };
+              setExistingEvent(eventData);
             }
           }
         }
-      } catch (error) {
-        // Failed to fetch from Google Calendar
-      }
+             } catch (error) {
+         // Failed to fetch existing event
+       }
+    };
 
-      if (!eventToUpdate) {
-        setUpdateResult({ success: false, error: 'Event not found in Google Calendar. Please check the event title and date.' });
+    fetchExistingEvent();
+  }, [args.title, args.startDate]);
+
+  const getColorClasses = (color: string) => {
+    const colorMap: Record<string, string> = {
+      blue: 'bg-blue-500/20 border-blue-500/30 text-blue-700 dark:bg-blue-500/40 dark:text-blue-100',
+      green: 'bg-green-500/20 border-green-500/30 text-green-700 dark:bg-green-500/40 dark:text-green-100',
+      purple: 'bg-purple-500/20 border-purple-500/30 text-purple-700 dark:bg-purple-500/40 dark:text-purple-100',
+      orange: 'bg-orange-500/20 border-orange-500/30 text-orange-700 dark:bg-orange-500/40 dark:text-orange-100',
+      red: 'bg-red-500/20 border-red-500/30 text-red-700 dark:bg-red-500/40 dark:text-red-100',
+      pink: 'bg-pink-500/20 border-pink-500/30 text-pink-700 dark:bg-pink-500/40 dark:text-pink-100',
+      yellow: 'bg-yellow-500/20 border-yellow-500/30 text-yellow-700 dark:bg-yellow-500/40 dark:text-yellow-100',
+      gray: 'bg-gray-500/20 border-gray-500/30 text-gray-700 dark:bg-gray-500/40 dark:text-gray-100',
+    };
+    return colorMap[color] || colorMap.blue;
+  };
+
+  const handleAccept = async () => {
+    setIsUpdating(true);
+    
+    try {
+      if (!existingEvent) {
+        setUpdateResult({ success: false, error: 'Event not found. Please check the event title and date.' });
         return;
       }
 
-      if (args.startDate || args.endDate) {
-        try {
-          const accessToken = await getAccessToken();
-          if (accessToken) {
-            const response = await fetch(
-              `https://www.googleapis.com/calendar/v3/calendars/primary/events?timeMin=${new Date().toISOString()}&maxResults=100&singleEvents=true&orderBy=startTime`,
-              {
-                headers: {
-                  Authorization: `Bearer ${accessToken}`,
-                  'Content-Type': 'application/json',
-                },
-              }
-            );
-
-            if (response.ok) {
-              const data = await response.json();
-              const allGoogleEvents = data.items || [];
-              
-              const newStartDate = args.startDate ? new Date(args.startDate) : eventToUpdate.startDate;
-              const newEndDate = args.endDate ? new Date(args.endDate) : eventToUpdate.endDate;
-              
-              const conflictingEvents = allGoogleEvents.filter((event: any) => {
-                if (event.id === eventToUpdate.googleEventId) return false;
-                
-                const eventStart = new Date(event.start?.dateTime || event.start?.date);
-                const eventEnd = new Date(event.end?.dateTime || event.end?.date);
-                
-                return (
-                  (newStartDate < eventEnd && newEndDate > eventStart) ||
-                  (eventStart < newEndDate && eventEnd > newStartDate)
-                );
-              });
-
-              if (conflictingEvents.length > 0) {
-                const conflictDetails = conflictingEvents.map((event: any) => ({
-                  title: event.summary,
-                  startTime: new Date(event.start?.dateTime || event.start?.date).toLocaleTimeString(),
-                  endTime: new Date(event.end?.dateTime || event.end?.date).toLocaleTimeString(),
-                }));
-
-                setUpdateResult({ 
-                  success: false, 
-                  hasConflicts: true, 
-                  conflictingEvents: conflictDetails,
-                  error: 'Scheduling conflicts detected'
-                });
-                return;
-              }
-            }
-          }
-        } catch (error) {
-          // Failed to check conflicts
-        }
-      }
-
       const updatedEvent = {
-        ...eventToUpdate,
-        title: args.title || eventToUpdate.title,
-        description: args.description || eventToUpdate.description,
-        startDate: args.startDate ? new Date(args.startDate) : eventToUpdate.startDate,
-        endDate: args.endDate ? new Date(args.endDate) : eventToUpdate.endDate,
-        location: args.location || eventToUpdate.location,
-        attendees: args.attendees || eventToUpdate.attendees,
-        color: args.color || eventToUpdate.color,
-        isAllDay: args.isAllDay !== undefined ? args.isAllDay : eventToUpdate.isAllDay,
-        repeat: args.repeat || eventToUpdate.repeat,
-        visibility: args.visibility || eventToUpdate.visibility,
+        ...existingEvent,
+        title: args.newTitle || existingEvent.title,
+        description: args.newDescription || existingEvent.description,
+        startDate: args.newStartDate ? new Date(args.newStartDate) : existingEvent.startDate,
+        endDate: args.newEndDate ? new Date(args.newEndDate) : existingEvent.endDate,
+        location: args.newLocation || existingEvent.location,
+        attendees: args.newAttendees || existingEvent.attendees,
+        color: args.newColor || existingEvent.color,
+        isAllDay: args.newIsAllDay !== undefined ? args.newIsAllDay : existingEvent.isAllDay,
+        repeat: args.newRepeat || existingEvent.repeat,
+        visibility: args.newVisibility || existingEvent.visibility,
       };
 
-      const googleUpdateResult = await updateGoogleEvent(
-        updatedEvent,
-        'user-id',
-        'user-email'
+      const accessToken = await getAccessToken();
+      if (!accessToken) {
+        setUpdateResult({ success: false, error: 'Google Calendar not connected' });
+        return;
+      }
+
+      const googleEventData = {
+        summary: updatedEvent.title,
+        description: updatedEvent.description,
+        location: updatedEvent.location,
+        start: {
+          dateTime: updatedEvent.startDate.toISOString(),
+          timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        },
+        end: {
+          dateTime: updatedEvent.endDate.toISOString(),
+          timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        },
+        attendees: updatedEvent.attendees.map((email: string) => ({ email })),
+        visibility: updatedEvent.visibility,
+      };
+
+      const response = await fetch(
+        `https://www.googleapis.com/calendar/v3/calendars/primary/events/${existingEvent.googleEventId}`,
+        {
+          method: 'PUT',
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(googleEventData),
+        }
       );
-      
-      if (googleUpdateResult?.error) {
+
+      if (!response.ok) {
+        const errorData = await response.json();
         setUpdateResult({ 
           success: false, 
-          error: `Failed to update in Google Calendar: ${googleUpdateResult.error}` 
+          error: `Failed to update in Google Calendar: ${errorData.error?.message || response.statusText}` 
         });
         return;
       }
 
-      const localEvent = events.find((e: any) => e.googleEventId === eventToUpdate.googleEventId);
-      if (localEvent) {
-        replaceEvent(updatedEvent);
-      }
+      const responseData = await response.json();
       
-      const googleEventIndex = googleEvents.findIndex((e: any) => e.googleEventId === eventToUpdate.googleEventId);
-      if (googleEventIndex !== -1) {
-        const updatedGoogleEvents = [...googleEvents];
-        updatedGoogleEvents[googleEventIndex] = updatedEvent;
-        setGoogleEvents(updatedGoogleEvents);
-      }
+      const updatedEventWithGoogleData = {
+        ...updatedEvent,
+        googleEventId: responseData.id || existingEvent.googleEventId,
+        etag: responseData.etag,
+        id: existingEvent.id || `event-${Date.now()}`,
+      };
+
+      saveEvent(updatedEventWithGoogleData);
+      await refreshEvents();
       
       setUpdateResult({ 
         success: true, 
         updatedEvent: {
-          id: updatedEvent.id,
-          title: updatedEvent.title,
-          startDate: updatedEvent.startDate.toISOString(),
-          endDate: updatedEvent.endDate.toISOString(),
+          id: updatedEventWithGoogleData.id,
+          title: updatedEventWithGoogleData.title,
+          startDate: updatedEventWithGoogleData.startDate.toISOString(),
+          endDate: updatedEventWithGoogleData.endDate.toISOString(),
         }
       });
       
@@ -419,91 +286,28 @@ export function UpdateEventTool({
     );
   }
 
-  if (updateResult?.hasConflicts) {
-    return (
-      <div>
-        <div className={cn(
-          'group relative rounded-sm border p-2 text-xs transition-all duration-200',
-          'bg-orange-500/20 border-orange-500/30 text-orange-700 dark:bg-orange-500/40 dark:text-orange-100'
-        )}>
-          <div className="flex items-center gap-2 mb-2">
-            <X className="h-4 w-4" />
-            <span className="font-medium">Scheduling Conflict Detected</span>
-          </div>
-          <p className="text-xs opacity-80 mb-3">
-            The following events conflict with your requested time:
-          </p>
-          <div className="space-y-2 mb-3">
-            {updateResult.conflictingEvents?.map((conflict: any, index: number) => (
-              <div key={index} className="text-xs opacity-80">
-                • <span className="font-medium">{conflict.title}</span> at {conflict.startTime} - {conflict.endTime}
-              </div>
-            ))}
-          </div>
-          
-          <div className="text-xs opacity-80 mb-3">
-            <p>Do you want to update this event anyway?</p>
-          </div>
-
-          <div className="flex gap-2">
-            <Button className="flex-1 bg-white text-black hover:bg-gray-50 h-7 rounded-[10px]" onClick={handleAccept} size="sm">
-              <Check className="mr-1 h-3 w-3" />
-              Yes, Update Anyway
-            </Button>
-            <Button
-              className="flex-1 h-7 rounded-[10px] border-orange-200 text-orange-700 bg-transparent hover:bg-orange-50 hover:text-orange-800 dark:border-orange-700 dark:text-orange-300 dark:hover:bg-orange-900/30"
-              onClick={handleDecline}
-              size="sm"
-              variant="outline"
-            >
-              <X className="mr-1 h-3 w-3" />
-              No, Find Better Time
-            </Button>
-          </div>
-        </div>
-        <MessageFooter
-          isRegenerating={isRegenerating}
-          onCopy={onCopy}
-          onRate={onRate}
-          onRegenerate={onRegenerate}
-        />
-      </div>
-    );
-  }
-
   const updates = [];
-  if (args.title) updates.push(`Title: ${args.title}`);
-  if (args.description) updates.push(`Description: ${args.description}`);
-  if (args.startDate) updates.push(`Start: ${new Date(args.startDate).toLocaleString()}`);
-  if (args.endDate) updates.push(`End: ${new Date(args.endDate).toLocaleString()}`);
-  if (args.location) updates.push(`Location: ${args.location}`);
-  if (args.attendees) updates.push(`Attendees: ${args.attendees.length}`);
-  if (args.color) updates.push(`Color: ${args.color}`);
-  if (args.isAllDay !== undefined) updates.push(`All Day: ${args.isAllDay}`);
-  if (args.repeat) updates.push(`Repeat: ${args.repeat}`);
-  if (args.visibility) updates.push(`Visibility: ${args.visibility}`);
+  if (args.newTitle) updates.push(`Title: ${args.newTitle}`);
+  if (args.newDescription) updates.push(`Description: ${args.newDescription}`);
+  if (args.newStartDate) updates.push(`Start: ${new Date(args.newStartDate).toLocaleString()}`);
+  if (args.newEndDate) updates.push(`End: ${new Date(args.newEndDate).toLocaleString()}`);
+  if (args.newLocation) updates.push(`Location: ${args.newLocation}`);
+  if (args.newAttendees) updates.push(`Attendees: ${args.newAttendees.length}`);
+  if (args.newColor) updates.push(`Color: ${args.newColor}`);
+  if (args.newIsAllDay !== undefined) updates.push(`All Day: ${args.newIsAllDay}`);
+  if (args.newRepeat) updates.push(`Repeat: ${args.newRepeat}`);
+  if (args.newVisibility) updates.push(`Visibility: ${args.newVisibility}`);
 
-  const eventColor = args.color || 'blue';
-
-  // Debug: log what events are available
-  console.log('All events in store:', events);
-  console.log('All Google events:', googleEvents);
-  console.log('Looking for eventId:', args.eventId);
-  console.log('Existing event from state:', existingEvent);
-
-  // Get the event title to display
-  const displayTitle = args.title || existingEvent?.title || 'Untitled Event';
+  const eventColor = args.newColor || 'blue';
+  const displayTitle = args.newTitle || existingEvent?.title || 'Untitled Event';
   
-  const displayStartDate = args.startDate ? ensureDate(args.startDate) : 
-                          existingEvent?.startDate ? ensureDate(existingEvent.startDate) : 
-                          new Date();
-  const displayEndDate = args.endDate ? ensureDate(args.endDate) : 
-                        existingEvent?.endDate ? ensureDate(existingEvent.endDate) : 
-                        new Date();
+  const displayStartDate = args.newStartDate ? new Date(args.newStartDate) : 
+                          existingEvent?.startDate || new Date();
+  const displayEndDate = args.newEndDate ? new Date(args.newEndDate) : 
+                        existingEvent?.endDate || new Date();
 
-  const formatTime = (date: Date | string) => {
-    const dateObj = typeof date === 'string' ? new Date(date) : date;
-    return dateObj.toLocaleTimeString('en-US', {
+  const formatTime = (date: Date) => {
+    return date.toLocaleTimeString('en-US', {
       hour: 'numeric',
       minute: '2-digit',
       hour12: true,
@@ -511,11 +315,6 @@ export function UpdateEventTool({
   };
 
   const timeDisplay = `${formatTime(displayStartDate)}–${formatTime(displayEndDate)}`;
-
-  console.log('Update Event Tool Args:', args);
-  console.log('Existing Event Found:', existingEvent);
-  console.log('Display Start Date:', displayStartDate);
-  console.log('Display End Date:', displayEndDate);
 
   return (
     <div>
@@ -542,15 +341,15 @@ export function UpdateEventTool({
                 <Clock className="inline h-3 w-3 mr-1" />
                 {timeDisplay}
               </div>
-              {args.location && (
+              {args.newLocation && (
                 <div className="text-xs opacity-80">
                   <MapPin className="inline h-3 w-3 mr-1" />
-                  {args.location}
+                  {args.newLocation}
                 </div>
               )}
-              {args.description && (
+              {args.newDescription && (
                 <div className="text-xs opacity-80">
-                  {args.description}
+                  {args.newDescription}
                 </div>
               )}
             </div>

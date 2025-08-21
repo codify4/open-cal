@@ -3,23 +3,38 @@ import type { Event } from '@/lib/store/calendar-store';
 export const updateEvent = async (
   calendarStore: any,
   params: {
-    eventId: string;
-    title?: string;
-    description?: string;
+    title: string;
     startDate?: string;
     endDate?: string;
-    location?: string;
-    attendees?: string[];
-    color?: string;
-    isAllDay?: boolean;
-    repeat?: string;
-    visibility?: string;
+    newTitle?: string;
+    newDescription?: string;
+    newStartDate?: string;
+    newEndDate?: string;
+    newLocation?: string;
+    newAttendees?: string[];
+    newColor?: string;
+    newIsAllDay?: boolean;
+    newRepeat?: string;
+    newVisibility?: string;
   }
 ) => {
   try {
-    const existingEvent = calendarStore.events.find(
-      (e: Event) => e.id === params.eventId
-    );
+    const allEvents = [
+      ...calendarStore.events,
+      ...calendarStore.googleEvents,
+    ];
+
+    let existingEvent = allEvents.find((e: Event) => {
+      if (e.title.toLowerCase() !== params.title.toLowerCase()) return false;
+      
+      if (params.startDate) {
+        const eventDate = e.startDate.toDateString();
+        const searchDate = new Date(params.startDate).toDateString();
+        if (eventDate !== searchDate) return false;
+      }
+      
+      return true;
+    });
     
     if (!existingEvent) {
       return { success: false, error: 'Event not found' };
@@ -27,29 +42,24 @@ export const updateEvent = async (
 
     const updatedEvent: Event = {
       ...existingEvent,
-      ...(params.title && { title: params.title }),
-      ...(params.description && { description: params.description }),
-      ...(params.startDate && { startDate: new Date(params.startDate) }),
-      ...(params.endDate && { endDate: new Date(params.endDate) }),
-      ...(params.location && { location: params.location }),
-      ...(params.attendees && { attendees: params.attendees }),
-      ...(params.color && { color: params.color }),
-      ...(params.isAllDay !== undefined && { isAllDay: params.isAllDay }),
-      ...(params.repeat && { repeat: params.repeat as any }),
-      ...(params.visibility && { visibility: params.visibility as any }),
+      ...(params.newTitle && { title: params.newTitle }),
+      ...(params.newDescription && { description: params.newDescription }),
+      ...(params.newStartDate && { startDate: new Date(params.newStartDate) }),
+      ...(params.newEndDate && { endDate: new Date(params.newEndDate) }),
+      ...(params.newLocation && { location: params.newLocation }),
+      ...(params.newAttendees && { attendees: params.newAttendees }),
+      ...(params.newColor && { color: params.newColor }),
+      ...(params.newIsAllDay !== undefined && { isAllDay: params.newIsAllDay }),
+      ...(params.newRepeat && { repeat: params.newRepeat as any }),
+      ...(params.newVisibility && { visibility: params.newVisibility as any }),
     };
 
-    if (params.startDate || params.endDate) {
-      const startDate = params.startDate ? new Date(params.startDate) : existingEvent.startDate;
-      const endDate = params.endDate ? new Date(params.endDate) : existingEvent.endDate;
-
-      const allEvents = [
-        ...calendarStore.events,
-        ...calendarStore.googleEvents,
-      ];
+    if (params.newStartDate || params.newEndDate) {
+      const startDate = params.newStartDate ? new Date(params.newStartDate) : existingEvent.startDate;
+      const endDate = params.newEndDate ? new Date(params.newEndDate) : existingEvent.endDate;
 
       const conflictingEvents = allEvents.filter((event: Event) => {
-        if (event.id === params.eventId) return false;
+        if (event.id === params.title) return false;
         
         const eventStart = new Date(event.startDate);
         const eventEnd = new Date(event.endDate);
