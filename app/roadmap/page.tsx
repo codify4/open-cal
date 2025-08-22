@@ -41,39 +41,31 @@ export default function RoadmapPage() {
             What's coming next for Caly
           </p>
         </div>
-
+        
         <div className="space-y-8">
           <div className="space-y-4">
             <div className="flex items-center gap-4">
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-green-500 font-semibold text-white">
-                1
-              </div>
+              <div className="w-8 h-8 bg-green-500 text-white rounded-full flex items-center justify-center font-semibold">1</div>
               <div>
                 <h3 className="text-xl font-semibold text-white">Core UI</h3>
                 <Badge className="bg-green-500 font-medium">Completed</Badge>
               </div>
             </div>
-            <p className="ml-12 text-muted-foreground">
-              Built the foundation - main layout, header, sidebar, calendar
-              container, and basic component structure. Not all functionality
-              yet, but the UI framework that everything else builds on.
+            <p className="text-muted-foreground ml-12">
+              Built the foundation - main layout, header, sidebar, calendar container, and basic component structure. Not all functionality yet, but the UI framework that everything else builds on.
             </p>
           </div>
 
           <div className="space-y-4">
             <div className="flex items-center gap-4">
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-green-500 font-semibold text-white">
-                2
-              </div>
+              <div className="w-8 h-8 bg-green-500 text-white rounded-full flex items-center justify-center font-semibold">2</div>
               <div>
                 <h3 className="text-xl font-semibold text-white">Core Calendar Functionality</h3>
                 <Badge className="bg-green-500 font-medium">Completed</Badge>
               </div>
             </div>
-            <p className="ml-12 text-muted-foreground">
-              The heart of any calendar app. Event creation, editing, deletion,
-              calendar views, and basic scheduling features. This part has to be
-              perfect because it's what users interact with 99% of the time.
+            <p className="text-muted-foreground ml-12">
+              The heart of any calendar app. Event creation, editing, deletion, calendar views, and basic scheduling features. This part has to be perfect because it's what users interact with 99% of the time.
             </p>
           </div>
 
@@ -85,10 +77,8 @@ export default function RoadmapPage() {
                 <Badge className="bg-green-500 font-medium">Done</Badge>
               </div>
             </div>
-            <p className="ml-12 text-muted-foreground">
-              Intelligent scheduling assistant with natural language processing.
-              Smart scheduling suggestions, conflict resolution, and AI-powered
-              calendar optimization.
+            <p className="text-muted-foreground ml-12">
+              Intelligent scheduling assistant with natural language processing. Smart scheduling suggestions, conflict resolution, and AI-powered calendar optimization.
             </p>
           </div>
 
@@ -100,17 +90,14 @@ export default function RoadmapPage() {
                 <Badge className="bg-green-500 font-medium">Done</Badge>
               </div>
             </div>
-            <p className="ml-12 text-muted-foreground">
-              Seamless synchronization with Google Calendar. Two-way sync,
-              real-time updates, calendar selection, and conflict resolution.
+            <p className="text-muted-foreground ml-12">
+              Seamless synchronization with Google Calendar. Two-way sync, real-time updates, calendar selection, and conflict resolution.
             </p>
           </div>
 
           <div className="space-y-4">
             <div className="flex items-center gap-4">
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-yellow-500 font-semibold text-white">
-                5
-              </div>
+              <div className="w-8 h-8 bg-yellow-500 text-white rounded-full flex items-center justify-center font-semibold">5</div>
               <div>
                 <h3 className="text-xl font-semibold text-white">Full mobile support</h3>
                 <Badge className="bg-yellow-500 font-medium">Not Started</Badge>
@@ -142,17 +129,15 @@ export default function RoadmapPage() {
                 <Badge variant="outline" className="text-white font-medium">Future</Badge>
               </div>
             </div>
-            <p className="ml-12 text-muted-foreground">
-              Public release and deployment. Once we nail the above, we have a
-              solid foundation to build anything. Advanced features, performance
-              optimizations, mobile support.
+            <p className="text-muted-foreground ml-12">
+              Public release and deployment. Once we nail the above, we have a solid foundation to build anything. Advanced features, performance optimizations, mobile support.
             </p>
           </div>
         </div>
       </div>
-
+      
       <RoadmapCTA />
       <Footer />
     </div>
-  );
+  )
 }

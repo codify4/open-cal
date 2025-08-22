@@ -3,14 +3,10 @@
 import { useState, useEffect } from 'react';
 
 import {
-    AlertTriangle,
+AlertTriangle,
   Cake,
   Calendar,
   Check,
-  Clock,
-  MapPin,
-  Pencil,
-  Users,
   X,
 } from 'lucide-react';
 import { GraphicDoodle } from '@/components/event/cards/graphics';
@@ -23,14 +19,16 @@ interface CalendarEventPreviewProps {
   event: Event;
   onAccept: () => void;
   onDecline: () => void;
-  onEdit: () => void;
+  minimized?: boolean;
+  className?: string;
 }
 
 export function CalendarEventPreview({
   event,
   onAccept,
   onDecline,
-  onEdit,
+  minimized = false,
+  className = '',
 }: CalendarEventPreviewProps) {
   const { saveEvent, openEventSidebarForEdit, setCurrentDate } =
     useCalendarStore((state) => state);
@@ -108,18 +106,6 @@ export function CalendarEventPreview({
     saveEvent(eventWithProperDates);
     setCurrentDate(eventWithProperDates.startDate);
     onAccept();
-  };
-
-  const handleEdit = () => {
-    // Ensure dates are properly converted to Date objects
-    const eventWithProperDates = {
-      ...event,
-      startDate: ensureDate(event.startDate),
-      endDate: ensureDate(event.endDate),
-    };
-
-    openEventSidebarForEdit(eventWithProperDates);
-    onEdit();
   };
 
   const handleDecline = () => {

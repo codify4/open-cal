@@ -1,6 +1,9 @@
-'use client';
+"use client"
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 8a7b3164b40070cbbf4cc2ae66afab5970dc7254
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 
 const faqs = [
@@ -47,6 +50,7 @@ export function FAQSection() {
                 </p>
                 </div>
 
+<<<<<<< HEAD
         <Accordion
           className="w-full max-w-3xl"
           collapsible
@@ -68,3 +72,21 @@ export function FAQSection() {
     </section>
   );
 }
+=======
+                <Accordion type="single" collapsible defaultValue="item-0" className="max-w-3xl w-full">
+                    {faqs.map((faq, index) => (
+                        <AccordionItem key={index} value={`item-${index}`}>
+                            <AccordionTrigger className="text-left font-medium text-lg cursor-pointer text-white hover:text-neutral-300">
+                                {faq.question}
+                            </AccordionTrigger>
+                            <AccordionContent>
+                                <p className="text-neutral-400 leading-relaxed">{faq.answer}</p>
+                            </AccordionContent>
+                        </AccordionItem>
+                    ))}
+                </Accordion>
+            </div>
+        </section>
+    )
+}
+>>>>>>> 8a7b3164b40070cbbf4cc2ae66afab5970dc7254

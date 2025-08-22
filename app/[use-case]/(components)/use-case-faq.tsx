@@ -21,8 +21,8 @@ export function UseCaseFAQ({ faq }: UseCaseFAQProps) {
           <h2 className="mt-6 text-4xl sm:text-5xl font-normal text-white tracking-tight font-lora">Frequently asked questions</h2>
         </div>
 
-        <div className="mx-auto max-w-3xl">
-          <Accordion className="space-y-4" collapsible type="single">
+        <div className="max-w-3xl mx-auto">
+          <Accordion type="single" collapsible className="space-y-4">
             {faq.map((item, index) => (
               <AccordionItem key={index} value={`item-${index}`} className="border-0">
                 <div className="rounded-2xl border border-white/10 bg-white/5">

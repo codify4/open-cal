@@ -1,4 +1,3 @@
-import { Analytics } from '@vercel/analytics/next';
 import type { Metadata } from 'next';
 import './globals.css';
 import { Analytics } from '@vercel/analytics/next';
@@ -32,7 +31,7 @@ export const metadata: Metadata = {
     title: 'Caly',
     description:
       'An open-source calendar, offering a fresh alternative to traditional calendar applications. Deeply integrated with AI Agents to help you manage your time and never miss an important event ever again.',
-    url: 'https://www.trycaly.cc',
+    url: 'https://www.trycaly.cc/',
     siteName: 'Caly',
     locale: 'en_US',
     type: 'website',
@@ -45,7 +44,7 @@ export const metadata: Metadata = {
     images: '/og-img.png',
   },
   alternates: {
-    canonical: 'https://www.trycaly.cc',
+    canonical: 'https://www.trycaly.cc/',
   },
 };
 
@@ -74,7 +73,7 @@ export default function RootLayout({
         <ThemeProvider attribute="class" defaultTheme="dark">
           {children}
         </ThemeProvider>
-        <Toaster duration={2000} />
+        <Toaster duration={1000} />
         <Analytics />
       </body>
     </html>

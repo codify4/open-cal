@@ -48,7 +48,6 @@ export function CalendarToolCall({
           onAccept={onAccept}
           onCopy={onCopy}
           onDecline={onDecline}
-          onEdit={onEdit}
           onRate={onRate}
           onRegenerate={onRegenerate}
           result={result}

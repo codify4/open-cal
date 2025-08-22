@@ -15,9 +15,7 @@ interface UseCaseTestimonialsProps {
   testimonials: Testimonial[]
 }
 
-export function UseCaseTestimonials({
-  testimonials,
-}: UseCaseTestimonialsProps) {
+export function UseCaseTestimonials({ testimonials }: UseCaseTestimonialsProps) {
   return (
     <section className="relative py-32 bg-black overflow-hidden">
 
