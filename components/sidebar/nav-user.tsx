@@ -139,15 +139,15 @@ export function NavUser({
                 </DropdownMenu>
               </div>
               
-              <div className="hidden w-48 border-neutral-200 border-r bg-neutral-50 px-3 py-4 dark:border-neutral-800 dark:bg-neutral-900 lg:block">
-                <nav className="space-y-2">
+              <div className="hidden lg:block w-48 border-neutral-200 border-r px-3 py-4 dark:border-neutral-800">
+                <nav>
                   {SETTINGS_SECTIONS.map((section) => {
                     const Icon = section.icon;
                     return (
                       <button
-                        className={`flex w-full cursor-pointer items-center space-x-3 rounded-[10px] p-3 text-sm transition-colors hover:bg-neutral-100/50 dark:hover:bg-neutral-800/50 ${
+                        className={`flex w-full cursor-pointer items-center space-x-3 rounded-[10px] p-2 text-sm transition-colors hover:bg-neutral-100/50 dark:hover:bg-neutral-800/50 ${
                           activeSection === section.id
-                            ? 'bg-neutral-100 text-neutral-900 dark:bg-neutral-800 dark:text-white'
+                            ? 'text-neutral-900 dark:text-white '
                             : 'text-neutral-600 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white'
                         }`}
                         key={section.id}
