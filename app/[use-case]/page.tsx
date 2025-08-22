@@ -1,13 +1,11 @@
-import { notFound } from 'next/navigation';
-import { Footer } from '@/components/landing/footer';
-import TopNav from '@/components/landing/top-nav';
-import { UseCaseBenefits } from './(components)/use-case-benefits';
-import { UseCaseCTA } from './(components)/use-case-cta';
-import { UseCaseFAQ } from './(components)/use-case-faq';
-import { UseCaseFeatures } from './(components)/use-case-features';
-import { UseCaseHero } from './(components)/use-case-hero';
-import { UseCaseTestimonials } from './(components)/use-case-testimonials';
-import { getUseCase, getUseCaseIds } from './(components)/use-cases';
+import { notFound } from "next/navigation";
+import TopNav from "@/components/landing/top-nav";
+import { Footer } from "@/components/landing/footer";
+import { UseCaseHero } from "./(components)/use-case-hero";
+import { UseCaseBenefits } from "./(components)/use-case-benefits";
+import { UseCaseFAQ } from "./(components)/use-case-faq";
+import { UseCaseCTA } from "./(components)/use-case-cta";
+import { getUseCase, getUseCaseIds } from "./(components)/use-cases";
 
 interface UseCasePageProps {
   params: Promise<{
@@ -30,14 +28,44 @@ export async function generateMetadata({
 
   if (!useCaseData) {
     return {
-      title: 'Use Case - OpenCal',
-      description: 'Discover how OpenCal can help your specific use case.',
+      title: "Use Case - Caly",
+      description: "Discover how Caly can help your specific use case.",
+      alternates: {
+        canonical: 'https://www.trycaly.cc/',
+      },
+      openGraph: {
+        images: '/og-img.png',
+        title: 'Use Case - Caly',
+        description: 'Discover how Caly can help your specific use case.',
+        url: 'https://www.trycaly.cc/',
+        siteName: 'Caly',
+        locale: 'en_US',
+        type: 'website',
+      },
     };
   }
 
   return {
-    title: `${useCaseData.title} - OpenCal`,
+    title: `${useCaseData.title} - Caly`,
     description: useCaseData.description,
+    alternates: {
+      canonical: `https://www.trycaly.cc/${useCase}`,
+    },
+    openGraph: {
+      images: '/og-img.png',
+      title: `${useCaseData.title} - Caly`,
+      description: useCaseData.description,
+      url: `https://www.trycaly.cc/${useCase}`,
+      siteName: 'Caly',
+      locale: 'en_US',
+      type: 'website',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: `${useCaseData.title} - Caly`,
+      description: useCaseData.description,
+      images: '/og-img.png',
+    },
   };
 }
 
@@ -50,19 +78,16 @@ export default async function UseCasePage({ params }: UseCasePageProps) {
   }
 
   return (
-    <div className="min-h-screen bg-neutral-950 text-foreground">
+    <div className="min-h-screen bg-neutral-950 text-foreground scrollbar-hide">
       <TopNav />
       <main className="bg-background">
         <UseCaseHero
           cta={useCaseData.hero.cta}
-          demo={useCaseData.hero.demo}
-          description={useCaseData.hero.description}
-          subtitle={useCaseData.hero.subtitle}
-          title={useCaseData.hero.title}
+          icon={useCaseData.icon}
         />
         <UseCaseBenefits benefits={useCaseData.benefits} />
-        <UseCaseFeatures features={useCaseData.features} />
-        <UseCaseTestimonials testimonials={useCaseData.testimonials} />
+        {/* <UseCaseFeatures features={useCaseData.features} /> */}
+        {/* <UseCaseTestimonials testimonials={useCaseData.testimonials} /> */}
         <UseCaseFAQ faq={useCaseData.faq} />
         <UseCaseCTA
           button={useCaseData.cta.button}

@@ -4,28 +4,23 @@ import { Footer } from '@/components/landing/footer';
 import TopNav from '@/components/landing/top-nav';
 
 export const metadata: Metadata = {
-  title: 'Privacy Policy | OpenCal',
-  description:
-    'The privacy policy for OpenCal, an open-source calendar app by OpenCal.',
-};
+    title: 'Privacy Policy | Caly',
+    description: 'The privacy policy for Caly, an open-source calendar app by Caly.',
+}
 
 function PrivacyPolicyPage() {
-  return (
-    <div className="scrollbar-hide min-h-screen bg-neutral-950 text-foreground">
-      <TopNav />
-      <main className="bg-background pt-24">
-        <div className="container mx-auto px-6 py-16 lg:px-8">
-          <div className="mx-auto max-w-4xl">
-            <h1 className="mb-4 font-bold text-4xl text-white">
-              OpenCal Privacy Policy
-            </h1>
+    return (
+        <div className="min-h-screen bg-neutral-950 text-foreground scrollbar-hide">
+            <TopNav />
+            <main className="bg-background pt-24">
+                <div className="container mx-auto px-6 lg:px-8 py-16">
+                    <div className="max-w-4xl mx-auto">
+                        <h1 className="text-4xl font-bold text-white mb-4">Caly Privacy Policy</h1>
 
-            <div className="prose prose-invert max-w-none">
-              <p className="mb-8 text-lg text-muted-foreground leading-relaxed">
-                OpenCal, an open-source calendar app by OpenCal, respects your
-                privacy. This Privacy Policy explains how we collect, use, and
-                protect your data.
-              </p>
+                        <div className="prose prose-invert max-w-none">
+                            <p className="text-muted-foreground text-lg leading-relaxed mb-8">
+                                Caly, an open-source calendar app by Caly, respects your privacy. This Privacy Policy explains how we collect, use, and protect your data.
+                            </p>
 
               <section className="mb-12">
                 <h2 className="mb-6 font-semibold text-2xl text-white">
@@ -160,34 +155,23 @@ function PrivacyPolicyPage() {
                   </li>
                 </ul>
               </section>
-
-              <section className="mb-12">
-                <h2 className="mb-6 font-semibold text-2xl text-white">
-                  5. Your Rights
-                </h2>
-                <ul className="space-y-3 text-muted-foreground">
-                  <li className="flex items-start gap-3">
-                    <span className="font-medium text-white">
-                      Access/Delete:
-                    </span>
-                    <span>
-                      Request access or deletion of your data via
-                      opencal.oss@gmail.com
-                    </span>
-                  </li>
-                  <li className="flex items-start gap-3">
-                    <span className="font-medium text-white">Opt-Out:</span>
-                    <span>Disable analytics in app settings.</span>
-                  </li>
-                  <li className="flex items-start gap-3">
-                    <span className="font-medium text-white">GDPR/CCPA:</span>
-                    <span>
-                      Rights to know, delete, or restrict data processing (where
-                      applicable).
-                    </span>
-                  </li>
-                </ul>
-              </section>
+                            <section className="mb-12">
+                                <h2 className="text-2xl font-semibold text-white mb-6">5. Your Rights</h2>
+                                <ul className="space-y-3 text-muted-foreground">
+                                    <li className="flex items-start gap-3">
+                                        <span className="text-white font-medium">Access/Delete:</span>
+                                        <span>Request access or deletion of your data via Caly.oss@gmail.com</span>
+                                    </li>
+                                    <li className="flex items-start gap-3">
+                                        <span className="text-white font-medium">Opt-Out:</span>
+                                        <span>Disable analytics in app settings.</span>
+                                    </li>
+                                    <li className="flex items-start gap-3">
+                                        <span className="text-white font-medium">GDPR/CCPA:</span>
+                                        <span>Rights to know, delete, or restrict data processing (where applicable).</span>
+                                    </li>
+                                </ul>
+                            </section>
 
               <section className="mb-12">
                 <h2 className="mb-6 font-semibold text-2xl text-white">
@@ -244,39 +228,32 @@ function PrivacyPolicyPage() {
                 </ul>
               </section>
 
-              <section className="mb-12">
-                <h2 className="mb-6 font-semibold text-2xl text-white">
-                  8. Changes
-                </h2>
-                <p className="text-muted-foreground leading-relaxed">
-                  We may update this policy. Changes posted on{' '}
-                  <Link
-                    className="text-white transition-colors hover:text-muted-foreground"
-                    href="/privacy"
-                  >
-                    OpenCal Privacy Policy
-                  </Link>{' '}
-                  and effective upon your next app use.
-                </p>
-              </section>
+                            <section className="mb-12">
+                                <h2 className="text-2xl font-semibold text-white mb-6">8. Changes</h2>
+                                <p className="text-muted-foreground leading-relaxed">
+                                    We may update this policy. Changes posted on{' '}
+                                    <Link href="/privacy" className="text-white hover:text-muted-foreground transition-colors">
+                                        Caly Privacy Policy
+                                    </Link>{' '}
+                                    and effective upon your next app use.
+                                </p>
+                            </section>
 
-              <section className="mb-12">
-                <h2 className="mb-6 font-semibold text-2xl text-white">
-                  9. Contact
-                </h2>
-                <p className="text-muted-foreground leading-relaxed">
-                  Questions? Email{' '}
-                  <Link
-                    className="text-white transition-colors hover:text-muted-foreground"
-                    href="mailto:opencal.oss@gmail.com"
-                  >
-                    opencal.oss@gmail.com
-                  </Link>
-                  .
-                </p>
-              </section>
-            </div>
-          </div>
+                            <section className="mb-12">
+                                <h2 className="text-2xl font-semibold text-white mb-6">9. Contact</h2>
+                                <p className="text-muted-foreground leading-relaxed">
+                                    Questions? Email{' '}
+                                    <Link href="mailto:Caly.oss@gmail.com" className="text-white hover:text-muted-foreground transition-colors">
+                                        Caly.oss@gmail.com
+                                    </Link>
+                                    .
+                                </p>
+                            </section>
+                        </div>
+                    </div>
+                </div>
+            </main>
+            <Footer />
         </div>
       </main>
       <Footer />

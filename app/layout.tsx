@@ -1,10 +1,11 @@
 import { Analytics } from '@vercel/analytics/next';
 import type { Metadata } from 'next';
 import './globals.css';
+import { Analytics } from '@vercel/analytics/next';
 import { Geist, Lora } from 'next/font/google';
-import Script from 'next/script';
 import { ThemeProvider } from 'next-themes';
 import { Toaster } from 'sonner';
+import Script from 'next/script';
 
 const geist = Geist({
   subsets: ['latin'],
@@ -57,16 +58,15 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <head>
         <Script
-          async
-          crossOrigin="anonymous"
-          data-client-id="UqCP74-YWv1RohnF2azYu"
-          data-enable-batching="true"
-          data-track-bounce-rate="true"
-          data-track-engagement="true"
-          data-track-interactions="true"
-          data-track-web-vitals="true"
           src="https://cdn.databuddy.cc/databuddy.js"
+          data-client-id="CAJ7p0ZlIg6Pxys0PfjZF"
+          data-track-engagement="true"
+          data-track-web-vitals="true"
+          data-enable-batching="true"
+          crossOrigin="anonymous"
+          async
         />
+        <meta name="google-site-verification" content="rtibR9YOFrMtvy8G5hvkbOIr673zpTVKsW9-a6gFRmI" />
       </head>
       <body
         className={`${geist.variable} ${lora.variable} bg-neutral-950 text-foreground antialiased`}

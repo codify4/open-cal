@@ -17,12 +17,16 @@ export function HeroSection() {
       <div className="container relative z-10 mx-auto mt-52 w-full px-6 lg:px-8 xl:px-12">
         <div className="flex flex-col items-center justify-center gap-16 text-center">
           <motion.div
+            className="space-y-8 flex flex-col items-center justify-center"
+            initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             className="max-w-4xl space-y-8"
             initial={{ opacity: 0, y: 20 }}
             transition={{ duration: 0.6 }}
           >
             <motion.h1
+              className="font-bold tracking-tight text-5xl md:text-6xl lg:text-7xl text-white font-lora"
+              initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               className="font-bold font-lora text-5xl text-white tracking-tight md:text-6xl lg:text-7xl"
               initial={{ opacity: 0, y: 20 }}
@@ -46,6 +50,8 @@ export function HeroSection() {
             </motion.p>
 
             <motion.div
+              className="flex justify-start"
+              initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               className="flex justify-center gap-5"
               initial={{ opacity: 0, y: 20 }}

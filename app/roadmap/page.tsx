@@ -1,18 +1,44 @@
-import { Footer } from '@/components/landing/footer';
-import TopNav from '@/components/landing/top-nav';
-import { RoadmapCTA } from '@/components/roadmap/roadmap-cta';
-import { Badge } from '@/components/ui/badge';
+import TopNav from "@/components/landing/top-nav"
+import { Footer } from "@/components/landing/footer"
+import { RoadmapCTA } from "@/components/roadmap/roadmap-cta"
+import { Badge } from "@/components/ui/badge"
+import { Metadata } from "next"
+
+export const metadata: Metadata = {
+  title: 'Roadmap - Caly',
+  description: 'What\'s coming next for Caly. The full roadmap for the project.',
+  alternates: {
+    canonical: 'https://www.trycaly.cc/roadmap',
+  },
+  openGraph: {
+    images: '/og-img.png',
+    title: 'Roadmap - Caly',
+    description: 'What\'s coming next for Caly. The full roadmap for the project.',
+    url: 'https://www.trycaly.cc/roadmap',
+    siteName: 'Caly',
+    locale: 'en_US',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Roadmap - Caly',
+    description: 'What\'s coming next for Caly. The full roadmap for the project.',
+    images: '/og-img.png',
+  },
+}
 
 export default function RoadmapPage() {
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-black dark:bg-black">
       <TopNav />
-
-      <div className="mx-auto w-full max-w-4xl px-4 py-12 sm:px-6 lg:px-8">
-        <div className="mb-12 space-y-6 text-center">
-          <h1 className="font-bold text-4xl sm:text-5xl">Roadmap</h1>
-          <p className="text-muted-foreground text-xl">
-            What's coming next for OpenCal
+      
+      <div className="w-full max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="text-center space-y-6 mb-12">
+          <h1 className="text-4xl sm:text-5xl font-bold mt-20 text-white">
+            Roadmap
+          </h1>
+          <p className="text-xl text-muted-foreground">
+            What's coming next for Caly
           </p>
         </div>
 
@@ -23,7 +49,7 @@ export default function RoadmapPage() {
                 1
               </div>
               <div>
-                <h3 className="font-semibold text-xl">Core UI</h3>
+                <h3 className="text-xl font-semibold text-white">Core UI</h3>
                 <Badge className="bg-green-500 font-medium">Completed</Badge>
               </div>
             </div>
@@ -40,9 +66,7 @@ export default function RoadmapPage() {
                 2
               </div>
               <div>
-                <h3 className="font-semibold text-xl">
-                  Core Calendar Functionality
-                </h3>
+                <h3 className="text-xl font-semibold text-white">Core Calendar Functionality</h3>
                 <Badge className="bg-green-500 font-medium">Completed</Badge>
               </div>
             </div>
@@ -55,12 +79,10 @@ export default function RoadmapPage() {
 
           <div className="space-y-4">
             <div className="flex items-center gap-4">
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-yellow-500 font-semibold text-white">
-                3
-              </div>
+              <div className="w-8 h-8 bg-green-500 text-white rounded-full flex items-center justify-center font-semibold">3</div>
               <div>
-                <h3 className="font-semibold text-xl">AI Agent</h3>
-                <Badge className="bg-yellow-500 font-medium">In Progress</Badge>
+                <h3 className="text-xl font-semibold text-white">AI Agent</h3>
+                <Badge className="bg-green-500 font-medium">Done</Badge>
               </div>
             </div>
             <p className="ml-12 text-muted-foreground">
@@ -72,14 +94,10 @@ export default function RoadmapPage() {
 
           <div className="space-y-4">
             <div className="flex items-center gap-4">
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-yellow-500 font-semibold text-white">
-                4
-              </div>
+              <div className="w-8 h-8 bg-green-500 text-white rounded-full flex items-center justify-center font-semibold">4</div>
               <div>
-                <h3 className="font-semibold text-xl">
-                  Google Calendar Integration
-                </h3>
-                <Badge className="bg-yellow-500 font-medium">Not Started</Badge>
+                <h3 className="text-xl font-semibold text-white">Google Calendar Integration</h3>
+                <Badge className="bg-green-500 font-medium">Done</Badge>
               </div>
             </div>
             <p className="ml-12 text-muted-foreground">
@@ -94,29 +112,34 @@ export default function RoadmapPage() {
                 5
               </div>
               <div>
-                <h3 className="font-semibold text-xl">
-                  Full Convex DB Integration
-                </h3>
+                <h3 className="text-xl font-semibold text-white">Full mobile support</h3>
                 <Badge className="bg-yellow-500 font-medium">Not Started</Badge>
               </div>
             </div>
-            <p className="ml-12 text-muted-foreground">
-              Complete database integration and real-time sync. User
-              authentication, data persistence, and scalable backend
-              infrastructure.
+            <p className="text-muted-foreground ml-12">
+              Make the calendar experience as smooth as possible on mobile.
             </p>
           </div>
 
           <div className="space-y-4">
             <div className="flex items-center gap-4">
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-500 font-semibold text-white">
-                6
-              </div>
+              <div className="w-8 h-8 bg-yellow-500 text-white rounded-full flex items-center justify-center font-semibold">6</div>
               <div>
-                <h3 className="font-semibold text-xl">Launch</h3>
-                <Badge className="font-medium text-white" variant="outline">
-                  Future
-                </Badge>
+                <h3 className="text-xl font-semibold text-white">Bug fixes and little improvements</h3>
+                <Badge className="bg-yellow-500 font-medium">Not Started</Badge>
+              </div>
+            </div>
+            <p className="text-muted-foreground ml-12">
+              Fixing bugs and making little improvements to the calendar experience before launching the first version.
+            </p>
+          </div>
+
+          <div className="space-y-4">
+            <div className="flex items-center gap-4">
+              <div className="w-8 h-8 bg-gray-500 text-white rounded-full flex items-center justify-center font-semibold">7</div>
+              <div>
+                <h3 className="text-xl font-semibold text-white">Launch</h3>
+                <Badge variant="outline" className="text-white font-medium">Future</Badge>
               </div>
             </div>
             <p className="ml-12 text-muted-foreground">
