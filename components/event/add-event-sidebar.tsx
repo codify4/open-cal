@@ -40,6 +40,7 @@ const AddEventSidebar = ({ onClick }: AddEventProps) => {
     saveEvent,
     optimisticUpdateEvent,
     revertOptimisticUpdate,
+    sessionCalendars,
   } = useCalendarStore((state) => state);
 
   const {
@@ -55,7 +56,18 @@ const AddEventSidebar = ({ onClick }: AddEventProps) => {
   useEffect(() => {
     if (selectedEvent) {
       setFormType(selectedEvent.type);
-    } else if (eventCreationContext?.startDate && !selectedEvent) {
+    } else if (eventCreationContext?.startDate && !selectedEvent && Object.keys(sessionCalendars).length > 0) {
+      // Get the primary calendar for the current user
+      const allCalendars: any[] = [];
+      Object.values(sessionCalendars).forEach((sessionCals) => {
+        if (Array.isArray(sessionCals)) {
+          allCalendars.push(...sessionCals);
+        }
+      });
+      
+      const primaryCalendar = allCalendars.find((cal) => cal.primary) || allCalendars[0];
+      const defaultCalendar = primaryCalendar?.id || '';
+
       const newEvent: Event = {
         id: `event-${Date.now()}`,
         title: eventCreationContext.title || '',
@@ -69,11 +81,12 @@ const AddEventSidebar = ({ onClick }: AddEventProps) => {
         reminders: [],
         repeat: 'none',
         visibility: 'public',
+        calendar: defaultCalendar,
       };
 
       updateSelectedEvent(newEvent);
     }
-  }, [selectedEvent, eventCreationContext]);
+  }, [selectedEvent, eventCreationContext, sessionCalendars]);
 
   const handleClose = () => {
     if (autoSaveTimeoutRef.current) {
