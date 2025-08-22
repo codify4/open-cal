@@ -136,8 +136,4 @@ export function Footer({ className = '' }: FooterProps) {
             </div>
         </footer>
     );
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> 8a7b3164b40070cbbf4cc2ae66afab5970dc7254

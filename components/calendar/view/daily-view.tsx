@@ -189,6 +189,7 @@ export default function DailyView({
                     {dayEvents && (
                       <DailyEventsContainer
                         events={dayEvents}
+                        onResize={updateEventTime}
                         onResizeEnd={handleResizeEnd}
                         updateEventTime={updateEventTime}
                       />
