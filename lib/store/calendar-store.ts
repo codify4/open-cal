@@ -100,6 +100,8 @@ export interface CalendarActions {
     newEndDate: Date
   ) => void;
   replaceEvent: (event: Event) => void;
+  optimisticUpdateEvent: (event: Event) => void;
+  revertOptimisticUpdate: (eventId: string, originalEvent: Event) => void;
   incrementOptimisticCounter: () => void;
   clearOptimisticOverride: (eventId: string) => void;
 
@@ -339,6 +341,73 @@ export const createCalendarStore = (
                 [eventId]: { startDate: newStartDate, endDate: newEndDate },
               },
             } as CalendarState;
+          }),
+
+        optimisticUpdateEvent: (event: Event) =>
+          set((state) => {
+            const eventIndex = state.events.findIndex((e) => e.id === event.id);
+            const googleEventIndex = state.googleEvents.findIndex(
+              (e) => e.id === event.id
+            );
+
+            const newState: Partial<CalendarState> = {};
+            
+            if (eventIndex >= 0) {
+              const updatedEvents = [...state.events];
+              updatedEvents[eventIndex] = event;
+              newState.events = updatedEvents;
+            } else if (googleEventIndex >= 0) {
+              const updatedGoogleEvents = [...state.googleEvents];
+              updatedGoogleEvents[googleEventIndex] = event;
+              newState.googleEvents = updatedGoogleEvents;
+            } else {
+              // This is a new event, add it to the events array
+              newState.events = [...state.events, event];
+            }
+
+            return {
+              ...newState,
+              optimisticUpdateCounter: state.optimisticUpdateCounter + 1,
+              optimisticOverrides: {
+                ...state.optimisticOverrides,
+                [event.id]: { startDate: event.startDate, endDate: event.endDate },
+              },
+            } as CalendarState;
+          }),
+
+        revertOptimisticUpdate: (eventId: string, originalEvent: Event) =>
+          set((state) => {
+            const eventIndex = state.events.findIndex((e) => e.id === eventId);
+            const googleEventIndex = state.googleEvents.findIndex(
+              (e) => e.id === eventId
+            );
+
+            const newState: Partial<CalendarState> = {};
+            
+            if (eventIndex >= 0) {
+              if (originalEvent.id.startsWith('event-') || originalEvent.id.startsWith('temp-')) {
+                // This was a new event, remove it completely
+                newState.events = state.events.filter((e) => e.id !== eventId);
+              } else {
+                // This was an existing event, revert to original
+                const updatedEvents = [...state.events];
+                updatedEvents[eventIndex] = originalEvent;
+                newState.events = updatedEvents;
+              }
+            } else if (googleEventIndex >= 0) {
+              const updatedGoogleEvents = [...state.googleEvents];
+              updatedGoogleEvents[googleEventIndex] = originalEvent;
+              newState.googleEvents = updatedGoogleEvents;
+            }
+
+            return {
+              ...newState,
+              optimisticUpdateCounter: Math.max(0, state.optimisticUpdateCounter - 1),
+              optimisticOverrides: {
+                ...state.optimisticOverrides,
+                [eventId]: { startDate: originalEvent.startDate, endDate: originalEvent.endDate },
+              },
+            } as Partial<CalendarState>;
           }),
 
         clearOptimisticOverride: (eventId: string) =>

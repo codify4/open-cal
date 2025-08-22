@@ -38,6 +38,8 @@ const AddEventSidebar = ({ onClick }: AddEventProps) => {
     updateSelectedEvent,
     closeEventSidebar,
     saveEvent,
+    optimisticUpdateEvent,
+    revertOptimisticUpdate,
   } = useCalendarStore((state) => state);
 
   const {
@@ -120,34 +122,46 @@ const AddEventSidebar = ({ onClick }: AddEventProps) => {
       selectedEvent
     ) {
       const eventToSave = { ...selectedEvent, ...currentFormData };
+      const originalEvent = { ...selectedEvent };
       console.log('Event to save:', eventToSave);
 
-      if (eventToSave.googleEventId && user?.id) {
-        console.log('Updating existing Google Calendar event...');
-        const result = await upsertGoogleEvent(
-          eventToSave,
-          user.id,
-          user.primaryEmailAddress?.emailAddress
-        );
-        console.log('Google Calendar update result:', result);
-        
-        if (result?.success && result.event) {
-          saveEvent(result.event);
-          updateSelectedEvent(result.event);
-          updateFormData(result.event);
-          toast.success('Event updated in Google Calendar');
-        } else {
-          toast.error('Failed to update event in Google Calendar');
-          return;
+      // Optimistically update the UI immediately
+      optimisticUpdateEvent(eventToSave);
+      
+      // Close the sidebar immediately for better UX
+      closeEventSidebar();
+      onClick();
+
+      // Handle Google Calendar events
+      if (user?.id) {
+        try {
+          const result = await upsertGoogleEvent(
+            eventToSave,
+            user.id,
+            user.primaryEmailAddress?.emailAddress
+          );
+          console.log('Google Calendar result:', result);
+          
+          if (result?.success && result.event) {
+            // Update with the actual result from Google Calendar
+            saveEvent(result.event);
+            toast.success(eventToSave.googleEventId ? 'Event updated in Google Calendar' : 'Event created in Google Calendar');
+          } else {
+            // Revert the optimistic update on failure
+            revertOptimisticUpdate(eventToSave.id, originalEvent);
+            toast.error(eventToSave.googleEventId ? 'Failed to update event in Google Calendar' : 'Failed to create event in Google Calendar');
+          }
+        } catch (error) {
+          console.error('Google Calendar operation failed:', error);
+          // Revert the optimistic update on error
+          revertOptimisticUpdate(eventToSave.id, originalEvent);
+          toast.error(eventToSave.googleEventId ? 'Failed to update event in Google Calendar' : 'Failed to create event in Google Calendar');
         }
       } else {
         console.log('Saving local event...');
         saveEvent(eventToSave);
         console.log('Local event saved');
       }
-
-      closeEventSidebar();
-      onClick();
     } else {
       console.log('No form data or selected event to save');
     }

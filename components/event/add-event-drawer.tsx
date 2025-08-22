@@ -45,6 +45,8 @@ const AddEventDrawer = ({ open, onOpenChange }: AddEventDrawerProps) => {
     updateSelectedEvent,
     closeEventSidebar,
     saveEvent,
+    optimisticUpdateEvent,
+    revertOptimisticUpdate,
   } = useCalendarStore((state) => state);
 
   const {
@@ -125,29 +127,42 @@ const AddEventDrawer = ({ open, onOpenChange }: AddEventDrawerProps) => {
       selectedEvent
     ) {
       const eventToSave = { ...selectedEvent, ...currentFormData };
+      const originalEvent = { ...selectedEvent };
 
-      if (eventToSave.googleEventId && user?.id) {
-        const result = await upsertGoogleEvent(
-          eventToSave,
-          user.id,
-          user.primaryEmailAddress?.emailAddress
-        );
-        
-        if (result?.success && result.event) {
-          saveEvent(result.event);
-          updateSelectedEvent(result.event);
-          updateFormData(result.event);
-          toast.success('Event updated in Google Calendar');
-        } else {
-          toast.error('Failed to update event in Google Calendar');
-          return;
+      // Optimistically update the UI immediately
+      optimisticUpdateEvent(eventToSave);
+      
+      // Close the drawer immediately for better UX
+      closeEventSidebar();
+      onOpenChange(false);
+
+      // Handle Google Calendar events
+      if (user?.id) {
+        try {
+          const result = await upsertGoogleEvent(
+            eventToSave,
+            user.id,
+            user.primaryEmailAddress?.emailAddress
+          );
+          
+          if (result?.success && result.event) {
+            // Update with the actual result from Google Calendar
+            saveEvent(result.event);
+            toast.success(eventToSave.googleEventId ? 'Event updated in Google Calendar' : 'Event created in Google Calendar');
+          } else {
+            // Revert the optimistic update on failure
+            revertOptimisticUpdate(eventToSave.id, originalEvent);
+            toast.error(eventToSave.googleEventId ? 'Failed to update event in Google Calendar' : 'Failed to create event in Google Calendar');
+          }
+        } catch (error) {
+          console.error('Google Calendar operation failed:', error);
+          // Revert the optimistic update on error
+          revertOptimisticUpdate(eventToSave.id, originalEvent);
+          toast.error(eventToSave.googleEventId ? 'Failed to update event in Google Calendar' : 'Failed to create event in Google Calendar');
         }
       } else {
         saveEvent(eventToSave);
       }
-
-      closeEventSidebar();
-      onOpenChange(false);
     }
   };
 
