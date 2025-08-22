@@ -39,28 +39,28 @@ export function BillingSection() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       <div>
-        <h3 className="mb-2 font-semibold text-neutral-900 text-xl dark:text-white">
+        <h3 className="mb-2 font-semibold text-neutral-900 text-lg sm:text-xl dark:text-white">
           Billing & Subscription
         </h3>
-        <p className="text-neutral-600 dark:text-neutral-400">
+        <p className="text-neutral-600 text-sm sm:text-base dark:text-neutral-400">
           Manage your subscription and payment methods.
         </p>
       </div>
 
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6">
         <Card className="border-neutral-200 bg-white dark:border-neutral-800 dark:bg-neutral-900">
-          <CardHeader>
-            <CardTitle className="text-neutral-900 dark:text-white">
+          <CardHeader className="pb-4">
+            <CardTitle className="text-neutral-900 text-base sm:text-lg dark:text-white">
               Current Plan
             </CardTitle>
-            <CardDescription className="text-neutral-600 dark:text-neutral-400">
+            <CardDescription className="text-neutral-600 text-sm dark:text-neutral-400">
               Your current subscription details
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="flex items-center justify-between rounded-lg bg-neutral-100 p-4 dark:bg-neutral-800">
+            <div className="flex flex-col space-y-3 rounded-lg bg-neutral-100 p-4 dark:bg-neutral-800 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
               <div className="flex items-center space-x-3">
                 <Image
                   alt="caly"
@@ -70,11 +70,11 @@ export function BillingSection() {
                   width={40}
                 />
                 <div>
-                  <h4 className="font-semibold text-neutral-900 dark:text-white">
+                  <h4 className="font-semibold text-neutral-900 text-sm sm:text-base dark:text-white">
                     {current?.isPro ? 'Caly Pro' : 'Caly Free'}
                   </h4>
                   {current?.isPro ? (
-                    <p className="text-neutral-600 text-sm dark:text-neutral-400">
+                    <p className="text-neutral-600 text-xs sm:text-sm dark:text-neutral-400">
                       {current?.planVariantId ===
                       Number(
                         process.env.NEXT_PUBLIC_LEMONSQUEEZY_VARIANT_YEARLY_ID
@@ -83,7 +83,7 @@ export function BillingSection() {
                         : '$20/month'}
                     </p>
                   ) : (
-                    <p className="text-neutral-600 text-sm dark:text-neutral-400">
+                    <p className="text-neutral-600 text-xs sm:text-sm dark:text-neutral-400">
                       Limited features
                     </p>
                   )}
@@ -91,14 +91,14 @@ export function BillingSection() {
               </div>
               {current?.isPro ? (
                 <Badge
-                  className="bg-green-500/20 text-green-600 dark:text-green-400"
+                  className="bg-green-500/20 text-green-600 dark:text-green-400 w-fit"
                   variant="secondary"
                 >
                   Active
                 </Badge>
               ) : (
                 <Badge
-                  className="bg-neutral-500/20 text-neutral-700 dark:text-neutral-300"
+                  className="bg-neutral-500/20 text-neutral-700 dark:text-neutral-300 w-fit"
                   variant="secondary"
                 >
                   Free
@@ -106,7 +106,7 @@ export function BillingSection() {
               )}
             </div>
             {current?.isPro ? (
-              <div className="text-neutral-600 text-sm dark:text-neutral-400">
+              <div className="text-neutral-600 text-xs sm:text-sm dark:text-neutral-400">
                 {current?.renewsAt ? (
                   <p>
                     Next billing date:{' '}
@@ -121,7 +121,7 @@ export function BillingSection() {
                 </p>
               </div>
             ) : (
-              <div className="text-neutral-600 text-sm dark:text-neutral-400">
+              <div className="text-neutral-600 text-xs sm:text-sm dark:text-neutral-400">
                 <p>Upgrade to unlock AI agent and integrations.</p>
               </div>
             )}
@@ -129,11 +129,11 @@ export function BillingSection() {
         </Card>
 
         <Card className="border-neutral-200 bg-white dark:border-neutral-800 dark:bg-neutral-900">
-          <CardHeader>
-            <CardTitle className="text-neutral-900 dark:text-white">
+          <CardHeader className="pb-4">
+            <CardTitle className="text-neutral-900 text-base sm:text-lg dark:text-white">
               Subscription Actions
             </CardTitle>
-            <CardDescription className="text-neutral-600 dark:text-neutral-400">
+            <CardDescription className="text-neutral-600 text-sm dark:text-neutral-400">
               Manage your subscription
             </CardDescription>
           </CardHeader>

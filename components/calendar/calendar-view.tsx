@@ -8,6 +8,7 @@ import {
   ArrowRight,
   CalendarDaysIcon,
   RefreshCw,
+  ChevronDown,
 } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import { BsCalendarMonth, BsCalendarWeek } from 'react-icons/bs';
@@ -15,6 +16,7 @@ import { getAccessToken } from '@/actions/access-token';
 import { Button } from '@/components/ui/button';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { api } from '@/convex/_generated/api';
 import { useGoogleCalendarRefresh } from '@/hooks/use-google-calendar-refresh';
 import { cn } from '@/lib/utils';
@@ -218,7 +220,6 @@ export default function CalendarView({
 
   return (
     <div className="flex w-full flex-col gap-6 p-2">
-      <div className="fixed top-0 left-0 z-50 h-screen w-full bg-black/90 lg:hidden" />
       <div className="flex w-full">
         <div className="relative w-full">
           <Tabs
@@ -243,9 +244,9 @@ export default function CalendarView({
                     </h1>
                   </div>
 
-                  <div className="flex gap-2">
+                  <div className="flex gap-1 sm:gap-2">
                     <Button
-                      className={classNames?.buttons?.prev}
+                      className={cn(classNames?.buttons?.prev, "h-7 w-7 p-0 sm:h-8 sm:w-auto sm:px-3")}
                       disabled={!hasAnyConnectedAccount}
                       onClick={handlePrev}
                       size="sm"
@@ -256,10 +257,10 @@ export default function CalendarView({
                       }
                       variant="outline"
                     >
-                      <ArrowLeft className="h-4 w-4" />
+                      <ArrowLeft className="h-3 w-3 sm:h-4 sm:w-4" />
                     </Button>
                     <Button
-                      className={classNames?.buttons?.next}
+                      className={cn(classNames?.buttons?.next, "h-7 w-7 p-0 sm:h-8 sm:w-auto sm:px-3")}
                       disabled={!hasAnyConnectedAccount}
                       onClick={handleNext}
                       size="sm"
@@ -270,7 +271,7 @@ export default function CalendarView({
                       }
                       variant="outline"
                     >
-                      <ArrowRight className="h-4 w-4" />
+                      <ArrowRight className="h-3 w-3 sm:h-4 sm:w-4" />
                     </Button>
                   </div>
                 </div>
@@ -306,51 +307,126 @@ export default function CalendarView({
                   >
                     Today
                   </Button>
-                  <TabsList className="grid grid-cols-3">
-                    <TabsTrigger
-                      disabled={!hasAnyConnectedAccount}
-                      title={
-                        hasAnyConnectedAccount
-                          ? undefined
-                          : 'Connect Google Calendar to view calendar'
-                      }
-                      value="day"
-                    >
-                      <div className="flex items-center space-x-2">
-                        <CalendarDaysIcon size={15} />
-                        <span>Day</span>
-                      </div>
-                    </TabsTrigger>
-                    <TabsTrigger
-                      disabled={!hasAnyConnectedAccount}
-                      title={
-                        hasAnyConnectedAccount
-                          ? undefined
-                          : 'Connect Google Calendar to view calendar'
-                      }
-                      value="week"
-                    >
-                      <div className="flex items-center space-x-2">
-                        <BsCalendarWeek />
-                        <span>Week</span>
-                      </div>
-                    </TabsTrigger>
+                  <Button
+                    className="flex h-8 w-12 rounded-sm bg-muted text-sm sm:hidden"
+                    disabled={!hasAnyConnectedAccount}
+                    onClick={handleGoToToday}
+                    title={
+                      hasAnyConnectedAccount
+                        ? undefined
+                        : 'Connect Google Calendar to navigate calendar'
+                    }
+                    variant="outline"
+                  >
+                    {currentDate.getDate()}
+                  </Button>
+                  <Button
+                    className="flex h-8 w-8 rounded-sm bg-muted text-sm sm:hidden"
+                    disabled={isFetchingEvents || !hasAnyConnectedAccount}
+                    onClick={refreshEvents}
+                    title={
+                      hasAnyConnectedAccount
+                        ? undefined
+                        : 'Connect Google Calendar to refresh events'
+                    }
+                    variant="outline"
+                  >
+                    <RefreshCw
+                      className={`h-4 w-4 ${isFetchingEvents ? 'animate-spin' : ''}`}
+                    />
+                  </Button>
+                  {isMobile ? (
+                    <Select onValueChange={handleViewChange} value={viewType}>
+                      <SelectTrigger className="h-8">
+                        <SelectValue>
+                          {viewType === 'day' && (
+                            <div className="flex items-center space-x-2">
+                              <CalendarDaysIcon size={15} />
+                              <span>Day</span>
+                            </div>
+                          )}
+                          {viewType === 'week' && (
+                            <div className="flex items-center space-x-2">
+                              <BsCalendarWeek />
+                              <span>Week</span>
+                            </div>
+                          )}
+                          {viewType === 'month' && (
+                            <div className="flex items-center space-x-2">
+                              <BsCalendarMonth />
+                              <span>Month</span>
+                            </div>
+                          )}
+                        </SelectValue>
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="day">
+                          <div className="flex items-center space-x-2">
+                            <CalendarDaysIcon size={15} />
+                            <span>Day</span>
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="week">
+                          <div className="flex items-center space-x-2">
+                            <BsCalendarWeek />
+                            <span>Week</span>
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="month">
+                          <div className="flex items-center space-x-2">
+                            <BsCalendarMonth />
+                            <span>Month</span>
+                          </div>
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                  ) : (
+                    <TabsList className="grid grid-cols-3">
+                      <TabsTrigger
+                        disabled={!hasAnyConnectedAccount}
+                        title={
+                          hasAnyConnectedAccount
+                            ? undefined
+                            : 'Connect Google Calendar to view calendar'
+                        }
+                        value="day"
+                      >
+                        <div className="flex items-center space-x-2">
+                          <CalendarDaysIcon size={15} />
+                          <span>Day</span>
+                        </div>
+                      </TabsTrigger>
+                      <TabsTrigger
+                        disabled={!hasAnyConnectedAccount}
+                        title={
+                          hasAnyConnectedAccount
+                            ? undefined
+                            : 'Connect Google Calendar to view calendar'
+                        }
+                        value="week"
+                      >
+                        <div className="flex items-center space-x-2">
+                          <BsCalendarWeek />
+                          <span>Week</span>
+                        </div>
+                      </TabsTrigger>
 
-                    <TabsTrigger
-                      disabled={!hasAnyConnectedAccount}
-                      title={
-                        hasAnyConnectedAccount
-                          ? undefined
-                          : 'Connect Google Calendar to view calendar'
-                      }
-                      value="month"
-                    >
-                      <div className="flex items-center space-x-2">
-                        <BsCalendarMonth />
-                        <span>Month</span>
-                      </div>
-                    </TabsTrigger>
-                  </TabsList>
+                      <TabsTrigger
+                        disabled={!hasAnyConnectedAccount}
+                        title={
+                          hasAnyConnectedAccount
+                            ? undefined
+                            : 'Connect Google Calendar to view calendar'
+                        }
+                        value="month"
+                      >
+                        <div className="flex items-center space-x-2">
+                          <BsCalendarMonth />
+                          <span>Month</span>
+                        </div>
+                      </TabsTrigger>
+                    </TabsList>
+                  )}
                 </div>
               </div>
             </div>

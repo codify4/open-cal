@@ -23,43 +23,41 @@ export function ProfileSection({ user }: ProfileSectionProps) {
   const { signOut } = useClerk();
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       <div>
-        <h3 className="mb-2 font-semibold text-neutral-900 text-xl dark:text-white">
+        <h3 className="mb-2 font-semibold text-neutral-900 text-lg sm:text-xl dark:text-white">
           Profile
         </h3>
-        <p className="text-neutral-600 dark:text-neutral-400">
+        <p className="text-neutral-600 text-sm sm:text-base dark:text-neutral-400">
           Your account information and preferences.
         </p>
       </div>
 
       <Card className="border-neutral-200 bg-white dark:border-neutral-800 dark:bg-neutral-900">
-        <CardHeader>
-          <CardTitle className="text-neutral-900 dark:text-white">
+        <CardHeader className="pb-4">
+          <CardTitle className="text-neutral-900 text-base sm:text-lg dark:text-white">
             Account Information
           </CardTitle>
-          <CardDescription className="text-neutral-600 dark:text-neutral-400">
+          <CardDescription className="text-neutral-600 text-sm dark:text-neutral-400">
             Your profile details and preferences
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="flex items-center space-x-4">
-            <div className="flex items-center space-x-4">
-              <Avatar className="h-16 w-16">
-                <AvatarImage alt={user.name} src={user.avatar} />
-                <AvatarFallback className="bg-neutral-100 text-lg dark:bg-neutral-800">
-                  {user.name.charAt(0)}
-                </AvatarFallback>
-              </Avatar>
-            </div>
+        <CardContent className="space-y-4 sm:space-y-6">
+          <div className="flex flex-col items-start space-y-4 sm:flex-row sm:items-center sm:space-y-0 sm:space-x-4">
+            <Avatar className="h-16 w-16">
+              <AvatarImage alt={user.name} src={user.avatar} />
+              <AvatarFallback className="bg-neutral-100 text-lg dark:bg-neutral-800">
+                {user.name.charAt(0)}
+              </AvatarFallback>
+            </Avatar>
 
-            <div className="flex-1">
-              <div className="mb-3 grid grid-cols-2 gap-4">
+            <div className="flex-1 w-full">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
                   <Label className="font-medium text-neutral-900 text-sm dark:text-white">
                     Name
                   </Label>
-                  <p className="text-neutral-700 dark:text-neutral-300">
+                  <p className="text-neutral-700 text-sm dark:text-neutral-300">
                     {user.name}
                   </p>
                 </div>
@@ -67,7 +65,7 @@ export function ProfileSection({ user }: ProfileSectionProps) {
                   <Label className="font-medium text-neutral-900 text-sm dark:text-white">
                     Email
                   </Label>
-                  <p className="text-neutral-700 dark:text-neutral-300">
+                  <p className="text-neutral-700 text-sm dark:text-neutral-300 break-all">
                     {user.email}
                   </p>
                 </div>
@@ -78,12 +76,12 @@ export function ProfileSection({ user }: ProfileSectionProps) {
           <Separator className="bg-neutral-200 dark:border-neutral-800" />
 
           <div className="space-y-4">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col space-y-3 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
               <div className="space-y-1">
-                <Label className="text-neutral-900 dark:text-white">
+                <Label className="text-neutral-900 text-sm dark:text-white">
                   Email Notifications
                 </Label>
-                <p className="text-neutral-600 text-sm dark:text-neutral-400">
+                <p className="text-neutral-600 text-xs sm:text-sm dark:text-neutral-400">
                   Receive email updates about your account
                 </p>
               </div>
@@ -93,9 +91,9 @@ export function ProfileSection({ user }: ProfileSectionProps) {
         </CardContent>
       </Card>
 
-      <div className="flex justify-end">
+      <div className="flex justify-end pt-2">
         <Button
-          className="rounded-sm bg-red-500/10 text-red-500 hover:bg-red-500/20"
+          className="rounded-sm bg-red-500/10 text-red-500 hover:bg-red-500/20 w-full sm:w-auto"
           onClick={() =>
             signOut(() => {
               window.location.href = '/calendar';

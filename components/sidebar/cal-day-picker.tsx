@@ -32,9 +32,9 @@ export function CalendarPicker() {
   return (
     <SidebarGroup>
       <SidebarGroupLabel className="sr-only">Calendar</SidebarGroupLabel>
-      <SidebarMenu>
+      <SidebarMenu className='flex justify-center items-center'>
         <Calendar
-          className="rounded-md bg-neutral-100 dark:bg-neutral-950"
+          className="rounded-md bg-neutral-100 dark:bg-neutral-950 w-full"
           mode="single"
           onSelect={handleDateSelect}
           selected={selectedDate}

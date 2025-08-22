@@ -12,6 +12,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useCalendarManagement } from '@/hooks/use-calendar-management';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface CreateCalendarDropdownProps {
   onCalendarCreated: () => void;
@@ -24,6 +25,7 @@ export function CreateCalendarDropdown({
 }: CreateCalendarDropdownProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
+  const isMobile = useIsMobile();
   const [formData, setFormData] = useState({
     summary: '',
     description: '',
@@ -92,7 +94,7 @@ export function CreateCalendarDropdown({
       <DropdownMenuContent
         align="start"
         className="w-64 bg-white p-3 dark:bg-neutral-950"
-        side="right"
+        side={isMobile ? "bottom" : "right"}
       >
         <form className="space-y-3" onSubmit={handleSubmit}>
           <div>

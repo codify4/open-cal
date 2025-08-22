@@ -19,11 +19,13 @@ import { useCalendarStore } from '@/providers/calendar-store-provider';
 
 export default function WeeklyView() {
   const hoursColumnRef = useRef<HTMLDivElement>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [detailedHour, setDetailedHour] = useState<string | null>(null);
   const [timelinePosition, setTimelinePosition] = useState<number>(0);
   const [colWidth, setColWidth] = useState<number[]>(Array(7).fill(1));
   const [isResizing, setIsResizing] = useState<boolean>(false);
   const [contextMenuTime, setContextMenuTime] = useState<string | null>(null);
+  const [isMobile, setIsMobile] = useState(false);
   const hasRefreshedRef = useRef(false);
   
   const {
@@ -49,27 +51,46 @@ export default function WeeklyView() {
     currentDate instanceof Date ? currentDate : new Date(currentDate);
 
   useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 1024);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  useEffect(() => {
     if (clerkUser?.id && visibleCalendarIds.length > 0 && !hasRefreshedRef.current) {
       hasRefreshedRef.current = true;
       refreshEvents();
     } else if (visibleCalendarIds.length === 0) {
-      // Clear events when no calendars are visible
       setGoogleEvents([]);
     }
   }, [refreshEvents, clerkUser?.id, visibleCalendarIds, setGoogleEvents]);
 
-  // Reset refresh flag when calendar IDs change
   useEffect(() => {
     hasRefreshedRef.current = false;
   }, [visibleCalendarIds]);
+
+  useEffect(() => {
+    if (isMobile && scrollContainerRef.current) {
+      const currentDayIndex = new Date().getDay();
+      const dayWidth = scrollContainerRef.current.scrollWidth / 7;
+      const scrollPosition = dayWidth * currentDayIndex - (scrollContainerRef.current.clientWidth / 2) + (dayWidth / 2);
+      
+      scrollContainerRef.current.scrollTo({
+        left: Math.max(0, scrollPosition),
+        behavior: 'smooth'
+      });
+    }
+  }, [isMobile]);
 
   const allEvents = useMemo(() => {
     const localEvents = events || [];
     const googleCalEvents = googleEvents || [];
     
-    // Filter Google Calendar events based on visible calendars
     const filteredGoogleEvents = googleCalEvents.filter((event) => {
-      // Check if the event's calendar is in the visible calendars
       return event.googleCalendarId && visibleCalendarIds.includes(event.googleCalendarId);
     });
     
@@ -95,11 +116,10 @@ export default function WeeklyView() {
     const allDayRowHeight = 32;
     const adjustedY = y - allDayRowHeight;
     
-    // Calculate position with 15-minute precision
     const hourHeight = 64;
     const hourIndex = Math.floor(adjustedY / hourHeight);
     const minuteOffset = adjustedY % hourHeight;
-    const quarterHourHeight = hourHeight / 4; // 16px per 15 minutes
+    const quarterHourHeight = hourHeight / 4;
     const quarterHourIndex = Math.floor(minuteOffset / quarterHourHeight);
     const snappedMinuteOffset = quarterHourIndex * quarterHourHeight;
     
@@ -205,78 +225,155 @@ export default function WeeklyView() {
       </SignedOut>
 
       <SignedIn>
-        <div
-          className="grid grid-cols-9 gap-0"
-          key={currentDate.toISOString()}
-        >
-          <div className="col-span-1 flex items-center justify-center border-border border-r border-b bg-card py-2">
-            <span className="font-medium text-muted-foreground text-xs">
-              GMT {new Date().getTimezoneOffset() > 0 ? '-' : '+'}
-              {Math.abs(new Date().getTimezoneOffset() / 60)}
-            </span>
-          </div>
-
-          <WeekHeader
-            colWidth={colWidth}
-            currentDate={date}
-            daysOfWeek={daysOfWeek}
-            getAllDayEventsForDay={getAllDayEventsForDayIndex}
-            isResizing={isResizing}
-            onResizeEnd={handleResizeEnd}
-          />
-
-          <div
-            className="relative col-span-9 grid grid-cols-9"
-            onMouseLeave={() => setDetailedHour(null)}
-            onMouseMove={handleMouseMove}
-            ref={hoursColumnRef}
-          >
-            <div className="col-span-1 border-border border-r bg-card">
-              {hours.map((hour, index) => (
-                <div
-                  className="flex h-[64px] cursor-pointer items-start justify-center border-border border-b px-3 py-2 text-left text-muted-foreground text-xs"
-                  key={`hour-${index}`}
-                >
-                  {hour}
+        <div className="w-full">
+          {isMobile ? (
+            <div className="overflow-x-auto" ref={scrollContainerRef}>
+              <div className="grid grid-cols-9 gap-0 min-w-[1200px]">
+                <div className="col-span-1 flex items-center justify-center border-border border-r border-b bg-card py-2">
+                  <span className="font-medium text-muted-foreground text-xs">
+                    GMT {new Date().getTimezoneOffset() > 0 ? '-' : '+'}
+                    {Math.abs(new Date().getTimezoneOffset() / 60)}
+                  </span>
                 </div>
-              ))}
-            </div>
 
-            <div
-              className="col-span-8 grid h-full"
-              style={{
-                gridTemplateColumns: colWidth.map((w) => `${w}fr`).join(' '),
-              }}
-            >
-              {detailedHour && (
-                <CalendarTimeline
-                  detailedHour={detailedHour}
-                  position={timelinePosition}
-                  variant="week"
+                <WeekHeader
+                  colWidth={colWidth}
+                  currentDate={date}
+                  daysOfWeek={daysOfWeek}
+                  getAllDayEventsForDay={getAllDayEventsForDayIndex}
+                  isResizing={isResizing}
+                  onResizeEnd={handleResizeEnd}
                 />
-              )}
-              {Array.from({ length: 7 }, (_, dayIndex) => {
-                const dayEvents = getEventsForDay(dayIndex);
-                return (
-                  <WeekDayColumn
-                    contextMenuTime={contextMenuTime}
-                    dayEvents={dayEvents}
-                    dayIndex={dayIndex}
-                    daysOfWeek={daysOfWeek}
-                    detailedHour={detailedHour}
-                    key={`day-${dayIndex}`}
-                    onAddEvent={handleAddEventWeek}
-                    onAskAI={toggleChatSidebar}
-                    onContextMenuOpen={handleContextMenuOpen}
-                    onResizeEnd={handleResizeEnd}
-                    session={{ user: isSignedIn ? clerkUser : null }}
-                    setContextMenuTime={setContextMenuTime}
-                    updateEventTime={updateEventTime}
-                  />
-                );
-              })}
+
+                <div
+                  className="relative col-span-9 grid grid-cols-9"
+                  onMouseLeave={() => setDetailedHour(null)}
+                  onMouseMove={handleMouseMove}
+                  ref={hoursColumnRef}
+                >
+                  <div className="col-span-1 border-border border-r bg-card">
+                    {hours.map((hour, index) => (
+                      <div
+                        className="flex h-[64px] cursor-pointer items-start justify-center border-border border-b px-3 py-2 text-left text-muted-foreground text-xs"
+                        key={`hour-${index}`}
+                      >
+                        {hour}
+                      </div>
+                    ))}
+                  </div>
+
+                  <div
+                    className="col-span-8 grid h-full"
+                    style={{
+                      gridTemplateColumns: colWidth.map((w) => `${w}fr`).join(' '),
+                    }}
+                  >
+                    {detailedHour && (
+                      <CalendarTimeline
+                        detailedHour={detailedHour}
+                        position={timelinePosition}
+                        variant="week"
+                      />
+                    )}
+                    {Array.from({ length: 7 }, (_, dayIndex) => {
+                      const dayEvents = getEventsForDay(dayIndex);
+                      return (
+                        <WeekDayColumn
+                          contextMenuTime={contextMenuTime}
+                          dayEvents={dayEvents}
+                          dayIndex={dayIndex}
+                          daysOfWeek={daysOfWeek}
+                          detailedHour={detailedHour}
+                          key={`day-${dayIndex}`}
+                          onAddEvent={handleAddEventWeek}
+                          onAskAI={toggleChatSidebar}
+                          onContextMenuOpen={handleContextMenuOpen}
+                          onResizeEnd={handleResizeEnd}
+                          session={{ user: isSignedIn ? clerkUser : null }}
+                          setContextMenuTime={setContextMenuTime}
+                          updateEventTime={updateEventTime}
+                        />
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
             </div>
-          </div>
+          ) : (
+            <div
+              className="grid grid-cols-9 gap-0"
+              key={currentDate.toISOString()}
+            >
+              <div className="col-span-1 flex items-center justify-center border-border border-r border-b bg-card py-2">
+                <span className="font-medium text-muted-foreground text-xs">
+                  GMT {new Date().getTimezoneOffset() > 0 ? '-' : '+'}
+                  {Math.abs(new Date().getTimezoneOffset() / 60)}
+                </span>
+              </div>
+
+              <WeekHeader
+                colWidth={colWidth}
+                currentDate={date}
+                daysOfWeek={daysOfWeek}
+                getAllDayEventsForDay={getAllDayEventsForDayIndex}
+                isResizing={isResizing}
+                onResizeEnd={handleResizeEnd}
+              />
+
+              <div
+                className="relative col-span-9 grid grid-cols-9"
+                onMouseLeave={() => setDetailedHour(null)}
+                onMouseMove={handleMouseMove}
+                ref={hoursColumnRef}
+              >
+                <div className="col-span-1 border-border border-r bg-card">
+                  {hours.map((hour, index) => (
+                    <div
+                      className="flex h-[64px] cursor-pointer items-start justify-center border-border border-b px-3 py-2 text-left text-muted-foreground text-xs"
+                      key={`hour-${index}`}
+                    >
+                      {hour}
+                    </div>
+                  ))}
+                </div>
+
+                <div
+                  className="col-span-8 grid h-full"
+                  style={{
+                    gridTemplateColumns: colWidth.map((w) => `${w}fr`).join(' '),
+                  }}
+                >
+                  {detailedHour && (
+                    <CalendarTimeline
+                      detailedHour={detailedHour}
+                      position={timelinePosition}
+                      variant="week"
+                    />
+                  )}
+                  {Array.from({ length: 7 }, (_, dayIndex) => {
+                    const dayEvents = getEventsForDay(dayIndex);
+                    return (
+                      <WeekDayColumn
+                        contextMenuTime={contextMenuTime}
+                        dayEvents={dayEvents}
+                        dayIndex={dayIndex}
+                        daysOfWeek={daysOfWeek}
+                        detailedHour={detailedHour}
+                        key={`day-${dayIndex}`}
+                        onAddEvent={handleAddEventWeek}
+                        onAskAI={toggleChatSidebar}
+                        onContextMenuOpen={handleContextMenuOpen}
+                        onResizeEnd={handleResizeEnd}
+                        session={{ user: isSignedIn ? clerkUser : null }}
+                        setContextMenuTime={setContextMenuTime}
+                        updateEventTime={updateEventTime}
+                      />
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </SignedIn>
     </div>

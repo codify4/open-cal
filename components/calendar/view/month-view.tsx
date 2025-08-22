@@ -1,7 +1,7 @@
 'use client';
 
 import { SignedIn, SignedOut, SignInButton, useUser } from '@clerk/nextjs';
-import React, { useEffect, useMemo, useRef } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { MonthDayCell } from '@/components/calendar/month/month-day-cell';
 import { EventCard } from '@/components/event/cards/event-card';
 import { Button } from '@/components/ui/button';
@@ -21,6 +21,8 @@ import { useCalendarStore } from '@/providers/calendar-store-provider';
 
 export default function MonthView() {
   const hasRefreshedRef = useRef(false);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const [isMobile, setIsMobile] = useState(false);
   
   const {
     currentDate,
@@ -44,27 +46,49 @@ export default function MonthView() {
   const daysInMonthArray = getDaysInMonth(date.getMonth(), date.getFullYear());
 
   useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 1024);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  useEffect(() => {
     if (clerkUser?.id && visibleCalendarIds.length > 0 && !hasRefreshedRef.current) {
       hasRefreshedRef.current = true;
       refreshEvents();
     } else if (visibleCalendarIds.length === 0) {
-      // Clear events when no calendars are visible
       setGoogleEvents([]);
     }
   }, [refreshEvents, clerkUser?.id, visibleCalendarIds, setGoogleEvents]);
 
-  // Reset refresh flag when calendar IDs change
   useEffect(() => {
     hasRefreshedRef.current = false;
   }, [visibleCalendarIds.join(',')]);
+
+  useEffect(() => {
+    if (isMobile && scrollContainerRef.current) {
+      const today = new Date();
+      const currentDayIndex = today.getDate() - 1;
+      const dayWidth = scrollContainerRef.current.scrollWidth / 7;
+      const rowHeight = 150;
+      const currentRow = Math.floor((currentDayIndex + getStartOffset()) / 7);
+      const scrollPosition = currentRow * rowHeight - (scrollContainerRef.current.clientHeight / 2) + (rowHeight / 2);
+      
+      scrollContainerRef.current.scrollTo({
+        top: Math.max(0, scrollPosition),
+        behavior: 'smooth'
+      });
+    }
+  }, [isMobile]);
 
   const allEvents = useMemo(() => {
     const localEvents = events || [];
     const googleCalEvents = googleEvents || [];
     
-    // Filter Google Calendar events based on visible calendars
     const filteredGoogleEvents = googleCalEvents.filter((event) => {
-      // Check if the event's calendar is in the visible calendars
       return event.googleCalendarId && visibleCalendarIds.includes(event.googleCalendarId);
     });
     
@@ -77,6 +101,11 @@ export default function MonthView() {
     
     return [...filteredLocalEvents, ...filteredGoogleEvents];
   }, [events, googleEvents, visibleCalendarIds]);
+
+  const getStartOffset = () => {
+    const firstDayOfMonth = new Date(date.getFullYear(), date.getMonth(), 1);
+    return (firstDayOfMonth.getDay() - (weekStartsOn === 'monday' ? 1 : 0) + 7) % 7;
+  };
 
   const getEventsForDayNumber = (day: number): Event[] => {
     const targetDate = new Date(date.getFullYear(), date.getMonth(), day);
@@ -119,8 +148,7 @@ export default function MonthView() {
       : ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
   const firstDayOfMonth = new Date(date.getFullYear(), date.getMonth(), 1);
-  const startOffset =
-    (firstDayOfMonth.getDay() - (weekStartsOn === 'monday' ? 1 : 0) + 7) % 7;
+  const startOffset = getStartOffset();
   const prevMonth = new Date(date.getFullYear(), date.getMonth() - 1, 1);
   const lastDateOfPrevMonth = new Date(
     prevMonth.getFullYear(),
@@ -148,53 +176,102 @@ export default function MonthView() {
 
       <SignedIn>
         <div>
-          <div
-            className="grid grid-cols-7 gap-1 sm:gap-2"
-            key={`${date.getFullYear()}-${date.getMonth()}`}
-          >
-            {daysOfWeek.map((day, idx) => (
-              <div
-                className="my-8 text-left font-medium text-4xl tracking-tighter"
-                key={idx}
-              >
-                {day}
-              </div>
-            ))}
+          {isMobile ? (
+            <div className="overflow-auto" ref={scrollContainerRef}>
+              <div className="grid grid-cols-7 gap-1 sm:gap-2 min-w-[1200px] min-h-[600px]">
+                {daysOfWeek.map((day, idx) => (
+                  <div
+                    className="my-8 text-left font-medium text-4xl tracking-tighter"
+                    key={idx}
+                  >
+                    {day}
+                  </div>
+                ))}
 
-            {Array.from({ length: startOffset }).map((_, idx) => (
-              <div className="h-[150px] opacity-50" key={`offset-${idx}`}>
-                <div className="relative mb-1 font-semibold text-3xl">
-                  {lastDateOfPrevMonth - startOffset + idx + 1}
+                {Array.from({ length: startOffset }).map((_, idx) => (
+                  <div className="h-[150px] opacity-50" key={`offset-${idx}`}>
+                    <div className="relative mb-1 font-semibold text-3xl">
+                      {lastDateOfPrevMonth - startOffset + idx + 1}
+                    </div>
+                  </div>
+                ))}
+
+                {daysInMonthArray.map((day) => {
+                  const dayEventsForCell = getEventsForDayNumber(day);
+                  const cellDate = new Date(
+                    date.getFullYear(),
+                    date.getMonth(),
+                    day
+                  );
+                  const isToday =
+                    new Date().getDate() === day &&
+                    new Date().getMonth() === date.getMonth() &&
+                    new Date().getFullYear() === date.getFullYear();
+                  return (
+                    <MonthDayCell
+                      cellDate={cellDate}
+                      dayEvents={dayEventsForCell}
+                      dayNumber={day}
+                      isToday={isToday}
+                      key={`day-${day}`}
+                      onAddEvent={handleAddEvent}
+                      onAskAI={() => toggleChatSidebar()}
+                      onContextMenuAddEvent={handleContextMenuAddEvent}
+                      sessionPresent={isSignedIn!}
+                    />
+                  );
+                })}
+              </div>
+            </div>
+          ) : (
+            <div
+              className="grid grid-cols-7 gap-1 sm:gap-2"
+              key={`${date.getFullYear()}-${date.getMonth()}`}
+            >
+              {daysOfWeek.map((day, idx) => (
+                <div
+                  className="my-8 text-left font-medium text-4xl tracking-tighter"
+                  key={idx}
+                >
+                  {day}
                 </div>
-              </div>
-            ))}
+              ))}
 
-            {daysInMonthArray.map((day) => {
-              const dayEventsForCell = getEventsForDayNumber(day);
-              const cellDate = new Date(
-                date.getFullYear(),
-                date.getMonth(),
-                day
-              );
-              const isToday =
-                new Date().getDate() === day &&
-                new Date().getMonth() === date.getMonth() &&
-                new Date().getFullYear() === date.getFullYear();
-              return (
-                <MonthDayCell
-                  cellDate={cellDate}
-                  dayEvents={dayEventsForCell}
-                  dayNumber={day}
-                  isToday={isToday}
-                  key={`day-${day}`}
-                  onAddEvent={handleAddEvent}
-                  onAskAI={() => toggleChatSidebar()}
-                  onContextMenuAddEvent={handleContextMenuAddEvent}
-                  sessionPresent={isSignedIn!}
-                />
-              );
-            })}
-          </div>
+              {Array.from({ length: startOffset }).map((_, idx) => (
+                <div className="h-[150px] opacity-50" key={`offset-${idx}`}>
+                  <div className="relative mb-1 font-semibold text-3xl">
+                    {lastDateOfPrevMonth - startOffset + idx + 1}
+                  </div>
+                </div>
+              ))}
+
+              {daysInMonthArray.map((day) => {
+                const dayEventsForCell = getEventsForDayNumber(day);
+                const cellDate = new Date(
+                  date.getFullYear(),
+                  date.getMonth(),
+                  day
+                );
+                const isToday =
+                  new Date().getDate() === day &&
+                  new Date().getMonth() === date.getMonth() &&
+                  new Date().getFullYear() === date.getFullYear();
+                return (
+                  <MonthDayCell
+                    cellDate={cellDate}
+                    dayEvents={dayEventsForCell}
+                    dayNumber={day}
+                    isToday={isToday}
+                    key={`day-${day}`}
+                    onAddEvent={handleAddEvent}
+                    onAskAI={() => toggleChatSidebar()}
+                    onContextMenuAddEvent={handleContextMenuAddEvent}
+                    sessionPresent={isSignedIn!}
+                  />
+                );
+              })}
+            </div>
+          )}
         </div>
 
         <Dialog onOpenChange={setIsEventsDialogOpen} open={isEventsDialogOpen}>

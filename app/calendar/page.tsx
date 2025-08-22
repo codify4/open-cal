@@ -5,7 +5,6 @@ import Image from 'next/image';
 import { useTheme } from 'next-themes';
 import CalendarView from '@/components/calendar/calendar-view';
 import { Button } from '@/components/ui/button';
-import MobileDialog from '@/components/wrappers/mobile-dialog';
 import { useCalendarStore } from '@/providers/calendar-store-provider';
 
 function CalendarPage() {
@@ -28,7 +27,6 @@ function CalendarPage() {
 
   return (
     <div className="h-full">
-      <MobileDialog />
       <CalendarView />
 
       {!isChatSidebarOpen && (
