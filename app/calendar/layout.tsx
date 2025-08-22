@@ -1,4 +1,4 @@
-import { Providers } from '@/providers/providers';
+import Providers from '@/providers/providers';
 
 export const metadata = {
   title: 'Caly',
@@ -10,9 +10,5 @@ export default function CalendarLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return (
-    <Providers>
-      {children}
-    </Providers>
-  );
+  return <Providers>{children}</Providers>;
 }

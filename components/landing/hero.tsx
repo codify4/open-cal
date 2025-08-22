@@ -52,7 +52,7 @@ export function HeroSection() {
             >
               <Button asChild size="lg" className="group px-8 py-6 rounded-full font-semibold bg-white text-black hover:bg-white/90">
                 <Link href="/calendar">
-                  Join the beta
+                  Start for free
                   <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform duration-300" />
                 </Link>
               </Button>

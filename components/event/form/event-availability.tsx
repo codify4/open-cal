@@ -20,14 +20,20 @@ export const EventAvailability = ({
     <div className="flex items-center gap-2 text-muted-foreground text-sm">
       <Briefcase className="h-4 w-4" />
       <Select onValueChange={onAvailabilityChange} value={availability}>
-        <SelectTrigger className="h-8 flex-1 border-border bg-background text-sm text-foreground hover:bg-accent">
+        <SelectTrigger className="h-8 flex-1 border-border bg-background text-foreground text-sm hover:bg-accent">
           <SelectValue placeholder="Busy" />
         </SelectTrigger>
         <SelectContent className="border-border bg-popover dark:bg-neutral-900">
-          <SelectItem className="text-popover-foreground hover:bg-accent" value="busy">
+          <SelectItem
+            className="text-popover-foreground hover:bg-accent"
+            value="busy"
+          >
             Busy
           </SelectItem>
-          <SelectItem className="text-popover-foreground hover:bg-accent" value="free">
+          <SelectItem
+            className="text-popover-foreground hover:bg-accent"
+            value="free"
+          >
             Free
           </SelectItem>
           <SelectItem

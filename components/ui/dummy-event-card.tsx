@@ -1,6 +1,6 @@
 import { Cake, Calendar } from 'lucide-react';
-import { cn } from '@/lib/utils';
 import type { DummyEvent } from '@/constants/sample-events';
+import { cn } from '@/lib/utils';
 
 interface DummyEventCardProps {
   event: DummyEvent;
@@ -8,7 +8,11 @@ interface DummyEventCardProps {
   minimized?: boolean;
 }
 
-export function DummyEventCard({ event, className = '', minimized = false }: DummyEventCardProps) {
+export function DummyEventCard({
+  event,
+  className = '',
+  minimized = false,
+}: DummyEventCardProps) {
   const getColorClasses = (color: string) => {
     const colorMap: Record<string, string> = {
       blue: 'bg-blue-500/40 border-blue-600',
@@ -36,7 +40,7 @@ export function DummyEventCard({ event, className = '', minimized = false }: Dum
   return (
     <div
       className={cn(
-        'group relative rounded-sm border p-2 text-xs transition-all duration-200 hover:shadow-md',
+        'event-card group relative rounded-sm border p-2 text-xs hover:shadow-md',
         getColorClasses(event.color),
         event.isAllDay ? 'border-l-4' : '',
         minimized ? 'max-h-[40px] min-h-[20px] overflow-hidden' : '',
@@ -63,12 +67,10 @@ export function DummyEventCard({ event, className = '', minimized = false }: Dum
             </h4>
           </div>
           {!minimized && (
-            <p className="mt-1 truncate text-white/80 text-xs">
-              {timeDisplay}
-            </p>
+            <p className="mt-1 truncate text-white/80 text-xs">{timeDisplay}</p>
           )}
         </div>
       </div>
     </div>
   );
-} 
+}

@@ -1,25 +1,27 @@
 'use client';
 
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence } from 'framer-motion';
 import {
   ArrowUp,
-  Info,
-  Loader2,
   Mic,
   Paperclip,
   Square,
-  X,
 } from 'lucide-react';
 import type React from 'react';
 import { useEffect, useRef, useState } from 'react';
 import { omit } from 'remeda';
-import { AudioVisualizer } from '@/components/ui/audio-visualizer';
-import { Button } from '@/components/ui/button';
 import { FilePreview } from '@/components/agent/file-preview';
+import { Button } from '@/components/ui/button';
 import { InterruptPrompt } from '@/components/ui/interrupt-prompt';
 import { useAudioRecording } from '@/hooks/use-audio-recording';
 import { useAutosizeTextArea } from '@/hooks/use-autosize-textarea';
+import { useChatStore } from '@/providers/chat-store-provider';
 import { cn } from '@/lib/utils';
+import { ReferencePopover } from '@/components/agent/message-input/reference-popover';
+import { ReferenceChips } from '@/components/agent/message-input/reference-chips';
+import { FileUploadOverlay } from '@/components/agent/message-input/file-upload-overlay';
+import { RecordingControls } from '@/components/agent/message-input/recording-controls';
+import { RecordingPrompt } from '@/components/agent/message-input/recording-prompt';
 
 interface MessageInputBaseProps
   extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
@@ -58,6 +60,8 @@ export function MessageInput({
 }: MessageInputProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [showInterruptPrompt, setShowInterruptPrompt] = useState(false);
+  const [isPopoverOpen, setIsPopoverOpen] = useState(false);
+  const [cursorPosition, setCursorPosition] = useState(0);
 
   const {
     isListening,
@@ -79,6 +83,68 @@ export function MessageInput({
       setShowInterruptPrompt(false);
     }
   }, [isGenerating]);
+
+  const handleTextareaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const value = e.target.value;
+    const cursorPos = e.target.selectionStart || 0;
+    
+    setCursorPosition(cursorPos);
+    
+    props.onChange?.(e);
+  };
+
+  const handleTextareaKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Escape' && isPopoverOpen) {
+      e.preventDefault();
+      setIsPopoverOpen(false);
+      return;
+    }
+    
+    onKeyDownProp?.(e);
+  };
+
+  const handleTextareaClick = (e: React.MouseEvent<HTMLTextAreaElement>) => {
+    const target = e.target as HTMLTextAreaElement;
+    const cursorPos = target.selectionStart || 0;
+    setCursorPosition(cursorPos);
+  };
+
+  const handleTextareaSelect = (e: React.SyntheticEvent<HTMLTextAreaElement>) => {
+    const target = e.target as HTMLTextAreaElement;
+    const cursorPos = target.selectionStart || 0;
+    setCursorPosition(cursorPos);
+  };
+
+  const insertReference = (reference: string, eventRef?: any, calendarRef?: any) => {
+    if (!textAreaRef.current) return;
+    
+    const textarea = textAreaRef.current;
+    const value = props.value;
+    const cursorPos = cursorPosition;
+    
+    const textBeforeCursor = value.slice(0, cursorPos);
+    const lastAtSymbol = textBeforeCursor.lastIndexOf('@');
+    
+    if (lastAtSymbol !== -1) {
+      const textAfterCursor = value.slice(cursorPos);
+      const newValue = value.slice(0, lastAtSymbol) + reference + textAfterCursor;
+      
+      props.onChange?.({ target: { value: newValue } } as any);
+      
+      const newCursorPos = lastAtSymbol + reference.length;
+      textarea.setSelectionRange(newCursorPos, newCursorPos);
+      setCursorPosition(newCursorPos);
+    }
+    
+    if (eventRef) {
+      addEventReference(eventRef);
+    }
+    if (calendarRef) {
+      addCalendarReference(calendarRef);
+    }
+    
+    setIsPopoverOpen(false);
+  };
 
   const addFiles = (files: File[] | null) => {
     if (props.allowAttachments) {
@@ -192,6 +258,11 @@ export function MessageInput({
     dependencies: [props.value, showFileList],
   });
 
+  const eventReferences = useChatStore((state) => state.eventReferences);
+  const calendarReferences = useChatStore((state) => state.calendarReferences);
+  const addEventReference = useChatStore((state) => state.addEventReference);
+  const addCalendarReference = useChatStore((state) => state.addCalendarReference);
+
   return (
     <div
       className="relative flex w-full"
@@ -214,24 +285,29 @@ export function MessageInput({
 
       <div className="relative flex w-full items-center space-x-2">
         <div className="relative flex-1">
-          <textarea
-            aria-label="Write your prompt here"
-            className={cn(
-              'z-10 w-full grow resize-none rounded-xl border border-input bg-background p-3 pr-24 text-sm text-foreground ring-offset-background transition-[border] placeholder:text-muted-foreground focus-visible:border-primary focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50',
-              showFileList && 'pb-16',
-              showInterruptPrompt && 'border-orange-500 ring-orange-500/20',
-              className
-            )}
-            onKeyDown={onKeyDown}
-            onPaste={onPaste}
-            placeholder={placeholder}
-            ref={textAreaRef}
-            {...omit(props as MessageInputWithAttachmentsProps, [
-              'allowAttachments',
-              'files',
-              'setFiles',
-            ])}
-          />
+          <div className="relative">
+            <textarea
+              aria-label="Write your prompt here"
+              className={cn(
+                'z-10 w-full grow resize-none rounded-xl border border-input bg-background p-3 pr-24 text-foreground text-sm ring-offset-background transition-[border] placeholder:text-muted-foreground focus-visible:border-primary focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50',
+                showFileList && 'pb-16',
+                showInterruptPrompt && 'border-orange-500 ring-orange-500/20',
+                className
+              )}
+              onKeyDown={onKeyDown}
+              onChange={handleTextareaChange}
+              onClick={handleTextareaClick}
+              onSelect={handleTextareaSelect} 
+              onPaste={onPaste}
+              placeholder={placeholder}
+              ref={textAreaRef}
+              {...omit(props as MessageInputWithAttachmentsProps, [
+                'allowAttachments',
+                'files',
+                'setFiles',
+              ])}
+            />
+          </div>
 
           {props.allowAttachments && (
             <div className="absolute inset-x-3 bottom-0 z-20 overflow-x-scroll py-3">
@@ -260,6 +336,15 @@ export function MessageInput({
               </div>
             </div>
           )}
+          
+          <div className="absolute -top-8 left-0 right-0 flex items-center gap-2 overflow-hidden">
+            <ReferencePopover 
+              isOpen={isPopoverOpen} 
+              onOpenChange={setIsPopoverOpen}
+              onSelect={insertReference}
+            />
+            <ReferenceChips />
+          </div>
         </div>
       </div>
 
@@ -294,21 +379,21 @@ export function MessageInput({
         {isGenerating && stop ? (
           <Button
             aria-label="Stop generating"
-            className="h-8 w-8 bg-destructive text-destructive-foreground hover:bg-destructive/90 shadow-lg"
+            className="h-8 w-8 bg-destructive text-destructive-foreground shadow-lg hover:bg-destructive/90"
             onClick={() => {
               stop();
               setShowInterruptPrompt(false);
             }}
             size="icon"
-            type="button"
             title="Stop generation (Esc)"
+            type="button"
           >
             <Square className="h-3 w-3" fill="currentColor" />
           </Button>
         ) : (
           <Button
             aria-label="Send message"
-            className="h-8 w-8 transition-opacity bg-primary text-primary-foreground"
+            className="h-8 w-8 bg-primary text-primary-foreground transition-opacity"
             disabled={props.value === '' || isGenerating}
             size="icon"
             type="submit"
@@ -328,31 +413,6 @@ export function MessageInput({
         textAreaHeight={textAreaHeight}
       />
     </div>
-  );
-}
-MessageInput.displayName = 'MessageInput';
-
-interface FileUploadOverlayProps {
-  isDragging: boolean;
-}
-
-function FileUploadOverlay({ isDragging }: FileUploadOverlayProps) {
-  return (
-    <AnimatePresence>
-      {isDragging && (
-        <motion.div
-          animate={{ opacity: 1 }}
-          aria-hidden
-          className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center space-x-2 rounded-xl border border-border border-dashed bg-background text-muted-foreground text-sm"
-          exit={{ opacity: 0 }}
-          initial={{ opacity: 0 }}
-          transition={{ duration: 0.2 }}
-        >
-          <Paperclip className="h-4 w-4" />
-          <span>Drop your files here to attach them.</span>
-        </motion.div>
-      )}
-    </AnimatePresence>
   );
 }
 
@@ -376,111 +436,4 @@ function showFileUploadDialog() {
       resolve(null);
     };
   });
-}
-
-function TranscribingOverlay() {
-  return (
-    <motion.div
-      animate={{ opacity: 1 }}
-      className="flex h-full w-full flex-col items-center justify-center rounded-xl bg-background/80 backdrop-blur-sm"
-      exit={{ opacity: 0 }}
-      initial={{ opacity: 0 }}
-      transition={{ duration: 0.2 }}
-    >
-      <div className="relative">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        <motion.div
-          animate={{ scale: 1.2, opacity: 1 }}
-          className="absolute inset-0 h-8 w-8 animate-pulse rounded-full bg-primary/20"
-          initial={{ scale: 0.8, opacity: 0 }}
-          transition={{
-            duration: 1,
-            repeat: Number.POSITIVE_INFINITY,
-            repeatType: 'reverse',
-            ease: 'easeInOut',
-          }}
-        />
-      </div>
-      <p className="mt-4 font-medium text-muted-foreground text-sm">
-        Transcribing audio...
-      </p>
-    </motion.div>
-  );
-}
-
-interface RecordingPromptProps {
-  isVisible: boolean;
-  onStopRecording: () => void;
-}
-
-function RecordingPrompt({ isVisible, onStopRecording }: RecordingPromptProps) {
-  return (
-    <AnimatePresence>
-      {isVisible && (
-        <motion.div
-          animate={{
-            top: -40,
-            filter: 'blur(0px)',
-            transition: {
-              type: 'spring',
-              filter: { type: 'tween' },
-            },
-          }}
-          className="-translate-x-1/2 absolute left-1/2 flex cursor-pointer overflow-hidden whitespace-nowrap rounded-full border bg-background py-1 text-center text-muted-foreground text-sm"
-          exit={{ top: 0, filter: 'blur(5px)' }}
-          initial={{ top: 0, filter: 'blur(5px)' }}
-          onClick={onStopRecording}
-        >
-          <span className="mx-2.5 flex items-center">
-            <Info className="mr-2 h-3 w-3" />
-            Click to finish recording
-          </span>
-        </motion.div>
-      )}
-    </AnimatePresence>
-  );
-}
-
-interface RecordingControlsProps {
-  isRecording: boolean;
-  isTranscribing: boolean;
-  audioStream: MediaStream | null;
-  textAreaHeight: number;
-  onStopRecording: () => void;
-}
-
-function RecordingControls({
-  isRecording,
-  isTranscribing,
-  audioStream,
-  textAreaHeight,
-  onStopRecording,
-}: RecordingControlsProps) {
-  if (isRecording) {
-    return (
-      <div
-        className="absolute inset-[1px] z-50 overflow-hidden rounded-xl"
-        style={{ height: textAreaHeight - 2 }}
-      >
-        <AudioVisualizer
-          isRecording={isRecording}
-          onClick={onStopRecording}
-          stream={audioStream}
-        />
-      </div>
-    );
-  }
-
-  if (isTranscribing) {
-    return (
-      <div
-        className="absolute inset-[1px] z-50 overflow-hidden rounded-xl"
-        style={{ height: textAreaHeight - 2 }}
-      >
-        <TranscribingOverlay />
-      </div>
-    );
-  }
-
-  return null;
 }

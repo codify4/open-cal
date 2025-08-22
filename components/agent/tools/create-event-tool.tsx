@@ -1,19 +1,16 @@
 'use client';
 
-import { Check, X, Edit, Clock, Calendar, Users, MapPin } from 'lucide-react';
+import { Calendar, Check, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
 import { useCalendarStore } from '@/providers/calendar-store-provider';
 import { CalendarEventPreview } from '../calendar-event-preview';
 import { MessageFooter } from '../message-footer';
-import type { Event } from '@/lib/store/calendar-store';
 
 interface CreateEventToolProps {
   args: any;
   result?: any;
   onAccept?: () => void;
   onDecline?: () => void;
-  onEdit?: () => void;
   onRegenerate?: () => void;
   isRegenerating?: boolean;
   onCopy?: () => void;
@@ -25,7 +22,6 @@ export function CreateEventTool({
   result,
   onAccept,
   onDecline,
-  onEdit,
   onRegenerate,
   isRegenerating,
   onCopy,
@@ -43,13 +39,60 @@ export function CreateEventTool({
     onDecline?.();
   };
 
-  const handleEdit = () => {
-    updateActionStatus('temp-id', 'edited');
-    onEdit?.();
-  };
+  const eventData =
+    result?.event ||
+    (result && typeof result === 'object' && 'id' in result ? result : null);
 
-  const eventData = result?.event || (result && typeof result === 'object' && 'id' in result ? result : null);
-  
+  if (result?.hasConflicts) {
+    return (
+      <div>
+        <div className="space-y-3">
+          <div className="flex items-center gap-2">
+            <Calendar className="h-4 w-4 text-red-600" />
+            <span className="font-medium text-red-700 dark:text-red-300">Scheduling Conflict Detected</span>
+          </div>
+
+          <div className="rounded-lg border border-red-200 bg-red-50 p-3 dark:border-red-800 dark:bg-red-950/20">
+            <div className="text-sm text-red-700 dark:text-red-300">
+              <p className="font-medium mb-2">The following events conflict with your requested time:</p>
+              {result.conflictingEvents?.map((conflict: any, index: number) => (
+                <div key={index} className="ml-2 mb-1">
+                  • <span className="font-medium">{conflict.title}</span> at {conflict.startTime} - {conflict.endTime}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="text-sm text-gray-600 dark:text-gray-400">
+            <p>Do you want to add this event anyway?</p>
+          </div>
+
+          <div className="flex gap-2">
+            <Button className="flex-1" onClick={handleAccept} size="sm">
+              <Check className="mr-1 h-3 w-3" />
+              Yes, Add Anyway
+            </Button>
+            <Button
+              className="flex-1"
+              onClick={handleDecline}
+              size="sm"
+              variant="outline"
+            >
+              <X className="mr-1 h-3 w-3" />
+              No, Find Better Time
+            </Button>
+          </div>
+        </div>
+        <MessageFooter
+          isRegenerating={isRegenerating}
+          onCopy={onCopy}
+          onRate={onRate}
+          onRegenerate={onRegenerate}
+        />
+      </div>
+    );
+  }
+
   if (eventData) {
     return (
       <div>
@@ -57,13 +100,12 @@ export function CreateEventTool({
           event={eventData}
           onAccept={handleAccept}
           onDecline={handleDecline}
-          onEdit={handleEdit}
         />
         <MessageFooter
-          onRegenerate={onRegenerate}
           isRegenerating={isRegenerating}
           onCopy={onCopy}
           onRate={onRate}
+          onRegenerate={onRegenerate}
         />
       </div>
     );
@@ -76,51 +118,53 @@ export function CreateEventTool({
           <Calendar className="h-4 w-4 text-blue-600" />
           <span className="font-medium">{args.title}</span>
         </div>
-        
-        <div className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
+
+        <div className="space-y-2 text-gray-600 text-sm dark:text-gray-400">
           <div className="flex items-center gap-2">
-            <Clock className="h-3 w-3" />
+            <Calendar className="h-3 w-3" />
             <span>
               {new Date(args.startDate).toLocaleDateString()} at{' '}
               {new Date(args.startDate).toLocaleTimeString()}
             </span>
           </div>
-          
+
           {args.location && (
             <div className="flex items-center gap-2">
-              <MapPin className="h-3 w-3" />
+              <Calendar className="h-3 w-3" />
               <span>{args.location}</span>
             </div>
           )}
-          
+
           {args.attendees && args.attendees.length > 0 && (
             <div className="flex items-center gap-2">
-              <Users className="h-3 w-3" />
+              <Calendar className="h-3 w-3" />
               <span>{args.attendees.length} attendee(s)</span>
             </div>
           )}
         </div>
-        
+
         <div className="flex gap-2">
-          <Button size="sm" onClick={handleAccept} className="flex-1">
-            <Check className="h-3 w-3 mr-1" />
+          <Button className="flex-1 h-5 bg-red-500" onClick={handleAccept} size="sm">
+            <Check className="mr-1 h-3 w-3" />
             Accept
           </Button>
-          <Button size="sm" variant="outline" onClick={handleDecline} className="flex-1">
-            <X className="h-3 w-3 mr-1" />
+          <Button
+            className="flex-1"
+            onClick={handleDecline}
+            size="sm"
+            variant="outline"
+          >
+            <X className="mr-1 h-3 w-3" />
             Decline
-          </Button>
-          <Button size="sm" variant="outline" onClick={handleEdit}>
-            <Edit className="h-3 w-3" />
           </Button>
         </div>
       </div>
       <MessageFooter
-        onRegenerate={onRegenerate}
         isRegenerating={isRegenerating}
         onCopy={onCopy}
         onRate={onRate}
+        onRegenerate={onRegenerate}
       />
     </div>
   );
-} 
+}

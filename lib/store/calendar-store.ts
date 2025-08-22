@@ -19,6 +19,14 @@ export interface Event {
   isAllDay?: boolean;
   account?: string;
   calendar?: string;
+  meetingType?: 'google-meet' | 'none' | '';
+  meetLink?: string;
+  meetCode?: string;
+  // Google Calendar specific fields
+  googleCalendarId?: string;
+  googleEventId?: string;
+  htmlLink?: string;
+  status?: 'confirmed' | 'tentative' | 'cancelled';
 }
 
 export interface EventCreationContext {
@@ -43,6 +51,7 @@ export interface CalendarState {
   events: Event[];
   isChatSidebarOpen: boolean;
   isChatFullscreen: boolean;
+  chatMode: 'sidebar' | 'popup' | 'fullscreen';
 
   isEventSidebarOpen: boolean;
   selectedEvent: Event | null;
@@ -61,18 +70,41 @@ export interface CalendarState {
   // Calendar Agent State
   pendingActions: PendingCalendarAction[];
   isProcessing: boolean;
+
+  // Google Calendar State
+  googleEvents: Event[];
+  isFetchingEvents: boolean;
+  eventsLastFetched: Date | null;
+  visibleCalendarIds: string[];
+  refreshFunction: (() => Promise<void>) | null;
+
+  // Multi-session support
+  sessionEvents: Record<string, Event[]>; // sessionId -> events
+  sessionCalendars: Record<string, any[]>; // sessionId -> calendars
+
+  // Optimistic update counter to force re-renders
+  optimisticUpdateCounter: number;
+  // Per-event optimistic overrides to prevent flicker on background refresh
+  optimisticOverrides: Record<string, { startDate: Date; endDate: Date }>;
+
+  isUpgradeDialogOpen: boolean;
 }
 
 export interface CalendarActions {
   saveEvent: (event: Event) => void;
   deleteEvent: (eventId: string) => void;
+  setEvents: (events: Event[]) => void;
   updateEventTime: (
     eventId: string,
     newStartDate: Date,
     newEndDate: Date
   ) => void;
+  replaceEvent: (event: Event) => void;
+  incrementOptimisticCounter: () => void;
+  clearOptimisticOverride: (eventId: string) => void;
 
   toggleChatSidebar: () => void;
+  setChatMode: (mode: 'sidebar' | 'popup' | 'fullscreen') => void;
   setChatFullscreen: (fullscreen: boolean) => void;
 
   openEventSidebarForNewEvent: (startDate: Date) => void;
@@ -95,19 +127,46 @@ export interface CalendarActions {
   goToNextMonth: () => void;
 
   // Calendar Agent Actions
-  addPendingAction: (action: Omit<PendingCalendarAction, 'id' | 'timestamp'>) => void;
-  updateActionStatus: (id: string, status: PendingCalendarAction['status']) => void;
+  addPendingAction: (
+    action: Omit<PendingCalendarAction, 'id' | 'timestamp'>
+  ) => void;
+  updateActionStatus: (
+    id: string,
+    status: PendingCalendarAction['status']
+  ) => void;
   removePendingAction: (id: string) => void;
   clearPendingActions: () => void;
   setProcessing: (isProcessing: boolean) => void;
+
+  // Google Calendar Actions
+  fetchGoogleCalendarEvents: (
+    calendarIds: string[],
+    startDate: Date,
+    endDate: Date
+  ) => Promise<void>;
+  setGoogleEvents: (events: Event[]) => void;
+  setVisibleCalendarIds: (calendarIds: string[]) => void;
+  setFetchingEvents: (isFetching: boolean) => void;
+  setRefreshFunction: (refreshFn: () => Promise<void>) => void;
+  refreshEvents: () => Promise<void>;
+
+  // Multi-session actions
+  setSessionEvents: (sessionId: string, events: Event[]) => void;
+  setSessionCalendars: (sessionId: string, calendars: any[]) => void;
+  getAllVisibleEvents: () => Event[];
+
+  // Upgrade Dialog Actions
+  openUpgradeDialog: () => void;
+  closeUpgradeDialog: () => void;
 }
 
 export type CalendarStore = CalendarState & CalendarActions;
 
 export const defaultInitState: CalendarState = {
   // Chat sidebar state
-  isChatSidebarOpen: false,
+  isChatSidebarOpen: true,
   isChatFullscreen: false,
+  chatMode: 'popup',
 
   // Event sidebar state
   isEventSidebarOpen: false,
@@ -132,30 +191,45 @@ export const defaultInitState: CalendarState = {
     'orange',
     'pink',
     'gray',
+    'indigo',
+    'teal',
+    'cyan',
+    'lime',
+    'amber',
+    'emerald',
+    'violet',
+    'rose',
+    'slate',
+    'zinc',
+    'neutral',
+    'stone',
+    'sky',
+    'fuchsia',
   ],
   eventTypes: ['event', 'birthday'],
-  events: [
-    {
-      id: 'test-event-1',
-      title: 'Test Meeting',
-      description: 'A test event to verify functionality',
-      startDate: new Date(new Date().setHours(10, 0, 0, 0)),
-      endDate: new Date(new Date().setHours(11, 0, 0, 0)),
-      color: 'blue',
-      type: 'event',
-      location: '',
-      attendees: [],
-      reminders: [],
-      repeat: 'none',
-      visibility: 'public',
-      isAllDay: false,
-      account: 'john.doe@gmail.com',
-    },
-  ],
+  events: [],
 
   // Calendar Agent State
   pendingActions: [],
   isProcessing: false,
+
+  // Google Calendar State
+  googleEvents: [],
+  isFetchingEvents: false,
+  eventsLastFetched: null,
+  visibleCalendarIds: [],
+  refreshFunction: null,
+
+  // Multi-session support
+  sessionEvents: {},
+  sessionCalendars: {},
+
+  // Optimistic update counter
+  optimisticUpdateCounter: 0,
+  optimisticOverrides: {},
+
+  // Upgrade Dialog State
+  isUpgradeDialogOpen: false,
 };
 
 export const createCalendarStore = (
@@ -179,10 +253,48 @@ export const createCalendarStore = (
             return { events: [...state.events, event] };
           }),
 
+        setEvents: (events: Event[]) => set({ events }),
+
         deleteEvent: (eventId: string) =>
           set((state) => ({
             events: state.events.filter((e) => e.id !== eventId),
           })),
+
+        replaceEvent: (event: Event) =>
+          set((state) => {
+            const eventIndex = state.events.findIndex((e) => e.id === event.id);
+            const googleEventIndex = state.googleEvents.findIndex(
+              (e) => e.id === event.id
+            );
+
+            if (eventIndex < 0 && googleEventIndex < 0) {
+              return state;
+            }
+
+            const newState: Partial<CalendarState> = {};
+            if (eventIndex >= 0) {
+              const updatedEvents = [...state.events];
+              updatedEvents[eventIndex] = event;
+              newState.events = updatedEvents;
+            }
+            if (googleEventIndex >= 0) {
+              const updatedGoogleEvents = [...state.googleEvents];
+              updatedGoogleEvents[googleEventIndex] = event;
+              newState.googleEvents = updatedGoogleEvents;
+            }
+
+            return {
+              ...newState,
+              optimisticUpdateCounter: state.optimisticUpdateCounter + 1,
+              optimisticOverrides: {
+                ...state.optimisticOverrides,
+                [event.id]: {
+                  startDate: event.startDate,
+                  endDate: event.endDate,
+                },
+              },
+            } as CalendarState;
+          }),
 
         updateEventTime: (
           eventId: string,
@@ -191,6 +303,15 @@ export const createCalendarStore = (
         ) =>
           set((state) => {
             const eventIndex = state.events.findIndex((e) => e.id === eventId);
+            const googleEventIndex = state.googleEvents.findIndex(
+              (e) => e.id === eventId
+            );
+
+            if (eventIndex < 0 && googleEventIndex < 0) {
+              return state;
+            }
+
+            const newState: Partial<CalendarState> = {};
             if (eventIndex >= 0) {
               const updatedEvents = [...state.events];
               updatedEvents[eventIndex] = {
@@ -198,20 +319,82 @@ export const createCalendarStore = (
                 startDate: newStartDate,
                 endDate: newEndDate,
               };
-              return { events: updatedEvents };
+              newState.events = updatedEvents;
             }
-            return state;
+            if (googleEventIndex >= 0) {
+              const updatedGoogleEvents = [...state.googleEvents];
+              updatedGoogleEvents[googleEventIndex] = {
+                ...updatedGoogleEvents[googleEventIndex],
+                startDate: newStartDate,
+                endDate: newEndDate,
+              };
+              newState.googleEvents = updatedGoogleEvents;
+            }
+
+            return {
+              ...newState,
+              optimisticUpdateCounter: state.optimisticUpdateCounter + 1,
+              optimisticOverrides: {
+                ...state.optimisticOverrides,
+                [eventId]: { startDate: newStartDate, endDate: newEndDate },
+              },
+            } as CalendarState;
           }),
+
+        clearOptimisticOverride: (eventId: string) =>
+          set((state) => {
+            const { [eventId]: _omit, ...rest } = state.optimisticOverrides;
+            return { optimisticOverrides: rest } as Partial<CalendarState>;
+          }),
+
+        incrementOptimisticCounter: () =>
+          set((state) => ({
+            optimisticUpdateCounter: state.optimisticUpdateCounter + 1,
+          })),
 
         toggleChatSidebar: () =>
           set((state) => ({
             isChatSidebarOpen: !state.isChatSidebarOpen,
           })),
+        setChatMode: (mode: 'sidebar' | 'popup' | 'fullscreen') =>
+          set((state) => ({
+            chatMode: mode,
+            isChatSidebarOpen: mode !== 'fullscreen',
+            isChatFullscreen: mode === 'fullscreen',
+          })),
         setChatFullscreen: (fullscreen: boolean) =>
           set({ isChatFullscreen: fullscreen }),
 
         // Event sidebar actions
-        openEventSidebarForNewEvent: (startDate: Date) =>
+        openEventSidebarForNewEvent: (startDate: Date) => {
+          // Generate a random color for new events
+          const randomColors = [
+            'blue',
+            'green',
+            'red',
+            'yellow',
+            'purple',
+            'orange',
+            'pink',
+            'gray',
+            'indigo',
+            'teal',
+            'cyan',
+            'lime',
+            'amber',
+            'emerald',
+            'violet',
+            'rose',
+            'slate',
+            'zinc',
+            'neutral',
+            'stone',
+            'sky',
+            'fuchsia',
+          ];
+          const randomColor =
+            randomColors[Math.floor(Math.random() * randomColors.length)];
+
           set({
             isEventSidebarOpen: true,
             selectedEvent: null,
@@ -220,12 +403,13 @@ export const createCalendarStore = (
               endDate: new Date(startDate.getTime() + 60 * 60 * 1000), // 1 hour later
               title: '',
               description: '',
-              color: 'blue',
+              color: randomColor,
               type: 'event',
             },
             hasUnsavedChanges: false,
             isNewEvent: true,
-          }),
+          });
+        },
 
         openEventSidebarForEdit: (event: Event) =>
           set({
@@ -356,15 +540,15 @@ export const createCalendarStore = (
           set((state) => {
             // Check if this action already exists to prevent duplicates
             const existingAction = state.pendingActions.find(
-              (existing) => 
-                existing.toolName === action.toolName && 
+              (existing) =>
+                existing.toolName === action.toolName &&
                 JSON.stringify(existing.args) === JSON.stringify(action.args)
             );
-            
+
             if (existingAction) {
               return state; // Don't add duplicate
             }
-            
+
             // Limit to 10 pending actions to prevent localStorage quota issues
             const newActions = [
               ...state.pendingActions,
@@ -374,12 +558,12 @@ export const createCalendarStore = (
                 timestamp: new Date(),
               },
             ];
-            
+
             // Keep only the 10 most recent actions
             if (newActions.length > 10) {
               newActions.splice(0, newActions.length - 10);
             }
-            
+
             return { pendingActions: newActions };
           }),
 
@@ -392,17 +576,109 @@ export const createCalendarStore = (
 
         removePendingAction: (id) =>
           set((state) => ({
-            pendingActions: state.pendingActions.filter((action) => action.id !== id),
+            pendingActions: state.pendingActions.filter(
+              (action) => action.id !== id
+            ),
           })),
 
-        clearPendingActions: () =>
-          set({ pendingActions: [] }),
+        clearPendingActions: () => set({ pendingActions: [] }),
 
-        setProcessing: (isProcessing) =>
-          set({ isProcessing }),
+        setProcessing: (isProcessing) => set({ isProcessing }),
+
+        // Google Calendar Actions
+        fetchGoogleCalendarEvents: async (calendarIds, startDate, endDate) => {
+          set({ isFetchingEvents: true });
+
+          try {
+            // This will be implemented in the component that uses it
+            // For now, just set fetching state
+            set({ isFetchingEvents: false });
+          } catch (error) {
+            console.error('Failed to fetch events:', error);
+            set({ isFetchingEvents: false });
+          }
+        },
+
+        setGoogleEvents: (events) =>
+          set((state) => {
+            const merged = events.map((e) => {
+              const override = state.optimisticOverrides[e.id];
+              return override ? { ...e, ...override } : e;
+            });
+            return {
+              googleEvents: merged,
+              isFetchingEvents: false,
+              eventsLastFetched: new Date(),
+            };
+          }),
+
+        setVisibleCalendarIds: (calendarIds) => {
+          set((state) => {
+            // Only update if the IDs actually changed
+            if (JSON.stringify(state.visibleCalendarIds) === JSON.stringify(calendarIds)) {
+              return state;
+            }
+            return { visibleCalendarIds: calendarIds };
+          });
+        },
+
+        setFetchingEvents: (isFetching) =>
+          set({ isFetchingEvents: isFetching }),
+
+        setRefreshFunction: (refreshFn) => set({ refreshFunction: refreshFn }),
+
+        refreshEvents: async () => {
+          const state = get();
+          if (state.refreshFunction) {
+            await state.refreshFunction();
+          }
+        },
+
+        // Multi-session actions
+        setSessionEvents: (sessionId, events) =>
+          set((state) => ({
+            sessionEvents: {
+              ...state.sessionEvents,
+              [sessionId]: events,
+            },
+          })),
+
+        setSessionCalendars: (sessionId, calendars) =>
+          set((state) => ({
+            sessionCalendars: {
+              ...state.sessionCalendars,
+              [sessionId]: calendars,
+            },
+          })),
+
+        getAllVisibleEvents: () => {
+          const state = get();
+          const allEvents = [...state.events, ...state.googleEvents];
+
+          // Add events from all sessions
+          Object.values(state.sessionEvents).forEach((sessionEvents) => {
+            allEvents.push(...sessionEvents);
+          });
+
+          return allEvents;
+        },
+
+        openUpgradeDialog: () => set({ isUpgradeDialogOpen: true }),
+        closeUpgradeDialog: () => set({ isUpgradeDialogOpen: false }),
       }),
       {
         name: 'calendar-store',
+        partialize: (state) => ({
+          // Only persist essential UI state
+          currentDate: state.currentDate,
+          selectedDate: state.selectedDate,
+          viewType: state.viewType,
+          isChatSidebarOpen: state.isChatSidebarOpen,
+          isChatFullscreen: state.isChatFullscreen,
+          chatMode: state.chatMode,
+          isEventSidebarOpen: state.isEventSidebarOpen,
+          isUpgradeDialogOpen: state.isUpgradeDialogOpen,
+        }),
         onRehydrateStorage: () => (state) => {
           // Convert string dates back to Date objects after rehydration
           if (state) {
@@ -411,56 +687,6 @@ export const createCalendarStore = (
             }
             if (typeof state.selectedDate === 'string') {
               state.selectedDate = new Date(state.selectedDate);
-            }
-            // Convert event dates back to Date objects
-            if (state.events) {
-              state.events = state.events.map((event) => ({
-                ...event,
-                startDate:
-                  event.startDate instanceof Date
-                    ? event.startDate
-                    : new Date(event.startDate),
-                endDate:
-                  event.endDate instanceof Date
-                    ? event.endDate
-                    : new Date(event.endDate),
-                reminders:
-                  event.reminders?.map((reminder) =>
-                    reminder instanceof Date ? reminder : new Date(reminder)
-                  ) || [],
-              }));
-            }
-            // Convert selected event dates if it exists
-            if (state.selectedEvent) {
-              state.selectedEvent = {
-                ...state.selectedEvent,
-                startDate:
-                  state.selectedEvent.startDate instanceof Date
-                    ? state.selectedEvent.startDate
-                    : new Date(state.selectedEvent.startDate),
-                endDate:
-                  state.selectedEvent.endDate instanceof Date
-                    ? state.selectedEvent.endDate
-                    : new Date(state.selectedEvent.endDate),
-                reminders:
-                  state.selectedEvent.reminders?.map((reminder) =>
-                    reminder instanceof Date ? reminder : new Date(reminder)
-                  ) || [],
-              };
-            }
-            // Convert event creation context dates if it exists
-            if (state.eventCreationContext) {
-              state.eventCreationContext = {
-                ...state.eventCreationContext,
-                startDate:
-                  state.eventCreationContext.startDate instanceof Date
-                    ? state.eventCreationContext.startDate
-                    : new Date(state.eventCreationContext.startDate),
-                endDate:
-                  state.eventCreationContext.endDate instanceof Date
-                    ? state.eventCreationContext.endDate
-                    : new Date(state.eventCreationContext.endDate),
-              };
             }
             // Always default to week view
             state.viewType = 'week';

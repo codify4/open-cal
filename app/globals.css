@@ -92,6 +92,17 @@
       background-position: 0% 0%;
     }
   }
+  --animate-ripple: ripple var(--duration, 2s) ease calc(var(--i, 0) * 0.2s)
+    infinite;
+  @keyframes ripple {
+    0%,
+    100% {
+      transform: translate(-50%, -50%) scale(1);
+    }
+    50% {
+      transform: translate(-50%, -50%) scale(0.9);
+    }
+  }
 }
 
 :root {
@@ -255,4 +266,19 @@
   border: none !important;
   border-radius: 0;
   margin: 0;
+}
+
+/* Disable transitions during drag and drop for instant positioning */
+[data-dragging="true"] *,
+[data-dragging="true"] *::before,
+[data-dragging="true"] *::after {
+  transition: none !important;
+  animation: none !important;
+}
+
+/* Disable transitions for event cards during drag */
+[data-dragging="true"] .event-card,
+[data-dragging="true"] .event-card * {
+  transition: none !important;
+  animation: none !important;
 }

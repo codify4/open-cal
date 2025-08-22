@@ -1,4 +1,4 @@
-import { Github, Rocket, Code, Target, TrendingUp, Globe, Briefcase, LucideIcon, Users } from 'lucide-react';
+import { Github, Rocket, Code, Target, TrendingUp, Briefcase, LucideIcon, Users } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { DiscordIcon, XIcon } from '@/lib/lucide/custom-icons';

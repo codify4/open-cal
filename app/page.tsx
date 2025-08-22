@@ -1,21 +1,21 @@
+import { CTASection } from '@/components/landing/cta';
+import { FAQSection } from '@/components/landing/faq';
 import { FeaturesSection } from '@/components/landing/features';
 import { Footer } from '@/components/landing/footer';
 import { HeroSection } from '@/components/landing/hero';
-// import { PricingSection } from '@/components/landing/pricing';
+import { PricingSection } from '@/components/landing/pricing';
 import TopNav from '@/components/landing/top-nav';
-// import { FinalCTASection } from '@/components/landing/final-cta';
-import { FAQSection } from '@/components/landing/faq';
 
 export default function HomePage() {
   return (
-    <div className="min-h-screen bg-neutral-950 text-white scrollbar-hide">
+    <div className="scrollbar-hide min-h-screen bg-neutral-950 text-white">
       <TopNav />
-      <main className="bg-neutral-950">
+      <main className="scrollbar-hide w-full bg-black">
         <HeroSection />
         <FeaturesSection />
-        {/* <PricingSection /> */}
+        <PricingSection />
         <FAQSection />
-        {/* <FinalCTASection /> */}
+        <CTASection />
       </main>
       <Footer />
     </div>

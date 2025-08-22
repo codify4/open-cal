@@ -1,9 +1,9 @@
 'use client';
 
 import { createContext, useContext, useRef } from 'react';
-import { useStore } from 'zustand';
-import { createChatStore, type ChatStore } from '@/lib/store/chat-store';
 import type { StoreApi } from 'zustand';
+import { useStore } from 'zustand';
+import { type ChatStore, createChatStore } from '@/lib/store/chat-store';
 
 interface ChatStoreContext {
   store: StoreApi<ChatStore>;
@@ -30,4 +30,4 @@ export function useChatStore<T>(selector: (state: ChatStore) => T): T {
     throw new Error('useChatStore must be used within a ChatStoreProvider');
   }
   return useStore(context.store, selector);
-} 
+}

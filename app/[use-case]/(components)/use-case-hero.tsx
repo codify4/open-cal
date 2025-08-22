@@ -47,7 +47,7 @@ export function UseCaseHero({
             <p className="text-lg text-white/80 max-w-2xl text-center">{description}</p>
             <Button asChild size="lg" className="group px-8 py-6 rounded-full font-semibold bg-white text-black hover:bg-white/90 w-fit">
               <Link href="/calendar">
-                Join the beta
+                {cta}
                 <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
               </Link>
             </Button>

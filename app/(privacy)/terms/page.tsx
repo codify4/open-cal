@@ -152,7 +152,7 @@ function TermsOfUsePage() {
                                 <p className="text-muted-foreground leading-relaxed">
                                     Email{' '}
                                     <Link href="mailto:Caly.oss@gmail.com" className="text-white hover:text-muted-foreground transition-colors">
-                                        Caly.oss@gmail.com
+                                        caly.oss@gmail.com
                                     </Link>{' '}
                                     for questions.
                                 </p>

@@ -1,10 +1,12 @@
 'use client';
 
 import { CreateEventTool } from './tools/create-event-tool';
-import { FindFreeTimeTool } from './tools/find-free-time-tool';
-import { GetEventsTool } from './tools/get-events-tool';
 import { DefaultTool } from './tools/default-tool';
+import { DeleteEventTool } from './tools/delete-event-tool';
+import { FindFreeTimeTool } from './tools/find-free-time-tool';
+import { GetSummaryTool } from './tools/get-summary-tool';
 import { PendingTool } from './tools/pending-tool';
+import { UpdateEventTool } from './tools/update-event-tool';
 
 interface CalendarToolCallProps {
   toolName: string;
@@ -42,14 +44,42 @@ export function CalendarToolCall({
       return (
         <CreateEventTool
           args={args}
-          result={result}
+          isRegenerating={isRegenerating}
           onAccept={onAccept}
+          onCopy={onCopy}
+          onDecline={onDecline}
+          onRate={onRate}
+          onRegenerate={onRegenerate}
+          result={result}
+        />
+      );
+
+    case 'delete_event':
+      return (
+        <DeleteEventTool
+          args={args}
+          isRegenerating={isRegenerating}
+          onAccept={onAccept}
+          onCopy={onCopy}
+          onDecline={onDecline}
+          onRate={onRate}
+          onRegenerate={onRegenerate}
+          result={result}
+        />
+      );
+
+    case 'update_event':
+      return (
+        <UpdateEventTool
+          args={args}
+          isRegenerating={isRegenerating}
+          onAccept={onAccept}
+          onCopy={onCopy}
           onDecline={onDecline}
           onEdit={onEdit}
-          onRegenerate={onRegenerate}
-          isRegenerating={isRegenerating}
-          onCopy={onCopy}
           onRate={onRate}
+          onRegenerate={onRegenerate}
+          result={result}
         />
       );
 
@@ -57,37 +87,37 @@ export function CalendarToolCall({
       return (
         <FindFreeTimeTool
           args={args}
-          result={result}
-          onRegenerate={onRegenerate}
           isRegenerating={isRegenerating}
           onCopy={onCopy}
           onRate={onRate}
+          onRegenerate={onRegenerate}
+          result={result}
         />
       );
 
-    case 'get_events':
+    case 'get_summary':
       return (
-        <GetEventsTool
+        <GetSummaryTool
           args={args}
-          result={result}
-          onRegenerate={onRegenerate}
           isRegenerating={isRegenerating}
           onCopy={onCopy}
           onRate={onRate}
+          onRegenerate={onRegenerate}
+          result={result}
         />
       );
 
     default:
       return (
         <DefaultTool
-          toolName={toolName}
           args={args}
-          result={result}
-          onRegenerate={onRegenerate}
           isRegenerating={isRegenerating}
           onCopy={onCopy}
           onRate={onRate}
+          onRegenerate={onRegenerate}
+          result={result}
+          toolName={toolName}
         />
       );
   }
-} 
+}

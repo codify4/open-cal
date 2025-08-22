@@ -9,7 +9,11 @@ interface InterruptPromptProps {
   onStop?: () => void;
 }
 
-export function InterruptPrompt({ isOpen, close, onStop }: InterruptPromptProps) {
+export function InterruptPrompt({
+  isOpen,
+  close,
+  onStop,
+}: InterruptPromptProps) {
   return (
     <AnimatePresence>
       {isOpen && (
