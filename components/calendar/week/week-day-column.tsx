@@ -1,4 +1,3 @@
-import { AnimatePresence, motion } from 'framer-motion';
 import { useState } from 'react';
 import { CalendarContextMenuItems } from '@/components/calendar/shared/context-menu-items';
 import { TimeSlot } from '@/components/calendar/shared/time-slot';
@@ -49,6 +48,7 @@ export const WeekDayColumn = ({
   const maxEventsToShow = 10;
   const visibleEvents = dayEvents?.slice(0, maxEventsToShow);
   const [focusedEventId, setFocusedEventId] = useState<string | null>(null);
+  const [dropPreview, setDropPreview] = useState<{ y: number; height: number; width: number; left: number } | null>(null);
 
   const handleEventFocus = (eventId: string) => {
     setFocusedEventId(eventId);
@@ -60,69 +60,107 @@ export const WeekDayColumn = ({
     }
   };
 
+  const handleDragOver = (e: React.DragEvent) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const y = e.clientY - rect.top;
+    const x = e.clientX - rect.left;
+    const hourHeight = 64;
+    const hourIndex = Math.floor(y / hourHeight);
+    const minuteOffset = y % hourHeight;
+    
+    // Calculate preview position with 15-minute precision
+    const quarterHourHeight = hourHeight / 4; // 16px per 15 minutes
+    const quarterHourIndex = Math.floor(minuteOffset / quarterHourHeight);
+    const snappedMinuteOffset = quarterHourIndex * quarterHourHeight;
+    
+    const previewY = hourIndex * hourHeight + snappedMinuteOffset;
+    
+    // Use the actual event dimensions for a realistic preview
+    const previewHeight = 60; // 1 hour default height
+    const previewWidth = 120; // Default width for single column
+    const previewLeft = Math.max(2, Math.min(x - previewWidth / 2, rect.width - previewWidth - 2));
+    
+    setDropPreview({ y: previewY, height: previewHeight, width: previewWidth, left: previewLeft });
+  };
+
+  const handleDragLeave = () => {
+    setDropPreview(null);
+  };
+
   return (
     <ContextMenu key={`day-${dayIndex}`}>
       <ContextMenuTrigger asChild>
         <div
-          className="relative z-20 col-span-1 overflow-hidden border-border border-r border-b text-center text-muted-foreground text-sm transition duration-300"
+          className="relative z-20 col-span-1 overflow-hidden border-border border-r border-b text-center text-muted-foreground text-sm"
           onClick={handleColumnClick}
           onContextMenu={onContextMenuOpen}
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
         >
-          <AnimatePresence initial={false}>
-            {visibleEvents?.map((event) => {
-              let eventsInSamePeriod = 1;
-              let periodIndex = 0;
+          {visibleEvents?.map((event) => {
+            let eventsInSamePeriod = 1;
+            let periodIndex = 0;
 
-              for (let i = 0; i < timeGroups.length; i++) {
-                const groupIndex = timeGroups[i].findIndex(
-                  (e) => e.id === event.id
-                );
-                if (groupIndex !== -1) {
-                  eventsInSamePeriod = timeGroups[i].length;
-                  periodIndex = groupIndex;
-                  break;
-                }
-              }
-
-              const styling = calculateEventStyling(event, dayEvents, {
-                eventsInSamePeriod,
-                periodIndex,
-                adjustForPeriod: true,
-                focusedEventId: focusedEventId || undefined,
-              });
-
-              return (
-                <motion.div
-                  animate={{ opacity: 1, scale: 1 }}
-                  className="absolute flex flex-grow flex-col transition-all duration-1000"
-                  exit={{ opacity: 0, scale: 0.9 }}
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  key={event.id}
-                  style={{
-                    minHeight: styling.height,
-                    height: styling.height,
-                    top: styling.top,
-                    left: styling.left,
-                    maxWidth: styling.maxWidth,
-                    minWidth: styling.minWidth,
-                    padding: '0 2px',
-                    boxSizing: 'border-box',
-                    zIndex: styling.zIndex + 1000,
-                  }}
-                  transition={{ duration: 0.2 }}
-                >
-                  <EventCard
-                    event={event}
-                    onFocus={handleEventFocus}
-                    onResize={(eventId, newStartDate, newEndDate) => {
-                      updateEventTime(eventId, newStartDate, newEndDate);
-                    }}
-                    onResizeEnd={onResizeEnd}
-                  />
-                </motion.div>
+            for (let i = 0; i < timeGroups.length; i++) {
+              const groupIndex = timeGroups[i].findIndex(
+                (e) => e.id === event.id
               );
-            })}
-          </AnimatePresence>
+              if (groupIndex !== -1) {
+                eventsInSamePeriod = timeGroups[i].length;
+                periodIndex = groupIndex;
+                break;
+              }
+            }
+
+            const styling = calculateEventStyling(event, dayEvents, {
+              eventsInSamePeriod,
+              periodIndex,
+              adjustForPeriod: true,
+              focusedEventId: focusedEventId || undefined,
+            });
+
+            return (
+              <div
+                className="absolute flex flex-grow flex-col"
+                key={event.id}
+                style={{
+                  minHeight: styling.height,
+                  height: styling.height,
+                  top: styling.top,
+                  left: styling.left,
+                  maxWidth: styling.maxWidth,
+                  minWidth: styling.minWidth,
+                  padding: '0 2px',
+                  boxSizing: 'border-box',
+                  zIndex: styling.zIndex + 1000,
+                }}
+              >
+                <EventCard
+                  event={event}
+                  onFocus={handleEventFocus}
+                  onResize={(eventId, newStartDate, newEndDate) => {
+                    updateEventTime(eventId, newStartDate, newEndDate);
+                  }}
+                  onResizeEnd={onResizeEnd}
+                />
+              </div>
+            );
+          })}
+
+          {/* Drop Preview Indicator */}
+          {dropPreview && (
+            <div
+              className="absolute pointer-events-none z-[9999]"
+              style={{
+                top: `${dropPreview.y}px`,
+                height: `${dropPreview.height}px`,
+                width: `${dropPreview.width}px`,
+                left: `${dropPreview.left}px`,
+              }}
+            >
+              <div className="h-full w-full border-2 border-dashed border-primary/60 bg-primary/5 rounded-sm" />
+            </div>
+          )}
 
           {Array.from({ length: 24 }, (_, hourIndex) => {
             const timeSlotId = `day-${dayIndex}-hour-${hourIndex}`;

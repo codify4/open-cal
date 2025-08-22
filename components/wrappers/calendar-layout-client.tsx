@@ -22,6 +22,8 @@ import type { Event } from '@/lib/store/calendar-store';
 import { ensureDate } from '@/lib/utils';
 import { useCalendarStore } from '@/providers/calendar-store-provider';
 import AddEventSidebar from '../event/add-event-sidebar';
+import { calculateEventHeight } from '@/components/event/cards/utils/event-card-utils';
+import { getActualColor } from '@/lib/calendar-utils/calendar-color-utils';
 
 export function CalendarLayoutClient({
   children,
@@ -74,33 +76,39 @@ export function CalendarLayoutClient({
       const fromLocal = events.find((e) => e.id === eventId) || null;
       const fromGoogle = googleEvents.find((e) => e.id === eventId) || null;
       const draggedEvent = fromActive || fromLocal || fromGoogle;
+      
+      // Parse the drop zone ID to extract hour and minute information
+      const dropZoneId = String(over.id);
       const dropData = over.data.current as {
         dayIndex?: number;
         hourIndex?: number;
         date: Date;
+        minuteOffset?: number;
       };
+      
       if (draggedEvent && dropData) {
         const originalStartDate = ensureDate(draggedEvent.startDate);
         const originalEndDate = ensureDate(draggedEvent.endDate);
 
-        // Preserve the original time components (minutes, seconds, milliseconds)
-        const originalMinutes = originalStartDate.getMinutes();
-        const originalSeconds = originalStartDate.getSeconds();
-        const originalMilliseconds = originalStartDate.getMilliseconds();
-
+        // Calculate the new start time with 15-minute precision
         const newStartDate = new Date(dropData.date);
         const hourToSet =
           typeof dropData.hourIndex === 'number'
             ? dropData.hourIndex
             : originalStartDate.getHours();
+        
+        // Use the minute offset from the drop zone data
+        const minutesToSet = dropData.minuteOffset || 0;
+        
         newStartDate.setHours(hourToSet);
-        newStartDate.setMinutes(originalMinutes);
-        newStartDate.setSeconds(originalSeconds);
-        newStartDate.setMilliseconds(originalMilliseconds);
+        newStartDate.setMinutes(minutesToSet);
+        newStartDate.setSeconds(0);
+        newStartDate.setMilliseconds(0);
 
         const duration =
           originalEndDate.getTime() - originalStartDate.getTime();
         const newEndDate = new Date(newStartDate.getTime() + duration);
+        
         // Use optimistic update + background sync
         const result = optimisticUpdate(
           draggedEvent.id,
@@ -137,7 +145,10 @@ export function CalendarLayoutClient({
   };
 
   return (
-    <DndContext onDragEnd={handleDragEnd} onDragStart={handleDragStart}>
+    <DndContext 
+      onDragEnd={handleDragEnd} 
+      onDragStart={handleDragStart}
+    >
       <SidebarProvider className="scrollbar-hide">
         <AppSidebar
           className="border-none dark:bg-neutral-950"
@@ -146,6 +157,7 @@ export function CalendarLayoutClient({
         <ResizablePanelGroup
           className="min-h-screen gap-1 bg-neutral-100 md:p-1.5 dark:bg-neutral-950"
           direction="horizontal"
+          data-dragging={activeEvent ? "true" : "false"}
         >
           <ResizablePanel
             className="overflow-hidden p-0 shadow-2xs md:rounded-xl"
@@ -153,7 +165,10 @@ export function CalendarLayoutClient({
             minSize={30}
           >
             <SidebarInset className="h-screen overflow-hidden border bg-white md:rounded-xl dark:bg-neutral-900">
-              <div className="scrollbar-hide h-full overflow-y-auto">
+              <div 
+                className="scrollbar-hide h-full overflow-y-auto"
+                data-dragging={activeEvent ? "true" : "false"}
+              >
                 {children}
               </div>
             </SidebarInset>
@@ -225,8 +240,28 @@ export function CalendarLayoutClient({
       </SidebarProvider>
       <DragOverlay zIndex={9999}>
         {activeEvent ? (
-          <div className="">
-            <EventCard event={activeEvent} />
+          <div 
+            className="event-card group flex flex-row relative rounded-sm border-2 p-2 text-xs shadow-lg opacity-80"
+            style={{
+              height: `${calculateEventHeight(activeEvent.startDate, activeEvent.endDate)}px`,
+              minHeight: `${calculateEventHeight(activeEvent.startDate, activeEvent.endDate)}px`,
+              width: '200px',
+              backgroundColor: getActualColor(activeEvent.color),
+              borderColor: getActualColor(activeEvent.color)
+            }}
+          >
+            <div
+              className="w-[2px] rounded-sm min-h-[30px]"
+              style={{ backgroundColor: getActualColor(activeEvent.color) }}
+            />
+            <div className="relative z-10 flex flex-col gap-2 ml-2">
+              <div className="font-medium text-xs truncate text-white">
+                {activeEvent.title}
+              </div>
+              <div className="text-xs text-white/80">
+                {new Date(activeEvent.startDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - {new Date(activeEvent.endDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+              </div>
+            </div>
           </div>
         ) : null}
       </DragOverlay>

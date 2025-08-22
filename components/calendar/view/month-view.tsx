@@ -1,7 +1,6 @@
 'use client';
 
 import { SignedIn, SignedOut, SignInButton, useUser } from '@clerk/nextjs';
-import { AnimatePresence, motion } from 'framer-motion';
 import React, { useEffect, useMemo, useRef } from 'react';
 import { MonthDayCell } from '@/components/calendar/month/month-day-cell';
 import { EventCard } from '@/components/event/cards/event-card';
@@ -19,15 +18,6 @@ import {
 } from '@/lib/calendar-utils/calendar-view-utils';
 import type { Event } from '@/lib/store/calendar-store';
 import { useCalendarStore } from '@/providers/calendar-store-provider';
-
-const pageTransitionVariants = {
-  enter: () => ({ opacity: 0 }),
-  center: { opacity: 1 },
-  exit: () => ({
-    opacity: 0,
-    transition: { opacity: { duration: 0.2, ease: 'easeInOut' } },
-  }),
-};
 
 export default function MonthView() {
   const hasRefreshedRef = useRef(false);
@@ -157,24 +147,10 @@ export default function MonthView() {
       </SignedOut>
 
       <SignedIn>
-        <AnimatePresence custom={direction} initial={false} mode="wait">
-          <motion.div
-            animate="center"
+        <div>
+          <div
             className="grid grid-cols-7 gap-1 sm:gap-2"
-            custom={direction}
-            exit="exit"
-            initial="enter"
             key={`${date.getFullYear()}-${date.getMonth()}`}
-            variants={{
-              ...pageTransitionVariants,
-              center: {
-                ...pageTransitionVariants.center,
-                transition: {
-                  opacity: { duration: 0.2 },
-                  staggerChildren: 0.02,
-                },
-              },
-            }}
           >
             {daysOfWeek.map((day, idx) => (
               <div
@@ -218,8 +194,8 @@ export default function MonthView() {
                 />
               );
             })}
-          </motion.div>
-        </AnimatePresence>
+          </div>
+        </div>
 
         <Dialog onOpenChange={setIsEventsDialogOpen} open={isEventsDialogOpen}>
           <DialogContent className="max-h-[80vh] max-w-2xl overflow-y-auto bg-neutral-950">

@@ -1,5 +1,4 @@
 import { SignedIn, SignedOut, SignInButton, useUser } from '@clerk/nextjs';
-import { AnimatePresence, motion } from 'framer-motion';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { CalendarTimeline } from '@/components/calendar/shared/calendar-timeline';
@@ -17,20 +16,6 @@ import {
   hours,
 } from '@/lib/calendar-utils/calendar-view-utils';
 import { useCalendarStore } from '@/providers/calendar-store-provider';
-
-const itemVariants = {
-  hidden: { opacity: 0, y: 5 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.12 } },
-};
-
-const pageTransitionVariants = {
-  enter: () => ({ opacity: 0 }),
-  center: { opacity: 1 },
-  exit: () => ({
-    opacity: 0,
-    transition: { opacity: { duration: 0.2, ease: 'easeInOut' } },
-  }),
-};
 
 export default function WeeklyView() {
   const hoursColumnRef = useRef<HTMLDivElement>(null);
@@ -109,9 +94,18 @@ export default function WeeklyView() {
 
     const allDayRowHeight = 32;
     const adjustedY = y - allDayRowHeight;
+    
+    // Calculate position with 15-minute precision
+    const hourHeight = 64;
+    const hourIndex = Math.floor(adjustedY / hourHeight);
+    const minuteOffset = adjustedY % hourHeight;
+    const quarterHourHeight = hourHeight / 4; // 16px per 15 minutes
+    const quarterHourIndex = Math.floor(minuteOffset / quarterHourHeight);
+    const snappedMinuteOffset = quarterHourIndex * quarterHourHeight;
+    
     const position = Math.max(
       0,
-      Math.min(rect.height - allDayRowHeight, Math.round(adjustedY))
+      Math.min(rect.height - allDayRowHeight, hourIndex * hourHeight + snappedMinuteOffset)
     );
     setTimelinePosition(position + allDayRowHeight);
   }, []);
@@ -211,91 +205,79 @@ export default function WeeklyView() {
       </SignedOut>
 
       <SignedIn>
-        <AnimatePresence custom={direction} initial={false} mode="wait">
-          <motion.div
-            animate="center"
-            className="grid grid-cols-9 gap-0"
-            custom={direction}
-            exit="exit"
-            initial="enter"
-            key={currentDate.toISOString()}
-            transition={{ opacity: { duration: 0.2 } }}
-            variants={pageTransitionVariants}
-          >
-            <div className="col-span-1 flex items-center justify-center border-border border-r border-b bg-card py-2">
-              <span className="font-medium text-muted-foreground text-xs">
-                GMT {new Date().getTimezoneOffset() > 0 ? '-' : '+'}
-                {Math.abs(new Date().getTimezoneOffset() / 60)}
-              </span>
-            </div>
+        <div
+          className="grid grid-cols-9 gap-0"
+          key={currentDate.toISOString()}
+        >
+          <div className="col-span-1 flex items-center justify-center border-border border-r border-b bg-card py-2">
+            <span className="font-medium text-muted-foreground text-xs">
+              GMT {new Date().getTimezoneOffset() > 0 ? '-' : '+'}
+              {Math.abs(new Date().getTimezoneOffset() / 60)}
+            </span>
+          </div>
 
-            <WeekHeader
-              colWidth={colWidth}
-              currentDate={date}
-              daysOfWeek={daysOfWeek}
-              getAllDayEventsForDay={getAllDayEventsForDayIndex}
-              isResizing={isResizing}
-              onResizeEnd={handleResizeEnd}
-            />
+          <WeekHeader
+            colWidth={colWidth}
+            currentDate={date}
+            daysOfWeek={daysOfWeek}
+            getAllDayEventsForDay={getAllDayEventsForDayIndex}
+            isResizing={isResizing}
+            onResizeEnd={handleResizeEnd}
+          />
+
+          <div
+            className="relative col-span-9 grid grid-cols-9"
+            onMouseLeave={() => setDetailedHour(null)}
+            onMouseMove={handleMouseMove}
+            ref={hoursColumnRef}
+          >
+            <div className="col-span-1 border-border border-r bg-card">
+              {hours.map((hour, index) => (
+                <div
+                  className="flex h-[64px] cursor-pointer items-start justify-center border-border border-b px-3 py-2 text-left text-muted-foreground text-xs"
+                  key={`hour-${index}`}
+                >
+                  {hour}
+                </div>
+              ))}
+            </div>
 
             <div
-              className="relative col-span-9 grid grid-cols-9"
-              onMouseLeave={() => setDetailedHour(null)}
-              onMouseMove={handleMouseMove}
-              ref={hoursColumnRef}
+              className="col-span-8 grid h-full"
+              style={{
+                gridTemplateColumns: colWidth.map((w) => `${w}fr`).join(' '),
+              }}
             >
-              <div className="col-span-1 border-border border-r bg-card">
-                {hours.map((hour, index) => (
-                  <motion.div
-                    className="flex h-[64px] cursor-pointer items-start justify-center border-border border-b px-3 py-2 text-left text-muted-foreground text-xs"
-                    key={`hour-${index}`}
-                    variants={itemVariants}
-                  >
-                    {hour}
-                  </motion.div>
-                ))}
-              </div>
-
-              <div
-                className="col-span-8 grid h-full"
-                style={{
-                  gridTemplateColumns: colWidth.map((w) => `${w}fr`).join(' '),
-                  transition: isResizing
-                    ? 'none'
-                    : 'grid-template-columns 0.3s ease-in-out',
-                }}
-              >
-                {detailedHour && (
-                  <CalendarTimeline
+              {detailedHour && (
+                <CalendarTimeline
+                  detailedHour={detailedHour}
+                  position={timelinePosition}
+                  variant="week"
+                />
+              )}
+              {Array.from({ length: 7 }, (_, dayIndex) => {
+                const dayEvents = getEventsForDay(dayIndex);
+                return (
+                  <WeekDayColumn
+                    contextMenuTime={contextMenuTime}
+                    dayEvents={dayEvents}
+                    dayIndex={dayIndex}
+                    daysOfWeek={daysOfWeek}
                     detailedHour={detailedHour}
-                    position={timelinePosition}
-                    variant="week"
+                    key={`day-${dayIndex}`}
+                    onAddEvent={handleAddEventWeek}
+                    onAskAI={toggleChatSidebar}
+                    onContextMenuOpen={handleContextMenuOpen}
+                    onResizeEnd={handleResizeEnd}
+                    session={{ user: isSignedIn ? clerkUser : null }}
+                    setContextMenuTime={setContextMenuTime}
+                    updateEventTime={updateEventTime}
                   />
-                )}
-                {Array.from({ length: 7 }, (_, dayIndex) => {
-                  const dayEvents = getEventsForDay(dayIndex);
-                  return (
-                    <WeekDayColumn
-                      contextMenuTime={contextMenuTime}
-                      dayEvents={dayEvents}
-                      dayIndex={dayIndex}
-                      daysOfWeek={daysOfWeek}
-                      detailedHour={detailedHour}
-                      key={`day-${dayIndex}`}
-                      onAddEvent={handleAddEventWeek}
-                      onAskAI={toggleChatSidebar}
-                      onContextMenuOpen={handleContextMenuOpen}
-                      onResizeEnd={handleResizeEnd}
-                      session={{ user: isSignedIn ? clerkUser : null }}
-                      setContextMenuTime={setContextMenuTime}
-                      updateEventTime={updateEventTime}
-                    />
-                  );
-                })}
-              </div>
+                );
+              })}
             </div>
-          </motion.div>
-        </AnimatePresence>
+          </div>
+        </div>
       </SignedIn>
     </div>
   );

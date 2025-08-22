@@ -40,7 +40,7 @@ export function DummyEventCard({
   return (
     <div
       className={cn(
-        'group relative rounded-sm border p-2 text-xs transition-all duration-200 hover:shadow-md',
+        'event-card group relative rounded-sm border p-2 text-xs hover:shadow-md',
         getColorClasses(event.color),
         event.isAllDay ? 'border-l-4' : '',
         minimized ? 'max-h-[40px] min-h-[20px] overflow-hidden' : '',

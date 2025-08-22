@@ -279,10 +279,13 @@ export function DeleteEventTool({
 
   return (
     <div className="space-y-2">
-      <div className={cn(
-        'group relative rounded-sm border p-2 text-xs transition-all duration-200 hover:shadow-md',
-        getColorClasses(args.color || 'blue')
-      )}>
+      <div
+        className={cn(
+          'event-card group relative rounded-sm border p-2 text-xs hover:shadow-md',
+          getColorClasses(args.color || 'blue'),
+          args.isAllDay ? 'border-l-4' : ''
+        )}
+      >
         <div className="flex flex-row gap-2">
           <div className={cn('w-[2px]', getColorAccent(args.color || 'blue'))} />
           <div className="flex flex-col items-start justify-between w-full">

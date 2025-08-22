@@ -168,7 +168,7 @@ export function CalendarList({
                 <SidebarMenu>
                   {accountCalendars.map((calendar) => (
                     <SidebarMenuItem key={calendar.id}>
-                      <div className="ml-4 flex w-full items-center gap-2 rounded-sm px-2 py-1">
+                      <div className="flex w-full items-center gap-2 rounded-sm px-2 py-1">
                         <Checkbox
                           checked={visibleCalendars.has(calendar.id)}
                           className="cursor-pointer"

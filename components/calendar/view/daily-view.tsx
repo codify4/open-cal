@@ -1,7 +1,6 @@
 'use client';
 
 import { SignedIn, SignedOut, SignInButton, useUser } from '@clerk/nextjs';
-import { AnimatePresence, motion } from 'framer-motion';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { DailyEventsContainer } from '@/components/calendar/daily/daily-events-container';
 import { DailyTimeGrid } from '@/components/calendar/daily/daily-time-grid';
@@ -16,30 +15,6 @@ import {
 } from '@/lib/calendar-utils/calendar-view-utils';
 import type { Event } from '@/lib/store/calendar-store';
 import { useCalendarStore } from '@/providers/calendar-store-provider';
-
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.05,
-    },
-  },
-};
-
-const itemVariants = {
-  hidden: { opacity: 0, y: 5 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.12 } },
-};
-
-const pageTransitionVariants = {
-  enter: () => ({ opacity: 0 }),
-  center: { x: 0, opacity: 1 },
-  exit: () => ({
-    opacity: 0,
-    transition: { opacity: { duration: 0.2, ease: 'easeInOut' } },
-  }),
-};
 
 export default function DailyView({
   stopDayEventSummary,
@@ -177,39 +152,26 @@ export default function DailyView({
       </SignedOut>
 
       <SignedIn>
-        <AnimatePresence custom={direction} initial={false} mode="wait">
-          <motion.div
-            animate="center"
+        <div>
+          <div
             className="flex flex-col gap-4"
-            custom={direction}
-            exit="exit"
-            initial="enter"
             key={currentDate.toISOString()}
-            transition={{
-              x: { type: 'spring', stiffness: 300, damping: 30 },
-              opacity: { duration: 0.2 },
-            }}
-            variants={pageTransitionVariants}
           >
             <div className="relative rounded-md bg-default-50 transition duration-400 hover:bg-default-100">
-              <motion.div
-                animate="visible"
+              <div
                 className="relative flex rounded-xl ease-in-out"
-                initial="hidden"
                 onMouseLeave={() => setDetailedHour(null)}
                 onMouseMove={handleMouseMove}
                 ref={hoursColumnRef}
-                variants={containerVariants}
               >
                 <div className="flex flex-col">
                   {hours.map((hour, index) => (
-                    <motion.div
+                    <div
                       className="h-[64px] cursor-pointer border-default-200 p-4 text-left text-muted-foreground text-sm transition duration-300"
                       key={`hour-${index}`}
-                      variants={itemVariants}
                     >
                       {hour}
-                    </motion.div>
+                    </div>
                   ))}
                 </div>
                 <div className="relative flex flex-grow flex-col">
@@ -233,7 +195,7 @@ export default function DailyView({
                     )}
                   </div>
                 </div>
-              </motion.div>
+              </div>
 
               {detailedHour && (
                 <CalendarTimeline
@@ -243,8 +205,8 @@ export default function DailyView({
                 />
               )}
             </div>
-          </motion.div>
-        </AnimatePresence>
+          </div>
+        </div>
       </SignedIn>
     </div>
   );

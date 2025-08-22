@@ -51,11 +51,38 @@ export const formatTimeFromPosition = (y: number, rect: DOMRect) => {
   const hourHeight = rect.height / 24;
   const hour = Math.max(0, Math.min(23, Math.floor(y / hourHeight)));
   const minuteFraction = (y % hourHeight) / hourHeight;
+  
+  // Snap to 15-minute intervals (0, 15, 30, 45)
   const minutes = Math.floor(minuteFraction * 60);
-
+  const snappedMinutes = Math.round(minutes / 15) * 15;
+  
   const hour12 = hour % 12 || 12;
   const ampm = hour < 12 ? 'AM' : 'PM';
-  return `${hour12}:${Math.max(0, minutes).toString().padStart(2, '0')} ${ampm}`;
+  return `${hour12}:${snappedMinutes.toString().padStart(2, '0')} ${ampm}`;
+};
+
+export const calculatePositionFromTime = (time: Date, rect: DOMRect) => {
+  const hourHeight = rect.height / 24;
+  const hour = time.getHours();
+  const minutes = time.getMinutes();
+  
+  // Calculate position based on hour and minutes
+  const hourPosition = hour * hourHeight;
+  const minuteOffset = (minutes / 60) * hourHeight;
+  
+  return hourPosition + minuteOffset;
+};
+
+export const snapToNearest15Minutes = (date: Date) => {
+  const minutes = date.getMinutes();
+  const snappedMinutes = Math.round(minutes / 15) * 15;
+  
+  const newDate = new Date(date);
+  newDate.setMinutes(snappedMinutes);
+  newDate.setSeconds(0);
+  newDate.setMilliseconds(0);
+  
+  return newDate;
 };
 
 export const getEventsForDay = (events: Event[], targetDate: Date) => {

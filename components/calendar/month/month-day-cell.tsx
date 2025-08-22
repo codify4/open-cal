@@ -1,6 +1,5 @@
 import { useDroppable } from '@dnd-kit/core';
 import clsx from 'clsx';
-import { AnimatePresence, motion } from 'framer-motion';
 import { CalendarContextMenuItems } from '@/components/calendar/shared/context-menu-items';
 import { EventCard } from '@/components/event/cards/event-card';
 import { Badge } from '@/components/ui/badge';
@@ -23,12 +22,6 @@ interface MonthDayCellProps {
   onAskAI: () => void;
 }
 
-const itemVariants = {
-  enter: { opacity: 0, y: 20 },
-  center: { opacity: 1, y: 0, transition: { duration: 0.3 } },
-  exit: { opacity: 0, y: -20, transition: { duration: 0.2 } },
-};
-
 export function MonthDayCell({
   cellDate,
   dayNumber,
@@ -49,12 +42,8 @@ export function MonthDayCell({
   return (
     <ContextMenu>
       <ContextMenuTrigger asChild>
-        <motion.div
-          animate="center"
+        <div
           className="group flex h-[150px] flex-col rounded border-none hover:z-50"
-          exit="exit"
-          initial="enter"
-          variants={itemVariants}
         >
           <Card
             className={clsx(
@@ -76,22 +65,14 @@ export function MonthDayCell({
               {dayNumber}
             </div>
             <div className="flex w-full flex-grow flex-col gap-2">
-              <AnimatePresence mode="wait">
-                {dayEvents?.length > 0 && dayEvents[0] && (
-                  <motion.div
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -20 }}
-                    initial={{ opacity: 0, y: 20 }}
-                    key={dayEvents[0].id}
-                    transition={{ duration: 0.3 }}
-                  >
-                    <EventCard event={dayEvents[0]} minimized={true} />
-                  </motion.div>
-                )}
-              </AnimatePresence>
+              {dayEvents?.length > 0 && dayEvents[0] && (
+                <div key={dayEvents[0].id}>
+                  <EventCard event={dayEvents[0]} minimized={true} />
+                </div>
+              )}
               {dayEvents.length > 1 && (
                 <Badge
-                  className="absolute top-2 right-2 cursor-pointer text-xs transition duration-300 hover:bg-default-200"
+                  className="absolute top-2 right-2 cursor-pointer text-xs hover:bg-default-200"
                   onClick={(e) => {
                     e.stopPropagation();
                     onAddEvent(dayNumber);
@@ -103,7 +84,7 @@ export function MonthDayCell({
               )}
             </div>
           </Card>
-        </motion.div>
+        </div>
       </ContextMenuTrigger>
       <ContextMenuContent className="w-40 bg-neutral-950">
         <CalendarContextMenuItems

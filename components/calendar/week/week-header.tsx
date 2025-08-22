@@ -1,5 +1,4 @@
 import clsx from 'clsx';
-import { motion } from 'framer-motion';
 import { EventCard } from '@/components/event/cards/event-card';
 import type { Event } from '@/lib/store/calendar-store';
 import { cn } from '@/lib/utils';
@@ -32,9 +31,6 @@ export const WeekHeader = ({
         className="sticky top-0 z-40 grid flex-grow gap-0 border-border border-b bg-card backdrop-blur"
         style={{
           gridTemplateColumns: colWidth.map((w) => `${w}fr`).join(' '),
-          transition: isResizing
-            ? 'none'
-            : 'grid-template-columns 0.3s ease-in-out',
         }}
       >
         {daysOfWeek.map((day, idx) => (
@@ -75,9 +71,6 @@ export const WeekHeader = ({
         className="grid gap-0 border-border border-b bg-card/50"
         style={{
           gridTemplateColumns: colWidth.map((w) => `${w}fr`).join(' '),
-          transition: isResizing
-            ? 'none'
-            : 'grid-template-columns 0.3s ease-in-out',
         }}
       >
         {daysOfWeek.map((day, dayIndex) => {
@@ -92,20 +85,16 @@ export const WeekHeader = ({
             >
               <div className="flex flex-col gap-1">
                 {visibleEvents.map((event) => (
-                  <motion.div
-                    animate={{ opacity: 1, scale: 1 }}
+                  <div
                     className="flex-shrink-0"
-                    exit={{ opacity: 0, scale: 0.9 }}
-                    initial={{ opacity: 0, scale: 0.9 }}
                     key={event.id}
-                    transition={{ duration: 0.2 }}
                   >
                     <EventCard
                       event={event}
                       minimized={true}
                       onResizeEnd={onResizeEnd}
                     />
-                  </motion.div>
+                  </div>
                 ))}
               </div>
             </div>

@@ -35,7 +35,6 @@ export const EventCard = ({
     listeners,
     setNodeRef,
     isDragging,
-    position,
   } = useEventCardDrag(event);
 
   const {
@@ -61,10 +60,6 @@ export const EventCard = ({
   }, []);
 
   const cardStyle = {
-    transform: isDragging
-      ? `translate(${position.x}px, ${position.y}px)`
-      : undefined,
-    zIndex: isDragging ? 1000 : isResizing ? 999 : undefined,
     height: minimized ? undefined : `${calculatedHeight}px`,
   };
 
@@ -78,7 +73,7 @@ export const EventCard = ({
     >
       <div
         className={cn(
-          'group flex flex-row relative rounded-sm border-2 p-2 text-xs transition-all duration-200 hover:shadow-md',
+          'event-card group flex flex-row relative rounded-sm border-2 p-2 text-xs hover:shadow-md',
           getCardColor(event.color, isFocused),
           event.isAllDay && 'border-l-4',
           isClient && isDragging && 'opacity-50',
