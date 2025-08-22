@@ -662,7 +662,7 @@ export default function WeeklyView() {
                          ))}
                       </div>
                     </ContextMenuTrigger>
-                                         <ContextMenuContent className="w-40 bg-neutral-900 border border-neutral-800">
+                      <ContextMenuContent className="w-40 bg-neutral-900 border border-neutral-800">
                        <ContextMenuItem
                          className="cursor-pointer py-2 text-white"
                          onClick={() => {

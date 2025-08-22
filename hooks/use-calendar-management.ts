@@ -43,7 +43,6 @@ export function useCalendarManagement() {
               id,
               background: color.background,
             }));
-            console.log('Loaded Google Calendar colors:', colors);
             setColorOptions(colors);
           }
         }

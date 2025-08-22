@@ -102,13 +102,15 @@ export const EventSettings = ({
     return allCalendars.find((cal) => cal.primary) || allCalendars[0];
   }, [allCalendars]);
 
-  const defaultCalendar = calendar || primaryCalendar?.id || '';
+  const defaultCalendar = React.useMemo(() => {
+    return calendar || primaryCalendar?.id || '';
+  }, [calendar, primaryCalendar?.id]);
 
   const selectedCalendar = React.useMemo(() => {
-    const calendarToUse = calendar || primaryCalendar?.id || '';
+    const calendarToUse = defaultCalendar;
     if (!calendarToUse) return null;
     return allCalendars.find((cal) => cal.id === calendarToUse) || null;
-  }, [calendar, primaryCalendar, allCalendars]);
+  }, [defaultCalendar, allCalendars]);
 
   const COLORS = [
     { id: 'red', bg: 'bg-red-500' },

@@ -25,7 +25,6 @@ export function CalendarPicker() {
   const handleDateSelect = (date: Date | undefined) => {
     if (date) {
       setCurrentDate(date);
-      console.log('Date selected:', date);
     }
   };
 

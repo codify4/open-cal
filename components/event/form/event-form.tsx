@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import type { Event } from '@/lib/store/calendar-store';
 import { useCalendarStore } from '@/providers/calendar-store-provider';
 import { EventAttendees } from './event-attendees';
@@ -29,6 +29,7 @@ export const EventForm = ({
   type RepeatType = 'none' | 'daily' | 'weekly' | 'monthly' | 'yearly';
 
   const sessionCalendars = useCalendarStore((state) => state.sessionCalendars);
+  const hasSetDefaultCalendar = useRef(false);
 
   const formatTimeFromDate = (date: Date | string | undefined) => {
     if (!date) return '09:00';
@@ -96,7 +97,8 @@ export const EventForm = ({
         meetingCode: event.meetCode || '',
       };
       setEventData(newEventData);
-    } else if (!eventData.calendar) {
+      hasSetDefaultCalendar.current = false;
+    } else if (!hasSetDefaultCalendar.current && Object.keys(sessionCalendars).length > 0) {
       // Set default calendar for new events only once
       const allCalendars: any[] = [];
       Object.values(sessionCalendars).forEach((sessionCals) => {
@@ -110,9 +112,10 @@ export const EventForm = ({
       
       if (defaultCalendar) {
         setEventData(prev => ({ ...prev, calendar: defaultCalendar }));
+        hasSetDefaultCalendar.current = true;
       }
     }
-  }, [event, sessionCalendars, eventData.calendar]);
+  }, [event, sessionCalendars]);
 
   // Auto-save functionality
   const updateEventData = (updates: Partial<typeof eventData>) => {
