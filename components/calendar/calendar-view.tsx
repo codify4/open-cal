@@ -502,9 +502,9 @@ export default function CalendarView({
       </div>
       
       {isMobile && hasAnyConnectedAccount && (
-        <div className="fixed bottom-6 right-6 z-50">
+        <div className="fixed bottom-16 right-4 z-50">
           <Button
-            className="h-16 w-16 rounded-full shadow-2xl bg-primary hover:bg-primary/90 text-primary-foreground"
+            className="rounded-full shadow-2xl bg-primary hover:bg-primary/90 text-primary-foreground h-10 w-10"
             onClick={() => {
               const now = new Date();
               openEventSidebarForNewEvent(now);

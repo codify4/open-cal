@@ -196,7 +196,7 @@ const AddEventDrawer = ({ open, onOpenChange }: AddEventDrawerProps) => {
                 size="sm"
                 variant="default"
               >
-                Save
+                <Save className="h-4 w-4" />
               </Button>
 
               {isEditing && (

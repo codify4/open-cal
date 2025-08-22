@@ -27,6 +27,10 @@ export const EventCardResizeHandles = ({
           e.stopPropagation();
         }}
         onMouseDown={onVerticalResizeStart}
+        onTouchStart={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+        }}
       >
         <GripVertical className="h-2 w-2 opacity-60" />
       </div>
@@ -44,6 +48,10 @@ export const EventCardResizeHandles = ({
           e.stopPropagation();
         }}
         onMouseDown={onHorizontalResizeStart}
+        onTouchStart={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+        }}
       >
         <GripHorizontal className="h-2 w-2 opacity-60" />
       </div>

@@ -35,6 +35,12 @@ export const EventCard = ({
     listeners,
     setNodeRef,
     isDragging,
+    isLongPress,
+    handleTouchStart,
+    handleTouchMove,
+    handleTouchEnd,
+    handleMouseDown,
+    handleMouseUp,
   } = useEventCardDrag(event);
 
   const {
@@ -50,6 +56,13 @@ export const EventCard = ({
   const handleAskAI = (event: any) => {
     const eventReference = convertEventToReference(event);
     addEventReference(eventReference);
+  };
+
+  const handleCardTap = (e: React.MouseEvent | React.TouchEvent) => {
+    if (!isLongPress) {
+      handleCardClick(e as React.MouseEvent, event.id);
+      handleEdit(e as React.MouseEvent, event);
+    }
   };
 
   const indicatorColor = useEventCardColor(event, fetchedCalendars, isFocused);
@@ -80,9 +93,16 @@ export const EventCard = ({
           minimized && 'max-h-[40px] min-h-[20px] overflow-hidden',
           isDragging && 'z-[9998]',
           isFocused ? 'opacity-100' : 'opacity-80',
+          isLongPress && 'cursor-grabbing',
+          !isLongPress && 'cursor-pointer',
           className
         )}
-        onClick={(e) => handleCardClick(e, event.id)}
+        onClick={handleCardTap}
+        onMouseDown={handleMouseDown}
+        onMouseUp={handleMouseUp}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
         ref={cardRef}
         style={cardStyle}
       >
@@ -99,7 +119,10 @@ export const EventCard = ({
         </div>
 
         <div
-          className="relative z-10 flex cursor-grab flex-col gap-2"
+          className={cn(
+            'relative z-10 flex flex-col gap-2',
+            isLongPress ? 'cursor-grabbing' : 'cursor-pointer'
+          )}
           ref={isClient ? setNodeRef : undefined}
           {...(isClient ? listeners : {})}
           {...(isClient ? attributes : {})}
