@@ -57,7 +57,7 @@ export function AppearanceSection() {
                     alt="Light Mode"
                     className="rounded-sm w-full h-auto"
                     height={245}
-                    src="/light-mode.png"
+                    src="/light-mode.svg"
                     width={425}
                   />
                 </button>
@@ -79,7 +79,7 @@ export function AppearanceSection() {
                     alt="Dark Mode"
                     className="rounded-sm w-full h-auto"
                     height={245}
-                    src="/dark-mode.png"
+                    src="/dark-mode.svg"
                     width={425}
                   />
                 </button>
@@ -101,7 +101,7 @@ export function AppearanceSection() {
                     alt="System Mode"
                     className="rounded-sm w-full h-auto"
                     height={245}
-                    src="/dnl.png"
+                    src="/dnl.svg"
                     width={425}
                   />
                 </button>
