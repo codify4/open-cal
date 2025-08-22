@@ -71,10 +71,10 @@ export default function RoadmapPage() {
 
           <div className="space-y-4">
             <div className="flex items-center gap-4">
-              <div className="w-8 h-8 bg-yellow-500 text-white rounded-full flex items-center justify-center font-semibold">3</div>
+              <div className="w-8 h-8 bg-green-500 text-white rounded-full flex items-center justify-center font-semibold">3</div>
               <div>
                 <h3 className="text-xl font-semibold text-white">AI Agent</h3>
-                <Badge className="bg-yellow-500 font-medium">In Progress</Badge>
+                <Badge className="bg-green-500 font-medium">Done</Badge>
               </div>
             </div>
             <p className="text-muted-foreground ml-12">
@@ -84,10 +84,10 @@ export default function RoadmapPage() {
 
           <div className="space-y-4">
             <div className="flex items-center gap-4">
-              <div className="w-8 h-8 bg-yellow-500 text-white rounded-full flex items-center justify-center font-semibold">4</div>
+              <div className="w-8 h-8 bg-green-500 text-white rounded-full flex items-center justify-center font-semibold">4</div>
               <div>
                 <h3 className="text-xl font-semibold text-white">Google Calendar Integration</h3>
-                <Badge className="bg-yellow-500 font-medium">Not Started</Badge>
+                <Badge className="bg-green-500 font-medium">Done</Badge>
               </div>
             </div>
             <p className="text-muted-foreground ml-12">
@@ -99,18 +99,31 @@ export default function RoadmapPage() {
             <div className="flex items-center gap-4">
               <div className="w-8 h-8 bg-yellow-500 text-white rounded-full flex items-center justify-center font-semibold">5</div>
               <div>
-                <h3 className="text-xl font-semibold text-white">Full Convex DB Integration</h3>
+                <h3 className="text-xl font-semibold text-white">Full mobile support</h3>
                 <Badge className="bg-yellow-500 font-medium">Not Started</Badge>
               </div>
             </div>
             <p className="text-muted-foreground ml-12">
-              Complete database integration and real-time sync. User authentication, data persistence, and scalable backend infrastructure.
+              Make the calendar experience as smooth as possible on mobile.
             </p>
           </div>
 
           <div className="space-y-4">
             <div className="flex items-center gap-4">
-              <div className="w-8 h-8 bg-gray-500 text-white rounded-full flex items-center justify-center font-semibold">6</div>
+              <div className="w-8 h-8 bg-yellow-500 text-white rounded-full flex items-center justify-center font-semibold">6</div>
+              <div>
+                <h3 className="text-xl font-semibold text-white">Bug fixes and little improvements</h3>
+                <Badge className="bg-yellow-500 font-medium">Not Started</Badge>
+              </div>
+            </div>
+            <p className="text-muted-foreground ml-12">
+              Fixing bugs and making little improvements to the calendar experience before launching the first version.
+            </p>
+          </div>
+
+          <div className="space-y-4">
+            <div className="flex items-center gap-4">
+              <div className="w-8 h-8 bg-gray-500 text-white rounded-full flex items-center justify-center font-semibold">7</div>
               <div>
                 <h3 className="text-xl font-semibold text-white">Launch</h3>
                 <Badge variant="outline" className="text-white font-medium">Future</Badge>
