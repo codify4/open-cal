@@ -1,5 +1,6 @@
 'use client';
 
+import type { UIMessage } from 'ai';
 import { ArrowDown } from 'lucide-react';
 import {
   forwardRef,
@@ -8,13 +9,12 @@ import {
   useRef,
   useState,
 } from 'react';
-import { Button } from '@/components/ui/button';
 import { MessageInput } from '@/components/agent/message-input';
 import { MessageList } from '@/components/agent/message-list';
 import { PromptSuggestions } from '@/components/agent/prompt-suggestions';
+import { Button } from '@/components/ui/button';
 import { useAutoScroll } from '@/hooks/use-auto-scroll';
 import { cn } from '@/lib/utils';
-import type { UIMessage } from 'ai';
 
 interface ChatPropsBase {
   handleSubmit: (
@@ -37,6 +37,7 @@ interface ChatPropsBase {
   onRegenerate?: (messageId: string) => void;
   isRegenerating?: boolean;
   onCopy?: (messageId: string) => void;
+  mode: 'popup' | 'sidebar' | 'fullscreen';
 }
 
 interface ChatPropsWithoutSuggestions extends ChatPropsBase {
@@ -68,6 +69,7 @@ export function Chat({
   onRegenerate,
   isRegenerating,
   onCopy,
+  mode,
 }: ChatProps) {
   const lastMessage = messages.at(-1);
   const isEmpty = messages.length === 0;
@@ -82,11 +84,16 @@ export function Chat({
 
   const messageOptions = useCallback(
     (message: UIMessage) => ({
-      onRegenerate: message.role === 'assistant' && onRegenerate ? 
-        () => onRegenerate(message.id) : undefined,
+      onRegenerate:
+        message.role === 'assistant' && onRegenerate
+          ? () => onRegenerate(message.id)
+          : undefined,
       isRegenerating: message.role === 'assistant' && isRegenerating,
       onCopy: onCopy ? () => onCopy(message.id) : undefined,
-      onRate: onRateResponse ? (rating: 'thumbs-up' | 'thumbs-down') => onRateResponse(message.id, rating) : undefined,
+      onRate: onRateResponse
+        ? (rating: 'thumbs-up' | 'thumbs-down') =>
+            onRateResponse(message.id, rating)
+        : undefined,
     }),
     [onRateResponse, onRegenerate, isRegenerating, onCopy]
   );
@@ -95,12 +102,16 @@ export function Chat({
     <ChatContainer className={className}>
       {isEmpty && append && suggestions ? (
         <div className="flex flex-1 flex-col items-center justify-center p-8">
-          <PromptSuggestions append={append} suggestions={suggestions} />
+          <PromptSuggestions
+            append={append}
+            mode={mode}
+            suggestions={suggestions}
+          />
         </div>
       ) : null}
 
       {messages.length > 0 ? (
-        <div className="flex-1 overflow-scroll scrollbar-hide">
+        <div className="scrollbar-hide flex-1 overflow-scroll">
           <ChatMessages messages={messages}>
             <MessageList
               isTyping={isTyping}
@@ -112,13 +123,14 @@ export function Chat({
       ) : null}
 
       <ChatForm
-        className="mt-auto flex-shrink-0 sticky bottom-0 z-10"
+        className="sticky bottom-0 z-10 mt-auto flex-shrink-0"
         handleSubmit={handleSubmit}
         isPending={isGenerating || isTyping}
       >
         {({ files, setFiles }) => (
           <MessageInput
             className="min-h-[80px] bg-neutral-100 dark:bg-neutral-800"
+            disabled={disabled}
             files={files}
             isGenerating={isGenerating}
             onChange={handleInputChange}
@@ -126,7 +138,6 @@ export function Chat({
             stop={handleStop}
             transcribeAudio={transcribeAudio}
             value={input}
-            disabled={disabled}
           />
         )}
       </ChatForm>
@@ -151,7 +162,7 @@ export function ChatMessages({
 
   return (
     <div
-      className="grid grid-cols-1 overflow-y-auto pb-4 h-full scrollbar-hide"
+      className="scrollbar-hide grid h-full grid-cols-1 overflow-y-auto pb-4"
       onScroll={handleScroll}
       onTouchStart={handleTouchStart}
       ref={containerRef}
@@ -184,7 +195,10 @@ export const ChatContainer = forwardRef<
 >(({ className, ...props }, ref) => {
   return (
     <div
-      className={cn('flex h-full flex-col bg-background text-foreground', className)}
+      className={cn(
+        'flex h-full flex-col bg-background text-foreground',
+        className
+      )}
       ref={ref}
       {...props}
     />

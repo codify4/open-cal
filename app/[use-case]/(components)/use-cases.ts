@@ -60,12 +60,27 @@ export const useCases: Record<string, UseCase> = {
         props: {
           view: 'week',
           events: [
-            { title: 'Investor Demo', time: '10:00 AM', duration: 60, type: 'meeting' },
-            { title: 'Customer Call', time: '2:00 PM', duration: 30, type: 'sales' },
-            { title: 'Team Standup', time: '9:00 AM', duration: 15, type: 'internal' }
-          ]
-        }
-      }
+            {
+              title: 'Investor Demo',
+              time: '10:00 AM',
+              duration: 60,
+              type: 'meeting',
+            },
+            {
+              title: 'Customer Call',
+              time: '2:00 PM',
+              duration: 30,
+              type: 'sales',
+            },
+            {
+              title: 'Team Standup',
+              time: '9:00 AM',
+              duration: 15,
+              type: 'internal',
+            },
+          ],
+        },
+      },
     },
     benefits: [
       {
@@ -157,19 +172,35 @@ export const useCases: Record<string, UseCase> = {
         props: {
           view: 'day',
           events: [
-            { title: 'Code Review', time: '10:00 AM', duration: 45, type: 'development' },
-            { title: 'Client Meeting', time: '2:00 PM', duration: 60, type: 'meeting' },
-            { title: 'Sprint Planning', time: '4:00 PM', duration: 90, type: 'planning' }
-          ]
-        }
-      }
+            {
+              title: 'Code Review',
+              time: '10:00 AM',
+              duration: 45,
+              type: 'development',
+            },
+            {
+              title: 'Client Meeting',
+              time: '2:00 PM',
+              duration: 60,
+              type: 'meeting',
+            },
+            {
+              title: 'Sprint Planning',
+              time: '4:00 PM',
+              duration: 90,
+              type: 'planning',
+            },
+          ],
+        },
+      },
     },
     benefits: [
       {
         id: 'focus-coding',
         title: 'Focus on coding',
-        description: 'Automate scheduling so you can spend more time writing code and less time managing calendars.',
-        icon: 'code'
+        description:
+          'Automate scheduling so you can spend more time writing code and less time managing calendars.',
+        icon: 'code',
       },
       {
         id: 'smart-suggestions',
@@ -212,11 +243,12 @@ export const useCases: Record<string, UseCase> = {
         company: "DevFlow"
       },
       {
-        quote: "Finally, a calendar that understands developer workflows. No more context switching.",
-        author: "Emma Thompson",
-        role: "Tech Lead",
-        company: "CodeCraft"
-      }
+        quote:
+          'Finally, a calendar that understands developer workflows. No more context switching.',
+        author: 'Emma Thompson',
+        role: 'Tech Lead',
+        company: 'CodeCraft',
+      },
     ],
     faq: [
       {
@@ -254,53 +286,79 @@ export const useCases: Record<string, UseCase> = {
         props: {
           view: 'day',
           events: [
-            { title: 'Deep Work Block', time: '9:00 AM', duration: 120, type: 'focus' },
-            { title: 'Team Meeting', time: '11:30 AM', duration: 30, type: 'meeting' },
-            { title: 'Lunch Break', time: '12:00 PM', duration: 60, type: 'break' },
-            { title: 'Client Call', time: '2:00 PM', duration: 45, type: 'meeting' }
-          ]
-        }
-      }
+            {
+              title: 'Deep Work Block',
+              time: '9:00 AM',
+              duration: 120,
+              type: 'focus',
+            },
+            {
+              title: 'Team Meeting',
+              time: '11:30 AM',
+              duration: 30,
+              type: 'meeting',
+            },
+            {
+              title: 'Lunch Break',
+              time: '12:00 PM',
+              duration: 60,
+              type: 'break',
+            },
+            {
+              title: 'Client Call',
+              time: '2:00 PM',
+              duration: 45,
+              type: 'meeting',
+            },
+          ],
+        },
+      },
     },
     benefits: [
       {
         id: 'time-optimization',
         title: 'Optimize your time',
-        description: 'AI analyzes your patterns and suggests optimal scheduling for maximum productivity.',
-        icon: 'clock'
+        description:
+          'AI analyzes your patterns and suggests optimal scheduling for maximum productivity.',
+        icon: 'clock',
       },
       {
         id: 'focus-blocks',
         title: 'Protect focus time',
-        description: 'Automatically block time for deep work and prevent unnecessary interruptions.',
-        icon: 'shield'
+        description:
+          'Automatically block time for deep work and prevent unnecessary interruptions.',
+        icon: 'shield',
       },
       {
         id: 'work-life-balance',
         title: 'Work-life balance',
-        description: 'Schedule breaks, personal time, and maintain healthy boundaries.',
-        icon: 'heart'
-      }
+        description:
+          'Schedule breaks, personal time, and maintain healthy boundaries.',
+        icon: 'heart',
+      },
     ],
     features: [
       {
         id: 'deep-work-scheduling',
         title: 'Deep Work Scheduling',
-        description: 'Automatically block time for focused work and prevent meeting conflicts.',
-        visual: 'calendar'
+        description:
+          'Automatically block time for focused work and prevent meeting conflicts.',
+        visual: 'calendar',
       },
       {
         id: 'smart-breaks',
         title: 'Smart Break Scheduling',
-        description: 'AI suggests optimal break times based on your energy levels and schedule.',
-        visual: 'ai'
+        description:
+          'AI suggests optimal break times based on your energy levels and schedule.',
+        visual: 'ai',
       },
       {
         id: 'productivity-analytics',
         title: 'Productivity Analytics',
-        description: 'Track your time usage and get insights to improve your scheduling habits.',
-        visual: 'integration'
-      }
+        description:
+          'Track your time usage and get insights to improve your scheduling habits.',
+        visual: 'integration',
+      },
     ],
     testimonials: [
       {
@@ -311,10 +369,10 @@ export const useCases: Record<string, UseCase> = {
       },
       {
         quote: "The AI suggestions are spot-on. I'm more productive than ever.",
-        author: "Lisa Chen",
-        role: "Consultant",
-        company: "StrategyFlow"
-      }
+        author: 'Lisa Chen',
+        role: 'Consultant',
+        company: 'StrategyFlow',
+      },
     ],
     faq: [
              {
@@ -643,4 +701,4 @@ export const getAllUseCases = (): UseCase[] => {
 
 export const getUseCaseIds = (): string[] => {
   return Object.keys(useCases);
-}; 
+};

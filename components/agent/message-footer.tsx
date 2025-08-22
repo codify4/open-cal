@@ -1,6 +1,6 @@
 'use client';
 
-import { RefreshCw, Copy, ThumbsUp, ThumbsDown } from 'lucide-react';
+import { Copy, RefreshCw, ThumbsDown, ThumbsUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
@@ -22,12 +22,7 @@ export function MessageFooter({
   children,
 }: MessageFooterProps) {
   return (
-    <div
-      className={cn(
-        'flex items-center gap-2 mt-2 rounded-md',
-        className
-      )}
-    >
+    <div className={cn('mt-2 flex items-center gap-2 rounded-md', className)}>
       <div className="flex items-center gap-2">
         {onCopy && (
           <Button
@@ -39,7 +34,7 @@ export function MessageFooter({
             <Copy className="h-2 w-2" />
           </Button>
         )}
-        
+
         {onRate && (
           <>
             <Button
@@ -60,21 +55,23 @@ export function MessageFooter({
             </Button>
           </>
         )}
-        
+
         {children}
       </div>
-      
+
       {onRegenerate && (
         <Button
           className="h-6 px-2 text-xs"
-          onClick={onRegenerate}
           disabled={isRegenerating}
+          onClick={onRegenerate}
           size="sm"
           variant="ghost"
         >
-          <RefreshCw className={cn('h-2 w-2 mr-1', isRegenerating && 'animate-spin')} />
+          <RefreshCw
+            className={cn('mr-1 h-2 w-2', isRegenerating && 'animate-spin')}
+          />
         </Button>
       )}
     </div>
   );
-} 
+}

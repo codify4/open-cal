@@ -46,7 +46,7 @@ export const sampleEvents: DummyEvent[] = [
   },
   {
     id: 'event-4',
-    title: 'John\'s Birthday',
+    title: "John's Birthday",
     description: 'Team celebration',
     startDate: new Date('2024-01-16T09:00:00'),
     endDate: new Date('2024-01-16T09:00:00'),
@@ -55,4 +55,4 @@ export const sampleEvents: DummyEvent[] = [
     isAllDay: true,
     account: 'work@company.com',
   },
-]; 
+];

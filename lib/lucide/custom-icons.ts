@@ -12,7 +12,6 @@ export const XIcon = createLucideIcon('X', [
   ],
 ]);
 
-
 export const DiscordIcon = createLucideIcon('Discord', [
   [
     'path',

@@ -17,14 +17,20 @@ export const EventRepeat = ({ repeat, onRepeatChange }: EventRepeatProps) => {
     <div className="flex items-center gap-2 text-muted-foreground text-sm">
       <Repeat className="h-4 w-4" />
       <Select onValueChange={onRepeatChange} value={repeat}>
-        <SelectTrigger className="h-8 flex-1 border-border bg-background text-sm text-foreground hover:bg-accent">
+        <SelectTrigger className="h-8 flex-1 border-border bg-background text-foreground text-sm hover:bg-accent">
           <SelectValue placeholder="Does not repeat" />
         </SelectTrigger>
         <SelectContent className="border-border bg-popover dark:bg-neutral-900">
-          <SelectItem className="text-popover-foreground hover:bg-accent" value="none">
+          <SelectItem
+            className="text-popover-foreground hover:bg-accent"
+            value="none"
+          >
             Does not repeat
           </SelectItem>
-          <SelectItem className="text-popover-foreground hover:bg-accent" value="daily">
+          <SelectItem
+            className="text-popover-foreground hover:bg-accent"
+            value="daily"
+          >
             Daily
           </SelectItem>
           <SelectItem

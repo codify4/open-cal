@@ -1,747 +1,381 @@
-import { useDroppable } from '@dnd-kit/core';
-import clsx from 'clsx';
-import { AnimatePresence, motion } from 'framer-motion';
-import { Plus, Sparkles } from 'lucide-react';
-import type React from 'react';
-import { useCallback, useMemo, useRef, useState } from 'react';
-import { EventCard } from '@/components/event/cards/event-card';
-import { Badge } from '@/components/ui/badge';
+import { SignedIn, SignedOut, SignInButton, useUser } from '@clerk/nextjs';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { toast } from 'sonner';
+import { CalendarTimeline } from '@/components/calendar/shared/calendar-timeline';
+import { WeekDayColumn } from '@/components/calendar/week/week-day-column';
+import { WeekHeader } from '@/components/calendar/week/week-header';
+import { Button } from '@/components/ui/button';
+import { useGoogleCalendarRefresh } from '@/hooks/use-google-calendar-refresh';
+import { useOptimisticEventSync } from '@/hooks/use-optimistic-event-sync';
+import { handleAddEvent } from '@/lib/calendar-utils/calendar-event-handlers';
 import {
-  ContextMenu,
-  ContextMenuContent,
-  ContextMenuItem,
-  ContextMenuTrigger,
-} from '@/components/ui/context-menu';
-import type { Event } from '@/lib/store/calendar-store';
+  formatTimeFromPosition,
+  getAllDayEventsForDay,
+  getDaysInWeek,
+  getTimedEventsForDay,
+  hours,
+} from '@/lib/calendar-utils/calendar-view-utils';
 import { useCalendarStore } from '@/providers/calendar-store-provider';
-
-interface TimeSlotProps {
-  timeSlotId: string;
-  dayIndex: number;
-  hourIndex: number;
-  date: Date;
-}
-
-const TimeSlot: React.FC<TimeSlotProps> = ({
-  timeSlotId,
-  dayIndex,
-  hourIndex,
-  date,
-}) => {
-  const { setNodeRef, isOver } = useDroppable({
-    id: timeSlotId,
-    data: {
-      dayIndex,
-      hourIndex,
-      date,
-    },
-  });
-
-  return (
-    <div
-      className={`relative z-10 col-span-1 h-[64px] border-border border-r border-b text-center text-muted-foreground text-sm transition duration-300 ${isOver ? 'bg-primary/20' : ''}`}
-      ref={setNodeRef}
-    />
-  );
-};
-
-const hours = Array.from({ length: 24 }, (_, i) => {
-  const hour = i % 12 || 12;
-  const ampm = i < 12 ? 'AM' : 'PM';
-  return `${hour}:00 ${ampm}`;
-});
-
-const itemVariants = {
-  hidden: { opacity: 0, y: 5 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.12 } },
-};
-
-const pageTransitionVariants = {
-  enter: (direction: number) => ({
-    opacity: 0,
-  }),
-  center: {
-    opacity: 1,
-  },
-  exit: (direction: number) => ({
-    opacity: 0,
-    transition: {
-      opacity: { duration: 0.2, ease: 'easeInOut' },
-    },
-  }),
-};
 
 export default function WeeklyView() {
   const hoursColumnRef = useRef<HTMLDivElement>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [detailedHour, setDetailedHour] = useState<string | null>(null);
   const [timelinePosition, setTimelinePosition] = useState<number>(0);
   const [colWidth, setColWidth] = useState<number[]>(Array(7).fill(1));
   const [isResizing, setIsResizing] = useState<boolean>(false);
   const [contextMenuTime, setContextMenuTime] = useState<string | null>(null);
+  const [isMobile, setIsMobile] = useState(false);
+  const hasRefreshedRef = useRef(false);
+  
   const {
     toggleChatSidebar,
     openEventSidebarForNewEvent,
+    openEventSidebarForEdit,
+    saveEvent,
     currentDate,
     navigationDirection,
     events,
     updateEventTime,
+    googleEvents,
+    visibleCalendarIds,
+    optimisticUpdateCounter,
+    setGoogleEvents,
   } = useCalendarStore((state) => state);
+  const { user: clerkUser, isSignedIn } = useUser();
+  const { refreshEvents } = useGoogleCalendarRefresh();
+  const { optimisticUpdate, commit } = useOptimisticEventSync();
 
   const direction = navigationDirection;
-  const weekStartsOn = 'monday';
-
   const date =
     currentDate instanceof Date ? currentDate : new Date(currentDate);
 
-  const getDaysInWeek = useCallback(
-    (week: number, year: number) => {
-      const startDay = weekStartsOn === 'monday' ? 1 : 0;
-      const currentDayOfWeek = date.getDay();
-      const daysToSubtract = (currentDayOfWeek - startDay + 7) % 7;
-      const weekStart = new Date(date);
-      weekStart.setDate(date.getDate() - daysToSubtract);
-
-      const days = [];
-      for (let i = 0; i < 7; i++) {
-        const day = new Date(weekStart);
-        day.setDate(day.getDate() + i);
-        days.push(day);
-      }
-      return days;
-    },
-    [date]
-  );
-
-  const daysOfWeek = useMemo(
-    () => getDaysInWeek(1, date.getFullYear()),
-    [getDaysInWeek, date]
-  );
-
-  const getWeekNumber = useCallback(
-    (date: Date) => {
-      const startDay = weekStartsOn === 'monday' ? 1 : 0;
-      const yearStart = new Date(date.getFullYear(), 0, 1);
-      const daysSinceYearStart = Math.floor(
-        (date.getTime() - yearStart.getTime()) / (24 * 60 * 60 * 1000)
-      );
-      const weekNumber = Math.floor(
-        (daysSinceYearStart + yearStart.getDay() - startDay + 7) / 7
-      );
-      return weekNumber;
-    },
-    [weekStartsOn]
-  );
-
-  const getDayName = useCallback((day: number) => {
-    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-    return days[day];
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 1024);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  const getEventsForDay = useCallback(
-    (dayIndex: number) => {
-      const targetDate = daysOfWeek[dayIndex];
-      const dayEvents = events.filter((event) => {
-        const eventDate = new Date(event.startDate);
-        const eventEndDate = new Date(event.endDate);
-        const matches =
-          eventDate.getDate() === targetDate.getDate() &&
-          eventDate.getMonth() === targetDate.getMonth() &&
-          eventDate.getFullYear() === targetDate.getFullYear();
-        
-        const isAllDay = event.isAllDay || 
-          (eventDate.getHours() === 0 && eventDate.getMinutes() === 0 &&
-           eventEndDate.getHours() === 23 && eventEndDate.getMinutes() === 59) ||
-          event.type === 'birthday';
-        
-        return matches && !isAllDay;
+  useEffect(() => {
+    if (clerkUser?.id && visibleCalendarIds.length > 0 && !hasRefreshedRef.current) {
+      hasRefreshedRef.current = true;
+      refreshEvents();
+    } else if (visibleCalendarIds.length === 0) {
+      setGoogleEvents([]);
+    }
+  }, [refreshEvents, clerkUser?.id, visibleCalendarIds, setGoogleEvents]);
+
+  useEffect(() => {
+    hasRefreshedRef.current = false;
+  }, [visibleCalendarIds]);
+
+  useEffect(() => {
+    if (isMobile && scrollContainerRef.current) {
+      const currentDayIndex = new Date().getDay();
+      const dayWidth = scrollContainerRef.current.scrollWidth / 7;
+      const scrollPosition = dayWidth * currentDayIndex - (scrollContainerRef.current.clientWidth / 2) + (dayWidth / 2);
+      
+      scrollContainerRef.current.scrollTo({
+        left: Math.max(0, scrollPosition),
+        behavior: 'smooth'
       });
-      return dayEvents;
-    },
-    [events, daysOfWeek]
-  );
+    }
+  }, [isMobile]);
 
-  const getAllDayEventsForDay = useCallback(
-    (dayIndex: number) => {
-      const targetDate = daysOfWeek[dayIndex];
-      const dayEvents = events.filter((event) => {
-        const eventDate = new Date(event.startDate);
-        const eventEndDate = new Date(event.endDate);
-        const matches =
-          eventDate.getDate() === targetDate.getDate() &&
-          eventDate.getMonth() === targetDate.getMonth() &&
-          eventDate.getFullYear() === targetDate.getFullYear();
-        
-        const isAllDay = event.isAllDay || 
-          (eventDate.getHours() === 0 && eventDate.getMinutes() === 0 &&
-           eventEndDate.getHours() === 23 && eventEndDate.getMinutes() === 59) ||
-          event.type === 'birthday';
-        
-        return matches && isAllDay;
-      });
-      return dayEvents;
-    },
-    [events, daysOfWeek]
-  );
+  const allEvents = useMemo(() => {
+    const localEvents = events || [];
+    const googleCalEvents = googleEvents || [];
+    
+    const filteredGoogleEvents = googleCalEvents.filter((event) => {
+      return event.googleCalendarId && visibleCalendarIds.includes(event.googleCalendarId);
+    });
+    
+    const googleEventsMap = new Map(
+      filteredGoogleEvents.map((event) => [event.id, event])
+    );
+    const filteredLocalEvents = localEvents.filter(
+      (event) => !googleEventsMap.has(event.id)
+    );
+    
+    return [...filteredLocalEvents, ...filteredGoogleEvents];
+  }, [events, googleEvents, visibleCalendarIds, optimisticUpdateCounter]);
 
-  const handleMouseMove = useCallback(
-    (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
-      if (!hoursColumnRef.current) return;
-      const rect = hoursColumnRef.current.getBoundingClientRect();
-      const y = e.clientY - rect.top;
-      const hourHeight = rect.height / 24;
-      const hour = Math.max(0, Math.min(23, Math.floor(y / hourHeight)));
-      const minuteFraction = (y % hourHeight) / hourHeight;
-      const minutes = Math.floor(minuteFraction * 60);
+  const daysOfWeek = useMemo(() => getDaysInWeek(date), [date]);
 
-      const hour12 = hour % 12 || 12;
-      const ampm = hour < 12 ? 'AM' : 'PM';
-      setDetailedHour(
-        `${hour12}:${Math.max(0, minutes).toString().padStart(2, '0')} ${ampm}`
-      );
+  const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    if (!hoursColumnRef.current) return;
+    const rect = hoursColumnRef.current.getBoundingClientRect();
+    const y = e.clientY - rect.top;
+    const timeString = formatTimeFromPosition(y, rect);
+    setDetailedHour(timeString);
 
-      const allDayRowHeight = 32;
-      const adjustedY = y - allDayRowHeight;
-      const position = Math.max(0, Math.min(rect.height - allDayRowHeight, Math.round(adjustedY)));
-      setTimelinePosition(position + allDayRowHeight);
-    },
-    []
-  );
+    const allDayRowHeight = 32;
+    const adjustedY = y - allDayRowHeight;
+    
+    const hourHeight = 64;
+    const hourIndex = Math.floor(adjustedY / hourHeight);
+    const minuteOffset = adjustedY % hourHeight;
+    const quarterHourHeight = hourHeight / 4;
+    const quarterHourIndex = Math.floor(minuteOffset / quarterHourHeight);
+    const snappedMinuteOffset = quarterHourIndex * quarterHourHeight;
+    
+    const position = Math.max(
+      0,
+      Math.min(rect.height - allDayRowHeight, hourIndex * hourHeight + snappedMinuteOffset)
+    );
+    setTimelinePosition(position + allDayRowHeight);
+  }, []);
 
   const handleContextMenuOpen = useCallback((e: React.MouseEvent) => {
     if (!hoursColumnRef.current) return;
     const rect = hoursColumnRef.current.getBoundingClientRect();
     const y = e.clientY - rect.top;
-    const hourHeight = rect.height / 24;
-    const hour = Math.max(0, Math.min(23, Math.floor(y / hourHeight)));
-    const minuteFraction = (y % hourHeight) / hourHeight;
-    const minutes = Math.floor(minuteFraction * 60);
-
-    const hour12 = hour % 12 || 12;
-    const ampm = hour < 12 ? 'AM' : 'PM';
-    const timeString = `${hour12}:${minutes.toString().padStart(2, '0')} ${ampm}`;
+    const timeString = formatTimeFromPosition(y, rect);
     setContextMenuTime(timeString);
   }, []);
 
-  function handleAddEventWeek(dayIndex: number, detailedHour: string) {
-    if (!detailedHour) {
-      console.error('Detailed hour not provided.');
-      return;
-    }
-
-    const [timePart, ampm] = detailedHour.split(' ');
-    const [hourStr, minuteStr] = timePart.split(':');
-    let hours = Number.parseInt(hourStr);
-    const minutes = Number.parseInt(minuteStr);
-
-    if (ampm === 'PM' && hours < 12) {
-      hours += 12;
-    } else if (ampm === 'AM' && hours === 12) {
-      hours = 0;
-    }
-
-    const chosenDay = daysOfWeek[dayIndex % 7].getDate();
-
-    if (chosenDay < 1 || chosenDay > 31) {
-      console.error('Invalid day selected:', chosenDay);
-      return;
-    }
-
-    const targetDate = new Date(
-      date.getFullYear(),
-      date.getMonth(),
-      chosenDay,
-      hours,
-      minutes
-    );
-
-    openEventSidebarForNewEvent(targetDate);
-  }
-
-  const groupEventsByTimePeriod = (events: Event[] | undefined) => {
-    if (!events || events.length === 0) return [];
-
-    const sortedEvents = [...events].sort(
-      (a, b) =>
-        new Date(a.startDate).getTime() - new Date(b.startDate).getTime()
-    );
-
-    const eventsOverlap = (event1: Event, event2: Event) => {
-      const start1 = new Date(event1.startDate).getTime();
-      const end1 = new Date(event1.endDate).getTime();
-      const start2 = new Date(event2.startDate).getTime();
-      const end2 = new Date(event2.endDate).getTime();
-
-      return start1 < end2 && start2 < end1;
-    };
-
-    const graph: Record<string, Set<string>> = {};
-
-    for (const event of sortedEvents) {
-      graph[event.id] = new Set<string>();
-    }
-
-    for (let i = 0; i < sortedEvents.length; i++) {
-      for (let j = i + 1; j < sortedEvents.length; j++) {
-        if (eventsOverlap(sortedEvents[i], sortedEvents[j])) {
-          graph[sortedEvents[i].id].add(sortedEvents[j].id);
-          graph[sortedEvents[j].id].add(sortedEvents[i].id);
+  const handleResizeEnd = useCallback(
+    (eventId: string, newStartDate: Date, newEndDate: Date) => {
+      const result = optimisticUpdate(eventId, newStartDate, newEndDate);
+      if (result) {
+        const { updatedEvent, revert } = result;
+        if (clerkUser?.id) {
+          commit(
+            updatedEvent,
+            clerkUser.id,
+            clerkUser.primaryEmailAddress?.emailAddress
+          ).catch(() => {
+            revert();
+          });
         }
       }
-    }
+    },
+    [optimisticUpdate, commit, clerkUser]
+  );
 
-    const visited = new Set<string>();
-    const groups: Event[][] = [];
-
-    for (const event of sortedEvents) {
-      if (!visited.has(event.id)) {
-        const group: Event[] = [];
-        const stack: Event[] = [event];
-        visited.add(event.id);
-
-        while (stack.length > 0) {
-          const current = stack.pop()!;
-          group.push(current);
-
-          for (const neighborId of graph[current.id]) {
-            if (!visited.has(neighborId)) {
-              const neighbor = sortedEvents.find((e) => e.id === neighborId);
-              if (neighbor) {
-                stack.push(neighbor);
-                visited.add(neighborId);
-              }
-            }
-          }
-        }
-
-        group.sort(
-          (a, b) =>
-            new Date(a.startDate).getTime() - new Date(b.startDate).getTime()
-        );
-
-        groups.push(group);
+  const handleAddEventWeek = useCallback(
+    async (dayIndex: number, timeString: string) => {
+      const targetDate = daysOfWeek[dayIndex % 7];
+      
+      if (!clerkUser) {
+        return;
       }
-    }
+      
+      if (visibleCalendarIds.length === 0) {
+        toast.error('Please wait for calendars to load before creating events');
+        return;
+      }
+      
+      await handleAddEvent(
+        targetDate,
+        timeString,
+        visibleCalendarIds,
+        saveEvent,
+        openEventSidebarForEdit,
+        openEventSidebarForNewEvent,
+        refreshEvents,
+        clerkUser
+      );
+    },
+    [
+      daysOfWeek,
+      clerkUser,
+      visibleCalendarIds,
+      saveEvent,
+      openEventSidebarForEdit,
+      openEventSidebarForNewEvent,
+      refreshEvents,
+    ]
+  );
 
-    return groups;
-  };
+  const getEventsForDay = useCallback(
+    (dayIndex: number) => {
+      return getTimedEventsForDay(allEvents, daysOfWeek[dayIndex]);
+    },
+    [allEvents, daysOfWeek]
+  );
 
-  const handleEventStyling = (
-    event: Event,
-    dayEvents: Event[],
-    periodOptions?: {
-      eventsInSamePeriod?: number;
-      periodIndex?: number;
-      adjustForPeriod?: boolean;
-    }
-  ) => {
-    const eventsOnHour = dayEvents.filter((e) => {
-      if (e.id === event.id) return false;
-
-      const eStart =
-        e.startDate instanceof Date
-          ? e.startDate.getTime()
-          : new Date(e.startDate).getTime();
-      const eEnd =
-        e.endDate instanceof Date
-          ? e.endDate.getTime()
-          : new Date(e.endDate).getTime();
-      const eventStart =
-        event.startDate instanceof Date
-          ? event.startDate.getTime()
-          : new Date(event.startDate).getTime();
-      const eventEnd =
-        event.endDate instanceof Date
-          ? event.endDate.getTime()
-          : new Date(event.endDate).getTime();
-
-      return eStart < eventEnd && eEnd > eventStart;
-    });
-
-    const allEventsInRange = [event, ...eventsOnHour];
-
-    allEventsInRange.sort((a, b) => {
-      const aStart =
-        a.startDate instanceof Date
-          ? a.startDate.getTime()
-          : new Date(a.startDate).getTime();
-      const bStart =
-        b.startDate instanceof Date
-          ? b.startDate.getTime()
-          : new Date(b.startDate).getTime();
-      return aStart - bStart;
-    });
-
-    const useCustomPeriod =
-      periodOptions?.adjustForPeriod &&
-      periodOptions.eventsInSamePeriod !== undefined &&
-      periodOptions.periodIndex !== undefined;
-
-    let numEventsOnHour = useCustomPeriod
-      ? periodOptions!.eventsInSamePeriod!
-      : allEventsInRange.length;
-    let indexOnHour = useCustomPeriod
-      ? periodOptions!.periodIndex!
-      : allEventsInRange.indexOf(event);
-
-    if (numEventsOnHour === 0 || indexOnHour === -1) {
-      numEventsOnHour = 1;
-      indexOnHour = 0;
-    }
-
-    let eventHeight = 0;
-    let maxHeight = 0;
-    let eventTop = 0;
-
-    const startDate =
-      event.startDate instanceof Date
-        ? event.startDate
-        : new Date(event.startDate);
-    const endDate =
-      event.endDate instanceof Date ? event.endDate : new Date(event.endDate);
-
-    if (
-      startDate &&
-      endDate &&
-      !isNaN(startDate.getTime()) &&
-      !isNaN(endDate.getTime())
-    ) {
-      const startTime = startDate.getHours() * 60 + startDate.getMinutes();
-      const endTime = endDate.getHours() * 60 + endDate.getMinutes();
-
-      const diffInMinutes = endTime - startTime;
-
-      eventHeight = (diffInMinutes / 60) * 64;
-
-      const eventStartHour = startDate.getHours() + startDate.getMinutes() / 60;
-
-      const dayEndHour = 24;
-
-      maxHeight = Math.max(0, (dayEndHour - eventStartHour) * 64);
-
-      eventHeight = Math.min(eventHeight, maxHeight);
-
-      eventTop = eventStartHour * 64;
-    } else {
-      return {
-        height: '20px',
-        top: '0px',
-        zIndex: 1,
-        left: '0%',
-        maxWidth: '95%',
-        minWidth: '95%',
-      };
-    }
-
-    const widthPercentage = Math.min(95 / Math.max(numEventsOnHour, 1), 95);
-
-    const leftPosition = indexOnHour * (widthPercentage + 1);
-
-    const safeLeftPosition = Math.min(leftPosition, 100 - widthPercentage);
-
-    const minimumHeight = 20;
-
-    return {
-      height: `${
-        eventHeight < minimumHeight
-          ? minimumHeight
-          : eventHeight > maxHeight
-            ? maxHeight
-            : eventHeight
-      }px`,
-      top: `${eventTop}px`,
-      zIndex: indexOnHour + 1,
-      left: `${safeLeftPosition}%`,
-      maxWidth: `${widthPercentage}%`,
-      minWidth: `${widthPercentage}%`,
-    };
-  };
+  const getAllDayEventsForDayIndex = useCallback(
+    (dayIndex: number) => {
+      return getAllDayEventsForDay(allEvents, daysOfWeek[dayIndex]);
+    },
+    [allEvents, daysOfWeek]
+  );
 
   return (
     <div className="flex flex-col gap-4">
-      <AnimatePresence custom={direction} initial={false} mode="wait">
-        <motion.div
-          animate="center"
-          className="grid grid-cols-9 gap-0"
-          custom={direction}
-          exit="exit"
-          initial="enter"
-          key={currentDate.toISOString()}
-          transition={{
-            opacity: { duration: 0.2 },
-          }}
-          variants={pageTransitionVariants}
-        >
-          <div className="col-span-1 flex items-center justify-center border-border border-r border-b bg-card py-2">
-            <span className="font-medium text-muted-foreground text-xs">
-              Time
-            </span>
+      <SignedOut>
+        <div className="flex h-96 items-center justify-center">
+          <div className="space-y-4 text-center">
+            <h3 className="font-medium text-foreground text-lg">
+              Sign in to view your calendar
+            </h3>
+            <p className="text-muted-foreground">
+              Connect your account to start managing your schedule
+            </p>
+            <SignInButton mode="modal">
+              <Button>Sign in to Continue</Button>
+            </SignInButton>
           </div>
+        </div>
+      </SignedOut>
 
-          <div className="relative col-span-8 flex flex-col">
-            <div
-              className="sticky top-0 z-40 grid flex-grow gap-0 border-border border-b bg-card backdrop-blur"
-              style={{
-                gridTemplateColumns: colWidth.map((w) => `${w}fr`).join(' '),
-                transition: isResizing
-                  ? 'none'
-                  : 'grid-template-columns 0.3s ease-in-out',
-              }}
-            >
-              {daysOfWeek.map((day, idx) => (
-                <div className="group relative flex flex-col" key={idx}>
-                  <div className="flex flex-grow items-center justify-center border-border border-r bg-card py-2">
-                    <div className="text-center">
-                      <div
-                        className={clsx(
-                          'font-medium text-muted-foreground text-xs',
-                          new Date().getDate() === day.getDate() &&
-                            new Date().getMonth() === currentDate.getMonth() &&
-                            new Date().getFullYear() ===
-                              currentDate.getFullYear()
-                            ? 'text-destructive'
-                            : ''
-                        )}
-                      >
-                        {getDayName(day.getDay())},{' '}
-                        {day.toLocaleDateString('en-US', {
-                          month: 'short',
-                          day: 'numeric',
-                        })}
-                      </div>
-                    </div>
-                  </div>
+      <SignedIn>
+        <div className="w-full">
+          {isMobile ? (
+            <div className="overflow-x-auto" ref={scrollContainerRef}>
+              <div className="grid grid-cols-9 gap-0 min-w-[1200px]">
+                <div className="col-span-1 flex items-center justify-center border-border border-r border-b bg-card py-2">
+                  <span className="font-medium text-muted-foreground text-xs">
+                    GMT {new Date().getTimezoneOffset() > 0 ? '-' : '+'}
+                    {Math.abs(new Date().getTimezoneOffset() / 60)}
+                  </span>
                 </div>
-              ))}
-            </div>
 
-            <div
-              className="grid gap-0 border-border border-b bg-card/50"
-              style={{
-                gridTemplateColumns: colWidth.map((w) => `${w}fr`).join(' '),
-                transition: isResizing
-                  ? 'none'
-                  : 'grid-template-columns 0.3s ease-in-out',
-              }}
-            >
-              {daysOfWeek.map((day, dayIndex) => {
-                const allDayEvents = getAllDayEventsForDay(dayIndex);
-                const maxVisibleEvents = 3;
-                const hasMoreEvents = allDayEvents.length > maxVisibleEvents;
-                const visibleEvents = allDayEvents.slice(0, maxVisibleEvents);
+                <WeekHeader
+                  colWidth={colWidth}
+                  currentDate={date}
+                  daysOfWeek={daysOfWeek}
+                  getAllDayEventsForDay={getAllDayEventsForDayIndex}
+                  isResizing={isResizing}
+                  onResizeEnd={handleResizeEnd}
+                />
 
-                return (
-                  <div
-                    className="relative min-h-[32px] border-border border-r p-1"
-                    key={`allday-${dayIndex}`}
-                  >
-                    <div className="flex flex-col gap-1">
-                      {visibleEvents.map((event, eventIndex) => (
-                        <motion.div
-                          animate={{ opacity: 1, scale: 1 }}
-                          className="flex-shrink-0"
-                          exit={{ opacity: 0, scale: 0.9 }}
-                          initial={{ opacity: 0, scale: 0.9 }}
-                          key={event.id}
-                          transition={{ duration: 0.2 }}
-                        >
-                          <EventCard
-                            event={event}
-                            minimized={true}
-                            onResize={(
-                              eventId,
-                              newStartDate,
-                              newEndDate
-                            ) => {
-                              updateEventTime(
-                                eventId,
-                                newStartDate,
-                                newEndDate
-                              );
-                            }}
-                          />
-                        </motion.div>
-                      ))}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          <div
-            className="relative col-span-9 grid grid-cols-9"
-            onMouseLeave={() => setDetailedHour(null)}
-            onMouseMove={handleMouseMove}
-            ref={hoursColumnRef}
-          >
-            <div className="col-span-1 border-border border-r bg-card">
-              {hours.map((hour, index) => (
-                <motion.div
-                  className="flex h-[64px] cursor-pointer items-start justify-center border-border border-b px-3 py-2 text-left text-muted-foreground text-xs"
-                  key={`hour-${index}`}
-                  variants={itemVariants}
-                >
-                  {hour}
-                </motion.div>
-              ))}
-            </div>
-
-            <div
-              className="col-span-8 grid h-full"
-              style={{
-                gridTemplateColumns: colWidth.map((w) => `${w}fr`).join(' '),
-                transition: isResizing
-                  ? 'none'
-                  : 'grid-template-columns 0.3s ease-in-out',
-              }}
-            >
-              {detailedHour && (
                 <div
-                  className="pointer-events-none absolute left-0 z-50 flex h-[1px] w-full rounded-full bg-primary/40"
-                  style={{ top: `${timelinePosition}px` }}
+                  className="relative col-span-9 grid grid-cols-9"
+                  onMouseLeave={() => setDetailedHour(null)}
+                  onMouseMove={handleMouseMove}
+                  ref={hoursColumnRef}
                 >
-                  <Badge
-                    className="-translate-y-1/2 absolute left-[5px] z-50 bg-card text-card-foreground text-xs"
-                    variant="outline"
-                  >
-                    {detailedHour}
-                  </Badge>
-                </div>
-              )}
-              {Array.from({ length: 7 }, (_, dayIndex) => {
-                const dayEvents = getEventsForDay(dayIndex);
-
-                const timeGroups = groupEventsByTimePeriod(dayEvents);
-
-                const eventsCount = dayEvents?.length || 0;
-                const maxEventsToShow = 10;
-                const hasMoreEvents = eventsCount > maxEventsToShow;
-
-                const visibleEvents = hasMoreEvents
-                  ? dayEvents?.slice(0, maxEventsToShow - 1)
-                  : dayEvents;
-
-                return (
-                  <ContextMenu key={`day-${dayIndex}`}>
-                    <ContextMenuTrigger asChild>
+                  <div className="col-span-1 border-border border-r bg-card">
+                    {hours.map((hour, index) => (
                       <div
-                        className="relative z-20 col-span-1 overflow-hidden border-border border-r border-b text-center text-muted-foreground text-sm transition duration-300"
-                        onContextMenu={handleContextMenuOpen}
+                        className="flex h-[64px] cursor-pointer items-start justify-center border-border border-b px-3 py-2 text-left text-muted-foreground text-xs"
+                        key={`hour-${index}`}
                       >
-                        <AnimatePresence initial={false}>
-                          {visibleEvents?.map((event, eventIndex) => {
-                            let eventsInSamePeriod = 1;
-                            let periodIndex = 0;
-
-                            for (let i = 0; i < timeGroups.length; i++) {
-                              const groupIndex = timeGroups[i].findIndex(
-                                (e) => e.id === event.id
-                              );
-                              if (groupIndex !== -1) {
-                                eventsInSamePeriod = timeGroups[i].length;
-                                periodIndex = groupIndex;
-                                break;
-                              }
-                            }
-
-                            const {
-                              height,
-                              left,
-                              maxWidth,
-                              minWidth,
-                              top,
-                              zIndex,
-                            } = handleEventStyling(event, dayEvents, {
-                              eventsInSamePeriod,
-                              periodIndex,
-                              adjustForPeriod: true,
-                            });
-
-                            return (
-                              <motion.div
-                                animate={{ opacity: 1, scale: 1 }}
-                                className="absolute flex flex-grow flex-col transition-all duration-1000"
-                                exit={{ opacity: 0, scale: 0.9 }}
-                                initial={{ opacity: 0, scale: 0.9 }}
-                                key={event.id}
-                                style={{
-                                  minHeight: height,
-                                  height,
-                                  top,
-                                  left,
-                                  maxWidth,
-                                  minWidth,
-                                  padding: '0 2px',
-                                  boxSizing: 'border-box',
-                                  zIndex: zIndex + 1000,
-                                }}
-                                transition={{ duration: 0.2 }}
-                              >
-                                <EventCard
-                                  event={event}
-                                  onResize={(
-                                    eventId,
-                                    newStartDate,
-                                    newEndDate
-                                  ) => {
-                                    updateEventTime(
-                                      eventId,
-                                      newStartDate,
-                                      newEndDate
-                                    );
-                                  }}
-                                />
-                              </motion.div>
-                            );
-                          })}
-                        </AnimatePresence>
-
-                        {Array.from({ length: 24 }, (_, hourIndex) => {
-                          const timeSlotId = `day-${dayIndex}-hour-${hourIndex}`;
-
-                          return (
-                            <TimeSlot
-                              date={daysOfWeek[dayIndex]}
-                              dayIndex={dayIndex}
-                              hourIndex={hourIndex}
-                              key={timeSlotId}
-                              timeSlotId={timeSlotId}
-                            />
-                          );
-                        })}
+                        {hour}
                       </div>
-                    </ContextMenuTrigger>
-                    <ContextMenuContent className="w-40 bg-popover">
-                      <ContextMenuItem
-                        className="cursor-pointer py-2"
-                        onClick={() => {
-                          const timeToUse =
-                            contextMenuTime || detailedHour || '12:00 PM';
-                          handleAddEventWeek(dayIndex, timeToUse);
-                          setContextMenuTime(null);
-                        }}
-                      >
-                        <Plus className="mr-2 h-4 w-4" />
-                        Add Event
-                      </ContextMenuItem>
-                      <ContextMenuItem
-                        className="cursor-pointer py-2"
-                        onClick={() => {
-                          toggleChatSidebar();
-                          setContextMenuTime(null);
-                        }}
-                      >
-                        <Sparkles className="mr-2 h-4 w-4" />
-                        Ask AI
-                      </ContextMenuItem>
-                    </ContextMenuContent>
-                  </ContextMenu>
-                );
-              })}
+                    ))}
+                  </div>
+
+                  <div
+                    className="col-span-8 grid h-full"
+                    style={{
+                      gridTemplateColumns: colWidth.map((w) => `${w}fr`).join(' '),
+                    }}
+                  >
+                    {detailedHour && (
+                      <CalendarTimeline
+                        detailedHour={detailedHour}
+                        position={timelinePosition}
+                        variant="week"
+                      />
+                    )}
+                    {Array.from({ length: 7 }, (_, dayIndex) => {
+                      const dayEvents = getEventsForDay(dayIndex);
+                      return (
+                        <WeekDayColumn
+                          contextMenuTime={contextMenuTime}
+                          dayEvents={dayEvents}
+                          dayIndex={dayIndex}
+                          daysOfWeek={daysOfWeek}
+                          detailedHour={detailedHour}
+                          key={`day-${dayIndex}`}
+                          onAddEvent={handleAddEventWeek}
+                          onAskAI={toggleChatSidebar}
+                          onContextMenuOpen={handleContextMenuOpen}
+                          onResizeEnd={handleResizeEnd}
+                          session={{ user: isSignedIn ? clerkUser : null }}
+                          setContextMenuTime={setContextMenuTime}
+                          updateEventTime={updateEventTime}
+                        />
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
             </div>
-          </div>
-        </motion.div>
-      </AnimatePresence>
+          ) : (
+            <div
+              className="grid grid-cols-9 gap-0"
+              key={currentDate.toISOString()}
+            >
+              <div className="col-span-1 flex items-center justify-center border-border border-r border-b bg-card py-2">
+                <span className="font-medium text-muted-foreground text-xs">
+                  GMT {new Date().getTimezoneOffset() > 0 ? '-' : '+'}
+                  {Math.abs(new Date().getTimezoneOffset() / 60)}
+                </span>
+              </div>
+
+              <WeekHeader
+                colWidth={colWidth}
+                currentDate={date}
+                daysOfWeek={daysOfWeek}
+                getAllDayEventsForDay={getAllDayEventsForDayIndex}
+                isResizing={isResizing}
+                onResizeEnd={handleResizeEnd}
+              />
+
+              <div
+                className="relative col-span-9 grid grid-cols-9"
+                onMouseLeave={() => setDetailedHour(null)}
+                onMouseMove={handleMouseMove}
+                ref={hoursColumnRef}
+              >
+                <div className="col-span-1 border-border border-r bg-card">
+                  {hours.map((hour, index) => (
+                    <div
+                      className="flex h-[64px] cursor-pointer items-start justify-center border-border border-b px-3 py-2 text-left text-muted-foreground text-xs"
+                      key={`hour-${index}`}
+                    >
+                      {hour}
+                    </div>
+                  ))}
+                </div>
+
+                <div
+                  className="col-span-8 grid h-full"
+                  style={{
+                    gridTemplateColumns: colWidth.map((w) => `${w}fr`).join(' '),
+                  }}
+                >
+                  {detailedHour && (
+                    <CalendarTimeline
+                      detailedHour={detailedHour}
+                      position={timelinePosition}
+                      variant="week"
+                    />
+                  )}
+                  {Array.from({ length: 7 }, (_, dayIndex) => {
+                    const dayEvents = getEventsForDay(dayIndex);
+                    return (
+                      <WeekDayColumn
+                        contextMenuTime={contextMenuTime}
+                        dayEvents={dayEvents}
+                        dayIndex={dayIndex}
+                        daysOfWeek={daysOfWeek}
+                        detailedHour={detailedHour}
+                        key={`day-${dayIndex}`}
+                        onAddEvent={handleAddEventWeek}
+                        onAskAI={toggleChatSidebar}
+                        onContextMenuOpen={handleContextMenuOpen}
+                        onResizeEnd={handleResizeEnd}
+                        session={{ user: isSignedIn ? clerkUser : null }}
+                        setContextMenuTime={setContextMenuTime}
+                        updateEventTime={updateEventTime}
+                      />
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </SignedIn>
     </div>
   );
 }

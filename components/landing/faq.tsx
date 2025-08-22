@@ -1,4 +1,5 @@
-"use client"
+'use client';
+
 
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 
@@ -46,19 +47,24 @@ export function FAQSection() {
                 </p>
                 </div>
 
-                <Accordion type="single" collapsible defaultValue="item-0" className="max-w-3xl w-full">
-                    {faqs.map((faq, index) => (
-                        <AccordionItem key={index} value={`item-${index}`}>
-                            <AccordionTrigger className="text-left font-medium text-lg cursor-pointer text-white hover:text-neutral-300">
-                                {faq.question}
-                            </AccordionTrigger>
-                            <AccordionContent>
-                                <p className="text-neutral-400 leading-relaxed">{faq.answer}</p>
-                            </AccordionContent>
-                        </AccordionItem>
-                    ))}
-                </Accordion>
-            </div>
-        </section>
-    )
+        <Accordion
+          className="w-full max-w-3xl"
+          collapsible
+          defaultValue="item-0"
+          type="single"
+        >
+          {faqs.map((faq, index) => (
+            <AccordionItem key={index} value={`item-${index}`}>
+              <AccordionTrigger className="cursor-pointer text-left font-medium text-lg text-white hover:text-neutral-300">
+                {faq.question}
+              </AccordionTrigger>
+              <AccordionContent>
+                <p className="text-neutral-400 leading-relaxed">{faq.answer}</p>
+              </AccordionContent>
+            </AccordionItem>
+          ))}
+        </Accordion>
+      </div>
+    </section>
+  );
 }

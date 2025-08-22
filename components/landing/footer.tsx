@@ -10,38 +10,48 @@ interface FooterLink {
 }
 
 interface FooterSection {
-    title?: string;
-    links: FooterLink[];
+  title?: string;
+  links: FooterLink[];
 }
 
 interface FooterProps {
-    sections?: FooterSection[];
-    className?: string;
+  sections?: FooterSection[];
+  className?: string;
 }
 
 function FooterBrand() {
-    return (
-        <div className="flex flex-col space-y-4">
-            <div className="flex items-center space-x-3">
-                <Image alt="Logo" height={50} src="/logo-name.svg" width={100} />
-            </div>
-            <p className="text-muted-foreground max-w-sm leading-relaxed">
-                The open source AI calendar that gets the job done. Simple, powerful, and works on any platform.
-            </p>
-            <div className="flex items-center space-x-4">
-                <Link href="/github" className="text-muted-foreground hover:text-white transition-colors">
-                    <Github className="h-5 w-5" />
-                </Link>
-                <Link href="/x" className="text-muted-foreground hover:text-white transition-colors">
-                    <XIcon className="h-5 w-5" />
-                </Link>
-                <Link href="/discord" className="text-muted-foreground hover:text-white transition-colors">
-                    <DiscordIcon className="h-5 w-5" />
-                </Link>
-            </div>
-            <FooterCopyright />
-        </div>
-    );
+  return (
+    <div className="flex flex-col space-y-4">
+      <div className="flex items-center space-x-3">
+        <Image alt="Logo" height={50} src="/logo-name.svg" width={100} />
+      </div>
+      <p className="max-w-sm text-muted-foreground leading-relaxed">
+        The open source AI calendar that gets the job done. Simple, powerful,
+        and works on any platform.
+      </p>
+      <div className="flex items-center space-x-4">
+        <Link
+          className="text-muted-foreground transition-colors hover:text-white"
+          href="/github"
+        >
+          <Github className="h-5 w-5" />
+        </Link>
+        <Link
+          className="text-muted-foreground transition-colors hover:text-white"
+          href="/x"
+        >
+          <XIcon className="h-5 w-5" />
+        </Link>
+        <Link
+          className="text-muted-foreground transition-colors hover:text-white"
+          href="/discord"
+        >
+          <DiscordIcon className="h-5 w-5" />
+        </Link>
+      </div>
+      <FooterCopyright />
+    </div>
+  );
 }
 
 function FooterLinks({ links }: { links: FooterLink[] }) {
@@ -76,11 +86,11 @@ function FooterSection({ section }: { section: FooterSection[] }) {
 }
 
 function FooterCopyright() {
-    return (
-        <div className="text-muted-foreground text-sm">
-            © {new Date().getFullYear()} Caly, All Rights Reserved.
-        </div>
-    );
+  return (
+    <div className="text-muted-foreground text-sm">
+      © {new Date().getFullYear()} Caly, All Rights Reserved.
+    </div>
+  );
 }
 
 const resourcesLinks: FooterLink[] = [

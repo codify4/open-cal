@@ -1,4 +1,4 @@
-"use client"
+'use client';
 
 import { useState, useEffect } from "react"
 import { ArrowRight, Brain, Bot, Github } from "lucide-react"
@@ -369,5 +369,5 @@ function OpenSourceVisual() {
         </div>
       </div>
     </div>
-  )
+  );
 }

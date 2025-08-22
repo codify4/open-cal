@@ -1,8 +1,8 @@
-"use client"
+'use client';
 
-import { Button } from "@/components/ui/button"
-import { Github,  Star } from "lucide-react"
-import Link from "next/link"
+import { Github, Star } from 'lucide-react';
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
 
 export function RoadmapCTA() {
     return (
@@ -18,22 +18,14 @@ export function RoadmapCTA() {
                     </p>
                 </div>
 
-                <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-                    <Link href="/github" target="_blank">
-                        <Button size="lg" className="gap-2">
-                            <Github className="w-5 h-5" />
-                            Contribute on GitHub
-                        </Button>
-                    </Link>
-                    
-                    <Link href="/github" target="_blank">
-                        <Button variant="outline" size="lg" className="gap-2">
-                            <Star className="w-5 h-5" fill="yellow" stroke="yellow" />
-                            Give us a star
-                        </Button>
-                    </Link>
-                </div>
-            </div>
+          <Link href="/github" target="_blank">
+            <Button className="gap-2" size="lg" variant="outline">
+              <Star className="h-5 w-5" fill="yellow" stroke="yellow" />
+              Give us a star
+            </Button>
+          </Link>
         </div>
-    )
-} 
+      </div>
+    </div>
+  );
+}

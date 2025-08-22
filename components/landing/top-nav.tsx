@@ -31,7 +31,7 @@ export default function TopNav() {
 
   const navItems = [
     { name: 'Features', href: '/#features' },
-    // { name: 'Pricing', href: '/#pricing' },
+    { name: 'Pricing', href: '/#pricing' },
     { name: 'Roadmap', href: '/roadmap' },
   ];
 
@@ -48,13 +48,16 @@ export default function TopNav() {
 
   return (
     <nav
-      className={`-translate-x-1/2 fixed top-0 left-1/2 z-50 mt-2 w-11/12 sm:w-2/3 self-center rounded-full border border-neutral-800 bg-black transition-all duration-500 ${
+      className={`-translate-x-1/2 fixed top-0 left-1/2 z-50 mt-2 w-11/12 self-center rounded-full border border-neutral-800 bg-black transition-all duration-500 sm:w-2/3 ${
         isScrolled ? 'w-2/4 bg-black/80 backdrop-blur-xl' : 'bg-black'
       }`}
     >
       <div className="container mx-auto px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
-          <Link href="/" className="flex flex-row items-center justify-center gap-1">
+          <Link
+            className="flex flex-row items-center justify-center gap-1"
+            href="/"
+          >
             <Image alt="Caly" height={50} src="/logo-name.svg" width={80} />
           </Link>
 
@@ -91,7 +94,7 @@ export default function TopNav() {
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
-          
+
           <div className="flex items-center">
             <div className="items-center space-x-5 flex">
                 <Link href="/github" className="text-white hover:text-white/80 transition-colors">
@@ -121,14 +124,17 @@ export default function TopNav() {
                     </DropdownMenuItem>
                   ))}
                   <DropdownMenuItem className="font-medium text-white">
-                    <div className="flex items-center justify-between w-full">
+                    <div className="flex w-full items-center justify-between">
                       Use Cases
                       <ChevronDown className="h-3 w-3" />
                     </div>
                   </DropdownMenuItem>
                   {useCases.map((useCase) => (
                     <DropdownMenuItem asChild key={useCase.name}>
-                      <Link className="font-medium text-white pl-6" href={useCase.href}>
+                      <Link
+                        className="pl-6 font-medium text-white"
+                        href={useCase.href}
+                      >
                         {useCase.name}
                       </Link>
                     </DropdownMenuItem>

@@ -52,7 +52,6 @@ export function UseCaseHero({
               </Link>
             </Button>
           </div>
-
           <div>
             <Image src="/ui-hero.png" alt="Caly Hero" width={1203} height={753} />
           </div>

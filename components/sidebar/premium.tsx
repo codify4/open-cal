@@ -1,22 +1,60 @@
 'use client';
 
-import { Button } from '../ui/button';
+import { SignedIn, SignedOut, SignInButton, useUser } from '@clerk/nextjs';
+import { useQuery } from 'convex/react';
 import { Sparkles } from 'lucide-react';
-import { toast } from 'sonner';
+import { api } from '@/convex/_generated/api';
+import { useCalendarStore } from '@/providers/calendar-store-provider';
+import { ShineBorder } from '../magicui/shine-border';
+import { Button } from '../ui/button';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '../ui/card';
+import UpgradeDialog from '../wrappers/upgrade-dialog';
 
 const Premium = () => {
-    const onBetaClick = () => {
-        toast.error('Coming soon!');
-    }
-    return (
-        <Button 
-            variant="outline" 
-            className="flex items-center justify-start w-full py-2.5 rounded-sm text-sm font-medium text-neutral-900 hover:bg-neutral-100 hover:text-neutral-700 dark:hover:bg-neutral-800 dark:text-neutral-200 focus:ring-0"
-            onClick={onBetaClick}
-        >
-            <Sparkles className="w-4 h-4 text-blue-500 group-hover:text-blue-600 transition-colors" />
-            <span>Upgrade to Pro</span>
-        </Button>
+  const { user } = useUser();
+  const openUpgradeDialog = useCalendarStore(
+    (state) => state.openUpgradeDialog
+  );
+  const currentUser = useQuery(api.auth.getCurrentUser, {
+    clerkUserId: user?.id,
+  });
+
+  if (currentUser?.isPro) return null;
+
+  return (
+    <Card className="relative gap-0 border-neutral-200 bg-white p-0 dark:border-neutral-800 dark:bg-neutral-950">
+      <ShineBorder shineColor={['#A07CFE', '#FE8FB5', '#FFBE7B']} />
+      <CardHeader className="p-2 px-4">
+        <CardTitle className="flex items-center gap-2 font-medium text-sm">
+          Upgrade to Pro
+        </CardTitle>
+        <CardDescription className="text-neutral-600 text-sm dark:text-neutral-400">
+          Unlock unlimited agent messages and more.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="p-2 px-3 pt-0">
+        <SignedOut>
+          <SignInButton mode="modal">
+            <Button
+              className="w-full bg-neutral-800 text-sm text-white hover:bg-neutral-700"
+              type="button"
+            >
+              Sign in for Pro
+            </Button>
+          </SignInButton>
+        </SignedOut>
+
+        <SignedIn>
+          <UpgradeDialog />
+        </SignedIn>
+      </CardContent>
+    </Card>
   );
 };
 

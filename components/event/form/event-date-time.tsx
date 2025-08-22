@@ -12,6 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '../../ui/select';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface EventDateTimeProps {
   startDate: Date;
@@ -58,9 +59,7 @@ const TimePicker = ({
   return (
     <Select onValueChange={onChange} value={value}>
       <SelectTrigger
-        className="h-8 w-25 border-border bg-background text-sm text-foreground hover:bg-accent"
-        size="sm"
-      >
+        className="h-9 border-border bg-background text-foreground text-sm hover:bg-accent flex-shrink-0">
         <SelectValue>{formatTime(value)}</SelectValue>
       </SelectTrigger>
       <SelectContent className="max-h-[200px] border-border bg-popover dark:bg-neutral-900">
@@ -92,57 +91,67 @@ const formatDate = (date: Date) => {
 
 export const EventDateTime = ({
   startDate,
-  endDate,
   startTime,
   endTime,
   isAllDay,
-  timezone,
   onStartDateChange,
-  onEndDateChange,
   onStartTimeChange,
   onEndTimeChange,
   onAllDayChange,
-  onTimezoneChange,
 }: EventDateTimeProps) => {
+  const isMobile = useIsMobile();
   return (
-    <div className="space-y-3">
-      <div className="flex items-center gap-2 text-muted-foreground text-sm">
-        <Clock className="h-4 w-4" />
-        <div className="flex items-center gap-2">
+    <div className="space-y-4">
+      <div className="space-y-3">
+        <div className="flex items-center gap-3">
+          <Clock className="h-4 w-4 text-muted-foreground flex-shrink-0" />
           <Popover>
             <PopoverTrigger asChild>
               <Button
-                className="h-8 border-border bg-background text-sm text-foreground hover:bg-accent"
+                className="h-9 w-11/12 text-start justify-start border-border bg-background text-foreground hover:bg-accent gap-4"
                 variant="outline"
               >
-                {formatDate(startDate)}
+                <span>{formatDate(startDate)}</span>
+                {!isAllDay ? (
+                  <div>
+                    <span>{formatTime(startTime)}</span>
+                    <span className='mx-1'>-</span>
+                    <span>{formatTime(endTime)}</span>
+                  </div>
+                ) : (
+                  <span className="ml-1">All day</span>
+                )}
               </Button>
             </PopoverTrigger>
             <PopoverContent
               align="start"
-              className="w-auto border-border bg-popover dark:bg-neutral-900 p-0"
+              side={isMobile ? "bottom" : "left"}
+              className="w-auto border-border bg-popover p-0 dark:bg-neutral-900"
             >
-              <div className="border-border border-b p-2">
-                <CalendarComponent
-                  className="bg-popover p-2"
-                  initialFocus
-                  mode="single"
-                  onSelect={(date) => date && onStartDateChange(date)}
-                  selected={startDate}
-                />
+              <div className="space-y-4 p-2">
+                <div className="space-y-2">
+                  <CalendarComponent
+                    className="bg-popover"
+                    initialFocus
+                    mode="single"
+                    onSelect={(date) => date && onStartDateChange(date)}
+                    selected={startDate}
+                  />
+                </div>
+                
+                {!isAllDay && (
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium">Time</Label>
+                    <div className="flex items-center gap-2">
+                      <TimePicker onChange={onStartTimeChange} value={startTime} />
+                      <span className="text-muted-foreground text-sm">-</span>
+                      <TimePicker onChange={onEndTimeChange} value={endTime} />
+                    </div>
+                  </div>
+                )}
               </div>
             </PopoverContent>
           </Popover>
-
-          {!isAllDay && (
-            <>
-              <TimePicker onChange={onStartTimeChange} value={startTime} />
-
-              <span className="text-muted-foreground">-</span>
-
-              <TimePicker onChange={onEndTimeChange} value={endTime} />
-            </>
-          )}
         </div>
       </div>
 
