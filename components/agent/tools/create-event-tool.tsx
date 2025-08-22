@@ -1,6 +1,6 @@
 'use client';
 
-import { Calendar, Check, Edit, X } from 'lucide-react';
+import { Calendar, Check, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useCalendarStore } from '@/providers/calendar-store-provider';
 import { CalendarEventPreview } from '../calendar-event-preview';
@@ -11,7 +11,6 @@ interface CreateEventToolProps {
   result?: any;
   onAccept?: () => void;
   onDecline?: () => void;
-  onEdit?: () => void;
   onRegenerate?: () => void;
   isRegenerating?: boolean;
   onCopy?: () => void;
@@ -23,7 +22,6 @@ export function CreateEventTool({
   result,
   onAccept,
   onDecline,
-  onEdit,
   onRegenerate,
   isRegenerating,
   onCopy,
@@ -39,11 +37,6 @@ export function CreateEventTool({
   const handleDecline = () => {
     updateActionStatus('temp-id', 'declined');
     onDecline?.();
-  };
-
-  const handleEdit = () => {
-    updateActionStatus('temp-id', 'edited');
-    onEdit?.();
   };
 
   const eventData =
@@ -107,7 +100,6 @@ export function CreateEventTool({
           event={eventData}
           onAccept={handleAccept}
           onDecline={handleDecline}
-          onEdit={handleEdit}
         />
         <MessageFooter
           isRegenerating={isRegenerating}
@@ -164,9 +156,6 @@ export function CreateEventTool({
           >
             <X className="mr-1 h-3 w-3" />
             Decline
-          </Button>
-          <Button onClick={handleEdit} size="sm" variant="outline">
-            <Edit className="mr-1 h-3 w-3" />
           </Button>
         </div>
       </div>
