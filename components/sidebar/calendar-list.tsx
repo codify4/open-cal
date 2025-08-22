@@ -166,38 +166,52 @@ export function CalendarList({
 
               <CollapsibleContent>
                 <SidebarMenu>
-                  {accountCalendars.map((calendar) => (
-                    <SidebarMenuItem key={calendar.id}>
-                      <div className="flex w-full items-center gap-2 rounded-sm px-2 py-1">
-                        <Checkbox
-                          checked={visibleCalendars.has(calendar.id)}
-                          className="cursor-pointer"
-                          color={colorOptions.find(opt => opt.id === calendar.colorId)?.background || '#3b82f6'}
-                          onCheckedChange={() => handleCalendarToggle(calendar.id)}
-                        />
-                        <span 
-                          className="min-w-0 flex-1 truncate text-sm cursor-pointer hover:text-accent-foreground"
-                          onClick={() => onToggle(calendar.id)}
-                        >
-                          {calendar.summary || calendar.name}
-                        </span>
-                        {calendar.primary &&
-                          calendar.account ===
-                            currentSession?.user?.primaryEmailAddress
-                              ?.emailAddress && (
-                            <span className="max-w-16 flex-shrink-0 truncate text-muted-foreground text-xs">
-                              Default
-                            </span>
-                          )}
-                        <CalendarDropdown
-                          calendar={calendar}
-                          colorOptions={colorOptions}
-                          onColorChange={onColorChange}
-                          onDelete={onDelete}
-                        />
-                      </div>
-                    </SidebarMenuItem>
-                  ))}
+                  {accountCalendars.map((calendar) => {
+                    const calendarColor = 
+                      calendar.backgroundColor || 
+                      colorOptions.find(opt => opt.id === calendar.colorId)?.background || 
+                      '#3b82f6';
+                    
+                    console.log(`Calendar ${calendar.summary || calendar.name}:`, {
+                      colorId: calendar.colorId,
+                      backgroundColor: calendar.backgroundColor,
+                      foundColor: colorOptions.find(opt => opt.id === calendar.colorId)?.background,
+                      finalColor: calendarColor
+                    });
+
+                    return (
+                      <SidebarMenuItem key={calendar.id}>
+                        <div className="flex w-full items-center gap-2 rounded-sm px-2 py-1">
+                          <Checkbox
+                            checked={visibleCalendars.has(calendar.id)}
+                            className="cursor-pointer"
+                            color={calendarColor}
+                            onCheckedChange={() => handleCalendarToggle(calendar.id)}
+                          />
+                          <span 
+                            className="min-w-0 flex-1 truncate text-sm cursor-pointer hover:text-accent-foreground"
+                            onClick={() => onToggle(calendar.id)}
+                          >
+                            {calendar.summary || calendar.name}
+                          </span>
+                          {calendar.primary &&
+                            calendar.account ===
+                              currentSession?.user?.primaryEmailAddress
+                                ?.emailAddress && (
+                              <span className="max-w-16 flex-shrink-0 truncate text-muted-foreground text-xs">
+                                Default
+                              </span>
+                            )}
+                          <CalendarDropdown
+                            calendar={calendar}
+                            colorOptions={colorOptions}
+                            onColorChange={onColorChange}
+                            onDelete={onDelete}
+                          />
+                        </div>
+                      </SidebarMenuItem>
+                    );
+                  })}
                 </SidebarMenu>
               </CollapsibleContent>
             </Collapsible>

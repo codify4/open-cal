@@ -74,6 +74,7 @@ export interface CalendarState {
   // Google Calendar State
   googleEvents: Event[];
   isFetchingEvents: boolean;
+  isFetchingCalendars: boolean;
   eventsLastFetched: Date | null;
   visibleCalendarIds: string[];
   refreshFunction: (() => Promise<void>) | null;
@@ -149,12 +150,14 @@ export interface CalendarActions {
   setGoogleEvents: (events: Event[]) => void;
   setVisibleCalendarIds: (calendarIds: string[]) => void;
   setFetchingEvents: (isFetching: boolean) => void;
+  setFetchingCalendars: (isFetching: boolean) => void;
   setRefreshFunction: (refreshFn: () => Promise<void>) => void;
   refreshEvents: () => Promise<void>;
 
   // Multi-session actions
   setSessionEvents: (sessionId: string, events: Event[]) => void;
   setSessionCalendars: (sessionId: string, calendars: any[]) => void;
+  refreshCalendars: () => Promise<void>;
   getAllVisibleEvents: () => Event[];
 
   // Upgrade Dialog Actions
@@ -218,6 +221,7 @@ export const defaultInitState: CalendarState = {
   // Google Calendar State
   googleEvents: [],
   isFetchingEvents: false,
+  isFetchingCalendars: false,
   eventsLastFetched: null,
   visibleCalendarIds: [],
   refreshFunction: null,
@@ -694,6 +698,9 @@ export const createCalendarStore = (
         setFetchingEvents: (isFetching) =>
           set({ isFetchingEvents: isFetching }),
 
+        setFetchingCalendars: (isFetching) =>
+          set({ isFetchingCalendars: isFetching }),
+
         setRefreshFunction: (refreshFn) => set({ refreshFunction: refreshFn }),
 
         refreshEvents: async () => {
@@ -719,6 +726,11 @@ export const createCalendarStore = (
               [sessionId]: calendars,
             },
           })),
+
+        refreshCalendars: async () => {
+          // This is a no-op since the background fetcher handles calendar refreshing
+          // The actual refresh logic is in the BackgroundCalendarFetcher component
+        },
 
         getAllVisibleEvents: () => {
           const state = get();

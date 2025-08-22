@@ -24,12 +24,12 @@ export function NavCalendars({
     colorOptions,
     handleChangeCalendarColor,
     handleDeleteCalendar,
-    handleCalendarToggle: calendarToggle,
+    handleCalendarToggle,
     refetchCalendars,
-  } = useCalendarManagement(onCalendarsFetched);
+  } = useCalendarManagement();
 
   const wrappedCalendarToggle = (calendarId: string) => {
-    calendarToggle(calendarId);
+    handleCalendarToggle(calendarId);
     onCalendarToggle(calendarId);
   };
 
