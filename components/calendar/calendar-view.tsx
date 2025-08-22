@@ -308,7 +308,7 @@ export default function CalendarView({
                     Today
                   </Button>
                   <Button
-                    className="flex h-8 w-12 rounded-sm bg-muted text-sm sm:hidden"
+                    className="flex h-7 w-7 rounded-sm bg-muted text-sm sm:hidden"
                     disabled={!hasAnyConnectedAccount}
                     onClick={handleGoToToday}
                     title={
@@ -321,7 +321,7 @@ export default function CalendarView({
                     {currentDate.getDate()}
                   </Button>
                   <Button
-                    className="flex h-8 w-8 rounded-sm bg-muted text-sm sm:hidden"
+                    className="flex h-7 w-7 rounded-sm bg-muted text-xs sm:hidden"
                     disabled={isFetchingEvents || !hasAnyConnectedAccount}
                     onClick={refreshEvents}
                     title={
@@ -332,28 +332,28 @@ export default function CalendarView({
                     variant="outline"
                   >
                     <RefreshCw
-                      className={`h-4 w-4 ${isFetchingEvents ? 'animate-spin' : ''}`}
+                      className={`h-3 w-3 ${isFetchingEvents ? 'animate-spin' : ''}`}
                     />
                   </Button>
                   {isMobile ? (
                     <Select onValueChange={handleViewChange} value={viewType}>
-                      <SelectTrigger className="h-8">
+                      <SelectTrigger className="h-6 px-2 py-0 text-sm">
                         <SelectValue>
                           {viewType === 'day' && (
-                            <div className="flex items-center space-x-2">
-                              <CalendarDaysIcon size={15} />
+                            <div className="flex items-center space-x-1">
+                              <CalendarDaysIcon size={12} />
                               <span>Day</span>
                             </div>
                           )}
                           {viewType === 'week' && (
-                            <div className="flex items-center space-x-2">
-                              <BsCalendarWeek />
+                            <div className="flex items-center space-x-1">
+                              <BsCalendarWeek size={8} />
                               <span>Week</span>
                             </div>
                           )}
                           {viewType === 'month' && (
-                            <div className="flex items-center space-x-2">
-                              <BsCalendarMonth />
+                            <div className="flex items-center space-x-1">
+                              <BsCalendarMonth size={12} />
                               <span>Month</span>
                             </div>
                           )}
@@ -361,20 +361,20 @@ export default function CalendarView({
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="day">
-                          <div className="flex items-center space-x-2">
-                            <CalendarDaysIcon size={15} />
+                          <div className="flex items-center space-x-1">
+                            <CalendarDaysIcon size={12} />
                             <span>Day</span>
                           </div>
                         </SelectItem>
                         <SelectItem value="week">
-                          <div className="flex items-center space-x-2">
-                            <BsCalendarWeek />
+                          <div className="flex items-center space-x-1">
+                            <BsCalendarWeek size={12} />
                             <span>Week</span>
                           </div>
                         </SelectItem>
                         <SelectItem value="month">
-                          <div className="flex items-center space-x-2">
-                            <BsCalendarMonth />
+                          <div className="flex items-center space-x-1">
+                            <BsCalendarMonth size={12} />
                             <span>Month</span>
                           </div>
                         </SelectItem>

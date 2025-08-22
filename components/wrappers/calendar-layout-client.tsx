@@ -228,7 +228,7 @@ export function CalendarLayoutClient({
           )}
         </ResizablePanelGroup>
         {chatMode === 'fullscreen' && (
-          <div className="fixed inset-0 z-50 bg-white p-5 dark:bg-neutral-900">
+          <div className="fixed inset-0 z-50 bg-white p-2 lg:p-5 dark:bg-neutral-900">
             <ChatSidebar
               mode="fullscreen"
               onToggleFullscreen={toggleFullscreen}

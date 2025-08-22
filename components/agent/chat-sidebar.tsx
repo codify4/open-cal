@@ -48,6 +48,7 @@ export function ChatSidebar({
   const [regeneratingMessageId, setRegeneratingMessageId] = useState<
     string | null
   >(null);
+  const [isMobile, setIsMobile] = useState(false);
 
   const {
     messagesLeft,
@@ -69,6 +70,16 @@ export function ChatSidebar({
   const clearChat = useChatStore((state) => state.clearChat);
   const clearEventReferences = useChatStore((state) => state.clearEventReferences);
   const clearCalendarReferences = useChatStore((state) => state.clearCalendarReferences);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   useEffect(() => {
     if (chatMessages.length > 0) {
@@ -94,7 +105,6 @@ export function ChatSidebar({
       const { isLimited } = sendRateLimitedMessage();
 
       if (!isLimited) {
-        // Enhance message with event references if any
         let enhancedInput = input;
         if (eventReferences.length > 0 || calendarReferences.length > 0) {
           const eventContext = eventReferences.map(ref => 
@@ -190,7 +200,7 @@ export function ChatSidebar({
             <TooltipTrigger asChild>
               <Button
                 className="h-8 w-8 text-neutral-900 hover:bg-neutral-100 dark:text-white dark:hover:bg-neutral-800"
-                onClick={onToggleSidebar}
+                onClick={mode === 'fullscreen' ? onToggleFullscreen : onToggleSidebar}
                 size="icon"
                 variant="ghost"
               >
@@ -220,25 +230,27 @@ export function ChatSidebar({
               <p>{mode === 'fullscreen' ? 'Sidebar Mode' : 'Fullscreen'}</p>
             </TooltipContent>
           </Tooltip>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                className="h-8 w-8 text-neutral-900 hover:bg-neutral-100 dark:text-white dark:hover:bg-neutral-800"
-                onClick={onTogglePopup}
-                size="icon"
-                variant="ghost"
-              >
-                {mode === 'sidebar' ? (
-                  <Smartphone className="h-4 w-4" />
-                ) : (
-                  <PanelRight className="h-4 w-4" />
-                )}
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent className="bg-black font-semibold text-white">
-              <p>{mode === 'sidebar' ? 'Popup Mode' : 'Sidebar Mode'}</p>
-            </TooltipContent>
-          </Tooltip>
+          {!isMobile && (
+            <Tooltip>
+                <TooltipTrigger asChild>
+                    <Button
+                        className="h-8 w-8 text-neutral-900 hover:bg-neutral-100 dark:text-white dark:hover:bg-neutral-800"
+                        onClick={onTogglePopup}
+                        size="icon"
+                        variant="ghost"
+                    >
+                        {mode === 'sidebar' ? (
+                            <Smartphone className="h-4 w-4" />
+                        ) : (
+                            <PanelRight className="h-4 w-4" />
+                        )}
+                    </Button>
+                </TooltipTrigger>
+                <TooltipContent className="bg-black font-semibold text-white">
+                    <p>{mode === 'sidebar' ? 'Popup Mode' : 'Sidebar Mode'}</p>
+                </TooltipContent>
+            </Tooltip>
+          )}
           <Tooltip>
             <TooltipTrigger asChild>
               <div className="flex items-center gap-2 rounded-md bg-neutral-100 px-2 py-1 dark:bg-neutral-800">
