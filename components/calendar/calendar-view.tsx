@@ -9,6 +9,7 @@ import {
   CalendarDaysIcon,
   RefreshCw,
   ChevronDown,
+  Plus,
 } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import { BsCalendarMonth, BsCalendarWeek } from 'react-icons/bs';
@@ -62,6 +63,7 @@ export default function CalendarView({
     isFetchingEvents,
     refreshEvents,
     setRefreshFunction,
+    openEventSidebarForNewEvent,
   } = useCalendarStore((state) => state);
 
   const { user } = useUser();
@@ -498,6 +500,22 @@ export default function CalendarView({
           </Tabs>
         </div>
       </div>
+      
+      {isMobile && hasAnyConnectedAccount && (
+        <div className="fixed bottom-6 right-6 z-50">
+          <Button
+            className="h-16 w-16 rounded-full shadow-2xl bg-primary hover:bg-primary/90 text-primary-foreground"
+            onClick={() => {
+              const now = new Date();
+              openEventSidebarForNewEvent(now);
+            }}
+            size="icon"
+          >
+            <Plus className="h-7 w-7" />
+          </Button>
+        </div>
+      )}
+      
       <SignedOut>
         <div className="flex items-center justify-center rounded-lg border border-dashed bg-muted/50 p-8">
           <div className="max-w-md text-center">

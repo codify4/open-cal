@@ -18,6 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '../../ui/select';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface EventSettingsProps {
   meetingType: string;
@@ -46,6 +47,7 @@ export const EventSettings = ({
 }: EventSettingsProps) => {
   const { session: currentSession } = useSession();
   const sessionCalendars = useCalendarStore((state) => state.sessionCalendars);
+  const isMobile = useIsMobile();
 
   const allCalendars = React.useMemo(() => {
     const calendars: GoogleCalendar[] = [];
@@ -284,7 +286,7 @@ export const EventSettings = ({
           <SelectContent
             align="start"
             className="border-border bg-popover dark:bg-neutral-900"
-            side="left"
+            side={isMobile ? "bottom" : "left"}
           >
             {!allCalendars.length ? (
               <SelectItem className="text-muted-foreground" disabled value="loading">

@@ -22,6 +22,8 @@ import type { Event } from '@/lib/store/calendar-store';
 import { ensureDate } from '@/lib/utils';
 import { useCalendarStore } from '@/providers/calendar-store-provider';
 import AddEventSidebar from '../event/add-event-sidebar';
+import AddEventDrawer from '../event/add-event-drawer';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { calculateEventHeight } from '@/components/event/cards/utils/event-card-utils';
 import { getActualColor } from '@/lib/calendar-utils/calendar-color-utils';
 
@@ -32,6 +34,7 @@ export function CalendarLayoutClient({
 }) {
   const [activeEvent, setActiveEvent] = useState<Event | null>(null);
   const { user } = useUser();
+  const isMobile = useIsMobile();
   const {
     isChatSidebarOpen,
     isEventSidebarOpen,
@@ -208,7 +211,7 @@ export function CalendarLayoutClient({
               />
             </div>
           )}
-          {isEventSidebarOpen && (
+          {isEventSidebarOpen && !isMobile && (
             <>
               <ResizableHandle
                 className="opacity-0 transition-opacity duration-300 hover:opacity-100"
@@ -225,6 +228,15 @@ export function CalendarLayoutClient({
                 </div>
               </ResizablePanel>
             </>
+          )}
+          
+          {isEventSidebarOpen && isMobile && (
+            <AddEventDrawer 
+              open={isEventSidebarOpen} 
+              onOpenChange={(open) => {
+                if (!open) closeEventSidebar();
+              }} 
+            />
           )}
         </ResizablePanelGroup>
         {chatMode === 'fullscreen' && (

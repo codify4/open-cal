@@ -12,6 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '../../ui/select';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface EventDateTimeProps {
   startDate: Date;
@@ -98,6 +99,7 @@ export const EventDateTime = ({
   onEndTimeChange,
   onAllDayChange,
 }: EventDateTimeProps) => {
+  const isMobile = useIsMobile();
   return (
     <div className="space-y-4">
       <div className="space-y-3">
@@ -123,7 +125,7 @@ export const EventDateTime = ({
             </PopoverTrigger>
             <PopoverContent
               align="start"
-              side="left"
+              side={isMobile ? "bottom" : "left"}
               className="w-auto border-border bg-popover p-0 dark:bg-neutral-900"
             >
               <div className="space-y-4 p-2">
