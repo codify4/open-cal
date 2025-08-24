@@ -13,7 +13,6 @@ import {
   getEventsForDay,
   hours,
 } from '@/lib/calendar-utils/calendar-view-utils';
-import type { Event } from '@/lib/store/calendar-store';
 import { useCalendarStore } from '@/providers/calendar-store-provider';
 
 export default function DailyView({
@@ -23,8 +22,6 @@ export default function DailyView({
 }) {
   const hasRefreshedRef = useRef(false);
   const hoursColumnRef = useRef<HTMLDivElement>(null);
-  const [detailedHour, setDetailedHour] = useState<string | null>(null);
-  const [timelinePosition, setTimelinePosition] = useState<number>(0);
   const [contextMenuTime, setContextMenuTime] = useState<string | null>(null);
   const {
     currentDate,
@@ -50,10 +47,7 @@ export default function DailyView({
     const rect = hoursColumnRef.current.getBoundingClientRect();
     const y = e.clientY - rect.top;
     const timeString = formatTimeFromPosition(y, rect);
-    setDetailedHour(timeString);
-
-    const position = Math.max(0, Math.min(rect.height, Math.round(y)));
-    setTimelinePosition(position);
+    setContextMenuTime(timeString);
   }, []);
 
   const handleContextMenuOpen = useCallback((e: React.MouseEvent) => {
@@ -160,7 +154,7 @@ export default function DailyView({
             <div className="relative rounded-md bg-default-50 transition duration-400 hover:bg-default-100">
               <div
                 className="relative flex rounded-xl ease-in-out"
-                onMouseLeave={() => setDetailedHour(null)}
+                // onMouseLeave={() => setDetailedHour(null)} // This line is removed
                 onMouseMove={handleMouseMove}
                 ref={hoursColumnRef}
               >
@@ -179,7 +173,7 @@ export default function DailyView({
                     <DailyTimeGrid
                       contextMenuTime={contextMenuTime}
                       date={date}
-                      detailedHour={detailedHour}
+                      // detailedHour={detailedHour} // This line is removed
                       onAddEvent={handleAddEventDay}
                       onAskAI={toggleChatSidebar}
                       onContextMenuOpen={handleContextMenuOpen}
@@ -198,13 +192,7 @@ export default function DailyView({
                 </div>
               </div>
 
-              {detailedHour && (
-                <CalendarTimeline
-                  detailedHour={detailedHour}
-                  position={timelinePosition}
-                  variant="daily"
-                />
-              )}
+              <CalendarTimeline variant="daily" currentDate={date} />
             </div>
           </div>
         </div>

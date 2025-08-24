@@ -1,3 +1,5 @@
+'use client';
+
 import { SignedIn, SignedOut, SignInButton, useUser } from '@clerk/nextjs';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
@@ -20,8 +22,6 @@ import { useCalendarStore } from '@/providers/calendar-store-provider';
 export default function WeeklyView() {
   const hoursColumnRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const [detailedHour, setDetailedHour] = useState<string | null>(null);
-  const [timelinePosition, setTimelinePosition] = useState<number>(0);
   const [colWidth, setColWidth] = useState<number[]>(Array(7).fill(1));
   const [isResizing, setIsResizing] = useState<boolean>(false);
   const [contextMenuTime, setContextMenuTime] = useState<string | null>(null);
@@ -111,23 +111,7 @@ export default function WeeklyView() {
     const rect = hoursColumnRef.current.getBoundingClientRect();
     const y = e.clientY - rect.top;
     const timeString = formatTimeFromPosition(y, rect);
-    setDetailedHour(timeString);
-
-    const allDayRowHeight = 32;
-    const adjustedY = y - allDayRowHeight;
-    
-    const hourHeight = 64;
-    const hourIndex = Math.floor(adjustedY / hourHeight);
-    const minuteOffset = adjustedY % hourHeight;
-    const quarterHourHeight = hourHeight / 4;
-    const quarterHourIndex = Math.floor(minuteOffset / quarterHourHeight);
-    const snappedMinuteOffset = quarterHourIndex * quarterHourHeight;
-    
-    const position = Math.max(
-      0,
-      Math.min(rect.height - allDayRowHeight, hourIndex * hourHeight + snappedMinuteOffset)
-    );
-    setTimelinePosition(position + allDayRowHeight);
+    setContextMenuTime(timeString);
   }, []);
 
   const handleContextMenuOpen = useCallback((e: React.MouseEvent) => {
@@ -247,7 +231,7 @@ export default function WeeklyView() {
 
                 <div
                   className="relative col-span-9 grid grid-cols-9"
-                  onMouseLeave={() => setDetailedHour(null)}
+                  onMouseLeave={() => setContextMenuTime(null)}
                   onMouseMove={handleMouseMove}
                   ref={hoursColumnRef}
                 >
@@ -270,13 +254,7 @@ export default function WeeklyView() {
                       gridTemplateColumns: colWidth.map((w) => `${w}fr`).join(' '),
                     }}
                   >
-                    {detailedHour && (
-                      <CalendarTimeline
-                        detailedHour={detailedHour}
-                        position={timelinePosition}
-                        variant="week"
-                      />
-                    )}
+                    <CalendarTimeline variant="week" currentDate={date} />
                     {Array.from({ length: 7 }, (_, dayIndex) => {
                       const dayEvents = getEventsForDay(dayIndex);
                       return (
@@ -285,7 +263,7 @@ export default function WeeklyView() {
                           dayEvents={dayEvents}
                           dayIndex={dayIndex}
                           daysOfWeek={daysOfWeek}
-                          detailedHour={detailedHour}
+                          detailedHour={null}
                           key={`day-${dayIndex}`}
                           onAddEvent={handleAddEventWeek}
                           onAskAI={toggleChatSidebar}
@@ -324,7 +302,7 @@ export default function WeeklyView() {
 
               <div
                 className="relative col-span-9 grid grid-cols-9"
-                onMouseLeave={() => setDetailedHour(null)}
+                onMouseLeave={() => setContextMenuTime(null)}
                 onMouseMove={handleMouseMove}
                 ref={hoursColumnRef}
               >
@@ -347,13 +325,7 @@ export default function WeeklyView() {
                     gridTemplateColumns: colWidth.map((w) => `${w}fr`).join(' '),
                   }}
                 >
-                  {detailedHour && (
-                    <CalendarTimeline
-                      detailedHour={detailedHour}
-                      position={timelinePosition}
-                      variant="week"
-                    />
-                  )}
+                  <CalendarTimeline variant="week" currentDate={date} />
                   {Array.from({ length: 7 }, (_, dayIndex) => {
                     const dayEvents = getEventsForDay(dayIndex);
                     return (
@@ -362,7 +334,7 @@ export default function WeeklyView() {
                         dayEvents={dayEvents}
                         dayIndex={dayIndex}
                         daysOfWeek={daysOfWeek}
-                        detailedHour={detailedHour}
+                        detailedHour={null}
                         key={`day-${dayIndex}`}
                         onAddEvent={handleAddEventWeek}
                         onAskAI={toggleChatSidebar}
