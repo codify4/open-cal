@@ -6,6 +6,7 @@ import { getCardColor } from '@/lib/calendar-utils/calendar-color-utils';
 import { cn } from '@/lib/utils';
 import { useChatStore } from '@/providers/chat-store-provider';
 import { convertEventToReference } from '@/lib/store/chat-store';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { GraphicDoodle } from './graphics';
 import { EventCardContent } from './components/event-card-content';
 import { EventCardResizeHandles } from './components/event-card-resize-handles';
@@ -29,6 +30,7 @@ export const EventCard = ({
   const [isClient, setIsClient] = useState(false);
   const { fetchedCalendars } = useCalendarManagement();
   const addEventReference = useChatStore((state) => state.addEventReference);
+  const isMobile = useIsMobile();
 
   const {
     attributes,
@@ -60,8 +62,10 @@ export const EventCard = ({
 
   const handleCardTap = (e: React.MouseEvent | React.TouchEvent) => {
     if (!isLongPress) {
-      handleCardClick(e as React.MouseEvent, event.id);
-      handleEdit(e as React.MouseEvent, event);
+      if (isMobile) {
+        handleCardClick(e as React.MouseEvent, event.id);
+        handleEdit(e as React.MouseEvent, event);
+      }
     }
   };
 
@@ -74,6 +78,7 @@ export const EventCard = ({
 
   const cardStyle = {
     height: minimized ? undefined : `${calculatedHeight}px`,
+    userSelect: isDragging ? 'none' as const : 'auto' as const,
   };
 
   return (
@@ -95,6 +100,7 @@ export const EventCard = ({
           isFocused ? 'opacity-100' : 'opacity-80',
           isLongPress && 'cursor-grabbing',
           !isLongPress && 'cursor-pointer',
+          isDragging && 'select-none',
           className
         )}
         onClick={handleCardTap}
