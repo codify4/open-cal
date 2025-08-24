@@ -81,6 +81,8 @@ function BackgroundCalendarFetcher({ children }: { children: ReactNode }) {
     try {
       const allCalendars: GoogleCalendar[] = [];
 
+      if (!sessions) return;
+
       for (const session of sessions) {
         if (!session.user?.primaryEmailAddress?.emailAddress) continue;
 

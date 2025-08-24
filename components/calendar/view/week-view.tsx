@@ -254,7 +254,9 @@ export default function WeeklyView() {
                   <div className="col-span-1 border-border border-r bg-card">
                     {hours.map((hour, index) => (
                       <div
-                        className="flex h-[64px] cursor-pointer items-start justify-center border-border border-b px-3 py-2 text-left text-muted-foreground text-xs"
+                        className={`flex h-[64px] cursor-pointer items-start justify-center border-border px-3 py-2 text-left text-muted-foreground text-xs ${
+                          index < hours.length - 1 ? 'border-b' : ''
+                        }`}
                         key={`hour-${index}`}
                       >
                         {hour}
@@ -329,7 +331,9 @@ export default function WeeklyView() {
                 <div className="col-span-1 border-border border-r bg-card">
                   {hours.map((hour, index) => (
                     <div
-                      className="flex h-[64px] cursor-pointer items-start justify-center border-border border-b px-3 py-2 text-left text-muted-foreground text-xs"
+                      className={`flex h-[64px] cursor-pointer items-start justify-center border-border px-3 py-2 text-left text-muted-foreground text-xs ${
+                        index < hours.length - 1 ? 'border-b' : ''
+                      }`}
                       key={`hour-${index}`}
                     >
                       {hour}

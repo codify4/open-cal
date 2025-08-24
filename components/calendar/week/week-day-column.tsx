@@ -91,7 +91,9 @@ export const WeekDayColumn = ({
     <ContextMenu key={`day-${dayIndex}`}>
       <ContextMenuTrigger asChild>
         <div
-          className="relative z-20 col-span-1 overflow-hidden border-border border-r border-b text-center text-muted-foreground text-sm"
+          className={`relative z-20 col-span-1 overflow-hidden border-none text-center text-muted-foreground text-sm ${
+            dayIndex < 6 ? 'border-r' : ''
+          }`}
           onClick={handleColumnClick}
           onContextMenu={onContextMenuOpen}
           onDragOver={handleDragOver}

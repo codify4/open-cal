@@ -210,7 +210,7 @@ export default function CalendarView({
   };
 
   return (
-    <div className="flex w-full flex-col gap-6 p-2">
+    <div className="flex w-full flex-col">
       <div className="flex w-full">
         <div className="relative w-full">
           <Tabs
@@ -218,7 +218,7 @@ export default function CalendarView({
             onValueChange={handleViewChange}
             value={viewType}
           >
-            <div className="sticky top-0 z-50 flex items-center justify-between border-border border-b backdrop-blur">
+            <div className="sticky top-0 z-50 flex items-center justify-between border-border border-b backdrop-blur pt-2 px-2">
               <div className="flex w-full items-center justify-between gap-4 pb-2">
                 <div className="flex items-center gap-2">
                   <div className="mr-2 flex items-center gap-2">

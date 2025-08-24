@@ -29,7 +29,7 @@ function CalendarPage() {
     <div className="h-full">
       <CalendarView />
 
-      {!isChatSidebarOpen && (
+      {/* {!isChatSidebarOpen && (
         <Button
           className="fixed right-4 bottom-4 z-50 h-10 w-10 rounded-full border bg-black text-white hover:bg-black dark:border-none dark:shadow-lg"
           onClick={toggleChatSidebar}
@@ -43,7 +43,7 @@ function CalendarPage() {
             width={40}
           />
         </Button>
-      )}
+      )} */}
     </div>
   );
 }
