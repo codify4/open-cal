@@ -1,24 +1,20 @@
 'use client';
 
 import { SignedOut, useSession, useSessionList, useUser } from '@clerk/nextjs';
-import { useQuery } from 'convex/react';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
   ArrowLeft,
   ArrowRight,
   CalendarDaysIcon,
   RefreshCw,
-  ChevronDown,
   Plus,
 } from 'lucide-react';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, memo } from 'react';
 import { BsCalendarMonth, BsCalendarWeek } from 'react-icons/bs';
-import { getAccessToken } from '@/actions/access-token';
 import { Button } from '@/components/ui/button';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { api } from '@/convex/_generated/api';
 import { useGoogleCalendarRefresh } from '@/hooks/use-google-calendar-refresh';
 import { cn } from '@/lib/utils';
 import { useCalendarStore } from '@/providers/calendar-store-provider';
@@ -35,7 +31,7 @@ const animationConfig = {
   transition: { duration: 0.3, type: 'spring', stiffness: 250 },
 };
 
-export default function CalendarView({
+const CalendarView = memo(function CalendarView({
   views = {
     views: ['day', 'week', 'month'],
     mobileViews: ['day', 'week', 'month'],
@@ -525,13 +521,15 @@ export default function CalendarView({
                     <MonthView />
                   ) : (
                     <div className="flex items-center justify-center p-8 text-muted-foreground">
-                      <div className="mb-2 font-semibold text-lg">
-                        No Calendar Connected
+                      <div className="max-w-md text-center">
+                        <div className="mb-2 font-semibold text-lg">
+                          No Calendar Connected
+                        </div>
+                        <p className="mb-4 text-muted-foreground text-sm">
+                          Connect your Google Calendar accounts to view and
+                          manage your events.
+                        </p>
                       </div>
-                      <p className="mb-4 text-muted-foreground text-sm">
-                        Connect your Google Calendar accounts to view and
-                        manage your events.
-                      </p>
                     </div>
                   )}
                 </motion.div>
@@ -575,4 +573,6 @@ export default function CalendarView({
       </SignedOut>
     </div>
   );
-}
+});
+
+export default CalendarView;

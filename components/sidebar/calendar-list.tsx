@@ -2,7 +2,7 @@
 
 import { useSession } from '@clerk/nextjs';
 import { ChevronDown, ChevronRight } from 'lucide-react';
-import React, { useMemo, useState, useCallback } from 'react';
+import React, { useMemo, useState, useCallback, memo } from 'react';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
   Collapsible,
@@ -29,7 +29,7 @@ interface CalendarListProps {
   onCalendarCreated: () => void;
 }
 
-export function CalendarList({
+export const CalendarList = memo(function CalendarList({
   calendars,
   visibleCalendars,
   colorOptions,
@@ -171,13 +171,6 @@ export function CalendarList({
                       calendar.backgroundColor || 
                       colorOptions.find(opt => opt.id === calendar.colorId)?.background || 
                       '#3b82f6';
-                    
-                    console.log(`Calendar ${calendar.summary || calendar.name}:`, {
-                      colorId: calendar.colorId,
-                      backgroundColor: calendar.backgroundColor,
-                      foundColor: colorOptions.find(opt => opt.id === calendar.colorId)?.background,
-                      finalColor: calendarColor
-                    });
 
                     return (
                       <SidebarMenuItem key={calendar.id}>
@@ -220,4 +213,4 @@ export function CalendarList({
       )}
     </div>
   );
-}
+});

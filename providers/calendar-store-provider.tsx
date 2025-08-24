@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, type ReactNode, useContext, useRef, useEffect, useState, useCallback } from 'react';
+import { createContext, type ReactNode, useContext, useRef, useEffect, useState, useCallback, useMemo, memo } from 'react';
 import { useStore } from 'zustand';
 import { useAuth, useSessionList } from '@clerk/nextjs';
 import { getAccessToken, getAccessTokenForSession } from '@/actions/access-token';
@@ -24,13 +24,14 @@ export interface CalendarStoreProviderProps {
   children: ReactNode;
 }
 
-function BackgroundCalendarFetcher({ children }: { children: ReactNode }) {
+const BackgroundCalendarFetcher = memo(({ children }: { children: ReactNode }) => {
   const { userId } = useAuth();
   const { sessions } = useSessionList();
   const { setSessionCalendars, setVisibleCalendarIds, visibleCalendarIds, setFetchingCalendars } = useCalendarStore((state) => state);
   const [isFetching, setIsFetching] = useState(false);
+  const hasFetchedRef = useRef(false);
 
-  const fetchCalendarsForSession = async (session: any, sessionAccessToken: string) => {
+  const fetchCalendarsForSession = useCallback(async (session: any, sessionAccessToken: string) => {
     try {
       const response = await fetch(
         'https://www.googleapis.com/calendar/v3/users/me/calendarList',
@@ -72,9 +73,11 @@ function BackgroundCalendarFetcher({ children }: { children: ReactNode }) {
       );
       return [];
     }
-  };
+  }, []);
 
-  const fetchAllCalendars = async () => {
+  const fetchAllCalendars = useCallback(async () => {
+    if (isFetching || hasFetchedRef.current) return;
+    
     setIsFetching(true);
     setFetchingCalendars(true);
     
@@ -114,29 +117,49 @@ function BackgroundCalendarFetcher({ children }: { children: ReactNode }) {
         const calendarIds = allCalendars.map((cal) => cal.id);
         setVisibleCalendarIds(calendarIds);
       }
+      
+      hasFetchedRef.current = true;
     } finally {
       setIsFetching(false);
       setFetchingCalendars(false);
     }
-  };
+  }, [sessions, fetchCalendarsForSession, setSessionCalendars, setVisibleCalendarIds, visibleCalendarIds.length, setFetchingCalendars, isFetching]);
 
   const refreshCalendars = useCallback(async () => {
     if (userId && sessions && sessions.length > 0) {
+      hasFetchedRef.current = false;
       await fetchAllCalendars();
     }
-  }, [userId, sessions, setSessionCalendars, setVisibleCalendarIds, visibleCalendarIds.length, setFetchingCalendars]);
+  }, [userId, sessions, fetchAllCalendars]);
+
+  const sessionsStable = useMemo(() => sessions, [sessions?.length, sessions?.map(s => s.id).join(',')]);
 
   useEffect(() => {
-    if (!userId || !sessions || sessions.length === 0) return;
+    if (!userId || !sessionsStable || sessionsStable.length === 0) return;
     fetchAllCalendars();
-  }, [userId, sessions, setSessionCalendars, setVisibleCalendarIds, visibleCalendarIds.length, setFetchingCalendars]);
+  }, [userId, sessionsStable, fetchAllCalendars]);
+
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden && hasFetchedRef.current) {
+        return;
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, []);
 
   return (
     <CalendarRefreshContext.Provider value={refreshCalendars}>
       {children}
     </CalendarRefreshContext.Provider>
   );
-}
+});
+
+BackgroundCalendarFetcher.displayName = 'BackgroundCalendarFetcher';
 
 export const CalendarStoreProvider = ({
   children,
