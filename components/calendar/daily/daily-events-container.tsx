@@ -6,6 +6,7 @@ import type { Event } from '@/lib/store/calendar-store';
 
 interface DailyEventsContainerProps {
   events: Event[];
+  onResize: (eventId: string, newStartDate: Date, newEndDate: Date) => void;
   onResizeEnd: (eventId: string, newStartDate: Date, newEndDate: Date) => void;
   updateEventTime: (
     eventId: string,
@@ -16,6 +17,7 @@ interface DailyEventsContainerProps {
 
 export const DailyEventsContainer = ({
   events,
+  onResize,
   onResizeEnd,
   updateEventTime,
 }: DailyEventsContainerProps) => {

@@ -97,10 +97,20 @@ export const EventSettings = ({
     return sortedGroups;
   }, [allCalendars, currentSession?.user?.primaryEmailAddress?.emailAddress]);
 
+  const primaryCalendar = React.useMemo(() => {
+    if (!allCalendars.length) return null;
+    return allCalendars.find((cal) => cal.primary) || allCalendars[0];
+  }, [allCalendars]);
+
+  const defaultCalendar = React.useMemo(() => {
+    return calendar || primaryCalendar?.id || '';
+  }, [calendar, primaryCalendar?.id]);
+
   const selectedCalendar = React.useMemo(() => {
-    if (!calendar) return null;
-    return allCalendars.find((cal) => cal.id === calendar) || null;
-  }, [calendar, allCalendars]);
+    const calendarToUse = defaultCalendar;
+    if (!calendarToUse) return null;
+    return allCalendars.find((cal) => cal.id === calendarToUse) || null;
+  }, [defaultCalendar, allCalendars]);
 
   const COLORS = [
     { id: 'red', bg: 'bg-red-500' },
@@ -263,7 +273,7 @@ export const EventSettings = ({
 
       <div className="flex items-center gap-2">
         <Calendar className="h-4 w-4" />
-        <Select onValueChange={onCalendarChange} value={calendar}>
+        <Select onValueChange={onCalendarChange} value={defaultCalendar}>
           <SelectTrigger className="h-8 w-full border-border bg-background text-foreground text-sm hover:bg-accent">
             <SelectValue placeholder="Select calendar">
               {!allCalendars.length ? (
@@ -315,7 +325,7 @@ export const EventSettings = ({
                       >
                         <div className="flex items-center gap-2">
                           <div
-                            className={`h-3 w-3 rounded-xs ${getCalendarColor(cal)}`}
+                            className={`h-3 w-3 rounded-full ${getCalendarColor(cal)}`}
                             style={{ backgroundColor: getCalendarColor(cal) }}
                           />
                           {cal.summary || cal.name}

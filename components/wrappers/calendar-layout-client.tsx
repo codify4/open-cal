@@ -158,7 +158,7 @@ export function CalendarLayoutClient({
           variant="inset"
         />
         <ResizablePanelGroup
-          className="min-h-screen gap-1 bg-neutral-100 md:p-1.5 dark:bg-neutral-950"
+          className="max-h-svh gap-1 bg-neutral-100 md:p-1.5 dark:bg-neutral-950"
           direction="horizontal"
           data-dragging={activeEvent ? "true" : "false"}
         >
@@ -167,7 +167,7 @@ export function CalendarLayoutClient({
             defaultSize={isChatSidebarOpen ? 70 : 100}
             minSize={30}
           >
-            <SidebarInset className="h-screen overflow-hidden border bg-white md:rounded-xl dark:bg-neutral-900">
+            <SidebarInset className="h-full overflow-hidden border bg-white md:rounded-xl dark:bg-neutral-900">
               <div 
                 className="scrollbar-hide h-full overflow-y-auto"
                 data-dragging={activeEvent ? "true" : "false"}

@@ -6,7 +6,7 @@ export const EventCardContent = ({ event, minimized = false }: EventCardContentP
   const timeDisplay = getTimeDisplay(event.startDate, event.endDate);
 
   return (
-    <div className="relative z-10 flex cursor-grab flex-col gap-2 ml-2">
+    <div className="relative z-10 flex cursor-grab flex-col gap-2 ml-2 select-none">
       <div className="flex flex-col items-start justify-between">
         <div className="flex min-w-0 flex-1 items-center gap-1">
           {event.type === 'birthday' ? (

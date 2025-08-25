@@ -1,24 +1,20 @@
 'use client';
 
-import { SignedOut, useSession, useSessionList, useUser } from '@clerk/nextjs';
-import { useQuery } from 'convex/react';
+import { SignedOut } from '@clerk/nextjs';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
   ArrowLeft,
   ArrowRight,
   CalendarDaysIcon,
   RefreshCw,
-  ChevronDown,
   Plus,
 } from 'lucide-react';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, memo } from 'react';
 import { BsCalendarMonth, BsCalendarWeek } from 'react-icons/bs';
-import { getAccessToken } from '@/actions/access-token';
 import { Button } from '@/components/ui/button';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { api } from '@/convex/_generated/api';
 import { useGoogleCalendarRefresh } from '@/hooks/use-google-calendar-refresh';
 import { cn } from '@/lib/utils';
 import { useCalendarStore } from '@/providers/calendar-store-provider';
@@ -35,7 +31,7 @@ const animationConfig = {
   transition: { duration: 0.3, type: 'spring', stiffness: 250 },
 };
 
-export default function CalendarView({
+const CalendarView = memo(function CalendarView({
   views = {
     views: ['day', 'week', 'month'],
     mobileViews: ['day', 'week', 'month'],
@@ -66,35 +62,21 @@ export default function CalendarView({
     openEventSidebarForNewEvent,
   } = useCalendarStore((state) => state);
 
-  const { user } = useUser();
-  const { sessions } = useSessionList();
-  const { session: currentSession } = useSession();
   const { refreshEvents: refreshGoogleEvents } = useGoogleCalendarRefresh();
-  const [hasAnyConnectedAccount, setHasAnyConnectedAccount] = useState(false);
+  const { sessionCalendars, visibleCalendarIds, isFetchingCalendars } = useCalendarStore((state) => state);
+  
+  const hasAnyConnectedAccount = Object.keys(sessionCalendars).length > 0 && visibleCalendarIds.length > 0;
+  const isLoadingCalendars = isFetchingCalendars;
 
   useEffect(() => {
     setClientSide(true);
   }, []);
 
   useEffect(() => {
-    const checkConnectedAccounts = async () => {
-      // Check if current session has a connected Google Calendar
-      if (currentSession?.user?.primaryEmailAddress?.emailAddress) {
-        const token = await getAccessToken();
-        if (token) {
-          setRefreshFunction(refreshGoogleEvents);
-          setHasAnyConnectedAccount(true);
-          return;
-        }
-      }
-
-      // Check if any other session has connected calendars
-      const hasConnectedSessions = Boolean(sessions && sessions.length > 0);
-      setHasAnyConnectedAccount(hasConnectedSessions);
-    };
-
-    checkConnectedAccounts();
-  }, [setRefreshFunction, refreshGoogleEvents, currentSession, sessions]);
+    if (hasAnyConnectedAccount) {
+      setRefreshFunction(refreshGoogleEvents);
+    }
+  }, [setRefreshFunction, refreshGoogleEvents, hasAnyConnectedAccount]);
 
   const [isMobile, setIsMobile] = useState(
     clientSide ? window.innerWidth <= 768 : false
@@ -221,7 +203,7 @@ export default function CalendarView({
   };
 
   return (
-    <div className="flex w-full flex-col gap-6 p-2">
+    <div className="flex w-full flex-col">
       <div className="flex w-full">
         <div className="relative w-full">
           <Tabs
@@ -229,15 +211,17 @@ export default function CalendarView({
             onValueChange={handleViewChange}
             value={viewType}
           >
-            <div className="sticky top-0 z-50 flex items-center justify-between border-border border-b backdrop-blur">
+            <div className="sticky top-0 z-50 flex items-center justify-between border-border border-b backdrop-blur pt-2 px-2">
               <div className="flex w-full items-center justify-between gap-4 pb-2">
                 <div className="flex items-center gap-2">
                   <div className="mr-2 flex items-center gap-2">
                     <SidebarTrigger
-                      disabled={!hasAnyConnectedAccount}
+                      disabled={!hasAnyConnectedAccount || isLoadingCalendars}
                       title={
-                        hasAnyConnectedAccount
+                        hasAnyConnectedAccount && !isLoadingCalendars
                           ? undefined
+                          : isLoadingCalendars
+                          ? 'Loading calendars...'
                           : 'Connect Google Calendar to access sidebar'
                       }
                     />
@@ -249,12 +233,14 @@ export default function CalendarView({
                   <div className="flex gap-1 sm:gap-2">
                     <Button
                       className={cn(classNames?.buttons?.prev, "h-7 w-7 p-0 sm:h-8 sm:w-auto sm:px-3")}
-                      disabled={!hasAnyConnectedAccount}
+                      disabled={!hasAnyConnectedAccount || isLoadingCalendars}
                       onClick={handlePrev}
                       size="sm"
                       title={
-                        hasAnyConnectedAccount
+                        hasAnyConnectedAccount && !isLoadingCalendars
                           ? undefined
+                          : isLoadingCalendars
+                          ? 'Loading calendars...'
                           : 'Connect Google Calendar to navigate calendar'
                       }
                       variant="outline"
@@ -263,12 +249,14 @@ export default function CalendarView({
                     </Button>
                     <Button
                       className={cn(classNames?.buttons?.next, "h-7 w-7 p-0 sm:h-8 sm:w-auto sm:px-3")}
-                      disabled={!hasAnyConnectedAccount}
+                      disabled={!hasAnyConnectedAccount || isLoadingCalendars}
                       onClick={handleNext}
                       size="sm"
                       title={
-                        hasAnyConnectedAccount
+                        hasAnyConnectedAccount && !isLoadingCalendars
                           ? undefined
+                          : isLoadingCalendars
+                          ? 'Loading calendars...'
                           : 'Connect Google Calendar to navigate calendar'
                       }
                       variant="outline"
@@ -280,11 +268,13 @@ export default function CalendarView({
                 <div className="flex items-center gap-2">
                   <Button
                     className="hidden h-8 rounded-sm bg-muted px-3 text-sm sm:flex"
-                    disabled={isFetchingEvents || !hasAnyConnectedAccount}
+                    disabled={isFetchingEvents || !hasAnyConnectedAccount || isLoadingCalendars}
                     onClick={refreshEvents}
                     title={
-                      hasAnyConnectedAccount
+                      hasAnyConnectedAccount && !isLoadingCalendars
                         ? undefined
+                        : isLoadingCalendars
+                        ? 'Loading calendars...'
                         : 'Connect Google Calendar to refresh events'
                     }
                     variant="outline"
@@ -298,11 +288,13 @@ export default function CalendarView({
                   </Button>
                   <Button
                     className="hidden h-8 w-20 rounded-sm bg-muted text-sm sm:flex"
-                    disabled={!hasAnyConnectedAccount}
+                    disabled={!hasAnyConnectedAccount || isLoadingCalendars}
                     onClick={handleGoToToday}
                     title={
-                      hasAnyConnectedAccount
+                      hasAnyConnectedAccount && !isLoadingCalendars
                         ? undefined
+                        : isLoadingCalendars
+                        ? 'Loading calendars...'
                         : 'Connect Google Calendar to navigate calendar'
                     }
                     variant="outline"
@@ -311,11 +303,13 @@ export default function CalendarView({
                   </Button>
                   <Button
                     className="flex h-7 w-7 rounded-sm bg-muted text-sm sm:hidden"
-                    disabled={!hasAnyConnectedAccount}
+                    disabled={!hasAnyConnectedAccount || isLoadingCalendars}
                     onClick={handleGoToToday}
                     title={
-                      hasAnyConnectedAccount
+                      hasAnyConnectedAccount && !isLoadingCalendars
                         ? undefined
+                        : isLoadingCalendars
+                        ? 'Loading calendars...'
                         : 'Connect Google Calendar to navigate calendar'
                     }
                     variant="outline"
@@ -324,11 +318,13 @@ export default function CalendarView({
                   </Button>
                   <Button
                     className="flex h-7 w-7 rounded-sm bg-muted text-xs sm:hidden"
-                    disabled={isFetchingEvents || !hasAnyConnectedAccount}
+                    disabled={isFetchingEvents || !hasAnyConnectedAccount || isLoadingCalendars}
                     onClick={refreshEvents}
                     title={
-                      hasAnyConnectedAccount
+                      hasAnyConnectedAccount && !isLoadingCalendars
                         ? undefined
+                        : isLoadingCalendars
+                        ? 'Loading calendars...'
                         : 'Connect Google Calendar to refresh events'
                     }
                     variant="outline"
@@ -339,7 +335,7 @@ export default function CalendarView({
                   </Button>
                   {isMobile ? (
                     <Select onValueChange={handleViewChange} value={viewType}>
-                      <SelectTrigger className="h-6 px-2 py-0 text-sm">
+                      <SelectTrigger className="h-6 px-2 py-0 text-sm" disabled={isLoadingCalendars}>
                         <SelectValue>
                           {viewType === 'day' && (
                             <div className="flex items-center space-x-1">
@@ -385,10 +381,12 @@ export default function CalendarView({
                   ) : (
                     <TabsList className="grid grid-cols-3">
                       <TabsTrigger
-                        disabled={!hasAnyConnectedAccount}
+                        disabled={!hasAnyConnectedAccount || isLoadingCalendars}
                         title={
-                          hasAnyConnectedAccount
+                          hasAnyConnectedAccount && !isLoadingCalendars
                             ? undefined
+                            : isLoadingCalendars
+                            ? 'Loading calendars...'
                             : 'Connect Google Calendar to view calendar'
                         }
                         value="day"
@@ -399,10 +397,12 @@ export default function CalendarView({
                         </div>
                       </TabsTrigger>
                       <TabsTrigger
-                        disabled={!hasAnyConnectedAccount}
+                        disabled={!hasAnyConnectedAccount || isLoadingCalendars}
                         title={
-                          hasAnyConnectedAccount
+                          hasAnyConnectedAccount && !isLoadingCalendars
                             ? undefined
+                            : isLoadingCalendars
+                            ? 'Loading calendars...'
                             : 'Connect Google Calendar to view calendar'
                         }
                         value="week"
@@ -414,10 +414,12 @@ export default function CalendarView({
                       </TabsTrigger>
 
                       <TabsTrigger
-                        disabled={!hasAnyConnectedAccount}
+                        disabled={!hasAnyConnectedAccount || isLoadingCalendars}
                         title={
-                          hasAnyConnectedAccount
+                          hasAnyConnectedAccount && !isLoadingCalendars
                             ? undefined
+                            : isLoadingCalendars
+                            ? 'Loading calendars...'
                             : 'Connect Google Calendar to view calendar'
                         }
                         value="month"
@@ -435,21 +437,7 @@ export default function CalendarView({
             <TabsContent value="day">
               <AnimatePresence mode="wait">
                 <motion.div {...animationConfig}>
-                  {hasAnyConnectedAccount ? (
-                    <DailyView />
-                  ) : (
-                    <div className="flex items-center justify-center p-8 text-muted-foreground">
-                      <div className="max-w-md text-center">
-                        <h3 className="mb-2 font-semibold text-lg">
-                          No Calendar Connected
-                        </h3>
-                        <p className="mb-4 text-muted-foreground text-sm">
-                          Connect your Google Calendar accounts to view and
-                          manage your events.
-                        </p>
-                      </div>
-                    </div>
-                  )}
+                  <DailyView />
                 </motion.div>
               </AnimatePresence>
             </TabsContent>
@@ -457,21 +445,7 @@ export default function CalendarView({
             <TabsContent value="week">
               <AnimatePresence mode="wait">
                 <motion.div {...animationConfig}>
-                  {hasAnyConnectedAccount ? (
-                    <WeeklyView />
-                  ) : (
-                    <div className="flex items-center justify-center p-8 text-muted-foreground">
-                      <div className="max-w-md text-center">
-                        <h3 className="mb-2 font-semibold text-lg">
-                          No Calendar Connected
-                        </h3>
-                        <p className="mb-4 text-muted-foreground text-sm">
-                          Connect your Google Calendar accounts to view and
-                          manage your events.
-                        </p>
-                      </div>
-                    </div>
-                  )}
+                  <WeeklyView />
                 </motion.div>
               </AnimatePresence>
             </TabsContent>
@@ -479,21 +453,7 @@ export default function CalendarView({
             <TabsContent value="month">
               <AnimatePresence mode="wait">
                 <motion.div {...animationConfig}>
-                  {hasAnyConnectedAccount ? (
-                    <MonthView />
-                  ) : (
-                    <div className="flex items-center justify-center p-8 text-muted-foreground">
-                      <div className="max-w-md text-center">
-                        <h3 className="mb-2 font-semibold text-lg">
-                          No Calendar Connected
-                        </h3>
-                        <p className="mb-4 text-muted-foreground text-sm">
-                          Connect your Google Calendar accounts to view and
-                          manage your events.
-                        </p>
-                      </div>
-                    </div>
-                  )}
+                  <MonthView />
                 </motion.div>
               </AnimatePresence>
             </TabsContent>
@@ -505,6 +465,7 @@ export default function CalendarView({
         <div className="fixed bottom-16 right-4 z-50">
           <Button
             className="rounded-full shadow-2xl bg-primary hover:bg-primary/90 text-primary-foreground h-10 w-10"
+            disabled={isLoadingCalendars}
             onClick={() => {
               const now = new Date();
               openEventSidebarForNewEvent(now);
@@ -534,4 +495,6 @@ export default function CalendarView({
       </SignedOut>
     </div>
   );
-}
+});
+
+export default CalendarView;

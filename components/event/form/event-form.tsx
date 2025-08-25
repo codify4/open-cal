@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import type { Event } from '@/lib/store/calendar-store';
+import { useCalendarStore } from '@/providers/calendar-store-provider';
 import { EventAttendees } from './event-attendees';
 import { EventAvailability } from './event-availability';
 import { EventBasicInfo } from './event-basic-info';
@@ -26,6 +27,9 @@ export const EventForm = ({
   isGeneratingMeeting,
 }: EventFormProps) => {
   type RepeatType = 'none' | 'daily' | 'weekly' | 'monthly' | 'yearly';
+
+  const sessionCalendars = useCalendarStore((state) => state.sessionCalendars);
+  const hasSetDefaultCalendar = useRef(false);
 
   const formatTimeFromDate = (date: Date | string | undefined) => {
     if (!date) return '09:00';
@@ -93,8 +97,25 @@ export const EventForm = ({
         meetingCode: event.meetCode || '',
       };
       setEventData(newEventData);
+      hasSetDefaultCalendar.current = false;
+    } else if (!hasSetDefaultCalendar.current && Object.keys(sessionCalendars).length > 0) {
+      // Set default calendar for new events only once
+      const allCalendars: any[] = [];
+      Object.values(sessionCalendars).forEach((sessionCals) => {
+        if (Array.isArray(sessionCals)) {
+          allCalendars.push(...sessionCals);
+        }
+      });
+      
+      const primaryCalendar = allCalendars.find((cal) => cal.primary) || allCalendars[0];
+      const defaultCalendar = primaryCalendar?.id || '';
+      
+      if (defaultCalendar) {
+        setEventData(prev => ({ ...prev, calendar: defaultCalendar }));
+        hasSetDefaultCalendar.current = true;
+      }
     }
-  }, [event]);
+  }, [event, sessionCalendars]);
 
   // Auto-save functionality
   const updateEventData = (updates: Partial<typeof eventData>) => {

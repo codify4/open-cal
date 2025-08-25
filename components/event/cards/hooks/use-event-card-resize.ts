@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import type { RefObject } from 'react';
 import type { Event } from '@/lib/store/calendar-store';
 import type { ResizeHandlers } from '../types/event-card-types';
@@ -12,6 +12,7 @@ export const useEventCardResize = (event: Event, handlers: ResizeHandlers) => {
   const [originalEndDate, setOriginalEndDate] = useState<Date | null>(null);
   const [initialHeight, setInitialHeight] = useState(0);
   const [initialWidth, setInitialWidth] = useState(0);
+  const currentCardRef = useRef<HTMLDivElement | null>(null);
 
   const ensureDate = (date: Date | string): Date => {
     return typeof date === 'string' ? new Date(date) : date;
@@ -24,6 +25,7 @@ export const useEventCardResize = (event: Event, handlers: ResizeHandlers) => {
     setIsResizing(true);
     setResizeType('vertical');
     setResizeStartY(e.clientY);
+    currentCardRef.current = cardRef.current;
 
     const startDate = ensureDate(event.startDate);
     const endDate = ensureDate(event.endDate);
@@ -45,6 +47,7 @@ export const useEventCardResize = (event: Event, handlers: ResizeHandlers) => {
     setIsResizing(true);
     setResizeType('horizontal');
     setResizeStartX(e.clientX);
+    currentCardRef.current = cardRef.current;
 
     if (cardRef.current) {
       setInitialWidth(cardRef.current.offsetWidth);
@@ -54,13 +57,15 @@ export const useEventCardResize = (event: Event, handlers: ResizeHandlers) => {
     document.body.style.cursor = 'ew-resize';
   };
 
-  const handleResizeMove = (e: MouseEvent, cardRef: RefObject<HTMLDivElement | null>) => {
-    if (!(isResizing && cardRef.current)) return;
+  const handleResizeMove = (e: MouseEvent) => {
+    if (!isResizing || !currentCardRef.current) {
+      return;
+    }
 
     if (resizeType === 'vertical' && originalStartDate) {
       const deltaY = e.clientY - resizeStartY;
       const newHeight = Math.max(40, initialHeight + deltaY);
-      cardRef.current.style.height = `${newHeight}px`;
+      currentCardRef.current.style.height = `${newHeight}px`;
 
       const pixelsPerHour = 64;
       const hoursChanged = newHeight / pixelsPerHour;
@@ -86,7 +91,7 @@ export const useEventCardResize = (event: Event, handlers: ResizeHandlers) => {
     } else if (resizeType === 'horizontal') {
       const deltaX = e.clientX - resizeStartX;
       const newWidth = Math.max(120, initialWidth + deltaX);
-      cardRef.current.style.width = `${newWidth}px`;
+      currentCardRef.current.style.width = `${newWidth}px`;
 
       if (handlers.onWidthResize) {
         handlers.onWidthResize(event.id, newWidth);
@@ -94,16 +99,16 @@ export const useEventCardResize = (event: Event, handlers: ResizeHandlers) => {
     }
   };
 
-  const handleResizeEnd = (e: MouseEvent, cardRef: RefObject<HTMLDivElement | null>) => {
+  const handleResizeEnd = (e: MouseEvent) => {
     e.preventDefault();
 
     if (
       resizeType === 'vertical' &&
       originalStartDate &&
       handlers.onResizeEnd &&
-      cardRef.current
+      currentCardRef.current
     ) {
-      const newHeight = cardRef.current.offsetHeight;
+      const newHeight = currentCardRef.current.offsetHeight;
       const pixelsPerHour = 64;
       const hoursChanged = newHeight / pixelsPerHour;
       const millisecondsChanged = hoursChanged * 60 * 60 * 1000;
@@ -134,6 +139,7 @@ export const useEventCardResize = (event: Event, handlers: ResizeHandlers) => {
     setOriginalEndDate(null);
     setInitialHeight(0);
     setInitialWidth(0);
+    currentCardRef.current = null;
 
     document.body.style.cursor = '';
     document.body.style.userSelect = '';
@@ -141,8 +147,8 @@ export const useEventCardResize = (event: Event, handlers: ResizeHandlers) => {
 
   useEffect(() => {
     if (isResizing) {
-      const handleMouseMove = (e: MouseEvent) => handleResizeMove(e, { current: null });
-      const handleMouseUp = (e: MouseEvent) => handleResizeEnd(e, { current: null });
+      const handleMouseMove = (e: MouseEvent) => handleResizeMove(e);
+      const handleMouseUp = (e: MouseEvent) => handleResizeEnd(e);
 
       document.addEventListener('mousemove', handleMouseMove, { passive: false });
       document.addEventListener('mouseup', handleMouseUp, { passive: false });
@@ -152,7 +158,7 @@ export const useEventCardResize = (event: Event, handlers: ResizeHandlers) => {
         document.removeEventListener('mouseup', handleMouseUp);
       };
     }
-  }, [isResizing, resizeType, resizeStartY, resizeStartX, originalStartDate, originalEndDate, initialHeight, initialWidth]);
+  }, [isResizing, resizeType, resizeStartY, resizeStartX, originalStartDate, originalEndDate, initialHeight, initialWidth, handlers.onResize, handlers.onResizeEnd, handlers.onWidthResize, event.id]);
 
   return {
     isResizing,
