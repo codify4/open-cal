@@ -128,6 +128,38 @@ export function useCalendarManagement() {
     }
   }, [refreshCalendars]);
 
+  const createCalendarForAccount = useCallback(async (formData: { summary: string; description: string; timeZone: string; colorId: string }, targetAccount?: string) => {
+    try {
+      const token = await getAccessToken();
+      if (token) {
+        const response = await fetch(
+          'https://www.googleapis.com/calendar/v3/calendars',
+          {
+            method: 'POST',
+            headers: {
+              Authorization: `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              summary: formData.summary,
+              description: formData.description,
+              timeZone: formData.timeZone,
+            }),
+          }
+        );
+
+        if (response.ok) {
+          await refreshCalendars();
+          return { success: true };
+        }
+      }
+      return { success: false };
+    } catch (error) {
+      console.error('Failed to create calendar:', error);
+      return { success: false };
+    }
+  }, [refreshCalendars]);
+
   return {
     fetchedCalendars: allCalendars,
     isLoadingCalendars: isFetchingCalendars,
@@ -136,6 +168,7 @@ export function useCalendarManagement() {
     handleChangeCalendarColor,
     handleDeleteCalendar,
     handleCalendarToggle,
+    createCalendarForAccount,
     refetchCalendars: refreshCalendars,
   };
 }

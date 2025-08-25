@@ -41,8 +41,7 @@ export default function MonthView() {
   const direction = navigationDirection;
   const weekStartsOn = 'sunday' as 'sunday' | 'monday';
 
-  const date =
-    currentDate instanceof Date ? currentDate : new Date(currentDate);
+  const date = currentDate instanceof Date ? currentDate : new Date(currentDate);
   const daysInMonthArray = getDaysInMonth(date.getMonth(), date.getFullYear());
 
   useEffect(() => {

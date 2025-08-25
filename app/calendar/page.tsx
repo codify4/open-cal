@@ -14,17 +14,6 @@ function CalendarPage() {
     (state) => state
   );
 
-  if (!isLoaded) {
-    return (
-      <div className="grid h-full place-items-center">
-        <div className="flex flex-col items-center gap-3">
-          <div className="h-8 w-8 animate-spin rounded-full border-2 border-neutral-300 border-t-neutral-900 dark:border-neutral-600 dark:border-t-neutral-100" />
-          <div className="text-muted-foreground text-sm">Loading…</div>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="h-full">
       <CalendarView />

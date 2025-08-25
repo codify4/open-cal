@@ -437,32 +437,7 @@ const CalendarView = memo(function CalendarView({
             <TabsContent value="day">
               <AnimatePresence mode="wait">
                 <motion.div {...animationConfig}>
-                  {isLoadingCalendars ? (
-                    <div className="flex items-center justify-center p-8 text-muted-foreground">
-                      <div className="max-w-md text-center">
-                        <h3 className="mb-2 font-semibold text-lg">
-                          Loading Calendars
-                        </h3>
-                        <p className="mb-4 text-muted-foreground text-sm">
-                          Fetching your Google Calendar accounts...
-                        </p>
-                      </div>
-                    </div>
-                  ) : hasAnyConnectedAccount ? (
-                    <DailyView />
-                  ) : (
-                    <div className="flex items-center justify-center p-8 text-muted-foreground">
-                      <div className="max-w-md text-center">
-                        <h3 className="mb-2 font-semibold text-lg">
-                          No Calendar Connected
-                        </h3>
-                        <p className="mb-4 text-muted-foreground text-sm">
-                          Connect your Google Calendar accounts to view and
-                          manage your events.
-                        </p>
-                      </div>
-                    </div>
-                  )}
+                  <DailyView />
                 </motion.div>
               </AnimatePresence>
             </TabsContent>
@@ -470,32 +445,7 @@ const CalendarView = memo(function CalendarView({
             <TabsContent value="week">
               <AnimatePresence mode="wait">
                 <motion.div {...animationConfig}>
-                  {isLoadingCalendars ? (
-                    <div className="flex items-center justify-center p-8 text-muted-foreground">
-                      <div className="max-w-md text-center">
-                        <h3 className="mb-2 font-semibold text-lg">
-                          Loading Calendars
-                        </h3>
-                        <p className="mb-4 text-muted-foreground text-sm">
-                          Fetching your Google Calendar accounts...
-                        </p>
-                      </div>
-                    </div>
-                  ) : hasAnyConnectedAccount ? (
-                    <WeeklyView />
-                  ) : (
-                    <div className="flex items-center justify-center p-8 text-muted-foreground">
-                      <div className="max-w-md text-center">
-                        <h3 className="mb-2 font-semibold text-lg">
-                          No Calendar Connected
-                        </h3>
-                        <p className="mb-4 text-muted-foreground text-sm">
-                          Connect your Google Calendar accounts to view and
-                          manage your events.
-                        </p>
-                      </div>
-                    </div>
-                  )}
+                  <WeeklyView />
                 </motion.div>
               </AnimatePresence>
             </TabsContent>
@@ -503,32 +453,7 @@ const CalendarView = memo(function CalendarView({
             <TabsContent value="month">
               <AnimatePresence mode="wait">
                 <motion.div {...animationConfig}>
-                  {isLoadingCalendars ? (
-                    <div className="flex items-center justify-center p-8 text-muted-foreground">
-                      <div className="max-w-md text-center">
-                        <h3 className="mb-2 font-semibold text-lg">
-                          Loading Calendars
-                        </h3>
-                        <p className="mb-4 text-muted-foreground text-sm">
-                          Fetching your Google Calendar accounts...
-                        </p>
-                      </div>
-                    </div>
-                  ) : hasAnyConnectedAccount ? (
-                    <MonthView />
-                  ) : (
-                    <div className="flex items-center justify-center p-8 text-muted-foreground">
-                      <div className="max-w-md text-center">
-                        <div className="mb-2 font-semibold text-lg">
-                          No Calendar Connected
-                        </div>
-                        <p className="mb-4 text-muted-foreground text-sm">
-                          Connect your Google Calendar accounts to view and
-                          manage your events.
-                        </p>
-                      </div>
-                    </div>
-                  )}
+                  <MonthView />
                 </motion.div>
               </AnimatePresence>
             </TabsContent>

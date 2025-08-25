@@ -72,13 +72,13 @@ export const useGoogleCalendarRefresh = () => {
           }
           
           const response = await fetch(
-            `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(effectiveCalendarId)}/events?timeMin=${timeMin}&timeMax=${timeMax}&singleEvents=true&orderBy=startTime`,
+            `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(effectiveCalendarId)}/events?singleEvents=true&orderBy=startTime`,
             {
               headers: {
                 Authorization: `Bearer ${sessionAccessToken}`,
                 'Content-Type': 'application/json',
               },
-              cache: 'reload',
+              cache: 'no-cache',
             }
           );
 

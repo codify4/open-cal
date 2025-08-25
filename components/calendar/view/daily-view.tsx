@@ -173,7 +173,7 @@ export default function DailyView({
                     <DailyTimeGrid
                       contextMenuTime={contextMenuTime}
                       date={date}
-                      // detailedHour={detailedHour} // This line is removed
+                      detailedHour={null}
                       onAddEvent={handleAddEventDay}
                       onAskAI={toggleChatSidebar}
                       onContextMenuOpen={handleContextMenuOpen}
