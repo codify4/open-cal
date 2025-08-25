@@ -21,8 +21,6 @@ function PrivacyPolicyPage() {
                             <p className="text-muted-foreground text-lg leading-relaxed mb-8">
                                 Caly, an open-source calendar app by Caly, respects your privacy. This Privacy Policy explains how we collect, use, and protect your data.
                             </p>
-<<<<<<< HEAD
-=======
 
                             <section className="mb-12">
                                 <h2 className="text-2xl font-semibold text-white mb-6">1. Information We Collect</h2>
@@ -63,7 +61,6 @@ function PrivacyPolicyPage() {
                                     </li>
                                 </ul>
                             </section>
->>>>>>> 8a7b3164b40070cbbf4cc2ae66afab5970dc7254
 
                             <section className="mb-12">
                                 <h2 className="text-2xl font-semibold text-white mb-6">3. Data Sharing</h2>
@@ -101,72 +98,6 @@ function PrivacyPolicyPage() {
                                 </ul>
                             </section>
 
-<<<<<<< HEAD
-              <section className="mb-12">
-                <h2 className="mb-6 font-semibold text-2xl text-white">
-                  3. Data Sharing
-                </h2>
-                <ul className="space-y-3 text-muted-foreground">
-                  <li className="flex items-start gap-3">
-                    <span className="font-medium text-white">
-                      Third Parties:
-                    </span>
-                    <span>
-                      Google Calendar API (OAuth) for sync, Lemon Squeezy for
-                      payments. Their privacy policies apply.
-                    </span>
-                  </li>
-                  <li className="flex items-start gap-3">
-                    <span className="font-medium text-white">
-                      Open-Source Community:
-                    </span>
-                    <span>
-                      Anonymized usage data may be shared with contributors for
-                      app improvement.
-                    </span>
-                  </li>
-                  <li className="flex items-start gap-3">
-                    <span className="font-medium text-white">No Selling:</span>
-                    <span>
-                      We don't sell or share personal data for advertising.
-                    </span>
-                  </li>
-                </ul>
-              </section>
-
-              <section className="mb-12">
-                <h2 className="mb-6 font-semibold text-2xl text-white">
-                  4. Data Security
-                </h2>
-                <ul className="space-y-3 text-muted-foreground">
-                  <li className="flex items-start gap-3">
-                    <span className="font-medium text-white">Encryption:</span>
-                    <span>
-                      Event data encrypted at rest (Convex DB) and in transit
-                      (HTTPS).
-                    </span>
-                  </li>
-                  <li className="flex items-start gap-3">
-                    <span className="font-medium text-white">
-                      Open-Source Transparency:
-                    </span>
-                    <span>
-                      Code is public on GitHub, audited by the community.
-                    </span>
-                  </li>
-                  <li className="flex items-start gap-3">
-                    <span className="font-medium text-white">
-                      Access Control:
-                    </span>
-                    <span>
-                      Only necessary data accessed by our team, with strict
-                      internal policies.
-                    </span>
-                  </li>
-                </ul>
-              </section>
-=======
->>>>>>> 8a7b3164b40070cbbf4cc2ae66afab5970dc7254
                             <section className="mb-12">
                                 <h2 className="text-2xl font-semibold text-white mb-6">5. Your Rights</h2>
                                 <ul className="space-y-3 text-muted-foreground">

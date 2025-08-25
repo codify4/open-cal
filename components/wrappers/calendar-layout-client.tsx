@@ -9,7 +9,6 @@ import {
 } from '@dnd-kit/core';
 import { useState } from 'react';
 import { ChatSidebar } from '@/components/agent/chat-sidebar';
-import { EventCard } from '@/components/event/cards/event-card';
 import { AppSidebar } from '@/components/sidebar/app-sidebar';
 import {
   ResizableHandle,

@@ -53,8 +53,6 @@ function TermsOfUsePage() {
                                     </li>
                                 </ul>
                             </section>
-<<<<<<< HEAD
-=======
 
                             <section className="mb-12">
                                 <h2 className="text-2xl font-semibold text-white mb-6">3. Subscription</h2>
@@ -116,7 +114,6 @@ function TermsOfUsePage() {
                                     </li>
                                 </ul>
                             </section>
->>>>>>> 8a7b3164b40070cbbf4cc2ae66afab5970dc7254
 
                             <section className="mb-12">
                                 <h2 className="text-2xl font-semibold text-white mb-6">7. Liability</h2>
@@ -139,78 +136,6 @@ function TermsOfUsePage() {
                                 </p>
                             </section>
 
-<<<<<<< HEAD
-              <section className="mb-12">
-                <h2 className="mb-6 font-semibold text-2xl text-white">
-                  5. Data and Privacy
-                </h2>
-                <p className="text-muted-foreground leading-relaxed">
-                  See our{' '}
-                  <Link
-                    className="text-white transition-colors hover:text-muted-foreground"
-                    href="/privacy"
-                  >
-                    Privacy Policy
-                  </Link>{' '}
-                  for data handling details. You own your event data; we don't
-                  claim ownership.
-                </p>
-              </section>
-
-              <section className="mb-12">
-                <h2 className="mb-6 font-semibold text-2xl text-white">
-                  6. Termination
-                </h2>
-                <ul className="space-y-3 text-muted-foreground">
-                  <li className="flex items-start gap-3">
-                    <span className="font-medium text-white">By You:</span>
-                    <span>Delete your account anytime.</span>
-                  </li>
-                  <li className="flex items-start gap-3">
-                    <span className="font-medium text-white">By Us:</span>
-                    <span>
-                      We may suspend/terminate accounts for violating these
-                      terms.
-                    </span>
-                  </li>
-                </ul>
-              </section>
-
-              <section className="mb-12">
-                <h2 className="mb-6 font-semibold text-2xl text-white">
-                  7. Liability
-                </h2>
-                <ul className="space-y-3 text-muted-foreground">
-                  <li className="flex items-start gap-3">
-                    <span className="font-medium text-white">Limitation:</span>
-                    <span>
-                      We're not liable for indirect damages (e.g., data loss,
-                      lost profits).
-                    </span>
-                  </li>
-                  <li className="flex items-start gap-3">
-                    <span className="font-medium text-white">
-                      Open-Source Risks:
-                    </span>
-                    <span>
-                      Use at your own risk; community contributions may affect
-                      functionality.
-                    </span>
-                  </li>
-                </ul>
-              </section>
-
-              <section className="mb-12">
-                <h2 className="mb-6 font-semibold text-2xl text-white">
-                  8. Governing Law
-                </h2>
-                <p className="text-muted-foreground leading-relaxed">
-                  Governed by applicable law. Disputes resolved via appropriate
-                  legal channels.
-                </p>
-              </section>
-=======
->>>>>>> 8a7b3164b40070cbbf4cc2ae66afab5970dc7254
                             <section className="mb-12">
                                 <h2 className="text-2xl font-semibold text-white mb-6">9. Changes</h2>
                                 <p className="text-muted-foreground leading-relaxed">
