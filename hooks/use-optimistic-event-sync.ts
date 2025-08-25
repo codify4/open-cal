@@ -35,28 +35,11 @@ export const useOptimisticEventSync = () => {
 
   const optimisticUpdate = useCallback(
     (eventId: string, newStartDate: Date, newEndDate: Date) => {
-      console.log('OptimisticUpdate called with:', {
-        eventId,
-        newStartDate,
-        newEndDate,
-      });
-      console.log(
-        'Available events:',
-        events.map((e) => ({ id: e.id, title: e.title }))
-      );
-      console.log(
-        'Available googleEvents:',
-        googleEvents.map((e) => ({ id: e.id, title: e.title }))
-      );
-
       const currentEvent = findEvent(eventId);
       if (!currentEvent) {
         console.warn(`Event ${eventId} not found for optimistic update`);
-        console.log('FindEvent returned null for eventId:', eventId);
         return null;
       }
-
-      console.log('Found event for optimistic update:', currentEvent);
 
       const snapshot: OptimisticSnapshot = {
         eventId,

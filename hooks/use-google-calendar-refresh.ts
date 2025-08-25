@@ -102,7 +102,6 @@ export const useGoogleCalendarRefresh = () => {
       const results = await Promise.all(fetchPromises);
       const allEvents = results.flat();
 
-      console.log(`Fetched ${allEvents.length} events total`);
       setGoogleEvents(allEvents);
       hasFetchedRef.current = true;
     } catch (error) {
