@@ -19,8 +19,14 @@ import {
 import { Switch } from '@/components/ui/switch';
 import { plans } from '@/constants/pricing';
 import { ShineBorder } from '../magicui/shine-border';
+import { cn } from '@/lib/utils';
 
-export default function UpgradeDialog() {
+interface UpgradeDialogProps {
+  children?: React.ReactNode;
+  className?: string;
+}
+
+export default function UpgradeDialog({ children, className }: UpgradeDialogProps) {
   const { user } = useUser();
   const router = useRouter();
   const [isYearly, setIsYearly] = useState(false);
@@ -60,14 +66,19 @@ export default function UpgradeDialog() {
   return (
     <Dialog onOpenChange={setIsOpen} open={isOpen}>
       <DialogTrigger asChild>
-        <Button
-          className="h-8 w-full rounded-sm bg-neutral-800 text-left text-white text-xs hover:bg-neutral-700"
-          onClick={() => setIsOpen(true)}
-          type="button"
-        >
-          <Sparkles className="h-3 w-3 text-white" />
-          Get Caly Pro
-        </Button>
+        {children || (
+          <Button
+            className={cn(
+              "h-8 w-full rounded-sm bg-neutral-800 text-left text-white text-xs hover:bg-neutral-700",
+              className
+            )}
+            onClick={() => setIsOpen(true)}
+            type="button"
+          >
+            <Sparkles className="h-3 w-3 text-white" />
+            Get Caly Pro
+          </Button>
+        )}
       </DialogTrigger>
       <DialogContent
         className="max-w-md rounded-xl border bg-card p-0"

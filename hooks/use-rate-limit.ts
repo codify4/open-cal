@@ -15,10 +15,8 @@ export function useRateLimit() {
 
   useEffect(() => {
     if (currentUser?.isPro) {
-      const { messagesLeft: current, isLimited: limited } =
-        getCurrentProRateLimit();
-      setMessagesLeft(current);
-      setIsLimited(limited);
+      setMessagesLeft(999);
+      setIsLimited(false);
     } else {
       const { messagesLeft: current, isLimited: limited } =
         getCurrentRateLimit();
@@ -29,11 +27,7 @@ export function useRateLimit() {
 
   const sendMessage = () => {
     if (currentUser?.isPro) {
-      const { messagesLeft: remaining, isLimited: limited } =
-        updateProRateLimit();
-      setMessagesLeft(remaining);
-      setIsLimited(limited);
-      return { messagesLeft: remaining, isLimited: limited };
+      return { messagesLeft: 999, isLimited: false };
     }
     const { messagesLeft: remaining, isLimited: limited } = updateRateLimit();
     setMessagesLeft(remaining);
@@ -43,10 +37,8 @@ export function useRateLimit() {
 
   const refreshRateLimit = () => {
     if (currentUser?.isPro) {
-      const { messagesLeft: current, isLimited: limited } =
-        getCurrentProRateLimit();
-      setMessagesLeft(current);
-      setIsLimited(limited);
+      setMessagesLeft(999);
+      setIsLimited(false);
       return;
     }
     const { messagesLeft: current, isLimited: limited } = getCurrentRateLimit();
