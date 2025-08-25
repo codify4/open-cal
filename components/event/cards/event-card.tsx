@@ -7,6 +7,7 @@ import { cn } from '@/lib/utils';
 import { useChatStore } from '@/providers/chat-store-provider';
 import { convertEventToReference } from '@/lib/store/chat-store';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useCalendarStore } from '@/providers/calendar-store-provider';
 import { GraphicDoodle } from './graphics';
 import { EventCardContent } from './components/event-card-content';
 import { EventCardResizeHandles } from './components/event-card-resize-handles';
@@ -30,6 +31,7 @@ export const EventCard = ({
   const [isClient, setIsClient] = useState(false);
   const { fetchedCalendars } = useCalendarManagement();
   const addEventReference = useChatStore((state) => state.addEventReference);
+  const toggleChatSidebar = useCalendarStore((state) => state.toggleChatSidebar);
   const isMobile = useIsMobile();
 
   const {
@@ -58,6 +60,7 @@ export const EventCard = ({
   const handleAskAI = (event: any) => {
     const eventReference = convertEventToReference(event);
     addEventReference(eventReference);
+    toggleChatSidebar();
   };
 
   const handleCardTap = (e: React.MouseEvent | React.TouchEvent) => {
