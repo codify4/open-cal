@@ -24,14 +24,14 @@ export function BillingSection() {
   const current = useQuery(api.auth.getCurrentUser, {
     clerkUserId: clerkUser?.id,
   });
-  const subscriptionId = current?.lemonSubscriptionId as string | undefined;
+  const customerId = current?.polarCustomerId as string | undefined;
   const router = useRouter();
 
   async function openPortal() {
     try {
       setLoadingPortal(true);
-      if (!subscriptionId) return;
-      const url = await getCustomerPortalURL(subscriptionId);
+      if (!customerId) return;
+      const url = await getCustomerPortalURL(customerId);
       if (url) window.location.href = url;
     } finally {
       setLoadingPortal(false);
@@ -75,10 +75,8 @@ export function BillingSection() {
                   </h4>
                   {current?.isPro ? (
                     <p className="text-neutral-600 text-xs sm:text-sm dark:text-neutral-400">
-                      {current?.planVariantId ===
-                      Number(
-                        process.env.NEXT_PUBLIC_LEMONSQUEEZY_VARIANT_YEARLY_ID
-                      )
+                      {current?.planProductId ===
+                      process.env.NEXT_PUBLIC_POLAR_PRODUCT_YEARLY_ID
                         ? '$120/year'
                         : '$20/month'}
                     </p>
@@ -155,9 +153,7 @@ export function BillingSection() {
                 onClick={async () => {
                   try {
                     const checkoutUrl = await getCheckoutURL(
-                      Number(
-                        process.env.NEXT_PUBLIC_LEMONSQUEEZY_VARIANT_MONTHLY_ID!
-                      ),
+                      process.env.NEXT_PUBLIC_POLAR_PRODUCT_MONTHLY_ID!,
                       {
                         userId: String(current?._id),
                         email: clerkUser?.primaryEmailAddress

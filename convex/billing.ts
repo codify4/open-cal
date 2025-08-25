@@ -20,7 +20,8 @@ export const markPaid = mutation({
     webhookId: v.string(),
     clerkUserId: v.string(),
     subscriptionId: v.string(),
-    variantId: v.number(),
+    productId: v.string(),
+    customerId: v.string(),
   },
   handler: async (ctx, args) => {
     const already = await ctx.db
@@ -45,8 +46,9 @@ export const markPaid = mutation({
     if (user) {
       await ctx.db.patch(user._id, {
         isPro: true,
-        planVariantId: args.variantId,
-        lemonSubscriptionId: args.subscriptionId,
+        planProductId: args.productId,
+        polarSubscriptionId: args.subscriptionId,
+        polarCustomerId: args.customerId,
         updatedAt: Date.now(),
       });
     }
@@ -67,8 +69,9 @@ export const getUserSubscription = query({
 
     return {
       isPro: user.isPro,
-      planVariantId: user.planVariantId,
-      lemonSubscriptionId: user.lemonSubscriptionId,
+      planProductId: user.planProductId,
+      polarSubscriptionId: user.polarSubscriptionId,
+      polarCustomerId: user.polarCustomerId,
       billingInterval: user.billingInterval,
       renewsAt: user.renewsAt,
       endsAt: user.endsAt,

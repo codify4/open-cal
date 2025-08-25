@@ -31,11 +31,11 @@ export default function UpgradeDialog() {
     }
 
     try {
-      const variantId = isYearly
-        ? Number(process.env.NEXT_PUBLIC_LEMONSQUEEZY_VARIANT_YEARLY_ID!)
-        : Number(process.env.NEXT_PUBLIC_LEMONSQUEEZY_VARIANT_MONTHLY_ID!);
+      const productId = isYearly
+        ? process.env.NEXT_PUBLIC_POLAR_PRODUCT_YEARLY_ID!
+        : process.env.NEXT_PUBLIC_POLAR_PRODUCT_MONTHLY_ID!;
 
-      const checkoutUrl = await getCheckoutURL(variantId, {
+      const checkoutUrl = await getCheckoutURL(productId, {
         userId: user.id,
         email: user.primaryEmailAddress?.emailAddress || '',
       });

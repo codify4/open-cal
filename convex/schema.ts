@@ -6,19 +6,19 @@ export default defineSchema({
     clerkUserId: v.string(),
     email: v.string(),
     name: v.optional(v.string()),
-    lemonCustomerId: v.optional(v.string()),
+    polarCustomerId: v.optional(v.string()),
     isPro: v.optional(v.boolean()),
     hasSeenUpgradePrompt: v.optional(v.boolean()),
     billingInterval: v.optional(v.union(v.literal('month'), v.literal('year'))),
     renewsAt: v.optional(v.number()),
     endsAt: v.optional(v.number()),
-    lemonSubscriptionId: v.optional(v.string()),
-    planVariantId: v.optional(v.number()),
+    polarSubscriptionId: v.optional(v.string()),
+    planProductId: v.optional(v.string()),
     createdAt: v.number(),
     updatedAt: v.number(),
   })
     .index('by_clerkUserId', ['clerkUserId'])
-    .index('by_lemonCustomerId', ['lemonCustomerId'])
+    .index('by_polarCustomerId', ['polarCustomerId'])
     .index('by_email', ['email']),
   webhookEvents: defineTable({
     eventId: v.string(),
