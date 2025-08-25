@@ -1,6 +1,6 @@
 'use client';
 
-import { SignedOut, useSession, useSessionList, useUser } from '@clerk/nextjs';
+import { SignedOut } from '@clerk/nextjs';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
   ArrowLeft,
@@ -62,9 +62,6 @@ const CalendarView = memo(function CalendarView({
     openEventSidebarForNewEvent,
   } = useCalendarStore((state) => state);
 
-  const { user } = useUser();
-  const { sessions } = useSessionList();
-  const { session: currentSession } = useSession();
   const { refreshEvents: refreshGoogleEvents } = useGoogleCalendarRefresh();
   const { sessionCalendars, visibleCalendarIds, isFetchingCalendars } = useCalendarStore((state) => state);
   
