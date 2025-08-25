@@ -2,10 +2,12 @@
 
 import { useUser } from '@clerk/nextjs';
 import { Check, Rocket, Sparkles } from 'lucide-react';
+import { useQuery } from 'convex/react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { toast } from 'sonner';
+import { api } from '@/convex/_generated/api';
 import { getCheckoutURL } from '@/actions/billing';
 import { Button } from '@/components/ui/button';
 import {
@@ -21,8 +23,13 @@ import { ShineBorder } from '../magicui/shine-border';
 export default function UpgradeDialog() {
   const { user } = useUser();
   const router = useRouter();
-  const [isYearly, setIsYearly] = useState(true);
+  const [isYearly, setIsYearly] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
+  const currentUser = useQuery(api.auth.getCurrentUser, {
+    clerkUserId: user?.id,
+  });
+
+  if (currentUser?.isPro) return null;
 
   const handleUpgrade = async () => {
     if (!user?.id) {

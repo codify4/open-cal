@@ -23,7 +23,6 @@ export async function getCheckoutURL(
 
     return checkout.url;
   } catch (error) {
-    console.error('Error creating Polar checkout:', error);
     throw new Error('Failed to create checkout session');
   }
 }
@@ -37,7 +36,6 @@ export async function getCustomerPortalURL(customerId: string) {
     
     return `${appUrl}/api/polar/customer-portal?customer_id=${customerId}`;
   } catch (error) {
-    console.error('Error creating customer portal URL:', error);
     throw new Error('Failed to create customer portal URL');
   }
 }

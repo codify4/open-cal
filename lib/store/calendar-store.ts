@@ -181,8 +181,8 @@ export const defaultInitState: CalendarState = {
   isNewEvent: false,
 
   // Calendar navigation state
-  currentDate: new Date(),
-  selectedDate: new Date(),
+  currentDate: new Date(0),
+  selectedDate: new Date(0),
   viewType: 'week',
   navigationDirection: 0,
 

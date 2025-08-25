@@ -165,9 +165,23 @@ export const CalendarStoreProvider = ({
   children,
 }: CalendarStoreProviderProps) => {
   const storeRef = useRef<CalendarStoreApi | null>(null);
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
   if (storeRef.current === null) {
     storeRef.current = createCalendarStore(defaultInitState);
   }
+
+  useEffect(() => {
+    if (isClient && storeRef.current) {
+      const now = new Date();
+      storeRef.current.getState().setCurrentDate(now);
+      storeRef.current.getState().setSelectedDate(now);
+    }
+  }, [isClient]);
 
   return (
     <CalendarStoreContext.Provider value={storeRef.current}>

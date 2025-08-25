@@ -19,6 +19,7 @@ export default defineSchema({
   })
     .index('by_clerkUserId', ['clerkUserId'])
     .index('by_polarCustomerId', ['polarCustomerId'])
+    .index('by_polarSubscriptionId', ['polarSubscriptionId'])
     .index('by_email', ['email']),
   webhookEvents: defineTable({
     eventId: v.string(),
