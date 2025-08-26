@@ -3,7 +3,7 @@
 import { createContext, type ReactNode, useContext, useRef, useEffect, useState, useCallback, useMemo, memo } from 'react';
 import { useStore } from 'zustand';
 import { useAuth, useSessionList } from '@clerk/nextjs';
-import { getAccessToken, getAccessTokenForSession } from '@/actions/access-token';
+import { getAccessToken, getAccessTokenForSession, saveGoogleAccountInfo } from '@/actions/access-token';
 import type { GoogleCalendar } from '@/types/calendar';
 
 import {
@@ -138,6 +138,16 @@ const BackgroundCalendarFetcher = memo(({ children }: { children: ReactNode }) =
     if (!userId || !sessionsStable || sessionsStable.length === 0) return;
     fetchAllCalendars();
   }, [userId, sessionsStable, fetchAllCalendars]);
+
+  useEffect(() => {
+    if (sessions && sessions.length > 0) {
+      try {
+        saveGoogleAccountInfo();
+      } catch (error) {
+        console.error('Failed to save Google account info:', error);
+      }
+    }
+  }, [sessions, sessions?.length]);
 
   useEffect(() => {
     const handleVisibilityChange = () => {

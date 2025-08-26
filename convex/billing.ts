@@ -163,3 +163,22 @@ export const getUserSubscription = query({
     };
   },
 });
+
+export const getUserGoogleAccounts = query({
+  args: { clerkUserId: v.string() },
+  handler: async (ctx, args) => {
+    const user = await ctx.db
+      .query('users')
+      .withIndex('by_clerkUserId', (q) => q.eq('clerkUserId', args.clerkUserId))
+      .unique();
+
+    if (!user) return [];
+
+    const accounts = await ctx.db
+      .query('googleAccounts')
+      .withIndex('by_userId', (q) => q.eq('userId', user._id))
+      .collect();
+
+    return accounts;
+  },
+});

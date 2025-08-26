@@ -29,10 +29,6 @@ export default defineSchema({
     userId: v.id('users'),
     googleUserId: v.string(),
     email: v.string(),
-    accessToken: v.string(),
-    refreshToken: v.optional(v.string()),
-    expiresAt: v.number(),
-    scopes: v.array(v.string()),
     createdAt: v.number(),
     updatedAt: v.number(),
   })

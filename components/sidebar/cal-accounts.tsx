@@ -11,10 +11,10 @@ import {
   SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { useCalendarManagement } from '@/hooks/use-calendar-management';
+import { useGoogleAccounts } from '@/hooks/use-google-accounts';
 import type { NavCalendarsProps } from '@/types/calendar';
 import { CalendarList } from './calendar-list';
 import { api } from '@/convex/_generated/api';
-import UpgradeDialog from '@/components/wrappers/upgrade-dialog';
 
 export function NavCalendars({
   onCalendarToggle,
@@ -24,6 +24,7 @@ export function NavCalendars({
   const currentUser = useQuery(api.auth.getCurrentUser, {
     clerkUserId: user?.id,
   });
+  const { accounts: googleAccounts } = useGoogleAccounts();
 
   const {
     fetchedCalendars,
@@ -45,7 +46,18 @@ export function NavCalendars({
     refetchCalendars();
   };
 
-  const showUpgradeForSecondAccount = !currentUser?.isPro && fetchedCalendars.length >= 1;
+  const hasProAccess = currentUser?.isPro ?? false;
+  const canAddAccount = hasProAccess || googleAccounts.length === 0;
+  const showProRequirement = !hasProAccess && googleAccounts.length > 0;
+
+  console.log('Subscription debug:', {
+    currentUser,
+    isPro: currentUser?.isPro,
+    googleAccountsCount: googleAccounts.length,
+    hasProAccess,
+    canAddAccount,
+    showProRequirement
+  });
 
   return (
     <SidebarGroup className="mt-0 group-data-[collapsible=icon]:hidden">
@@ -71,20 +83,7 @@ export function NavCalendars({
           />
 
           <SidebarMenuItem>
-            {showUpgradeForSecondAccount ? (
-              <div className="w-full">
-                <UpgradeDialog>
-                  <Button
-                    className="h-auto w-full justify-start gap-2 border-0 px-2 py-1.5 font-normal text-muted-foreground hover:text-foreground"
-                    size="sm"
-                    variant="ghost"
-                  >
-                    <Plus className="h-3 w-3" />
-                    <span className="text-xs">Add calendar account (Pro)</span>
-                  </Button>
-                </UpgradeDialog>
-              </div>
-            ) : (
+            {canAddAccount ? (
               <SignInButton mode="modal">
                 <Button
                   className="h-auto w-full justify-start gap-2 border-0 px-2 py-1.5 font-normal text-muted-foreground hover:text-foreground"
@@ -92,9 +91,23 @@ export function NavCalendars({
                   variant="ghost"
                 >
                   <Plus className="h-3 w-3" />
-                  <span className="text-xs">Add calendar account</span>
+                  <span className="text-xs">
+                    {showProRequirement ? 'Add calendar account (Pro)' : 'Add calendar account'}
+                  </span>
                 </Button>
               </SignInButton>
+            ) : (
+              <div className="w-full">
+                <Button
+                  className="h-auto w-full justify-start gap-2 border-0 px-2 py-1.5 font-normal text-muted-foreground"
+                  size="sm"
+                  variant="ghost"
+                  disabled
+                >
+                  <Plus className="h-3 w-3" />
+                  <span className="text-xs">Add calendar account (Pro)</span>
+                </Button>
+              </div>
             )}
           </SidebarMenuItem>
         </SidebarMenu>

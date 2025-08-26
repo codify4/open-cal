@@ -88,42 +88,11 @@ export const getUserByEmail = query({
   },
 });
 
-export const getGoogleAccessToken = query({
-  args: {
-    clerkUserId: v.string(),
-  },
-  handler: async (ctx, args) => {
-    const user = await ctx.db
-      .query('users')
-      .withIndex('by_clerkUserId', (q) => q.eq('clerkUserId', args.clerkUserId))
-      .unique();
-
-    if (!user) return null;
-
-    const googleAccount = await ctx.db
-      .query('googleAccounts')
-      .withIndex('by_userId', (q) => q.eq('userId', user._id))
-      .unique();
-
-    if (!googleAccount) return null;
-
-    if (googleAccount.expiresAt < Date.now()) {
-      return null;
-    }
-
-    return googleAccount.accessToken;
-  },
-});
-
 export const saveGoogleAccount = mutation({
   args: {
     clerkUserId: v.string(),
     googleUserId: v.string(),
     email: v.string(),
-    accessToken: v.string(),
-    refreshToken: v.optional(v.string()),
-    expiresAt: v.number(),
-    scopes: v.array(v.string()),
   },
   handler: async (ctx, args) => {
     const user = await ctx.db
@@ -137,29 +106,23 @@ export const saveGoogleAccount = mutation({
 
     const existingAccount = await ctx.db
       .query('googleAccounts')
-      .withIndex('by_userId', (q) => q.eq('userId', user._id))
+      .withIndex('by_userId_googleUserId', (q) => 
+        q.eq('userId', user._id).eq('googleUserId', args.googleUserId)
+      )
       .unique();
 
     if (existingAccount) {
       await ctx.db.patch(existingAccount._id, {
-        googleUserId: args.googleUserId,
         email: args.email,
-        accessToken: args.accessToken,
-        refreshToken: args.refreshToken,
-        expiresAt: args.expiresAt,
-        scopes: args.scopes,
         updatedAt: Date.now(),
       });
       return existingAccount._id;
     }
+    
     const accountId = await ctx.db.insert('googleAccounts', {
       userId: user._id,
       googleUserId: args.googleUserId,
       email: args.email,
-      accessToken: args.accessToken,
-      refreshToken: args.refreshToken,
-      expiresAt: args.expiresAt,
-      scopes: args.scopes,
       createdAt: Date.now(),
       updatedAt: Date.now(),
     });
@@ -191,5 +154,69 @@ export const deleteGoogleAccount = mutation({
     }
 
     return true;
+  },
+});
+
+export const addGoogleAccountToCurrentUser = mutation({
+  args: {
+    clerkUserId: v.string(),
+    googleUserId: v.string(),
+    email: v.string(),
+  },
+  handler: async (ctx, args) => {
+    // Find the current user by clerkUserId
+    let user = await ctx.db
+      .query('users')
+      .withIndex('by_clerkUserId', (q) => q.eq('clerkUserId', args.clerkUserId))
+      .unique();
+
+    // If user doesn't exist, create them
+    if (!user) {
+      // Check if there's an existing user with Pro status from billing
+      const existingProUser = await ctx.db
+        .query('users')
+        .withIndex('by_email', (q) => q.eq('email', args.email))
+        .filter((q) => q.eq(q.field('isPro'), true))
+        .first();
+
+      const userId = await ctx.db.insert('users', {
+        clerkUserId: args.clerkUserId,
+        email: args.email,
+        isPro: existingProUser?.isPro ?? false,
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+      });
+      user = await ctx.db.get(userId);
+    }
+
+    if (!user) {
+      throw new Error('Failed to create or find user');
+    }
+
+    // Check if this Google account is already linked to any user
+    const existingAccount = await ctx.db
+      .query('googleAccounts')
+      .withIndex('by_googleUserId', (q) => q.eq('googleUserId', args.googleUserId))
+      .unique();
+
+    if (existingAccount) {
+      // If account exists, update it to belong to the current user
+      await ctx.db.patch(existingAccount._id, {
+        userId: user._id,
+        email: args.email,
+        updatedAt: Date.now(),
+      });
+      return existingAccount._id;
+    }
+    
+    // Create new Google account linked to current user
+    const accountId = await ctx.db.insert('googleAccounts', {
+      userId: user._id,
+      googleUserId: args.googleUserId,
+      email: args.email,
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    });
+    return accountId;
   },
 });
