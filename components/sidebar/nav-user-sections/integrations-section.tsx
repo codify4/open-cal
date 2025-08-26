@@ -1,7 +1,7 @@
 'use client';
 
-import { SignedIn, SignedOut, SignInButton, useSession, useSessionList } from '@clerk/nextjs';
-import { ArrowLeftRight, Unplug, User, Zap } from 'lucide-react';
+import { SignedIn, SignedOut, SignInButton, useClerk, useSession, useSessionList } from '@clerk/nextjs';
+import { Unplug, User, Zap } from 'lucide-react';
 import Image from 'next/image';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
@@ -14,26 +14,23 @@ import {
 } from '@/components/ui/card';
 
 export function IntegrationsSection() {
-  const { sessions, setActive } = useSessionList();
+  const { sessions } = useSessionList();
   const { session: currentSession } = useSession();
-
-  const handleSwitchAccount = async (sessionId: string) => {
-    if (!setActive) return;
-    try {
-      await setActive({ session: sessionId });
-      toast('Account switched successfully');
-    } catch (error) {
-      toast('Failed to switch account', { description: 'Please try again.' });
-    }
-  };
+  const { signOut } = useClerk();
 
   const handleSignOut = async (sessionId: string) => {
-    if (!setActive) return;
     try {
-      await setActive({ session: sessionId });
-      toast('Account signed out successfully');
+      if (sessionId === currentSession?.id) {
+        toast('Cannot disconnect your primary account', { 
+          description: 'This is your main account with pro access.' 
+        });
+        return;
+      }
+
+      await signOut({ sessionId });
+      toast('Account disconnected successfully');
     } catch (error) {
-      toast('Failed to sign out', { description: 'Please try again.' });
+      toast('Failed to disconnect account', { description: 'Please try again.' });
     }
   };
 
@@ -144,25 +141,20 @@ export function IntegrationsSection() {
                               {sessionEmail || 'Unknown email'}
                             </span>
                             <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-                              {!isActive && (
+                              {!isActive ? (
                                 <Button
-                                  className="rounded-sm border border-primary/20 text-primary bg-neutral-800 hover:bg-primary/5 w-full sm:w-auto"
-                                  onClick={() =>
-                                    handleSwitchAccount(session.id)
-                                  }
+                                  className="rounded-sm border-red-500 bg-red-500/10 text-red-500 hover:bg-red-500/20 w-full sm:w-auto"
+                                  onClick={() => handleSignOut(session.id)}
+                                  size="sm"
                                 >
-                                  <ArrowLeftRight className="mr-1 h-4 w-4" />
-                                  Switch
+                                  <Unplug className="mr-1 h-4 w-4" />
+                                  Disconnect
                                 </Button>
+                              ) : (
+                                <span className="text-xs text-neutral-500 dark:text-neutral-400 px-2 py-1">
+                                  Primary Account
+                                </span>
                               )}
-                              <Button
-                                className="rounded-sm border-red-500 bg-red-500/10 text-red-500 hover:bg-red-500/20 w-full sm:w-auto"
-                                onClick={() => handleSignOut(session.id)}
-                                size="sm"
-                              >
-                                <Unplug className="mr-1 h-4 w-4" />
-                                Disconnect
-                              </Button>
                             </div>
                           </div>
                         </div>
