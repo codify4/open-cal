@@ -20,6 +20,11 @@ import { BirthdayForm } from './form/birthday-form';
 import EventActionsDropdown from './form/event-actions';
 import { EventForm } from './form/event-form';
 
+interface GoogleContact {
+  name: string;
+  email: string;
+}
+
 interface AddEventProps {
   onClick: () => void;
 }

@@ -1,6 +1,6 @@
 import { Users } from 'lucide-react';
 import { useState } from 'react';
-import { attendeeOptions } from '@/constants/add-event';
+import { useGoogleContacts } from '@/hooks/use-google-contacts';
 import { Badge } from '../../ui/badge';
 import { Button } from '../../ui/button';
 import {
@@ -13,9 +13,14 @@ import {
 } from '../../ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from '../../ui/popover';
 
+interface GoogleContact {
+  name: string;
+  email: string;
+}
+
 interface EventAttendeesProps {
-  attendees: string[];
-  onAttendeesChange: (attendees: string[]) => void;
+  attendees: GoogleContact[];
+  onAttendeesChange: (attendees: GoogleContact[]) => void;
 }
 
 export const EventAttendees = ({
@@ -23,21 +28,23 @@ export const EventAttendees = ({
   onAttendeesChange,
 }: EventAttendeesProps) => {
   const [attendeeSearch, setAttendeeSearch] = useState('');
+  const { contacts, loading } = useGoogleContacts();
 
-  const filteredAttendees = attendeeOptions.filter((attendee) =>
-    attendee.toLowerCase().includes(attendeeSearch.toLowerCase())
+  const filteredContacts = contacts.filter((contact) =>
+    contact.name.toLowerCase().includes(attendeeSearch.toLowerCase()) ||
+    contact.email.toLowerCase().includes(attendeeSearch.toLowerCase())
   );
 
-  const handleAttendeeToggle = (attendee: string) => {
+  const handleAttendeeToggle = (contact: GoogleContact) => {
     onAttendeesChange(
-      attendees.includes(attendee)
-        ? attendees.filter((a) => a !== attendee)
-        : [...attendees, attendee]
+      attendees.some(a => a.email === contact.email)
+        ? attendees.filter((a) => a.email !== contact.email)
+        : [...attendees, contact]
     );
   };
 
-  const removeAttendee = (attendee: string) => {
-    onAttendeesChange(attendees.filter((a) => a !== attendee));
+  const removeAttendee = (contact: GoogleContact) => {
+    onAttendeesChange(attendees.filter((a) => a.email !== contact.email));
   };
 
   return (
@@ -49,9 +56,10 @@ export const EventAttendees = ({
             <PopoverTrigger asChild>
               <Button
                 className="h-9 flex-1 justify-start border-border bg-background px-3 text-muted-foreground text-sm hover:bg-accent"
+                disabled={loading}
                 variant="outline"
               >
-                Add participants
+                {loading ? 'Loading contacts...' : 'Add participants'}
               </Button>
             </PopoverTrigger>
             <PopoverContent
@@ -62,22 +70,25 @@ export const EventAttendees = ({
                 <CommandInput
                   className="text-foreground"
                   onValueChange={setAttendeeSearch}
-                  placeholder="Search attendees..."
+                  placeholder="Search contacts..."
                   value={attendeeSearch}
                 />
                 <CommandList>
-                  <CommandEmpty className="text-muted-foreground">
-                    No attendees found.
+                  <CommandEmpty className="text-muted-foreground text-xs p-2">
+                    No contacts found.
                   </CommandEmpty>
                   <CommandGroup>
-                    {filteredAttendees.map((attendee) => (
+                    {filteredContacts.map((contact) => (
                       <CommandItem
                         className="flex items-center justify-between text-popover-foreground hover:bg-accent"
-                        key={attendee}
-                        onSelect={() => handleAttendeeToggle(attendee)}
+                        key={contact.email}
+                        onSelect={() => handleAttendeeToggle(contact)}
                       >
-                        <span>{attendee}</span>
-                        {attendees.includes(attendee) && (
+                        <div className="flex flex-col">
+                          <span>{contact.name}</span>
+                          <span className="text-xs text-muted-foreground">{contact.email}</span>
+                        </div>
+                        {attendees.some(a => a.email === contact.email) && (
                           <div className="h-4 w-4 rounded-full bg-primary" />
                         )}
                       </CommandItem>
@@ -90,14 +101,14 @@ export const EventAttendees = ({
         </div>
         {attendees.length > 0 && (
           <div className="flex flex-1 flex-wrap gap-1">
-            {attendees.map((attendee) => (
+            {attendees.map((contact) => (
               <Badge
                 className="cursor-pointer text-xs"
-                key={attendee}
-                onClick={() => removeAttendee(attendee)}
+                key={contact.email}
+                onClick={() => removeAttendee(contact)}
                 variant="default"
               >
-                {attendee} ×
+                {contact.name} ×
               </Badge>
             ))}
           </div>

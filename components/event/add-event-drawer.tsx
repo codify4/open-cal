@@ -26,6 +26,11 @@ import {
   DrawerTitle,
 } from '../ui/drawer';
 
+interface GoogleContact {
+  name: string;
+  email: string;
+}
+
 interface AddEventDrawerProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
