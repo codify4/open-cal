@@ -1,5 +1,6 @@
 import { useQuery } from 'convex/react';
 import { useEffect, useState } from 'react';
+import { useUser } from '@clerk/nextjs';
 import { api } from '@/convex/_generated/api';
 import {
   getCurrentProRateLimit,
@@ -11,7 +12,10 @@ import {
 export function useRateLimit() {
   const [messagesLeft, setMessagesLeft] = useState(10);
   const [isLimited, setIsLimited] = useState(false);
-  const currentUser = useQuery(api.auth.getCurrentUser, {});
+  const { user: clerkUser } = useUser();
+  const currentUser = useQuery(api.auth.getCurrentUser, {
+    clerkUserId: clerkUser?.id,
+  });
 
   useEffect(() => {
     if (currentUser?.isPro) {

@@ -48,7 +48,7 @@ function EventReferencesInline({
             </span>
             <button
               onClick={() => onRemove(event.id)}
-              className="ml-1 h-4 w-4 rounded-full flex items-center justify-center transition-colors"
+              className="ml-1 h-4 w-4 rounded-full flex items-center justify-center transition-colors cursor-pointer"
               aria-label={`Remove ${event.title} reference`}
             >
               <span className="text-xs">×</span>
@@ -88,7 +88,7 @@ function CalendarReferencesInline({
             </span>
             <button
               onClick={() => onRemove(calendar.id)}
-              className="ml-1 h-4 w-4 rounded-full flex items-center justify-center transition-colors hover:bg-neutral-700"
+              className="ml-1 h-4 w-4 rounded-full flex items-center justify-center transition-colors hover:bg-neutral-300 dark:hover:bg-neutral-700 cursor-pointer"
               aria-label={`Remove ${calendar.name} reference`}
             >
               <span className="text-xs">×</span>
