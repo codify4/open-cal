@@ -1,8 +1,8 @@
 const RATE_LIMIT_KEY = 'digit_chat_rate_limit';
-const MAX_MESSAGES = 100;
+const MAX_MESSAGES = 5;
 const RESET_INTERVAL = 24 * 60 * 60 * 1000;
 const PRO_RATE_LIMIT_KEY = 'digit_chat_pro_rate_limit';
-const PRO_MAX_PER_MINUTE = 20;
+const PRO_MAX_PER_MINUTE = 1000;
 
 interface RateLimitData {
   userId: string;
@@ -104,25 +104,12 @@ export function getCurrentProRateLimit(): {
   messagesLeft: number;
   isLimited: boolean;
 } {
-  const data = getProRateLimitData();
-  const messagesLeft = Math.max(0, PRO_MAX_PER_MINUTE - data.count);
-  const isLimited = messagesLeft === 0;
-  return { messagesLeft, isLimited };
+  return { messagesLeft: 999, isLimited: false };
 }
 
 export function updateProRateLimit(): {
   messagesLeft: number;
   isLimited: boolean;
 } {
-  const data = getProRateLimitData();
-  const remaining = Math.max(0, PRO_MAX_PER_MINUTE - data.count);
-  if (remaining > 0) {
-    const next: ProRateLimitData = {
-      count: data.count + 1,
-      windowStart: data.windowStart,
-    };
-    localStorage.setItem(PRO_RATE_LIMIT_KEY, JSON.stringify(next));
-    return { messagesLeft: remaining - 1, isLimited: false };
-  }
-  return { messagesLeft: 0, isLimited: true };
+  return { messagesLeft: 999, isLimited: false };
 }

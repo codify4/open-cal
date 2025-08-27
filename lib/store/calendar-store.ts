@@ -159,6 +159,8 @@ export interface CalendarActions {
   setSessionCalendars: (sessionId: string, calendars: any[]) => void;
   refreshCalendars: () => Promise<void>;
   getAllVisibleEvents: () => Event[];
+  forceUpdate: () => void;
+  clearSessionCalendars: (sessionId: string) => void;
 
   // Upgrade Dialog Actions
   openUpgradeDialog: () => void;
@@ -181,8 +183,8 @@ export const defaultInitState: CalendarState = {
   isNewEvent: false,
 
   // Calendar navigation state
-  currentDate: new Date(),
-  selectedDate: new Date(),
+  currentDate: new Date(0),
+  selectedDate: new Date(0),
   viewType: 'week',
   navigationDirection: 0,
 
@@ -720,12 +722,14 @@ export const createCalendarStore = (
           })),
 
         setSessionCalendars: (sessionId, calendars) =>
-          set((state) => ({
-            sessionCalendars: {
-              ...state.sessionCalendars,
-              [sessionId]: calendars,
-            },
-          })),
+          set((state) => {
+            return {
+              sessionCalendars: {
+                ...state.sessionCalendars,
+                [sessionId]: calendars,
+              },
+            };
+          }),
 
         refreshCalendars: async () => {
           // This is a no-op since the background fetcher handles calendar refreshing
@@ -742,6 +746,18 @@ export const createCalendarStore = (
           });
 
           return allEvents;
+        },
+
+        forceUpdate: () =>
+          set((state) => ({
+            optimisticUpdateCounter: state.optimisticUpdateCounter + 1,
+          })),
+
+        clearSessionCalendars: (sessionId: string) => {
+          set((state) => {
+            const { [sessionId]: _omit, ...rest } = state.sessionCalendars;
+            return { sessionCalendars: rest };
+          });
         },
 
         openUpgradeDialog: () => set({ isUpgradeDialogOpen: true }),

@@ -10,6 +10,7 @@ import {
   PanelRight,
   Plus,
   Smartphone,
+  Sparkles,
   X,
 } from 'lucide-react';
 import type * as React from 'react';
@@ -184,6 +185,9 @@ export function ChatSidebar({
   }, [messages, setChatMessages]);
 
   const isGenerating = status === 'submitted' || status === 'streaming';
+  const isProUser = currentUser?.isPro;
+  const shouldShowRateLimit = !isProUser;
+  const effectiveIsLimited = isProUser ? false : isLimited;
 
   return (
     <div
@@ -251,23 +255,42 @@ export function ChatSidebar({
                 </TooltipContent>
             </Tooltip>
           )}
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <div className="flex items-center gap-2 rounded-md bg-neutral-100 px-2 py-1 dark:bg-neutral-800">
-                <MessageSquare className="h-4 w-4 text-neutral-900 dark:text-white" />
-                <span className="text-neutral-900 text-sm dark:text-white">
-                  {messagesLeft}
+          {shouldShowRateLimit && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="flex items-center gap-2 rounded-md bg-neutral-100 px-2 py-1 dark:bg-neutral-800">
+                  <MessageSquare className="h-4 w-4 text-neutral-900 dark:text-white" />
+                  <span className="text-neutral-900 text-sm dark:text-white">
+                    {messagesLeft}
+                  </span>
+                </div>
+              </TooltipTrigger>
+              <TooltipContent className="bg-black font-semibold text-white">
+                <p>Messages left today</p>
+              </TooltipContent>
+            </Tooltip>
+          )}
+          {isProUser && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="flex items-center gap-2 rounded-md px-2 py-1">
+                  <MessageSquare className="h-4 w-4 text-white" />
+                </div>
+              </TooltipTrigger>
+              <TooltipContent className="bg-black font-semibold text-white">
+                <span
+                  className="text-xs"
+                  style={{
+                    background: 'linear-gradient(90deg, #A07CFE 0%, #FE8FB5 50%, #FFBE7B 100%)',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                  }}
+                >
+                  Unlimited
                 </span>
-              </div>
-            </TooltipTrigger>
-            <TooltipContent className="bg-black font-semibold text-white">
-              <p>
-                {currentUser?.isPro
-                  ? 'Messages left this minute'
-                  : 'Messages left today'}
-              </p>
-            </TooltipContent>
-          </Tooltip>
+              </TooltipContent>
+            </Tooltip>
+          )}
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
@@ -307,7 +330,7 @@ export function ChatSidebar({
           <Chat
             append={append}
             className="h-full bg-transparent px-2"
-            disabled={!isSignedIn || isLimited}
+            disabled={!isSignedIn || effectiveIsLimited}
             handleInputChange={handleInputChange}
             handleSubmit={handleSubmit}
             input={input}

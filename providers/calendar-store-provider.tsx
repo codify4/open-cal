@@ -3,7 +3,7 @@
 import { createContext, type ReactNode, useContext, useRef, useEffect, useState, useCallback, useMemo, memo } from 'react';
 import { useStore } from 'zustand';
 import { useAuth, useSessionList } from '@clerk/nextjs';
-import { getAccessToken, getAccessTokenForSession } from '@/actions/access-token';
+import { getAccessTokenForSession, saveGoogleAccountInfo } from '@/actions/access-token';
 import type { GoogleCalendar } from '@/types/calendar';
 
 import {
@@ -18,7 +18,7 @@ export const CalendarStoreContext = createContext<CalendarStoreApi | undefined>(
   undefined
 );
 
-export const CalendarRefreshContext = createContext<(() => Promise<void>) | null>(null);
+export const CalendarRefreshContext = createContext<((disconnectedSessionId?: string) => Promise<void>) | null>(null);
 
 export interface CalendarStoreProviderProps {
   children: ReactNode;
@@ -27,7 +27,8 @@ export interface CalendarStoreProviderProps {
 const BackgroundCalendarFetcher = memo(({ children }: { children: ReactNode }) => {
   const { userId } = useAuth();
   const { sessions } = useSessionList();
-  const { setSessionCalendars, setVisibleCalendarIds, visibleCalendarIds, setFetchingCalendars } = useCalendarStore((state) => state);
+  const { setSessionCalendars, setVisibleCalendarIds, visibleCalendarIds, setFetchingCalendars, clearSessionCalendars } = useCalendarStore((state) => state);
+  const sessionCalendars = useCalendarStore((state) => state.sessionCalendars);
   const [isFetching, setIsFetching] = useState(false);
   const hasFetchedRef = useRef(false);
 
@@ -75,18 +76,33 @@ const BackgroundCalendarFetcher = memo(({ children }: { children: ReactNode }) =
     }
   }, []);
 
-  const fetchAllCalendars = useCallback(async () => {
+  const fetchAllCalendars = useCallback(async (excludeSessionId?: string) => {
     if (isFetching || hasFetchedRef.current) return;
     
     setIsFetching(true);
     setFetchingCalendars(true);
     
     try {
+      // Clean up calendars for sessions that no longer exist
+      const currentSessionIds = new Set(sessions?.map(s => s.id) || []);
+      const storeSessionIds = Object.keys(sessionCalendars);
+      
+      storeSessionIds.forEach(sessionId => {
+        if (!currentSessionIds.has(sessionId)) {
+          clearSessionCalendars(sessionId);
+        }
+      });
+
       const allCalendars: GoogleCalendar[] = [];
 
       if (!sessions) return;
 
       for (const session of sessions) {
+        // Skip the excluded session
+        if (excludeSessionId && session.id === excludeSessionId) {
+          continue;
+        }
+        
         if (!session.user?.primaryEmailAddress?.emailAddress) continue;
 
         try {
@@ -123,14 +139,20 @@ const BackgroundCalendarFetcher = memo(({ children }: { children: ReactNode }) =
       setIsFetching(false);
       setFetchingCalendars(false);
     }
-  }, [sessions, fetchCalendarsForSession, setSessionCalendars, setVisibleCalendarIds, visibleCalendarIds.length, setFetchingCalendars, isFetching]);
+  }, [sessions, fetchCalendarsForSession, setSessionCalendars, setVisibleCalendarIds, setFetchingCalendars, isFetching, clearSessionCalendars]);
 
-  const refreshCalendars = useCallback(async () => {
+  const refreshCalendars = useCallback(async (disconnectedSessionId?: string) => {
+    
+    // If we know which session was disconnected, clear it immediately
+    if (disconnectedSessionId) {
+      clearSessionCalendars(disconnectedSessionId);
+    }
+    
     if (userId && sessions && sessions.length > 0) {
       hasFetchedRef.current = false;
-      await fetchAllCalendars();
+      await fetchAllCalendars(disconnectedSessionId);
     }
-  }, [userId, sessions, fetchAllCalendars]);
+  }, [userId, sessions, fetchAllCalendars, clearSessionCalendars]);
 
   const sessionsStable = useMemo(() => sessions, [sessions?.length, sessions?.map(s => s.id).join(',')]);
 
@@ -138,6 +160,16 @@ const BackgroundCalendarFetcher = memo(({ children }: { children: ReactNode }) =
     if (!userId || !sessionsStable || sessionsStable.length === 0) return;
     fetchAllCalendars();
   }, [userId, sessionsStable, fetchAllCalendars]);
+
+  useEffect(() => {
+    if (sessions && sessions.length > 0) {
+      try {
+        saveGoogleAccountInfo();
+      } catch (error) {
+        console.error('Failed to save Google account info:', error);
+      }
+    }
+  }, [sessions, sessions?.length]);
 
   useEffect(() => {
     const handleVisibilityChange = () => {
@@ -165,9 +197,23 @@ export const CalendarStoreProvider = ({
   children,
 }: CalendarStoreProviderProps) => {
   const storeRef = useRef<CalendarStoreApi | null>(null);
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
   if (storeRef.current === null) {
     storeRef.current = createCalendarStore(defaultInitState);
   }
+
+  useEffect(() => {
+    if (isClient && storeRef.current) {
+      const now = new Date();
+      storeRef.current.getState().setCurrentDate(now);
+      storeRef.current.getState().setSelectedDate(now);
+    }
+  }, [isClient]);
 
   return (
     <CalendarStoreContext.Provider value={storeRef.current}>

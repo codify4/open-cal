@@ -17,7 +17,9 @@ export function useCalendarManagement() {
   const refreshCalendars = useCalendarRefresh();
   const [colorOptions, setColorOptions] = useState<ColorOption[]>([]);
 
-  const allCalendars = useMemo(() => Object.values(sessionCalendars).flat(), [sessionCalendars]);
+  const allCalendars = useMemo(() => {
+    return Object.values(sessionCalendars).flat();
+  }, [sessionCalendars]);
   const visibleCalendars = useMemo(() => new Set(visibleCalendarIds), [visibleCalendarIds]);
 
   const fetchColors = useCallback(async () => {

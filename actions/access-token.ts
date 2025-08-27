@@ -1,7 +1,9 @@
 'use server';
 
-import { auth, clerkClient } from '@clerk/nextjs/server';
+import { auth, clerkClient, currentUser } from '@clerk/nextjs/server';
 import { headers } from 'next/headers';
+import { fetchMutation } from 'convex/nextjs';
+import { api } from '@/convex/_generated/api';
 
 export async function getAccessToken() {
   const { userId, getToken } = await auth();
@@ -94,5 +96,35 @@ export async function getAccessTokenForSession(sessionId: string) {
   } catch (error) {
     console.error('Error getting access token for session:', error);
     return null;
+  }
+}
+
+export async function saveGoogleAccountInfo() {
+  
+  try {
+    const user = await currentUser();
+    
+    if (!user) {
+      return;
+    }
+    
+    const googleAccounts = user.externalAccounts.filter(
+      (account) => account.provider === 'oauth_google'
+    );
+    
+    for (const account of googleAccounts) {
+      
+      try {
+        const result = await fetchMutation(api.auth.addGoogleAccountToCurrentUser, {
+          clerkUserId: user.id,
+          googleUserId: account.externalId,
+          email: account.emailAddress,
+        });
+        
+      } catch (error) {
+      }
+    }
+  } catch (error) {
+    console.error('Error in saveGoogleAccountInfo:', error);
   }
 }

@@ -65,16 +65,13 @@ export const createGoogleEvent = async (
   userId: string,
   userEmail?: string
 ) => {
-  console.log('createGoogleEvent called with:', { eventToSave, userId, userEmail });
   
   try {
     if (!userId) {
-      console.log('No userId provided');
       return;
     }
 
     const accessToken = await getAccessToken();
-    console.log('Access token obtained:', !!accessToken);
     
     if (!accessToken) {
       toast.error(
@@ -84,22 +81,18 @@ export const createGoogleEvent = async (
     }
 
     const calendarId = eventToSave.googleCalendarId || 'primary';
-    console.log('Using calendar ID:', calendarId);
     
     let workingCalendarId = calendarId;
     if (calendarId.includes('@') && !calendarId.includes('group.calendar.google.com')) {
       workingCalendarId = 'primary';
-      console.log('Falling back to primary calendar');
     }
     
     const baseUrl = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(workingCalendarId)}/events`;
     const confSuffix = '&conferenceDataVersion=1';
     const url = `${baseUrl}?sendUpdates=none${confSuffix}`;
 
-    console.log('Creating event at URL:', url);
     
     const payload = buildGoogleEventPayload(eventToSave);
-    console.log('Built payload:', payload);
     
     const body = JSON.stringify(payload);
 
@@ -113,24 +106,19 @@ export const createGoogleEvent = async (
       body,
     });
 
-    console.log('Create response status:', response.status);
-
     if (response.ok) {
       const googleEvent = await response.json();
-      console.log('Google event created successfully:', googleEvent);
       
       const converted = convertGoogleEventToLocalEvent(
         googleEvent,
         workingCalendarId,
         userEmail
       );
-      console.log('Converted event:', converted);
       
       return { success: true, event: converted };
     }
 
     if (response.status === 401) {
-      console.log('Unauthorized - access token expired');
       toast.error(
         'Access token expired. Please reconnect your Google account.'
       );
@@ -154,17 +142,14 @@ export const updateGoogleEvent = async (
   userId: string,
   userEmail?: string
 ) => {
-  console.log('updateGoogleEvent called with:', { eventToSave, userId, userEmail });
   
   try {
     if (!userId || !eventToSave.googleEventId) {
-      console.log('Missing userId or googleEventId:', { userId, googleEventId: eventToSave.googleEventId });
       return;
     }
 
     const accessToken = await getAccessToken();
     if (!accessToken) {
-      console.log('No access token available');
       toast.error(
         'Google Calendar not connected. Please connect your Google account to save events.'
       );
@@ -172,18 +157,15 @@ export const updateGoogleEvent = async (
     }
 
     const calendarId = eventToSave.googleCalendarId || 'primary';
-    console.log('Using calendar ID:', calendarId);
     
     const baseUrl = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events`;
     const confSuffix = '&conferenceDataVersion=1';
     const url = `${baseUrl}/${encodeURIComponent(eventToSave.googleEventId)}?sendUpdates=none${confSuffix}`;
 
     const payload = buildGoogleEventPayload(eventToSave);
-    console.log('Built payload:', payload);
     
     const body = JSON.stringify(payload);
 
-    console.log('Sending PUT request to:', url);
     const response = await fetch(url, {
       method: 'PUT',
       headers: {
@@ -194,24 +176,19 @@ export const updateGoogleEvent = async (
       body,
     });
 
-    console.log('Update response status:', response.status);
-
     if (response.ok) {
       const googleEvent = await response.json();
-      console.log('Google event updated successfully:', googleEvent);
       
       const converted = convertGoogleEventToLocalEvent(
         googleEvent,
         calendarId,
         userEmail
       );
-      console.log('Converted event:', converted);
 
       return { success: true, event: converted };
     }
 
     if (response.status === 401) {
-      console.log('Unauthorized - access token expired');
       toast.error(
         'Access token expired. Please reconnect your Google account.'
       );
@@ -235,13 +212,10 @@ export const upsertGoogleEvent = async (
   userId: string,
   userEmail?: string
 ) => {
-  console.log('upsertGoogleEvent called with:', { eventToSave, userId, userEmail });
   
   if (eventToSave.googleEventId) {
-    console.log('Updating existing Google event:', eventToSave.googleEventId);
     return updateGoogleEvent(eventToSave, userId, userEmail);
   } else {
-    console.log('Creating new Google event');
     return createGoogleEvent(eventToSave, userId, userEmail);
   }
 };

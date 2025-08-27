@@ -2,10 +2,12 @@
 
 import { useUser } from '@clerk/nextjs';
 import { Check, Rocket, Sparkles } from 'lucide-react';
+import { useQuery } from 'convex/react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { toast } from 'sonner';
+import { api } from '@/convex/_generated/api';
 import { getCheckoutURL } from '@/actions/billing';
 import { Button } from '@/components/ui/button';
 import {
@@ -17,12 +19,23 @@ import {
 import { Switch } from '@/components/ui/switch';
 import { plans } from '@/constants/pricing';
 import { ShineBorder } from '../magicui/shine-border';
+import { cn } from '@/lib/utils';
 
-export default function UpgradeDialog() {
+interface UpgradeDialogProps {
+  children?: React.ReactNode;
+  className?: string;
+}
+
+export default function UpgradeDialog({ children, className }: UpgradeDialogProps) {
   const { user } = useUser();
   const router = useRouter();
-  const [isYearly, setIsYearly] = useState(true);
+  const [isYearly, setIsYearly] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
+  const currentUser = useQuery(api.auth.getCurrentUser, {
+    clerkUserId: user?.id,
+  });
+
+  if (currentUser?.isPro) return null;
 
   const handleUpgrade = async () => {
     if (!user?.id) {
@@ -31,11 +44,11 @@ export default function UpgradeDialog() {
     }
 
     try {
-      const variantId = isYearly
-        ? Number(process.env.NEXT_PUBLIC_LEMONSQUEEZY_VARIANT_YEARLY_ID!)
-        : Number(process.env.NEXT_PUBLIC_LEMONSQUEEZY_VARIANT_MONTHLY_ID!);
+      const productId = isYearly
+        ? process.env.NEXT_PUBLIC_POLAR_PRODUCT_YEARLY_ID!
+        : process.env.NEXT_PUBLIC_POLAR_PRODUCT_MONTHLY_ID!;
 
-      const checkoutUrl = await getCheckoutURL(variantId, {
+      const checkoutUrl = await getCheckoutURL(productId, {
         userId: user.id,
         email: user.primaryEmailAddress?.emailAddress || '',
       });
@@ -53,14 +66,19 @@ export default function UpgradeDialog() {
   return (
     <Dialog onOpenChange={setIsOpen} open={isOpen}>
       <DialogTrigger asChild>
-        <Button
-          className="h-8 w-full rounded-sm bg-neutral-800 text-left text-white text-xs hover:bg-neutral-700"
-          onClick={() => setIsOpen(true)}
-          type="button"
-        >
-          <Sparkles className="h-3 w-3 text-white" />
-          Get Caly Pro
-        </Button>
+        {children || (
+          <Button
+            className={cn(
+              "h-8 w-full rounded-sm bg-neutral-800 text-left text-white text-xs hover:bg-neutral-700",
+              className
+            )}
+            onClick={() => setIsOpen(true)}
+            type="button"
+          >
+            <Sparkles className="h-3 w-3 text-white" />
+            Get Caly Pro
+          </Button>
+        )}
       </DialogTrigger>
       <DialogContent
         className="max-w-md rounded-xl border bg-card p-0"

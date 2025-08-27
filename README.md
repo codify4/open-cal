@@ -26,7 +26,7 @@ Caly is an intelligent calendar application that combines the power of AI with i
 - **UI Components**: [shadcn/ui](https://ui.shadcn.com/) with Tailwind CSS
 - **Deployment**: [Vercel](https://vercel.com/)
 - **Database**: [Convex](https://convex.dev/)
-- **Payments**: [Lemon Squeezy](https://lemonsqueezy.com/)
+- **Payments**: [Polar](https://polar.sh/)
 - **Authentication**: [Better Auth](https://better-auth.com/)
 - **AI**: [Vercel AI SDK](https://sdk.vercel.ai/) with [Google Gemini](https://ai.google.dev/)
 - **Styling**: Tailwind CSS with custom animations

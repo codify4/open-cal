@@ -2,9 +2,7 @@
 
 import { SignedIn, SignedOut, SignInButton, useUser } from '@clerk/nextjs';
 import { useQuery } from 'convex/react';
-import { Sparkles } from 'lucide-react';
 import { api } from '@/convex/_generated/api';
-import { useCalendarStore } from '@/providers/calendar-store-provider';
 import { ShineBorder } from '../magicui/shine-border';
 import { Button } from '../ui/button';
 import {
@@ -18,9 +16,6 @@ import UpgradeDialog from '../wrappers/upgrade-dialog';
 
 const Premium = () => {
   const { user } = useUser();
-  const openUpgradeDialog = useCalendarStore(
-    (state) => state.openUpgradeDialog
-  );
   const currentUser = useQuery(api.auth.getCurrentUser, {
     clerkUserId: user?.id,
   });
