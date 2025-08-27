@@ -107,6 +107,17 @@ export const createEventTool = tool({
             contextNote += `\n📅 Using referenced calendar: ${preferredCalendar.name}`;
           }
         }
+        
+        // Check if the referenced calendars have specific access roles or permissions
+        const writableCalendars = refCalendars.filter(cal => 
+          cal.accessRole === 'owner' || cal.accessRole === 'writer'
+        );
+        
+        if (writableCalendars.length > 0 && !params.calendarId) {
+          const writableCalendar = writableCalendars[0];
+          params.calendarId = writableCalendar.id;
+          contextNote += `\n✏️ Selected writable calendar: ${writableCalendar.name}`;
+        }
       }
 
       const event: Event = {
@@ -454,9 +465,28 @@ export const getSummaryTool = tool({
               sessionAccessToken = accessToken;
             }
           } else {
-            const accessToken = await getAccessToken();
-            if (accessToken) {
-              sessionAccessToken = accessToken;
+            // For non-primary calendars, we need to find the session that owns this calendar
+            const calendarStore = await import('@/lib/store/calendar-store');
+            const storeInstance = calendarStore.createCalendarStore();
+            const sessionCalendars = storeInstance.getState().sessionCalendars;
+            
+            for (const [sessionId, calendars] of Object.entries(sessionCalendars)) {
+              const sessionCalendarsList = calendars as Array<{ id: string; summary?: string; name?: string }>;
+              const foundCalendar = sessionCalendarsList.find((cal) => 
+                cal.id === calendarRef.id || cal.summary === calendarRef.name
+              );
+              if (foundCalendar) {
+                sessionAccessToken = await getAccessTokenForSession(sessionId);
+                break;
+              }
+            }
+            
+            // Fallback to primary access token if no session found
+            if (!sessionAccessToken) {
+              const accessToken = await getAccessToken();
+              if (accessToken) {
+                sessionAccessToken = accessToken;
+              }
             }
           }
           
@@ -564,9 +594,34 @@ export const updateEventTool = tool({
     newIsAllDay: z.boolean().optional().describe('Whether the event is all day'),
     newRepeat: z.enum(['none', 'daily', 'weekly', 'monthly', 'yearly']).optional().describe('New repeat pattern'),
     newVisibility: z.enum(['public', 'private']).optional().describe('New event visibility'),
+    calendarContext: z.object({
+      referencedCalendars: z.array(z.object({
+        id: z.string(),
+        name: z.string(),
+        summary: z.string().optional(),
+        color: z.string().optional(),
+        accessRole: z.string().optional(),
+      })).optional(),
+    }).optional().describe('Context about referenced calendars to include in the search'),
   }),
   execute: async (params) => {
     try {
+      let contextNote = '';
+      
+      if (params.calendarContext?.referencedCalendars?.length) {
+        const refCalendars = params.calendarContext.referencedCalendars;
+        contextNote = `\n\nCalendar Context: Will search in ${refCalendars.length} referenced calendar(s): ${refCalendars.map(c => c.name).join(', ')}`;
+        
+        // Prioritize calendars where user has write access
+        const writableCalendars = refCalendars.filter(cal => 
+          cal.accessRole === 'owner' || cal.accessRole === 'writer'
+        );
+        
+        if (writableCalendars.length > 0) {
+          contextNote += `\n✏️ Found ${writableCalendars.length} writable calendar(s) for updates`;
+        }
+      }
+
       const updates = {
         title: params.title,
         startDate: params.startDate,
@@ -587,7 +642,7 @@ export const updateEventTool = tool({
         success: true,
         updates,
         action: 'update_event',
-        message: `Found event "${params.title}" to update`,
+        message: `Found event "${params.title}" to update${contextNote}`,
       };
     } catch (error) {
       return {
@@ -608,9 +663,34 @@ export const deleteEventTool = tool({
     eventId: z.string().optional().describe('Event ID (if known, otherwise the tool will search by other parameters)'),
     userId: z.string().describe('User ID for authentication'),
     userEmail: z.string().optional().describe('User email for Google Calendar'),
+    calendarContext: z.object({
+      referencedCalendars: z.array(z.object({
+        id: z.string(),
+        name: z.string(),
+        summary: z.string().optional(),
+        color: z.string().optional(),
+        accessRole: z.string().optional(),
+      })).optional(),
+    }).optional().describe('Context about referenced calendars to include in the search'),
   }),
   execute: async (params) => {
     try {
+      let contextNote = '';
+      
+      if (params.calendarContext?.referencedCalendars?.length) {
+        const refCalendars = params.calendarContext.referencedCalendars;
+        contextNote = `\n\nCalendar Context: Will search in ${refCalendars.length} referenced calendar(s): ${refCalendars.map(c => c.name).join(', ')}`;
+        
+        // Check if user has delete permissions on referenced calendars
+        const deletableCalendars = refCalendars.filter(cal => 
+          cal.accessRole === 'owner' || cal.accessRole === 'writer'
+        );
+        
+        if (deletableCalendars.length > 0) {
+          contextNote += `\n🗑️ Found ${deletableCalendars.length} calendar(s) with delete permissions`;
+        }
+      }
+
       const searchParams = {
         title: params.title,
         startDate: params.startDate,
@@ -625,7 +705,7 @@ export const deleteEventTool = tool({
         success: true,
         action: 'confirm_delete',
         searchParams,
-        message: `Found event to delete. Please confirm the deletion.`,
+        message: `Found event to delete. Please confirm the deletion.${contextNote}`,
       };
     } catch (error) {
       return {
