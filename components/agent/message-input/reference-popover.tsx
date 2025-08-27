@@ -88,7 +88,7 @@ export function ReferencePopover({ isOpen, onOpenChange, onSelect }: ReferencePo
           )}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-72 max-h-96 p-3 overflow-y-auto custom-scrollbar bg-neutral-900" align="start">
+      <PopoverContent className="w-72 max-h-96 p-3 overflow-y-auto custom-scrollbar bg-white dark:bg-neutral-900" align="start">
         <div className="space-y-3">
           <div className="relative">
             <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-3 w-3 text-muted-foreground" />
@@ -96,13 +96,13 @@ export function ReferencePopover({ isOpen, onOpenChange, onSelect }: ReferencePo
               placeholder="Search events and calendars..."
               value={globalSearch}
               onChange={(e) => setGlobalSearch(e.target.value)}
-              className="h-7 pl-7 text-xs bg-neutral-800 border-neutral-700 text-foreground placeholder:text-muted-foreground rounded-[10px]"
+              className="h-7 pl-7 text-xs bg-white dark:bg-neutral-800 dark:border-neutral-700 text-foreground placeholder:text-muted-foreground rounded-[10px] shadow-none"
             />
           </div>
           
           <div className="space-y-3 overflow-y-auto">
             <Collapsible open={isCalendarsOpen} onOpenChange={setIsCalendarsOpen}>
-              <CollapsibleTrigger className="cursor-pointer w-full flex items-center justify-between p-1.5 rounded-[10px] hover:bg-neutral-800/50 transition-colors">
+              <CollapsibleTrigger className="cursor-pointer w-full flex items-center justify-between p-1.5 rounded-[10px] hover:bg-neutral-100 dark:hover:bg-neutral-800/50 transition-colors">
                 <h4 className="text-xs font-medium text-foreground">Calendars ({filteredCalendars.length})</h4>
                 <ChevronDown className={`h-3 w-3 text-muted-foreground transition-transform ${isCalendarsOpen ? 'rotate-180' : ''}`} />
               </CollapsibleTrigger>
@@ -112,7 +112,7 @@ export function ReferencePopover({ isOpen, onOpenChange, onSelect }: ReferencePo
                     <button
                       key={calendar.id}
                       onClick={() => handleCalendarSelect(calendar)}
-                      className="w-full flex items-center gap-2 p-1.5 transition-colors text-left rounded-[10px] hover:bg-neutral-800/50 cursor-pointer"
+                      className="w-full flex items-center gap-2 p-1.5 transition-colors text-left rounded-[10px] hover:bg-neutral-100 dark:hover:bg-neutral-800/50 cursor-pointer"
                     >
                       <div className="flex items-center gap-2">
                         <div
@@ -132,7 +132,7 @@ export function ReferencePopover({ isOpen, onOpenChange, onSelect }: ReferencePo
             </Collapsible>
 
             <Collapsible open={isEventsOpen} onOpenChange={setIsEventsOpen}>
-              <CollapsibleTrigger className="cursor-pointer w-full flex items-center justify-between p-1.5 rounded-[10px] hover:bg-neutral-800/50 transition-colors">
+              <CollapsibleTrigger className="cursor-pointer w-full flex items-center justify-between p-1.5 rounded-[10px] hover:bg-neutral-100 dark:hover:bg-neutral-800/50 transition-colors">
                 <h4 className="text-xs font-medium text-foreground">Events ({filteredEvents.length})</h4>
                 <ChevronDown className={`h-3 w-3 text-muted-foreground transition-transform ${isEventsOpen ? 'rotate-180' : ''}`} />
               </CollapsibleTrigger>
@@ -142,7 +142,7 @@ export function ReferencePopover({ isOpen, onOpenChange, onSelect }: ReferencePo
                     <button
                       key={event.id}
                       onClick={() => handleEventSelect(event)}
-                      className="w-full flex items-center gap-2 p-1.5 rounded-[10px] hover:bg-neutral-800/50 transition-colors text-left cursor-pointer focus:outline-none"
+                      className="w-full flex items-center gap-2 p-1.5 rounded-[10px] hover:bg-neutral-100 dark:hover:bg-neutral-800/50 transition-colors text-left cursor-pointer focus:outline-none"
                     >
                       <div 
                         className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${getDotColor(event.color || 'blue')}`}
