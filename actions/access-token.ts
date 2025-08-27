@@ -100,28 +100,19 @@ export async function getAccessTokenForSession(sessionId: string) {
 }
 
 export async function saveGoogleAccountInfo() {
-  console.log('Starting saveGoogleAccountInfo');
   
   try {
     const user = await currentUser();
     
     if (!user) {
-      console.log('No current user found');
       return;
     }
-
-    console.log('Clerk user found:', user.id);
-    console.log('External accounts:', user.externalAccounts.length);
     
     const googleAccounts = user.externalAccounts.filter(
       (account) => account.provider === 'oauth_google'
     );
     
-    console.log('Google OAuth accounts found:', googleAccounts.length);
-    console.log('Google accounts:', googleAccounts);
-
     for (const account of googleAccounts) {
-      console.log('Processing Google account:', account.emailAddress, account.externalId);
       
       try {
         const result = await fetchMutation(api.auth.addGoogleAccountToCurrentUser, {
@@ -130,9 +121,7 @@ export async function saveGoogleAccountInfo() {
           email: account.emailAddress,
         });
         
-        console.log('Successfully saved Google account:', result);
       } catch (error) {
-        console.error('Failed to save Google account:', error);
       }
     }
   } catch (error) {

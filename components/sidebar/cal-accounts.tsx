@@ -50,15 +50,6 @@ export function NavCalendars({
   const canAddAccount = hasProAccess || googleAccounts.length === 0;
   const showProRequirement = !hasProAccess && googleAccounts.length > 0;
 
-  console.log('Subscription debug:', {
-    currentUser,
-    isPro: currentUser?.isPro,
-    googleAccountsCount: googleAccounts.length,
-    hasProAccess,
-    canAddAccount,
-    showProRequirement
-  });
-
   return (
     <SidebarGroup className="mt-0 group-data-[collapsible=icon]:hidden">
       <SignedOut>

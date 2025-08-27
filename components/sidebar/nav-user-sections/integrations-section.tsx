@@ -12,11 +12,13 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import { useCalendarRefresh } from '@/providers/calendar-store-provider';
 
 export function IntegrationsSection() {
   const { sessions } = useSessionList();
   const { session: currentSession } = useSession();
   const { signOut } = useClerk();
+  const refreshCalendars = useCalendarRefresh();
 
   const handleSignOut = async (sessionId: string) => {
     try {
@@ -29,7 +31,12 @@ export function IntegrationsSection() {
 
       await signOut({ sessionId });
       toast('Account disconnected successfully');
+      
+      if (refreshCalendars) {
+        await refreshCalendars(sessionId);
+      }
     } catch (error) {
+      console.error('❌ Failed to disconnect account:', error);
       toast('Failed to disconnect account', { description: 'Please try again.' });
     }
   };
