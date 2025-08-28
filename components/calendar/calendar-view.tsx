@@ -117,8 +117,7 @@ const CalendarView = memo(function CalendarView({
   };
 
   const getViewTitle = (viewType: string) => {
-    const date =
-      currentDate instanceof Date ? currentDate : new Date(currentDate);
+    const date = currentDate instanceof Date ? currentDate : new Date(currentDate);
 
     if (viewType === 'day') {
       return (
@@ -140,15 +139,18 @@ const CalendarView = memo(function CalendarView({
       );
     }
     if (viewType === 'week') {
-      const daysOfWeek = getDaysInWeek(1, date.getFullYear());
-
-      const startOfWeek = daysOfWeek[0];
-      const endOfWeek = daysOfWeek[6];
+      const weekStartsOn = 1;
+      const currentDayOfWeek = date.getDay();
+      const daysToSubtract = (currentDayOfWeek - weekStartsOn + 7) % 7;
+      const weekStart = new Date(date);
+      weekStart.setDate(date.getDate() - daysToSubtract);
+      const weekEnd = new Date(weekStart);
+      weekEnd.setDate(weekStart.getDate() + 6);
 
       return (
         <>
           <span className="hidden sm:inline">
-            {`${startOfWeek.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${endOfWeek.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`}
+            {`${weekStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${weekEnd.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`}
           </span>
           <span className="sm:hidden">
             {date.toLocaleDateString('en-US', {

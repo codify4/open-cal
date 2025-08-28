@@ -48,7 +48,7 @@ export default function TopNav() {
 
   return (
     <nav
-      className={`-translate-x-1/2 fixed top-0 left-1/2 z-50 mt-2 w-11/12 sm:w-2/3 self-center rounded-full border border-neutral-800 bg-black transition-all duration-500 ${
+      className={`-translate-x-1/2 fixed top-0 left-1/2 z-100 mt-2 w-11/12 sm:w-2/3 self-center rounded-full border border-neutral-800 bg-black transition-all duration-500 ${
         isScrolled ? 'w-2/4 bg-black/80 backdrop-blur-xl' : 'bg-black'
       }`}
     >

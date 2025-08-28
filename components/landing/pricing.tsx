@@ -109,7 +109,7 @@ export function PricingSection() {
                               ${plan.originalPrice}/month
                             </span>
                             <span className="rounded-full bg-green-400/10 px-2 py-1 font-medium text-green-400 text-sm">
-                              {plan.billingNote}
+                              $120 {plan.billingNote}
                             </span>
                           </div>
                         </div>
