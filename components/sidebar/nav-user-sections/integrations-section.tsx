@@ -79,7 +79,7 @@ export function IntegrationsSection() {
                 <div className="flex items-center gap-3">
                   <SignInButton mode="modal">
                     <Button
-                      className="rounded-sm dark:bg-white dark:text-black hover:bg-black/80 w-full sm:w-auto"
+                      className="rounded-sm bg-black text-white hover:bg-black/80 dark:bg-white dark:text-black dark:hover:bg-black/80 w-full sm:w-auto"
                       onClick={(e) => e.preventDefault()}
                       size="sm"
                     >

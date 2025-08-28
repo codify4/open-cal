@@ -274,7 +274,7 @@ export function ChatSidebar({
             <Tooltip>
               <TooltipTrigger asChild>
                 <div className="flex items-center gap-2 rounded-md px-2 py-1">
-                  <MessageSquare className="h-4 w-4 text-white" />
+                  <MessageSquare className="h-4 w-4" />
                 </div>
               </TooltipTrigger>
               <TooltipContent className="bg-black font-semibold text-white">

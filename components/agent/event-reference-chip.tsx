@@ -7,11 +7,12 @@ import type { EventReference } from '@/lib/store/chat-store';
 
 interface EventReferenceChipProps {
   event: EventReference;
-  onRemove: (eventId: string) => void;
+  onRemove?: (eventId: string) => void;
   className?: string;
+  showRemoveButton?: boolean;
 }
 
-export function EventReferenceChip({ event, onRemove, className }: EventReferenceChipProps) {
+export function EventReferenceChip({ event, onRemove, className, showRemoveButton = false }: EventReferenceChipProps) {
   const formatTime = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleTimeString('en-US', { 
@@ -52,20 +53,21 @@ export function EventReferenceChip({ event, onRemove, className }: EventReferenc
         <span className="font-medium truncate max-w-[200px]" title={event.title}>
           {event.title}
         </span>
-        <span className="text-xs text-blue-600 dark:text-blue-400">
+        <span className="text-xs text-blue-600/70 dark:text-blue-400/70">
           {formatDate(event.startDate)} at {formatTime(event.startDate)}
         </span>
       </div>
 
-      <Button
-        variant="ghost"
-        size="icon"
-        className="h-6 w-6 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/50 ml-1"
-        onClick={() => onRemove(event.id)}
-        aria-label={`Remove ${event.title} reference`}
-      >
-        <X className="w-3 h-3" />
-      </Button>
+      {showRemoveButton && onRemove && (
+        <Button
+          variant="ghost"
+          size="sm"
+          className="h-6 w-6 p-0 hover:bg-blue-100 dark:hover:bg-blue-900/50"
+          onClick={() => onRemove(event.id)}
+        >
+          <X className="h-3 w-3" />
+        </Button>
+      )}
     </div>
   );
 }

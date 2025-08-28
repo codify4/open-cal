@@ -3,7 +3,7 @@ import { z } from 'zod';
 import type { Event } from '@/lib/store/calendar-store';
 import type { EventReference, CalendarReference } from '@/lib/store/chat-store';
 import { createGoogleEvent } from '@/lib/calendar-utils/google-calendar';
-import { getAccessToken } from '@/actions/access-token';
+import { getAccessToken, getAccessTokenForSession } from '@/actions/access-token';
 import { convertGoogleEventToLocalEvent } from '@/lib/calendar-utils/calendar-utils';
 
 // Helper function to enhance tool calls with event and calendar context
@@ -107,6 +107,17 @@ export const createEventTool = tool({
             contextNote += `\n📅 Using referenced calendar: ${preferredCalendar.name}`;
           }
         }
+        
+        // Check if the referenced calendars have specific access roles or permissions
+        const writableCalendars = refCalendars.filter(cal => 
+          cal.accessRole === 'owner' || cal.accessRole === 'writer'
+        );
+        
+        if (writableCalendars.length > 0 && !params.calendarId) {
+          const writableCalendar = writableCalendars[0];
+          params.calendarId = writableCalendar.id;
+          contextNote += `\n✏️ Selected writable calendar: ${writableCalendar.name}`;
+        }
       }
 
       const event: Event = {
@@ -166,6 +177,15 @@ export const findFreeTimeTool = tool({
     endDate: z.string().describe('End date to search until in ISO format. For natural language like "tomorrow", use full day (00:00 to 23:59)'),
     duration: z.number().optional().describe('Minimum duration in minutes for free time periods (defaults to 30 minutes if not specified)'),
     preferredTime: z.string().optional().describe('Preferred time of day (e.g., "morning", "afternoon", "evening")'),
+    calendarContext: z.object({
+      referencedCalendars: z.array(z.object({
+        id: z.string(),
+        name: z.string(),
+        summary: z.string().optional(),
+        color: z.string().optional(),
+        accessRole: z.string().optional(),
+      })).optional(),
+    }).optional().describe('Context about referenced calendars to include in the search'),
   }),
   execute: async (params) => {
     try {
@@ -196,42 +216,118 @@ export const findFreeTimeTool = tool({
         };
       }
 
-      const accessToken = await getAccessToken();
-      if (!accessToken) {
-        return {
-          success: false,
-          error: 'Google Calendar not connected. Please connect your Google account.',
-        };
-      }
-
       const timeMin = startDate.toISOString();
       const timeMax = endDate.toISOString();
-      const calendarId = 'primary';
-            
-      const response = await fetch(
-        `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events?timeMin=${timeMin}&timeMax=${timeMax}&singleEvents=true&orderBy=startTime`,
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-            'Content-Type': 'application/json',
-          },
-        }
-      );
+      
+      let allEvents: any[] = [];
+      const processedCalendars = new Set<string>();
 
-      if (!response.ok) {
-        return {
-          success: false,
-          error: `Failed to fetch events from Google Calendar: ${response.status}`,
-        };
+      // If calendar references are provided, fetch from those specific calendars
+      if (params.calendarContext?.referencedCalendars?.length) {
+        
+        // Get the calendar store to access session calendars
+        const calendarStore = await import('@/lib/store/calendar-store');
+        const storeInstance = calendarStore.createCalendarStore();
+        const sessionCalendars = storeInstance.getState().sessionCalendars;
+        
+        for (const calendarRef of params.calendarContext.referencedCalendars) {
+          const calendarId = calendarRef.id;
+          
+          // Skip if we've already processed this calendar
+          if (processedCalendars.has(calendarId)) continue;
+          
+          // Find which session owns this calendar
+          let sessionAccessToken: string | null = null;
+          
+          // Check if it's the primary calendar (current user's main calendar)
+          if (calendarId === 'primary' || calendarId.includes('@gmail.com')) {
+            const accessToken = await getAccessToken();
+            if (accessToken) {
+              sessionAccessToken = accessToken;
+            }
+          } else {
+            // Find which session owns this calendar
+            for (const [sessionId, calendars] of Object.entries(sessionCalendars)) {
+              const sessionCalendarsList = calendars as Array<{ id: string; summary?: string; name?: string }>;
+              const foundCalendar = sessionCalendarsList.find((cal) => 
+                cal.id === calendarId || cal.summary === calendarRef.name
+              );
+              if (foundCalendar) {
+                sessionAccessToken = await getAccessTokenForSession(sessionId);
+                break;
+              }
+            }
+          }
+          
+          if (!sessionAccessToken) {
+            console.warn(`No access token available for calendar: ${calendarId}`);
+            continue;
+          }
+          
+          try {
+            const response = await fetch(
+              `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events?timeMin=${timeMin}&timeMax=${timeMax}&singleEvents=true&orderBy=startTime`,
+              {
+                headers: {
+                  Authorization: `Bearer ${sessionAccessToken}`,
+                  'Content-Type': 'application/json',
+                },
+              }
+            );
+
+            if (response.ok) {
+              const data = await response.json();
+              const calendarEvents = data.items?.map((event: any) =>
+                convertGoogleEventToLocalEvent(event, calendarId, 'user@example.com')
+              ) || [];
+              
+              allEvents.push(...calendarEvents);
+              processedCalendars.add(calendarId);
+            }
+          } catch (error) {
+            console.warn(`Failed to fetch events for calendar ${calendarId}:`, error);
+          }
+        }
+      }
+      
+      // If no calendar references or no events found, fall back to primary calendar
+      if (allEvents.length === 0) {
+        const accessToken = await getAccessToken();
+        if (!accessToken) {
+          return {
+            success: false,
+            error: 'Google Calendar not connected. Please connect your Google account.',
+          };
+        }
+
+        const calendarId = 'primary';
+        const response = await fetch(
+          `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events?timeMin=${timeMin}&timeMax=${timeMax}&singleEvents=true&orderBy=startTime`,
+          {
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+              'Content-Type': 'application/json',
+            },
+          }
+        );
+
+        if (!response.ok) {
+          return {
+            success: false,
+            error: `Failed to fetch events from Google Calendar: ${response.status}`,
+          };
+        }
+
+        const data = await response.json();
+        allEvents = data.items?.map((event: any) =>
+          convertGoogleEventToLocalEvent(event, calendarId, 'user@example.com')
+        ) || [];
       }
 
-      const data = await response.json();
-      const events = data.items?.map((event: any) =>
-        convertGoogleEventToLocalEvent(event, calendarId, 'user@example.com')
-      ) || [];
+
 
       // If no events, entire range is free
-      if (events.length === 0) {
+      if (allEvents.length === 0) {
         const totalMinutes = Math.round((endDate.getTime() - startDate.getTime()) / 60_000);
         return {
           success: true,
@@ -247,13 +343,13 @@ export const findFreeTimeTool = tool({
       }
 
       // Sort events by start time
-      events.sort((a: Event, b: Event) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime());
+      allEvents.sort((a: Event, b: Event) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime());
 
       // Find free time periods by analyzing gaps between events
       const freeSlots = [];
       
       // Check free time before first event
-      const firstEventStart = new Date(events[0].startDate);
+      const firstEventStart = new Date(allEvents[0].startDate);
       if (firstEventStart > startDate) {
         const freeTimeBefore = Math.round((firstEventStart.getTime() - startDate.getTime()) / 60_000);
         if (freeTimeBefore >= duration) {
@@ -265,9 +361,9 @@ export const findFreeTimeTool = tool({
       }
 
       // Check gaps between events
-      for (let i = 0; i < events.length - 1; i++) {
-        const currentEventEnd = new Date(events[i].endDate);
-        const nextEventStart = new Date(events[i + 1].startDate);
+      for (let i = 0; i < allEvents.length - 1; i++) {
+        const currentEventEnd = new Date(allEvents[i].endDate);
+        const nextEventStart = new Date(allEvents[i + 1].startDate);
         
         if (nextEventStart > currentEventEnd) {
           const gapMinutes = Math.round((nextEventStart.getTime() - currentEventEnd.getTime()) / 60_000);
@@ -281,7 +377,7 @@ export const findFreeTimeTool = tool({
       }
 
       // Check free time after last event
-      const lastEventEnd = new Date(events[events.length - 1].endDate);
+      const lastEventEnd = new Date(allEvents[allEvents.length - 1].endDate);
       if (lastEventEnd < endDate) {
         const freeTimeAfter = Math.round((endDate.getTime() - lastEventEnd.getTime()) / 60_000);
         if (freeTimeAfter >= duration) {
@@ -339,49 +435,133 @@ export const getSummaryTool = tool({
     startDate: z.string().describe('Start date in ISO format'),
     endDate: z.string().describe('End date in ISO format'),
     includeAllDay: z.boolean().optional().describe('Include all-day events'),
+    calendarContext: z.object({
+      referencedCalendars: z.array(z.object({
+        id: z.string(),
+        name: z.string(),
+        summary: z.string().optional(),
+        color: z.string().optional(),
+        accessRole: z.string().optional(),
+      })).optional(),
+    }).optional().describe('Context about referenced calendars to include in the summary'),
   }),
   execute: async (params) => {
     try {
       const startDate = new Date(params.startDate);
       const endDate = new Date(params.endDate);
 
-      const accessToken = await getAccessToken();
-      if (!accessToken) {
-        return {
-          success: false,
-          error: 'Google Calendar not connected. Please connect your Google account.',
-        };
-      }
-
       const timeMin = startDate.toISOString();
       const timeMax = endDate.toISOString();
-      const calendarId = 'primary';
+      
+      let allEvents: any[] = [];
+
+      if (params.calendarContext?.referencedCalendars?.length) {
+        for (const calendarRef of params.calendarContext.referencedCalendars) {
+          let sessionAccessToken: string | null = null;
+          
+          if (calendarRef.id === 'primary' || calendarRef.id.includes('@gmail.com')) {
+            const accessToken = await getAccessToken();
+            if (accessToken) {
+              sessionAccessToken = accessToken;
+            }
+          } else {
+            // For non-primary calendars, we need to find the session that owns this calendar
+            const calendarStore = await import('@/lib/store/calendar-store');
+            const storeInstance = calendarStore.createCalendarStore();
+            const sessionCalendars = storeInstance.getState().sessionCalendars;
             
-      const response = await fetch(
-        `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events?timeMin=${timeMin}&timeMax=${timeMax}&singleEvents=true&orderBy=startTime`,
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-            'Content-Type': 'application/json',
-          },
+            for (const [sessionId, calendars] of Object.entries(sessionCalendars)) {
+              const sessionCalendarsList = calendars as Array<{ id: string; summary?: string; name?: string }>;
+              const foundCalendar = sessionCalendarsList.find((cal) => 
+                cal.id === calendarRef.id || cal.summary === calendarRef.name
+              );
+              if (foundCalendar) {
+                sessionAccessToken = await getAccessTokenForSession(sessionId);
+                break;
+              }
+            }
+            
+            // Fallback to primary access token if no session found
+            if (!sessionAccessToken) {
+              const accessToken = await getAccessToken();
+              if (accessToken) {
+                sessionAccessToken = accessToken;
+              }
+            }
+          }
+          
+          if (!sessionAccessToken) {
+            console.warn(`No access token available for calendar: ${calendarRef.id}`);
+            continue;
+          }
+          
+          try {
+            const response = await fetch(
+              `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarRef.id)}/events?timeMin=${timeMin}&timeMax=${timeMax}&singleEvents=true&orderBy=startTime`,
+              {
+                headers: {
+                  Authorization: `Bearer ${sessionAccessToken}`,
+                  'Content-Type': 'application/json',
+                },
+              }
+            );
+
+            if (response.ok) {
+              const data = await response.json();
+              const calendarEvents = data.items?.map((event: any) =>
+                convertGoogleEventToLocalEvent(event, calendarRef.id, 'user@example.com')
+              ) || [];
+              
+              allEvents.push(...calendarEvents);
+            }
+          } catch (error) {
+            console.warn(`Failed to fetch events for calendar ${calendarRef.id}:`, error);
+          }
         }
-      );
+      } else {
+        const accessToken = await getAccessToken();
+        if (!accessToken) {
+          return {
+            success: false,
+            error: 'Google Calendar not connected. Please connect your Google account.',
+          };
+        }
 
-      if (!response.ok) {
-        return {
-          success: false,
-          error: `Failed to fetch events from Google Calendar: ${response.status}`,
-        };
+        const calendarId = 'primary';
+        
+        try {
+          const response = await fetch(
+            `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events?timeMin=${timeMin}&timeMax=${timeMax}&singleEvents=true&orderBy=startTime`,
+            {
+              headers: {
+                Authorization: `Bearer ${accessToken}`,
+                'Content-Type': 'application/json',
+              },
+            }
+          );
+
+          if (!response.ok) {
+            return {
+              success: false,
+              error: `Failed to fetch events from Google Calendar: ${response.status}`,
+            };
+          }
+
+          const data = await response.json();
+          allEvents = data.items?.map((event: any) =>
+            convertGoogleEventToLocalEvent(event, calendarId, 'user@example.com')
+          ) || [];
+        } catch (error) {
+          return {
+            success: false,
+            error: error instanceof Error ? error.message : 'Unknown error',
+          };
+        }
       }
-
-      const data = await response.json();
-      const events = data.items?.map((event: any) =>
-        convertGoogleEventToLocalEvent(event, calendarId, 'user@example.com')
-      ) || [];
 
       return {
         success: true,
-        events,
+        events: allEvents,
         action: 'get_summary',
         message: `Calendar summary from ${startDate.toLocaleDateString()} to ${endDate.toLocaleDateString()}`,
         dateRange: {
@@ -414,9 +594,34 @@ export const updateEventTool = tool({
     newIsAllDay: z.boolean().optional().describe('Whether the event is all day'),
     newRepeat: z.enum(['none', 'daily', 'weekly', 'monthly', 'yearly']).optional().describe('New repeat pattern'),
     newVisibility: z.enum(['public', 'private']).optional().describe('New event visibility'),
+    calendarContext: z.object({
+      referencedCalendars: z.array(z.object({
+        id: z.string(),
+        name: z.string(),
+        summary: z.string().optional(),
+        color: z.string().optional(),
+        accessRole: z.string().optional(),
+      })).optional(),
+    }).optional().describe('Context about referenced calendars to include in the search'),
   }),
   execute: async (params) => {
     try {
+      let contextNote = '';
+      
+      if (params.calendarContext?.referencedCalendars?.length) {
+        const refCalendars = params.calendarContext.referencedCalendars;
+        contextNote = `\n\nCalendar Context: Will search in ${refCalendars.length} referenced calendar(s): ${refCalendars.map(c => c.name).join(', ')}`;
+        
+        // Prioritize calendars where user has write access
+        const writableCalendars = refCalendars.filter(cal => 
+          cal.accessRole === 'owner' || cal.accessRole === 'writer'
+        );
+        
+        if (writableCalendars.length > 0) {
+          contextNote += `\n✏️ Found ${writableCalendars.length} writable calendar(s) for updates`;
+        }
+      }
+
       const updates = {
         title: params.title,
         startDate: params.startDate,
@@ -437,7 +642,7 @@ export const updateEventTool = tool({
         success: true,
         updates,
         action: 'update_event',
-        message: `Found event "${params.title}" to update`,
+        message: `Found event "${params.title}" to update${contextNote}`,
       };
     } catch (error) {
       return {
@@ -458,9 +663,34 @@ export const deleteEventTool = tool({
     eventId: z.string().optional().describe('Event ID (if known, otherwise the tool will search by other parameters)'),
     userId: z.string().describe('User ID for authentication'),
     userEmail: z.string().optional().describe('User email for Google Calendar'),
+    calendarContext: z.object({
+      referencedCalendars: z.array(z.object({
+        id: z.string(),
+        name: z.string(),
+        summary: z.string().optional(),
+        color: z.string().optional(),
+        accessRole: z.string().optional(),
+      })).optional(),
+    }).optional().describe('Context about referenced calendars to include in the search'),
   }),
   execute: async (params) => {
     try {
+      let contextNote = '';
+      
+      if (params.calendarContext?.referencedCalendars?.length) {
+        const refCalendars = params.calendarContext.referencedCalendars;
+        contextNote = `\n\nCalendar Context: Will search in ${refCalendars.length} referenced calendar(s): ${refCalendars.map(c => c.name).join(', ')}`;
+        
+        // Check if user has delete permissions on referenced calendars
+        const deletableCalendars = refCalendars.filter(cal => 
+          cal.accessRole === 'owner' || cal.accessRole === 'writer'
+        );
+        
+        if (deletableCalendars.length > 0) {
+          contextNote += `\n🗑️ Found ${deletableCalendars.length} calendar(s) with delete permissions`;
+        }
+      }
+
       const searchParams = {
         title: params.title,
         startDate: params.startDate,
@@ -475,7 +705,7 @@ export const deleteEventTool = tool({
         success: true,
         action: 'confirm_delete',
         searchParams,
-        message: `Found event to delete. Please confirm the deletion.`,
+        message: `Found event to delete. Please confirm the deletion.${contextNote}`,
       };
     } catch (error) {
       return {

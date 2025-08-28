@@ -11,6 +11,11 @@ import { EventRepeat } from './event-repeat';
 import { EventSettings } from './event-settings';
 import { EventVisibility } from './event-visibility';
 
+interface GoogleContact {
+  name: string;
+  email: string;
+}
+
 interface EventFormProps {
   event?: Event | null;
   onSave?: (eventData: Partial<Event>) => void;
@@ -55,7 +60,7 @@ export const EventForm = ({
     meetingType: '',
     meetingUrl: '',
     meetingCode: '',
-    attendees: [] as string[],
+    attendees: [] as GoogleContact[],
     reminders: [] as Date[],
     calendar: '',
     color: 'blue',
@@ -83,7 +88,11 @@ export const EventForm = ({
         startTime: formatTimeFromDate(event.startDate),
         endTime: formatTimeFromDate(event.endDate),
         location: event.location || '',
-        attendees: event.attendees || [],
+        attendees: event.attendees?.map(attendee => 
+          typeof attendee === 'string' 
+            ? { name: attendee, email: attendee }
+            : attendee
+        ) || [],
         reminders: [],
         calendar: event.calendar || event.account || '',
         color: event.color || 'blue',
@@ -136,7 +145,7 @@ export const EventForm = ({
         startDate: convertTimeToDate(newData.startDate, newData.startTime),
         endDate: convertTimeToDate(newData.endDate, newData.endTime),
         location: newData.location,
-        attendees: newData.attendees,
+        attendees: newData.attendees.map(contact => contact.email),
         reminders: [],
         color: newData.color,
         calendar: newData.calendar, // Store the calendar ID

@@ -5,6 +5,7 @@ import {
 } from '@/components/agent/chat-message';
 import { cn } from '@/lib/utils';
 import { TextShimmer } from './text-shimmer';
+import { convertCalendarToReference, convertEventToReference } from '@/lib/store/chat-store';
 
 interface MessageListProps {
   messages: UIMessage[];
@@ -29,6 +30,42 @@ export function MessageList({
   return (
     <div className="h-full space-y-4 overflow-y-auto">
       {messages.map((message, index) => {
+        // Extract calendar references from tool results
+        const calendarReferences: Array<{
+          id: string;
+          name: string;
+          summary?: string;
+          color?: string;
+          accessRole?: string;
+        }> = [];
+
+        message.parts?.forEach((part) => {
+          if (part.type.startsWith('tool-') && (part as any).state === 'output-available') {
+            const toolPart = part as any;
+            
+            // Extract calendar references from tool results
+            if (toolPart.output?.event) {
+              const eventRef = convertEventToReference(toolPart.output.event);
+              calendarReferences.push({
+                id: eventRef.id,
+                name: eventRef.title,
+                color: eventRef.color,
+              });
+            }
+            
+            if (toolPart.output?.calendar) {
+              const calendarRef = convertCalendarToReference(toolPart.output.calendar);
+              calendarReferences.push({
+                id: calendarRef.id,
+                name: calendarRef.name,
+                summary: calendarRef.summary,
+                color: calendarRef.color,
+                accessRole: calendarRef.accessRole,
+              });
+            }
+          }
+        });
+
         const chatMessageProps: ChatMessageProps = {
           id: message.id,
           role: message.role,
@@ -59,6 +96,7 @@ export function MessageList({
 
             return part;
           }) as any,
+          calendarReferences, // Add the extracted references
         };
 
         const additionalOptions =
