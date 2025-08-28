@@ -10,7 +10,6 @@ import {
   PanelRight,
   Plus,
   Smartphone,
-  Sparkles,
   X,
 } from 'lucide-react';
 import type * as React from 'react';
@@ -26,6 +25,8 @@ import { api } from '@/convex/_generated/api';
 import { useRateLimit } from '@/hooks/use-rate-limit';
 import { cn } from '@/lib/utils';
 import { useChatStore } from '@/providers/chat-store-provider';
+import Image from 'next/image';
+import { useTheme } from 'next-themes';
 
 interface ChatSidebarProps {
   mode: 'sidebar' | 'popup' | 'fullscreen';
@@ -50,7 +51,7 @@ export function ChatSidebar({
     string | null
   >(null);
   const [isMobile, setIsMobile] = useState(false);
-
+  const { theme } = useTheme();
   const {
     messagesLeft,
     isLimited,
@@ -255,64 +256,73 @@ export function ChatSidebar({
                 </TooltipContent>
             </Tooltip>
           )}
-          {shouldShowRateLimit && (
+          <SignedIn>
+            {shouldShowRateLimit && (
+                <Tooltip>
+                <TooltipTrigger asChild>
+                    <div className="flex items-center gap-2 rounded-md bg-neutral-100 px-2 py-1 dark:bg-neutral-800">
+                    <MessageSquare className="h-4 w-4 text-neutral-900 dark:text-white" />
+                    <span className="text-neutral-900 text-sm dark:text-white">
+                        {messagesLeft}
+                    </span>
+                    </div>
+                </TooltipTrigger>
+                <TooltipContent className="bg-black font-semibold text-white">
+                    <p>Messages left today</p>
+                </TooltipContent>
+                </Tooltip>
+            )}
+            {isProUser && (
+                <Tooltip>
+                <TooltipTrigger asChild>
+                    <div className="flex items-center gap-2 rounded-md px-2 py-1">
+                    <MessageSquare className="h-4 w-4" />
+                    </div>
+                </TooltipTrigger>
+                <TooltipContent className="bg-black font-semibold text-white">
+                    <span
+                    className="text-xs"
+                    style={{
+                        background: 'linear-gradient(90deg, #A07CFE 0%, #FE8FB5 50%, #FFBE7B 100%)',
+                        WebkitBackgroundClip: 'text',
+                        WebkitTextFillColor: 'transparent',
+                    }}
+                    >
+                    Unlimited
+                    </span>
+                </TooltipContent>
+                </Tooltip>
+            )}
             <Tooltip>
-              <TooltipTrigger asChild>
-                <div className="flex items-center gap-2 rounded-md bg-neutral-100 px-2 py-1 dark:bg-neutral-800">
-                  <MessageSquare className="h-4 w-4 text-neutral-900 dark:text-white" />
-                  <span className="text-neutral-900 text-sm dark:text-white">
-                    {messagesLeft}
-                  </span>
-                </div>
-              </TooltipTrigger>
-              <TooltipContent className="bg-black font-semibold text-white">
-                <p>Messages left today</p>
-              </TooltipContent>
-            </Tooltip>
-          )}
-          {isProUser && (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <div className="flex items-center gap-2 rounded-md px-2 py-1">
-                  <MessageSquare className="h-4 w-4" />
-                </div>
-              </TooltipTrigger>
-              <TooltipContent className="bg-black font-semibold text-white">
-                <span
-                  className="text-xs"
-                  style={{
-                    background: 'linear-gradient(90deg, #A07CFE 0%, #FE8FB5 50%, #FFBE7B 100%)',
-                    WebkitBackgroundClip: 'text',
-                    WebkitTextFillColor: 'transparent',
-                  }}
+                <TooltipTrigger asChild>
+                <Button
+                    className="h-8 w-8 text-neutral-900 hover:bg-neutral-100 dark:text-white dark:hover:bg-neutral-800"
+                    onClick={handleNewChat}
+                    size="icon"
+                    variant="ghost"
                 >
-                  Unlimited
-                </span>
-              </TooltipContent>
+                    <Plus className="h-4 w-4" />
+                </Button>
+                </TooltipTrigger>
+                <TooltipContent className="bg-black font-semibold text-white">
+                <p>New Chat</p>
+                </TooltipContent>
             </Tooltip>
-          )}
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                className="h-8 w-8 text-neutral-900 hover:bg-neutral-100 dark:text-white dark:hover:bg-neutral-800"
-                onClick={handleNewChat}
-                size="icon"
-                variant="ghost"
-              >
-                <Plus className="h-4 w-4" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent className="bg-black font-semibold text-white">
-              <p>New Chat</p>
-            </TooltipContent>
-          </Tooltip>
+          </SignedIn>
         </div>
       </div>
 
       <div className="mt-3 min-h-0 flex-1">
         <SignedOut>
           <div className="flex h-full items-center justify-center">
-            <div className="space-y-4 text-center">
+            <div className="space-y-4 text-center flex flex-col items-center">
+                <Image
+                    alt="Caly"
+                    className="rounded-full border dark:border-none"
+                    height={70}
+                    src={theme === 'dark' ? '/caly.svg' : '/caly-light.svg'}
+                    width={70}
+                />
               <h3 className="font-medium text-lg text-neutral-900 dark:text-white">
                 Sign in to use AI Assistant
               </h3>
@@ -320,7 +330,7 @@ export function ChatSidebar({
                 Connect with your calendar AI to manage events and schedule
               </p>
               <SignInButton mode="modal">
-                <Button>Sign in to Chat</Button>
+                <Button className='bg-primary text-primary-foreground hover:bg-primary/90'>Sign in to Chat</Button>
               </SignInButton>
             </div>
           </div>

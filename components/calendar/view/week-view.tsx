@@ -1,12 +1,11 @@
 'use client';
 
-import { SignedIn, SignedOut, SignInButton, useUser } from '@clerk/nextjs';
+import { SignedIn, useUser } from '@clerk/nextjs';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { CalendarTimeline } from '@/components/calendar/shared/calendar-timeline';
 import { WeekDayColumn } from '@/components/calendar/week/week-day-column';
 import { WeekHeader } from '@/components/calendar/week/week-header';
-import { Button } from '@/components/ui/button';
 import { useGoogleCalendarRefresh } from '@/hooks/use-google-calendar-refresh';
 import { useOptimisticEventSync } from '@/hooks/use-optimistic-event-sync';
 import { handleAddEvent } from '@/lib/calendar-utils/calendar-event-handlers';
@@ -192,22 +191,6 @@ export default function WeeklyView() {
 
   return (
     <div className="flex flex-col gap-4">
-      <SignedOut>
-        <div className="flex h-96 items-center justify-center">
-          <div className="space-y-4 text-center">
-            <h3 className="font-medium text-foreground text-lg">
-              Sign in to view your calendar
-            </h3>
-            <p className="text-muted-foreground">
-              Connect your account to start managing your schedule
-            </p>
-            <SignInButton mode="modal">
-              <Button>Sign in to Continue</Button>
-            </SignInButton>
-          </div>
-        </div>
-      </SignedOut>
-
       <SignedIn>
         <div className="w-full">
           {isMobile ? (

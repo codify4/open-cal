@@ -7,7 +7,7 @@ import {
   DragOverlay,
   type DragStartEvent,
 } from '@dnd-kit/core';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ChatSidebar } from '@/components/agent/chat-sidebar';
 import { AppSidebar } from '@/components/sidebar/app-sidebar';
 import {
@@ -48,6 +48,13 @@ export function CalendarLayoutClient({
     updateEventTime,
   } = useCalendarStore((state) => state);
   const { optimisticUpdate, commit } = useOptimisticEventSync();
+
+  // Close event sidebar when user signs out
+  useEffect(() => {
+    if (!user && isEventSidebarOpen) {
+      closeEventSidebar();
+    }
+  }, [user, isEventSidebarOpen, closeEventSidebar]);
 
   const closeChatSidebar = () => {
     toggleChatSidebar();
@@ -199,44 +206,44 @@ export function CalendarLayoutClient({
               </ResizablePanel>
             </>
           )}
-          {isChatSidebarOpen && chatMode === 'popup' && (
-            <div className="fixed right-4 bottom-4 z-50 h-[600px] w-96 rounded-xl border bg-white shadow-lg dark:bg-neutral-900">
-              <ChatSidebar
-                className="h-full"
-                mode="popup"
-                onToggleFullscreen={toggleFullscreen}
-                onTogglePopup={() => setChatMode('sidebar')}
-                onToggleSidebar={closeChatSidebar}
-              />
-            </div>
-          )}
-          {isEventSidebarOpen && !isMobile && (
-            <>
-              <ResizableHandle
-                className="opacity-0 transition-opacity duration-300 hover:opacity-100"
-                withHandle
-              />
-              <ResizablePanel
-                className="min-w-[400px] rounded-lg border bg-white p-2 dark:bg-neutral-900"
-                defaultSize={30}
-                maxSize={50}
-                minSize={20}
-              >
-                <div className="h-full overflow-hidden rounded-xl shadow-sm">
-                  <AddEventSidebar onClick={closeEventSidebar} />
+            {isChatSidebarOpen && chatMode === 'popup' && (
+                <div className="fixed right-4 bottom-4 z-50 h-[600px] w-96 rounded-xl border bg-white shadow-lg dark:bg-neutral-900">
+                <ChatSidebar
+                    className="h-full"
+                    mode="popup"
+                    onToggleFullscreen={toggleFullscreen}
+                    onTogglePopup={() => setChatMode('sidebar')}
+                    onToggleSidebar={closeChatSidebar}
+                />
                 </div>
-              </ResizablePanel>
-            </>
-          )}
-          
-          {isEventSidebarOpen && isMobile && (
-            <AddEventDrawer 
-              open={isEventSidebarOpen} 
-              onOpenChange={(open) => {
-                if (!open) closeEventSidebar();
-              }} 
-            />
-          )}
+            )}
+            {isEventSidebarOpen && user && !isMobile && (
+             <>
+               <ResizableHandle
+                 className="opacity-0 transition-opacity duration-300 hover:opacity-100"
+                 withHandle
+               />
+               <ResizablePanel
+                 className="min-w-[400px] rounded-lg border bg-white p-2 dark:bg-neutral-900"
+                 defaultSize={30}
+                 maxSize={50}
+                 minSize={20}
+               >
+                 <div className="h-full overflow-hidden rounded-xl shadow-sm">
+                   <AddEventSidebar onClick={closeEventSidebar} />
+                 </div>
+               </ResizablePanel>
+             </>
+           )}
+           
+           {isEventSidebarOpen && user && isMobile && (
+             <AddEventDrawer 
+               open={isEventSidebarOpen} 
+               onOpenChange={(open) => {
+                 if (!open) closeEventSidebar();
+               }} 
+             />
+           )}
         </ResizablePanelGroup>
         {chatMode === 'fullscreen' && (
           <div className="fixed inset-0 z-50 bg-white p-2 lg:p-5 dark:bg-neutral-900">

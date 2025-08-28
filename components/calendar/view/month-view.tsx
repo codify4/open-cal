@@ -157,22 +157,6 @@ export default function MonthView() {
 
   return (
     <div>
-      <SignedOut>
-        <div className="flex h-96 items-center justify-center">
-          <div className="space-y-4 text-center">
-            <h3 className="font-medium text-foreground text-lg">
-              Sign in to view your calendar
-            </h3>
-            <p className="text-muted-foreground">
-              Connect your account to start managing your schedule
-            </p>
-            <SignInButton mode="modal">
-              <Button>Sign in to Continue</Button>
-            </SignInButton>
-          </div>
-        </div>
-      </SignedOut>
-
       <SignedIn>
         <div>
           {isMobile ? (
