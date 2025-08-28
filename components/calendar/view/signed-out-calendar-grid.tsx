@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useRef, useState, useEffect } from 'react';
 import { CalendarTimeline } from '@/components/calendar/shared/calendar-timeline';
 import { WeekDayColumn } from '@/components/calendar/week/week-day-column';
 import { WeekHeader } from '@/components/calendar/week/week-header';
@@ -19,6 +19,8 @@ interface SignedOutCalendarGridProps {
 
 export function SignedOutCalendarGrid({ viewType }: SignedOutCalendarGridProps) {
   const { currentDate } = useCalendarStore((state) => state);
+  const [isMobile, setIsMobile] = useState(false);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
   
   const date = currentDate instanceof Date ? currentDate : new Date(currentDate);
   const daysOfWeek = useMemo(() => getDaysInWeek(date), [date]);
@@ -28,7 +30,44 @@ export function SignedOutCalendarGrid({ viewType }: SignedOutCalendarGridProps) 
   const startOffset = new Date(date.getFullYear(), date.getMonth(), 1).getDay();
   const lastDateOfPrevMonth = new Date(date.getFullYear(), date.getMonth(), 0).getDate();
   
-  const daysOfWeekLabels = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  const daysOfWeekLabels = weekStartsOn === 'monday'
+    ? ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+    : ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+  const nextMonth = new Date(date.getFullYear(), date.getMonth() + 1, 1);
+  const daysInNextMonth = new Date(
+    nextMonth.getFullYear(),
+    nextMonth.getMonth() + 1,
+    0
+  ).getDate();
+
+  const totalCells = 42; // 6 weeks * 7 days
+  const nextMonthDaysNeeded = totalCells - startOffset - daysInMonthArray.length;
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 1024);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  useEffect(() => {
+    if (isMobile && scrollContainerRef.current) {
+      const today = new Date();
+      const currentDayIndex = today.getDate() - 1;
+      const dayWidth = scrollContainerRef.current.scrollWidth / 7;
+      const currentColumn = (currentDayIndex + startOffset) % 7;
+      const scrollPosition = currentColumn * dayWidth - (scrollContainerRef.current.clientWidth / 2) + (dayWidth / 2);
+      
+      scrollContainerRef.current.scrollTo({
+        left: Math.max(0, scrollPosition),
+        behavior: 'smooth'
+      });
+    }
+  }, [isMobile, startOffset]);
 
   if (viewType === 'day') {
     return (
@@ -131,49 +170,122 @@ export function SignedOutCalendarGrid({ viewType }: SignedOutCalendarGridProps) 
 
   if (viewType === 'month') {
     return (
-      <div className="w-full">
-        <div className="grid grid-cols-7 gap-1 sm:gap-2">
-          {daysOfWeekLabels.map((day, idx) => (
-            <div
-              className="my-8 text-left font-medium text-4xl tracking-tighter"
-              key={idx}
-            >
-              {day}
-            </div>
-          ))}
+      <div className='lg:h-screen'>
+        <div className='h-full'>
+          {isMobile ? (
+            <div className="overflow-x-auto h-full" ref={scrollContainerRef}>
+              <div className="grid grid-cols-7 min-w-[1500px]">
+                {daysOfWeekLabels.map((day, idx) => (
+                  <div
+                    className="p-3 text-center font-medium text-sm tracking-tight border-b border-border bg-muted/30"
+                    key={idx}
+                  >
+                    {day}
+                  </div>
+                ))}
 
-          {Array.from({ length: startOffset }).map((_, idx) => (
-            <div className="h-[150px] opacity-50" key={`offset-${idx}`}>
-              <div className="relative mb-1 font-semibold text-3xl">
-                {lastDateOfPrevMonth - startOffset + idx + 1}
+                {Array.from({ length: startOffset }).map((_, idx) => (
+                  <div className="h-[120px] opacity-80 border-r border-border last:border-r-0" key={`offset-${idx}`}>
+                    <div className="relative p-2 font-medium text-sm text-muted-foreground">
+                      {lastDateOfPrevMonth - startOffset + idx + 1}
+                    </div>
+                  </div>
+                ))}
+
+                {daysInMonthArray.map((day, dayIndex) => {
+                  const cellDate = new Date(
+                    date.getFullYear(),
+                    date.getMonth(),
+                    day
+                  );
+                  const isToday =
+                    new Date().getDate() === day &&
+                    new Date().getMonth() === date.getMonth() &&
+                    new Date().getFullYear() === date.getFullYear();
+                  const isLastInRow = (dayIndex + startOffset + 1) % 7 === 0;
+                  return (
+                    <MonthDayCell
+                      cellDate={cellDate}
+                      dayEvents={[]}
+                      dayNumber={day}
+                      isToday={isToday}
+                      key={`day-${day}`}
+                      onAddEvent={() => {}}
+                      onAskAI={() => {}}
+                      onContextMenuAddEvent={() => {}}
+                      sessionPresent={false}
+                      isLastInRow={isLastInRow}
+                    />
+                  );
+                })}
+
+                {Array.from({ length: nextMonthDaysNeeded }).map((_, idx) => (
+                  <div className="h-[150px] opacity-80 border-b border-r border-border last:border-r-0" key={`next-month-${idx}`}>
+                    <div className="relative p-2 font-medium text-sm text-muted-foreground">
+                      {idx + 1}
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
-          ))}
+          ) : (
+            <div
+              className="grid grid-cols-7 overflow-hidden h-full"
+              key={`${date.getFullYear()}-${date.getMonth()}`}
+            >
+              {daysOfWeekLabels.map((day, idx) => (
+                <div
+                  className="max-h-[50px] p-2 text-center font-medium text-sm tracking-tight border-b border-border bg-muted/30 last:border-r-0"
+                  key={idx}
+                >
+                  {day}
+                </div>
+              ))}
 
-          {daysInMonthArray.map((day) => {
-            const cellDate = new Date(
-              date.getFullYear(),
-              date.getMonth(),
-              day
-            );
-            const isToday =
-              new Date().getDate() === day &&
-              new Date().getMonth() === date.getMonth() &&
-              new Date().getFullYear() === date.getFullYear();
-            return (
-              <MonthDayCell
-                cellDate={cellDate}
-                dayEvents={[]}
-                dayNumber={day}
-                isToday={isToday}
-                key={`day-${day}`}
-                onAddEvent={() => {}}
-                onAskAI={() => {}}
-                onContextMenuAddEvent={() => {}}
-                sessionPresent={false}
-              />
-            );
-          })}
+              {Array.from({ length: startOffset }).map((_, idx) => (
+                <div className="h-[150px] opacity-80 border-b border-r border-border last:border-b-0 last:border-r-0" key={`offset-${idx}`}>
+                  <div className="relative p-2 font-medium text-sm text-muted-foreground">
+                    {lastDateOfPrevMonth - startOffset + idx + 1}
+                  </div>
+                </div>
+              ))}
+
+              {daysInMonthArray.map((day, dayIndex) => {
+                const cellDate = new Date(
+                  date.getFullYear(),
+                  date.getMonth(),
+                  day
+                );
+                const isToday =
+                  new Date().getDate() === day &&
+                  new Date().getMonth() === date.getMonth() &&
+                  new Date().getFullYear() === date.getFullYear();
+                const isLastInRow = (dayIndex + startOffset + 1) % 7 === 0;
+                return (
+                  <MonthDayCell
+                    cellDate={cellDate}
+                    dayEvents={[]}
+                    dayNumber={day}
+                    isToday={isToday}
+                    key={`day-${day}`}
+                    onAddEvent={() => {}}
+                    onAskAI={() => {}}
+                    onContextMenuAddEvent={() => {}}
+                    sessionPresent={false}
+                    isLastInRow={isLastInRow}
+                  />
+                );
+              })}
+
+              {Array.from({ length: nextMonthDaysNeeded }).map((_, idx) => (
+                <div className="h-[150px] opacity-80 border-b border-r border-border last:border-b-0 last:border-r-0" key={`next-month-${idx}`}>
+                  <div className="relative p-2 font-medium text-sm text-muted-foreground">
+                    {idx + 1}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     );

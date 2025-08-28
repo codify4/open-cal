@@ -52,10 +52,9 @@ export function MonthDayCell({
         >
           <div
             className={clsx(
-              'relative flex h-full cursor-pointer overflow-hidden p-2 transition-colors hover:bg-muted/30',
+              'relative flex h-full overflow-hidden p-2 transition-colors hover:bg-muted/30',
               isOver ? 'bg-muted/50' : undefined
             )}
-            onClick={() => onAddEvent(dayNumber)}
             ref={setNodeRef}
           >
             <div
@@ -64,7 +63,7 @@ export function MonthDayCell({
                 dayEvents.length > 0
                   ? 'text-primary-600'
                   : 'text-muted-foreground',
-                isToday ? 'text-primary font-semibold' : ''
+                isToday ? 'text-white bg-destructive h-6 w-6 p-0.5 flex items-center justify-center rounded-[5px] font-normal' : ''
               )}
             >
               {dayNumber}

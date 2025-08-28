@@ -164,7 +164,7 @@ export default function MonthView() {
   const nextMonthDaysNeeded = totalCells - startOffset - daysInMonthArray.length;
 
   return (
-    <div className='lg:h-screen'>
+    <div className=''>
       <SignedIn>
         <div className='h-full'>
           {isMobile ? (
@@ -180,7 +180,7 @@ export default function MonthView() {
                 ))}
 
                 {Array.from({ length: startOffset }).map((_, idx) => (
-                  <div className="h-[120px] opacity-50 border-r border-border last:border-r-0" key={`offset-${idx}`}>
+                  <div className="h-[120px] opacity-80 border-r border-border last:border-r-0" key={`offset-${idx}`}>
                     <div className="relative p-2 font-medium text-sm text-muted-foreground">
                       {lastDateOfPrevMonth - startOffset + idx + 1}
                     </div>
@@ -216,7 +216,7 @@ export default function MonthView() {
                 })}
 
                 {Array.from({ length: nextMonthDaysNeeded }).map((_, idx) => (
-                    <div className="h-[150px] opacity-50 border-b border-r border-border last:border-r-0" key={`next-month-${idx}`}>
+                    <div className="h-[150px] opacity-80 border-b border-r border-border last:border-r-0" key={`next-month-${idx}`}>
                         <div className="relative p-2 font-medium text-sm text-muted-foreground">
                             {idx + 1}
                         </div>
@@ -275,7 +275,7 @@ export default function MonthView() {
               })}
 
               {Array.from({ length: nextMonthDaysNeeded }).map((_, idx) => (
-                <div className="h-[150px] opacity-50 border-b border-r border-border last:border-r-0" key={`next-month-${idx}`}>
+                <div className="h-[150px] opacity-80 border-b border-r border-border last:border-b-0 last:border-r-0" key={`next-month-${idx}`}>
                   <div className="relative p-2 font-medium text-sm text-muted-foreground">
                     {idx + 1}
                   </div>
