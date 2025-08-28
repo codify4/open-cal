@@ -36,7 +36,7 @@ export default function MultisessionAppSupport({
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-white dark:bg-neutral-900">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-neutral-600 dark:text-neutral-400">Adding account...</p>
+          <p className="text-neutral-600 dark:text-neutral-400">Loading...</p>
         </div>
       </div>
     );
