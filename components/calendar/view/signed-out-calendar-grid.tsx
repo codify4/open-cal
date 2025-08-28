@@ -47,6 +47,7 @@ export function SignedOutCalendarGrid({ viewType }: SignedOutCalendarGridProps) 
                 ))}
               </div>
               <div className="relative flex flex-grow flex-col">
+                <CalendarTimeline variant="daily" currentDate={date} />
                 <div className="relative">
                   <DailyTimeGrid
                     contextMenuTime={null}
@@ -61,7 +62,7 @@ export function SignedOutCalendarGrid({ viewType }: SignedOutCalendarGridProps) 
                 </div>
               </div>
             </div>
-            <CalendarTimeline variant="daily" currentDate={date} />
+            
           </div>
         </div>
       </div>

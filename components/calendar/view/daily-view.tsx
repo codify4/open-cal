@@ -153,6 +153,7 @@ export default function DailyView({
                   ))}
                 </div>
                 <div className="relative flex flex-grow flex-col">
+                  <CalendarTimeline variant="daily" currentDate={date} />
                   <div className="relative">
                     <DailyTimeGrid
                       contextMenuTime={contextMenuTime}
@@ -175,8 +176,6 @@ export default function DailyView({
                   </div>
                 </div>
               </div>
-
-              <CalendarTimeline variant="daily" currentDate={date} />
             </div>
           </div>
         </div>

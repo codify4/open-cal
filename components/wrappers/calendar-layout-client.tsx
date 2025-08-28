@@ -164,7 +164,7 @@ export function CalendarLayoutClient({
           variant="inset"
         />
         <ResizablePanelGroup
-          className="max-h-svh gap-1 bg-neutral-100 md:p-1.5 dark:bg-neutral-950"
+          className="max-h-svh gap-1 bg-neutral-100 md:p-2 dark:bg-neutral-950"
           direction="horizontal"
           data-dragging={activeEvent ? "true" : "false"}
         >
