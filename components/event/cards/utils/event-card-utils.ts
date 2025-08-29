@@ -34,15 +34,17 @@ export const calculateEventHeight = (startDate: Date | string, endDate: Date | s
 
 export const useEventCardColor = (
   event: Event,
-  fetchedCalendars: any[],
-  isFocused: boolean
+  sessionCalendars: Record<string, any[]>,
+  isFocused: boolean,
+  currentSessionId?: string
 ) => {
   return useMemo(() => {
-    if (!event.calendar || !fetchedCalendars?.length) {
+    if (!event.calendar || !currentSessionId || !sessionCalendars[currentSessionId]) {
       return getActualColor(getCardColor(event.color, isFocused));
     }
     
-    const calendar = fetchedCalendars.find(
+    const sessionCalendarsList = sessionCalendars[currentSessionId];
+    const calendar = sessionCalendarsList.find(
       (cal: any) => cal.id === event.calendar
     );
     
@@ -52,5 +54,5 @@ export const useEventCardColor = (
     }
     
     return getActualColor(getCardColor(event.color, isFocused));
-  }, [event.calendar, event.color, fetchedCalendars, isFocused]);
+  }, [event.calendar, event.color, sessionCalendars, isFocused, currentSessionId]);
 };

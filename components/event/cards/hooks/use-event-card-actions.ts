@@ -6,7 +6,7 @@ import { deleteGoogleEvent } from '@/lib/calendar-utils/google-calendar';
 import type { Event } from '@/lib/store/calendar-store';
 
 export const useEventCardActions = () => {
-  const { openEventSidebarForEdit, deleteEvent, saveEvent } = useCalendarStore(
+  const { openEventSidebarForEdit, deleteEvent, saveEvent, setGoogleEvents, googleEvents, events } = useCalendarStore(
     (state) => state
   );
   const { refreshEvents } = useGoogleCalendarRefresh();
@@ -22,33 +22,63 @@ export const useEventCardActions = () => {
   };
 
   const handleDelete = async (event: Event) => {
+    if (!clerkUser?.id) {
+      toast.error('User not authenticated');
+      return;
+    }
+
+    // Store the event for potential restoration
+    const eventToRestore = event;
+    let wasRestored = false;
+
+    // Optimistically delete the event from UI immediately
+    if (event.googleEventId) {
+      // Remove from googleEvents
+      const updatedGoogleEvents = googleEvents.filter((e) => e.id !== event.id);
+      setGoogleEvents(updatedGoogleEvents);
+    } else {
+      // Remove from events
+      deleteEvent(event.id);
+    }
+
     try {
-      if (event.googleEventId && clerkUser) {
+      // Handle Google Calendar deletion in the background
+      if (event.googleEventId) {
         const calendarId = event.googleCalendarId || 'primary';
         const result = await deleteGoogleEvent(event.googleEventId, calendarId);
 
         if (!result.success) {
           if (result.error === 'unauthorized') {
-            toast.error(
-              'Access token expired. Please reconnect your Google account.'
-            );
-            return;
+            throw new Error('Access token expired. Please reconnect your Google account.');
           }
           if (result.error === 'not_found') {
-            toast.info('Event not found in Google Calendar, deleting locally');
-          } else {
-            toast.error('Failed to delete from Google Calendar');
+            // Event not found in Google Calendar, but that's fine for deletion
             return;
           }
+          throw new Error(result.error || 'Failed to delete from Google Calendar');
         }
       }
     } catch (error) {
-      toast.error('Failed to delete event');
+      // Restore the event on error
+      if (eventToRestore.googleEventId) {
+        const updatedGoogleEvents = [...googleEvents, eventToRestore];
+        setGoogleEvents(updatedGoogleEvents);
+      } else {
+        // For local events, we need to add it back
+        // Since we can't directly modify the events array, we'll use saveEvent
+        saveEvent(eventToRestore);
+      }
+      
+      wasRestored = true;
+      const errorMessage = error instanceof Error ? error.message : 'Failed to delete event';
+      toast.error(errorMessage);
       return;
     }
 
-    deleteEvent(event.id);
-    await refreshEvents();
+    // Only refresh if we didn't restore (i.e., deletion was successful)
+    if (!wasRestored) {
+      await refreshEvents();
+    }
   };
 
   const handleDuplicate = (event: Event) => {

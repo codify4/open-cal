@@ -179,7 +179,7 @@ export const WeekDayColumn = ({
           })}
         </div>
       </ContextMenuTrigger>
-      <ContextMenuContent className="w-40 bg-popover">
+      <ContextMenuContent className="bg-popover">
         <CalendarContextMenuItems
           onAddEvent={() => {
             const timeToUse = contextMenuTime || detailedHour || '12:00 PM';

@@ -23,6 +23,7 @@ import { TextShimmer } from '../agent/text-shimmer';
 import DailyView from './view/daily-view';
 import MonthView from './view/month-view';
 import WeeklyView from './view/week-view';
+import { SignedOutCalendarGrid } from './view/signed-out-calendar-grid';
 
 const animationConfig = {
   initial: { opacity: 0, y: 20 },
@@ -60,6 +61,7 @@ const CalendarView = memo(function CalendarView({
     refreshEvents,
     setRefreshFunction,
     openEventSidebarForNewEvent,
+    weekStartsOn,
   } = useCalendarStore((state) => state);
 
   const { refreshEvents: refreshGoogleEvents } = useGoogleCalendarRefresh();
@@ -99,8 +101,7 @@ const CalendarView = memo(function CalendarView({
   }, [clientSide]);
 
   const getDaysInWeek = (week: number, year: number) => {
-    const weekStartsOn = 'sunday';
-    const startDay = weekStartsOn === 'sunday' ? 0 : 1;
+    const startDay = weekStartsOn === 'monday' ? 1 : 0;
     const currentDayOfWeek = currentDate.getDay();
     const daysToSubtract = (currentDayOfWeek - startDay + 7) % 7;
     const weekStart = new Date(currentDate);
@@ -116,8 +117,7 @@ const CalendarView = memo(function CalendarView({
   };
 
   const getViewTitle = (viewType: string) => {
-    const date =
-      currentDate instanceof Date ? currentDate : new Date(currentDate);
+    const date = currentDate instanceof Date ? currentDate : new Date(currentDate);
 
     if (viewType === 'day') {
       return (
@@ -139,15 +139,18 @@ const CalendarView = memo(function CalendarView({
       );
     }
     if (viewType === 'week') {
-      const daysOfWeek = getDaysInWeek(1, date.getFullYear());
-
-      const startOfWeek = daysOfWeek[0];
-      const endOfWeek = daysOfWeek[6];
+      const startDay = weekStartsOn === 'monday' ? 1 : 0;
+      const currentDayOfWeek = date.getDay();
+      const daysToSubtract = (currentDayOfWeek - startDay + 7) % 7;
+      const weekStart = new Date(date);
+      weekStart.setDate(date.getDate() - daysToSubtract);
+      const weekEnd = new Date(weekStart);
+      weekEnd.setDate(weekStart.getDate() + 6);
 
       return (
         <>
           <span className="hidden sm:inline">
-            {`${startOfWeek.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${endOfWeek.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`}
+            {`${weekStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${weekEnd.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`}
           </span>
           <span className="sm:hidden">
             {date.toLocaleDateString('en-US', {
@@ -215,16 +218,7 @@ const CalendarView = memo(function CalendarView({
               <div className="flex w-full items-center justify-between gap-4 pb-2">
                 <div className="flex items-center gap-2">
                   <div className="mr-2 flex items-center gap-2">
-                    <SidebarTrigger
-                      disabled={!hasAnyConnectedAccount || isLoadingCalendars}
-                      title={
-                        hasAnyConnectedAccount && !isLoadingCalendars
-                          ? undefined
-                          : isLoadingCalendars
-                          ? 'Loading calendars...'
-                          : 'Connect Google Calendar to access sidebar'
-                      }
-                    />
+                    <SidebarTrigger />
                     <h1 className="font-semibold text-lg">
                       {getViewTitle(viewType)}
                     </h1>
@@ -233,32 +227,16 @@ const CalendarView = memo(function CalendarView({
                   <div className="flex gap-1 sm:gap-2">
                     <Button
                       className={cn(classNames?.buttons?.prev, "h-7 w-7 p-0 sm:h-8 sm:w-auto sm:px-3")}
-                      disabled={!hasAnyConnectedAccount || isLoadingCalendars}
                       onClick={handlePrev}
                       size="sm"
-                      title={
-                        hasAnyConnectedAccount && !isLoadingCalendars
-                          ? undefined
-                          : isLoadingCalendars
-                          ? 'Loading calendars...'
-                          : 'Connect Google Calendar to navigate calendar'
-                      }
                       variant="outline"
                     >
                       <ArrowLeft className="h-3 w-3 sm:h-4 sm:w-4" />
                     </Button>
                     <Button
                       className={cn(classNames?.buttons?.next, "h-7 w-7 p-0 sm:h-8 sm:w-auto sm:px-3")}
-                      disabled={!hasAnyConnectedAccount || isLoadingCalendars}
                       onClick={handleNext}
                       size="sm"
-                      title={
-                        hasAnyConnectedAccount && !isLoadingCalendars
-                          ? undefined
-                          : isLoadingCalendars
-                          ? 'Loading calendars...'
-                          : 'Connect Google Calendar to navigate calendar'
-                      }
                       variant="outline"
                     >
                       <ArrowRight className="h-3 w-3 sm:h-4 sm:w-4" />
@@ -268,15 +246,7 @@ const CalendarView = memo(function CalendarView({
                 <div className="flex items-center gap-2">
                   <Button
                     className="hidden h-8 rounded-sm bg-muted px-3 text-sm sm:flex"
-                    disabled={isFetchingEvents || !hasAnyConnectedAccount || isLoadingCalendars}
                     onClick={refreshEvents}
-                    title={
-                      hasAnyConnectedAccount && !isLoadingCalendars
-                        ? undefined
-                        : isLoadingCalendars
-                        ? 'Loading calendars...'
-                        : 'Connect Google Calendar to refresh events'
-                    }
                     variant="outline"
                   >
                     {isFetchingEvents && (
@@ -288,45 +258,21 @@ const CalendarView = memo(function CalendarView({
                   </Button>
                   <Button
                     className="hidden h-8 w-20 rounded-sm bg-muted text-sm sm:flex"
-                    disabled={!hasAnyConnectedAccount || isLoadingCalendars}
                     onClick={handleGoToToday}
-                    title={
-                      hasAnyConnectedAccount && !isLoadingCalendars
-                        ? undefined
-                        : isLoadingCalendars
-                        ? 'Loading calendars...'
-                        : 'Connect Google Calendar to navigate calendar'
-                    }
                     variant="outline"
                   >
                     Today
                   </Button>
                   <Button
                     className="flex h-7 w-7 rounded-sm bg-muted text-sm sm:hidden"
-                    disabled={!hasAnyConnectedAccount || isLoadingCalendars}
                     onClick={handleGoToToday}
-                    title={
-                      hasAnyConnectedAccount && !isLoadingCalendars
-                        ? undefined
-                        : isLoadingCalendars
-                        ? 'Loading calendars...'
-                        : 'Connect Google Calendar to navigate calendar'
-                    }
                     variant="outline"
                   >
                     {currentDate.getDate()}
                   </Button>
                   <Button
                     className="flex h-7 w-7 rounded-sm bg-muted text-xs sm:hidden"
-                    disabled={isFetchingEvents || !hasAnyConnectedAccount || isLoadingCalendars}
                     onClick={refreshEvents}
-                    title={
-                      hasAnyConnectedAccount && !isLoadingCalendars
-                        ? undefined
-                        : isLoadingCalendars
-                        ? 'Loading calendars...'
-                        : 'Connect Google Calendar to refresh events'
-                    }
                     variant="outline"
                   >
                     <RefreshCw
@@ -335,7 +281,7 @@ const CalendarView = memo(function CalendarView({
                   </Button>
                   {isMobile ? (
                     <Select onValueChange={handleViewChange} value={viewType}>
-                      <SelectTrigger className="h-6 px-2 py-0 text-sm" disabled={isLoadingCalendars}>
+                      <SelectTrigger className="h-6 px-2 py-0 text-sm">
                         <SelectValue>
                           {viewType === 'day' && (
                             <div className="flex items-center space-x-1">
@@ -380,50 +326,20 @@ const CalendarView = memo(function CalendarView({
                     </Select>
                   ) : (
                     <TabsList className="grid grid-cols-3">
-                      <TabsTrigger
-                        disabled={!hasAnyConnectedAccount || isLoadingCalendars}
-                        title={
-                          hasAnyConnectedAccount && !isLoadingCalendars
-                            ? undefined
-                            : isLoadingCalendars
-                            ? 'Loading calendars...'
-                            : 'Connect Google Calendar to view calendar'
-                        }
-                        value="day"
-                      >
+                      <TabsTrigger value="day">
                         <div className="flex items-center space-x-2">
                           <CalendarDaysIcon size={15} />
                           <span>Day</span>
                         </div>
                       </TabsTrigger>
-                      <TabsTrigger
-                        disabled={!hasAnyConnectedAccount || isLoadingCalendars}
-                        title={
-                          hasAnyConnectedAccount && !isLoadingCalendars
-                            ? undefined
-                            : isLoadingCalendars
-                            ? 'Loading calendars...'
-                            : 'Connect Google Calendar to view calendar'
-                        }
-                        value="week"
-                      >
+                      <TabsTrigger value="week">
                         <div className="flex items-center space-x-2">
                           <BsCalendarWeek />
                           <span>Week</span>
                         </div>
                       </TabsTrigger>
 
-                      <TabsTrigger
-                        disabled={!hasAnyConnectedAccount || isLoadingCalendars}
-                        title={
-                          hasAnyConnectedAccount && !isLoadingCalendars
-                            ? undefined
-                            : isLoadingCalendars
-                            ? 'Loading calendars...'
-                            : 'Connect Google Calendar to view calendar'
-                        }
-                        value="month"
-                      >
+                      <TabsTrigger value="month">
                         <div className="flex items-center space-x-2">
                           <BsCalendarMonth />
                           <span>Month</span>
@@ -478,19 +394,8 @@ const CalendarView = memo(function CalendarView({
       )}
       
       <SignedOut>
-        <div className="flex items-center justify-center rounded-lg border border-dashed bg-muted/50 p-8">
-          <div className="max-w-md text-center">
-            <h3 className="mb-2 font-semibold text-lg">
-              Connect Google Calendar
-            </h3>
-            <p className="mb-4 text-muted-foreground text-sm">
-              To view and manage your calendar events, please connect your
-              Google Calendar account.
-            </p>
-            <Button size="sm" variant="outline">
-              Connect Google Calendar
-            </Button>
-          </div>
+        <div className="flex flex-col gap-4">
+          <SignedOutCalendarGrid viewType={viewType} />
         </div>
       </SignedOut>
     </div>

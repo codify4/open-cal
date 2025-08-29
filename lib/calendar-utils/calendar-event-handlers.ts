@@ -33,7 +33,7 @@ export const createGoogleEvent = async (
     start: { dateTime: startDate.toISOString() },
     end: { dateTime: endDate.toISOString() },
     visibility: 'public',
-    colorId: '1',
+    colorId: '9',
   };
 
   const url = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events?sendUpdates=none`;

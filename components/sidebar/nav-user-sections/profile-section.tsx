@@ -14,6 +14,14 @@ import {
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { useCalendarStore } from '@/providers/calendar-store-provider';
 
 interface ProfileSectionProps {
   user: { name: string; email: string; avatar: string };
@@ -21,6 +29,8 @@ interface ProfileSectionProps {
 
 export function ProfileSection({ user }: ProfileSectionProps) {
   const { signOut } = useClerk();
+  const weekStartsOn = useCalendarStore((state) => state.weekStartsOn);
+  const setWeekStartsOn = useCalendarStore((state) => state.setWeekStartsOn);
 
   return (
     <div className="space-y-4 sm:space-y-6">
@@ -73,19 +83,27 @@ export function ProfileSection({ user }: ProfileSectionProps) {
             </div>
           </div>
 
-          <Separator className="bg-neutral-200 dark:border-neutral-800" />
+          <Separator className="bg-neutral-200/30 dark:border-neutral-800" />
 
           <div className="space-y-4">
             <div className="flex flex-col space-y-3 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
               <div className="space-y-1">
                 <Label className="text-neutral-900 text-sm dark:text-white">
-                  Email Notifications
+                  Week Starts On
                 </Label>
                 <p className="text-neutral-600 text-xs sm:text-sm dark:text-neutral-400">
-                  Receive email updates about your account
+                  Choose which day your calendar week begins
                 </p>
               </div>
-              <Switch className="cursor-pointer" defaultChecked />
+              <Select value={weekStartsOn} onValueChange={setWeekStartsOn}>
+                <SelectTrigger className="w-32">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="monday">Monday</SelectItem>
+                  <SelectItem value="sunday">Sunday</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
         </CardContent>

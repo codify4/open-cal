@@ -44,7 +44,7 @@ export const DailyTimeGrid = ({
                 />
               </div>
             </ContextMenuTrigger>
-            <ContextMenuContent className="w-40 bg-neutral-950">
+            <ContextMenuContent className="bg-popover">
               <CalendarContextMenuItems
                 onAddEvent={() => {
                   const timeToUse =

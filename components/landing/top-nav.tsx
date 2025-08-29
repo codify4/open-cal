@@ -48,7 +48,7 @@ export default function TopNav() {
 
   return (
     <nav
-      className={`-translate-x-1/2 fixed top-0 left-1/2 z-50 mt-2 w-11/12 sm:w-2/3 self-center rounded-full border border-neutral-800 bg-black transition-all duration-500 ${
+      className={`-translate-x-1/2 fixed top-0 left-1/2 z-100 mt-2 w-11/12 sm:w-2/3 self-center rounded-full border border-neutral-800 bg-black transition-all duration-500 ${
         isScrolled ? 'w-2/4 bg-black/80 backdrop-blur-xl' : 'bg-black'
       }`}
     >
@@ -69,27 +69,27 @@ export default function TopNav() {
               </Link>
             ))}
             
-            <DropdownMenu>
-              <DropdownMenuTrigger className="flex items-center gap-1 font-medium text-neutral-400 text-sm bg-transparent hover:bg-transparent transition-colors hover:text-white p-0 mx-0 h-auto cursor-pointer focus:outline-none">
+            <div className="relative group">
+              <div className="flex items-center gap-1 font-medium text-neutral-400 text-sm bg-transparent hover:bg-transparent transition-colors hover:text-white p-0 mx-0 h-auto cursor-pointer focus:outline-none">
                 Use Cases
                 <ChevronDown className="h-3 w-3" />
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="center" className="w-[560px] bg-black border-border/30 p-2">
-                <div className="grid grid-cols-2 gap-1">
-                  {useCases.map((useCase) => (
-                    <DropdownMenuItem asChild key={useCase.name} variant='default'>
-                      <Link href={useCase.href} className="flex flex-col items-start p-3 hover:!bg-neutral-900 cursor-pointer">
+              </div>
+              <div className="absolute top-full left-1/2 -translate-x-1/2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+                <div className="w-[560px] bg-black border border-border/30 rounded-md p-2 mt-2">
+                  <div className="grid grid-cols-2 gap-1">
+                    {useCases.map((useCase) => (
+                      <Link key={useCase.name} href={useCase.href} className="flex flex-col items-start p-3 hover:bg-neutral-900 cursor-pointer rounded">
                         <div className="flex items-center gap-2">
                           <useCase.icon className="h-4 w-4 text-neutral-400" />
                           <div className="font-medium text-white">{useCase.name}</div>
                         </div>
                         <div className="text-xs text-muted-foreground ml-6">{useCase.description}</div>
                       </Link>
-                    </DropdownMenuItem>
-                  ))}
+                    ))}
+                  </div>
                 </div>
-              </DropdownMenuContent>
-            </DropdownMenu>
+              </div>
+            </div>
           </div>
           
           <div className="flex items-center">

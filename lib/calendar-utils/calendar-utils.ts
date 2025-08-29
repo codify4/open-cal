@@ -214,11 +214,12 @@ export const convertGoogleEventToLocalEvent = (
 };
 
 export const getWeekDateRange = (
-  currentDate: Date
+  currentDate: Date,
+  weekStartsOn: 'monday' | 'sunday' = 'monday'
 ): { startDate: Date; endDate: Date } => {
-  const weekStartsOn = 1; // Monday
+  const startDay = weekStartsOn === 'monday' ? 1 : 0;
   const currentDayOfWeek = currentDate.getDay();
-  const daysToSubtract = (currentDayOfWeek - weekStartsOn + 7) % 7;
+  const daysToSubtract = (currentDayOfWeek - startDay + 7) % 7;
 
   const weekStart = new Date(currentDate);
   weekStart.setDate(currentDate.getDate() - daysToSubtract);
@@ -263,16 +264,17 @@ export const getDayDateRange = (
 
 export const getDateRangeForView = (
   currentDate: Date,
-  viewType: 'day' | 'week' | 'month'
+  viewType: 'day' | 'week' | 'month',
+  weekStartsOn: 'monday' | 'sunday' = 'monday'
 ): { startDate: Date; endDate: Date } => {
   switch (viewType) {
     case 'day':
       return getDayDateRange(currentDate);
     case 'week':
-      return getWeekDateRange(currentDate);
+      return getWeekDateRange(currentDate, weekStartsOn);
     case 'month':
       return getMonthDateRange(currentDate);
     default:
-      return getWeekDateRange(currentDate);
+      return getWeekDateRange(currentDate, weekStartsOn);
   }
 };

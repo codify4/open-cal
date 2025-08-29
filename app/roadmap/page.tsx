@@ -32,7 +32,7 @@ export default function RoadmapPage() {
     <div className="min-h-screen bg-black dark:bg-black">
       <TopNav />
       
-      <div className="w-full max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="text-center space-y-6 mb-12">
           <h1 className="text-4xl sm:text-5xl font-bold mt-20 text-white">
             Roadmap
@@ -97,10 +97,10 @@ export default function RoadmapPage() {
 
           <div className="space-y-4">
             <div className="flex items-center gap-4">
-              <div className="w-8 h-8 bg-yellow-500 text-white rounded-full flex items-center justify-center font-semibold">5</div>
+              <div className="w-8 h-8 bg-green-500 text-white rounded-full flex items-center justify-center font-semibold">5</div>
               <div>
                 <h3 className="text-xl font-semibold text-white">Full mobile support</h3>
-                <Badge className="bg-yellow-500 font-medium">Not Started</Badge>
+                <Badge className="bg-green-500 font-medium">Done</Badge>
               </div>
             </div>
             <p className="text-muted-foreground ml-12">
@@ -110,10 +110,10 @@ export default function RoadmapPage() {
 
           <div className="space-y-4">
             <div className="flex items-center gap-4">
-              <div className="w-8 h-8 bg-yellow-500 text-white rounded-full flex items-center justify-center font-semibold">6</div>
+              <div className="w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center font-semibold">6</div>
               <div>
                 <h3 className="text-xl font-semibold text-white">Bug fixes and little improvements</h3>
-                <Badge className="bg-yellow-500 font-medium">Not Started</Badge>
+                <Badge className="bg-blue-500 font-medium">In Progress</Badge>
               </div>
             </div>
             <p className="text-muted-foreground ml-12">
@@ -123,7 +123,20 @@ export default function RoadmapPage() {
 
           <div className="space-y-4">
             <div className="flex items-center gap-4">
-              <div className="w-8 h-8 bg-gray-500 text-white rounded-full flex items-center justify-center font-semibold">7</div>
+              <div className="w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center font-semibold">7</div>
+              <div>
+                <h3 className="text-xl font-semibold text-white">Prepare for launch</h3>
+                <Badge className="bg-blue-500 font-medium">In Progress</Badge>
+              </div>
+            </div>
+            <p className="text-muted-foreground ml-12">
+              Prepare for the big launch. Film content, landing page updates, and more.
+            </p>
+          </div>
+
+          <div className="space-y-4">
+            <div className="flex items-center gap-4">
+              <div className="w-8 h-8 bg-gray-500 text-white rounded-full flex items-center justify-center font-semibold">8</div>
               <div>
                 <h3 className="text-xl font-semibold text-white">Launch</h3>
                 <Badge variant="outline" className="text-white font-medium">Future</Badge>

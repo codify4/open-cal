@@ -18,6 +18,7 @@ import { useEventCardFocus } from './hooks/use-event-card-focus';
 import { useEventCardActions } from './hooks/use-event-card-actions';
 import { calculateEventHeight, useEventCardColor } from './utils/event-card-utils';
 import type { EventCardProps } from './types/event-card-types';
+import { useSession } from '@clerk/nextjs';
 
 export const EventCard = ({
   event,
@@ -32,7 +33,9 @@ export const EventCard = ({
   const { fetchedCalendars } = useCalendarManagement();
   const addEventReference = useChatStore((state) => state.addEventReference);
   const toggleChatSidebar = useCalendarStore((state) => state.toggleChatSidebar);
+  const sessionCalendars = useCalendarStore((state) => state.sessionCalendars);
   const isMobile = useIsMobile();
+  const { session } = useSession();
 
   const {
     attributes,
@@ -72,7 +75,7 @@ export const EventCard = ({
     }
   };
 
-  const indicatorColor = useEventCardColor(event, fetchedCalendars, isFocused);
+  const indicatorColor = useEventCardColor(event, sessionCalendars, isFocused, session?.id);
   const calculatedHeight = calculateEventHeight(event.startDate, event.endDate);
 
   useEffect(() => {
@@ -98,7 +101,7 @@ export const EventCard = ({
           getCardColor(event.color, isFocused),
           event.isAllDay && 'border-l-4',
           isClient && isDragging && 'opacity-50',
-          minimized && 'max-h-[40px] min-h-[20px] overflow-hidden',
+          minimized && 'max-h-[24px] min-h-[20px] overflow-hidden p-1 border rounded-[8px] flex items-center justify-start mx-2 truncate',
           isDragging && 'z-[9998]',
           isFocused ? 'opacity-100' : 'opacity-80',
           isLongPress && 'cursor-grabbing',
@@ -118,18 +121,21 @@ export const EventCard = ({
         <div
           className={cn(
             'w-[2px] rounded-sm',
-            minimized ? 'min-h-[20px]' : 'min-h-[30px]'
+            minimized ? 'min-h-[16px]' : 'min-h-[30px]'
           )}
           style={{ backgroundColor: indicatorColor }}
         />
         
-        <div className="pointer-events-none absolute top-1 right-1 size-8 overflow-hidden opacity-50">
-          <GraphicDoodle color={event.color} size="sm" />
-        </div>
+        {!minimized && (
+          <div className="pointer-events-none absolute top-1 right-1 size-8 overflow-hidden opacity-50">
+            <GraphicDoodle color={event.color} size="sm" />
+          </div>
+        )}
 
         <div
           className={cn(
             'relative z-10 flex flex-col gap-2',
+            minimized && 'gap-0',
             isLongPress ? 'cursor-grabbing' : 'cursor-pointer'
           )}
           ref={isClient ? setNodeRef : undefined}
@@ -139,14 +145,16 @@ export const EventCard = ({
           <EventCardContent event={event} minimized={minimized} />
         </div>
 
-        <EventCardResizeHandles
-          event={event}
-          minimized={minimized}
-          isResizing={isResizing}
-          resizeType={resizeType}
-          onVerticalResizeStart={(e) => handleVerticalResizeStart(e, cardRef)}
-          onHorizontalResizeStart={(e) => handleHorizontalResizeStart(e, cardRef)}
-        />
+        {!minimized && (
+          <EventCardResizeHandles
+            event={event}
+            minimized={minimized}
+            isResizing={isResizing}
+            resizeType={resizeType}
+            onVerticalResizeStart={(e) => handleVerticalResizeStart(e, cardRef)}
+            onHorizontalResizeStart={(e) => handleHorizontalResizeStart(e, cardRef)}
+          />
+        )}
 
         {isResizing && (
           <div className="pointer-events-none absolute inset-0 rounded-sm border-2 border-foreground/50" />

@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import {
   SidebarGroup,
   SidebarGroupContent,
+  SidebarGroupLabel,
   SidebarMenu,
   SidebarMenuItem,
 } from '@/components/ui/sidebar';
@@ -54,8 +55,14 @@ export function NavCalendars({
     <SidebarGroup className="mt-0 group-data-[collapsible=icon]:hidden">
       <SignedOut>
         <SidebarGroupContent>
+          <SidebarGroupLabel>
+            Account
+          </SidebarGroupLabel>
           <SignInButton mode="modal">
-            <Button>Sign in to Continue</Button>
+            <Button className='flex items-center justify-start w-full bg-transparent hover:bg-transparent text-muted-foreground hover:text-foreground shadow-none'>
+              <Plus className="h-3 w-3" />
+              <span className="text-xs">Add calendar account</span>
+            </Button>
           </SignInButton>
         </SidebarGroupContent>
       </SignedOut>

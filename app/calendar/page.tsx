@@ -1,6 +1,5 @@
 'use client';
 
-import { useUser } from '@clerk/nextjs';
 import Image from 'next/image';
 import { useTheme } from 'next-themes';
 import CalendarView from '@/components/calendar/calendar-view';
@@ -8,7 +7,6 @@ import { Button } from '@/components/ui/button';
 import { useCalendarStore } from '@/providers/calendar-store-provider';
 
 function CalendarPage() {
-  const { isLoaded } = useUser();
   const { theme } = useTheme();
   const { isChatSidebarOpen, toggleChatSidebar } = useCalendarStore(
     (state) => state

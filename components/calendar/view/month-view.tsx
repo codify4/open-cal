@@ -1,10 +1,9 @@
 'use client';
 
-import { SignedIn, SignedOut, SignInButton, useUser } from '@clerk/nextjs';
+import { SignedIn, useUser } from '@clerk/nextjs';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { MonthDayCell } from '@/components/calendar/month/month-day-cell';
 import { EventCard } from '@/components/event/cards/event-card';
-import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
@@ -26,20 +25,18 @@ export default function MonthView() {
   
   const {
     currentDate,
-    navigationDirection,
     openEventSidebarForNewEvent,
     events,
     toggleChatSidebar,
     googleEvents,
     visibleCalendarIds,
     setGoogleEvents,
+    weekStartsOn,
   } = useCalendarStore((state) => state);
   const { user: clerkUser, isSignedIn } = useUser();
   const { refreshEvents } = useGoogleCalendarRefresh();
   const [selectedEvents, setSelectedEvents] = React.useState<Event[]>([]);
   const [isEventsDialogOpen, setIsEventsDialogOpen] = React.useState(false);
-  const direction = navigationDirection;
-  const weekStartsOn = 'sunday' as 'sunday' | 'monday';
 
   const date = currentDate instanceof Date ? currentDate : new Date(currentDate);
   const daysInMonthArray = getDaysInMonth(date.getMonth(), date.getFullYear());
@@ -70,18 +67,18 @@ export default function MonthView() {
   useEffect(() => {
     if (isMobile && scrollContainerRef.current) {
       const today = new Date();
-      const currentDayIndex = today.getDate() - 1;
+      const currentDayOfWeek = today.getDay();
+      const startDay = weekStartsOn === 'monday' ? 1 : 0;
+      const adjustedDayIndex = (currentDayOfWeek - startDay + 7) % 7;
       const dayWidth = scrollContainerRef.current.scrollWidth / 7;
-      const rowHeight = 150;
-      const currentRow = Math.floor((currentDayIndex + getStartOffset()) / 7);
-      const scrollPosition = currentRow * rowHeight - (scrollContainerRef.current.clientHeight / 2) + (rowHeight / 2);
+      const scrollPosition = adjustedDayIndex * dayWidth - (scrollContainerRef.current.clientWidth / 2) + (dayWidth / 2);
       
       scrollContainerRef.current.scrollTo({
-        top: Math.max(0, scrollPosition),
+        left: Math.max(0, scrollPosition),
         behavior: 'smooth'
       });
     }
-  }, [isMobile]);
+  }, [isMobile, weekStartsOn]);
 
   const allEvents = useMemo(() => {
     const localEvents = events || [];
@@ -141,12 +138,10 @@ export default function MonthView() {
     openEventSidebarForNewEvent(startDate);
   };
 
-  const daysOfWeek =
-    weekStartsOn === 'monday'
+  const daysOfWeek = weekStartsOn === 'monday'
       ? ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
       : ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
-  const firstDayOfMonth = new Date(date.getFullYear(), date.getMonth(), 1);
   const startOffset = getStartOffset();
   const prevMonth = new Date(date.getFullYear(), date.getMonth() - 1, 1);
   const lastDateOfPrevMonth = new Date(
@@ -155,32 +150,26 @@ export default function MonthView() {
     0
   ).getDate();
 
-  return (
-    <div>
-      <SignedOut>
-        <div className="flex h-96 items-center justify-center">
-          <div className="space-y-4 text-center">
-            <h3 className="font-medium text-foreground text-lg">
-              Sign in to view your calendar
-            </h3>
-            <p className="text-muted-foreground">
-              Connect your account to start managing your schedule
-            </p>
-            <SignInButton mode="modal">
-              <Button>Sign in to Continue</Button>
-            </SignInButton>
-          </div>
-        </div>
-      </SignedOut>
+  const nextMonth = new Date(date.getFullYear(), date.getMonth() + 1, 1);
+  const daysInNextMonth = new Date(
+    nextMonth.getFullYear(),
+    nextMonth.getMonth() + 1,
+    0
+  ).getDate();
 
+  const totalCells = 42; // 6 weeks * 7 days
+  const nextMonthDaysNeeded = totalCells - startOffset - daysInMonthArray.length;
+
+  return (
+    <div className=''>
       <SignedIn>
-        <div>
+        <div className='h-full'>
           {isMobile ? (
-            <div className="overflow-auto" ref={scrollContainerRef}>
-              <div className="grid grid-cols-7 gap-1 sm:gap-2 min-w-[1200px] min-h-[600px]">
+            <div className="overflow-x-auto h-full" ref={scrollContainerRef}>
+              <div className="grid grid-cols-7 min-w-[1500px]">
                 {daysOfWeek.map((day, idx) => (
                   <div
-                    className="my-8 text-left font-medium text-4xl tracking-tighter"
+                    className="sticky top-0 z-10 p-3 text-center font-medium text-sm tracking-tight border-b border-border bg-muted/30"
                     key={idx}
                   >
                     {day}
@@ -188,14 +177,14 @@ export default function MonthView() {
                 ))}
 
                 {Array.from({ length: startOffset }).map((_, idx) => (
-                  <div className="h-[150px] opacity-50" key={`offset-${idx}`}>
-                    <div className="relative mb-1 font-semibold text-3xl">
+                  <div className="h-[120px] opacity-80 border-r border-border last:border-r-0" key={`offset-${idx}`}>
+                    <div className="relative p-2 font-medium text-sm text-muted-foreground">
                       {lastDateOfPrevMonth - startOffset + idx + 1}
                     </div>
                   </div>
                 ))}
 
-                {daysInMonthArray.map((day) => {
+                {daysInMonthArray.map((day, dayIndex) => {
                   const dayEventsForCell = getEventsForDayNumber(day);
                   const cellDate = new Date(
                     date.getFullYear(),
@@ -206,6 +195,7 @@ export default function MonthView() {
                     new Date().getDate() === day &&
                     new Date().getMonth() === date.getMonth() &&
                     new Date().getFullYear() === date.getFullYear();
+                  const isLastInRow = (dayIndex + startOffset + 1) % 7 === 0;
                   return (
                     <MonthDayCell
                       cellDate={cellDate}
@@ -217,19 +207,28 @@ export default function MonthView() {
                       onAskAI={() => toggleChatSidebar()}
                       onContextMenuAddEvent={handleContextMenuAddEvent}
                       sessionPresent={isSignedIn!}
+                      isLastInRow={isLastInRow}
                     />
                   );
                 })}
+
+                {Array.from({ length: nextMonthDaysNeeded }).map((_, idx) => (
+                    <div className="h-[150px] opacity-80 border-b border-r border-border last:border-r-0" key={`next-month-${idx}`}>
+                        <div className="relative p-2 font-medium text-sm text-muted-foreground">
+                            {idx + 1}
+                        </div>
+                    </div>
+                ))}
               </div>
             </div>
           ) : (
             <div
-              className="grid grid-cols-7 gap-1 sm:gap-2"
+              className="grid grid-cols-7 overflow-hidden h-full"
               key={`${date.getFullYear()}-${date.getMonth()}`}
             >
               {daysOfWeek.map((day, idx) => (
                 <div
-                  className="my-8 text-left font-medium text-4xl tracking-tighter"
+                  className="sticky top-0 z-10 max-h-[50px] p-2 text-center font-medium text-sm tracking-tight border-b border-border bg-muted/30 last:border-r-0"
                   key={idx}
                 >
                   {day}
@@ -237,14 +236,14 @@ export default function MonthView() {
               ))}
 
               {Array.from({ length: startOffset }).map((_, idx) => (
-                <div className="h-[150px] opacity-50" key={`offset-${idx}`}>
-                  <div className="relative mb-1 font-semibold text-3xl">
+                <div className="h-[150px] opacity-80 border-b border-r border-border last:border-b-0 last:border-r-0" key={`offset-${idx}`}>
+                  <div className="relative p-2 font-medium text-sm text-muted-foreground">
                     {lastDateOfPrevMonth - startOffset + idx + 1}
                   </div>
                 </div>
               ))}
 
-              {daysInMonthArray.map((day) => {
+              {daysInMonthArray.map((day, dayIndex) => {
                 const dayEventsForCell = getEventsForDayNumber(day);
                 const cellDate = new Date(
                   date.getFullYear(),
@@ -255,6 +254,7 @@ export default function MonthView() {
                   new Date().getDate() === day &&
                   new Date().getMonth() === date.getMonth() &&
                   new Date().getFullYear() === date.getFullYear();
+                const isLastInRow = (dayIndex + startOffset + 1) % 7 === 0;
                 return (
                   <MonthDayCell
                     cellDate={cellDate}
@@ -266,9 +266,18 @@ export default function MonthView() {
                     onAskAI={() => toggleChatSidebar()}
                     onContextMenuAddEvent={handleContextMenuAddEvent}
                     sessionPresent={isSignedIn!}
+                    isLastInRow={isLastInRow}
                   />
                 );
               })}
+
+              {Array.from({ length: nextMonthDaysNeeded }).map((_, idx) => (
+                <div className="h-[150px] opacity-80 border-b border-r border-border last:border-b-0 last:border-r-0" key={`next-month-${idx}`}>
+                  <div className="relative p-2 font-medium text-sm text-muted-foreground">
+                    {idx + 1}
+                  </div>
+                </div>
+              ))}
             </div>
           )}
         </div>

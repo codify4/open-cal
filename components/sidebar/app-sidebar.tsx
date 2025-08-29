@@ -2,7 +2,6 @@
 
 import { useUser } from '@clerk/nextjs';
 import * as React from 'react';
-import { toast } from 'sonner';
 import { NavCalendars } from '@/components/sidebar/cal-accounts';
 import { CalendarPicker } from '@/components/sidebar/cal-day-picker';
 import { NavUser } from '@/components/sidebar/nav-user';
@@ -15,7 +14,6 @@ import Premium from './premium';
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { user, isLoaded } = useUser();
-  const [selectedEmail, setSelectedEmail] = React.useState('');
   const [calendarList, setCalendarList] = React.useState<
     Array<{
       id: string;
@@ -32,10 +30,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       color: 'blue' | 'green' | 'red' | 'yellow' | 'purple' | 'orange';
     }>
   >([]);
-
-  const handleEmailChange = (email: string) => {
-    setSelectedEmail(email);
-  };
 
   const handleCalendarToggle = (calendarId: string) => {
     setCalendarList((prev) => {
@@ -82,7 +76,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
   React.useEffect(() => {
     if (user?.primaryEmailAddress?.emailAddress) {
-      setSelectedEmail(user.primaryEmailAddress.emailAddress);
       setEmailAccounts([
         {
           email: user.primaryEmailAddress.emailAddress,

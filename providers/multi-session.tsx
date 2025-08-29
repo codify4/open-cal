@@ -21,13 +21,19 @@ export default function MultisessionAppSupport({
 
   useEffect(() => {
     if (session && proPlanSessionId.current && session.id !== proPlanSessionId.current) {
-      setIsSwitching(true);
-      setActive?.({ session: proPlanSessionId.current });
+      const hasSwitched = localStorage.getItem('sessionSwitched');
       
-      // Hide the switching state after a delay
-      setTimeout(() => {
-        setIsSwitching(false);
-      }, 1000);
+      if (!hasSwitched) {
+        setIsSwitching(true);
+        localStorage.setItem('sessionSwitched', 'true');
+        setActive?.({ session: proPlanSessionId.current });
+        
+        setTimeout(() => {
+          setIsSwitching(false);
+        }, 1000);
+      } else {
+        setActive?.({ session: proPlanSessionId.current });
+      }
     }
   }, [session, setActive]);
 
