@@ -27,10 +27,10 @@ export const EventCardContextMenu = ({
                     <Pencil className="mr-2 h-4 w-4" />
                     Edit
                 </ContextMenuItem>
-                <ContextMenuItem className="cursor-pointer" onClick={() => onDuplicate(event)}>
+                {/* <ContextMenuItem className="cursor-pointer" onClick={() => onDuplicate(event)}>
                     <Copy className="mr-2 h-4 w-4" />
                     Duplicate
-                </ContextMenuItem>
+                </ContextMenuItem> */}
                 <ContextMenuItem
                     className="cursor-pointer"
                     onClick={() => onDelete(event)}

@@ -1,6 +1,6 @@
 import { useCallback } from 'react';
 import { toast } from 'sonner';
-import { upsertGoogleEvent } from '@/lib/calendar-utils/google-calendar';
+import { upsertGoogleEvent, deleteGoogleEvent } from '@/lib/calendar-utils/google-calendar';
 import type { Event } from '@/lib/store/calendar-store';
 import { useCalendarStore } from '@/providers/calendar-store-provider';
 import { useGoogleCalendarRefresh } from './use-google-calendar-refresh';
@@ -72,6 +72,39 @@ export const useOptimisticEventSync = () => {
     [events, googleEvents, findEvent, updateEventTime]
   );
 
+  const optimisticDelete = useCallback(
+    (eventId: string) => {
+      const currentEvent = findEvent(eventId);
+      if (!currentEvent) {
+        console.warn(`Event ${eventId} not found for optimistic delete`);
+        return null;
+      }
+
+      const snapshot: OptimisticSnapshot = {
+        eventId,
+        source: events.find((e) => e.id === eventId)
+          ? 'events'
+          : 'googleEvents',
+        previousStartDate: new Date(currentEvent.startDate),
+        previousEndDate: new Date(currentEvent.endDate),
+      };
+
+      clearOptimisticOverride(eventId);
+
+      const revert = () => {
+        updateEventTime(
+          snapshot.eventId,
+          snapshot.previousStartDate,
+          snapshot.previousEndDate
+        );
+        clearOptimisticOverride(snapshot.eventId);
+      };
+
+      return { snapshot, revert };
+    },
+    [events, googleEvents, findEvent, clearOptimisticOverride, updateEventTime]
+  );
+
   const commit = useCallback(
     async (
       updatedEvent: Event,
@@ -101,8 +134,43 @@ export const useOptimisticEventSync = () => {
     [replaceEvent, refreshEvents]
   );
 
+  const commitDelete = useCallback(
+    async (
+      event: Event,
+      userId: string
+    ): Promise<void> => {
+      if (!event.googleEventId) {
+        return;
+      }
+
+      try {
+        const calendarId = event.googleCalendarId || 'primary';
+        const result = await deleteGoogleEvent(event.googleEventId, calendarId);
+
+        if (!result.success) {
+          if (result.error === 'unauthorized') {
+            throw new Error('Access token expired. Please reconnect your Google account.');
+          }
+          if (result.error === 'not_found') {
+            // Event not found in Google Calendar, but that's fine for deletion
+            return;
+          }
+          throw new Error(result.error || 'Failed to delete from Google Calendar');
+        }
+      } catch (error) {
+        console.error('Failed to delete event from Google Calendar:', error);
+        toast.error('Failed to delete event from Google Calendar');
+        await refreshEvents();
+        throw error;
+      }
+    },
+    [refreshEvents]
+  );
+
   return {
     optimisticUpdate,
+    optimisticDelete,
     commit,
+    commitDelete,
   };
 };
