@@ -2,8 +2,14 @@ import { Cake } from 'lucide-react';
 import type { EventCardContentProps } from '../types/event-card-types';
 import { getTimeDisplay } from '../utils/event-card-utils';
 
+const truncateTitle = (title: string, maxLength: number = 20) => {
+  if (title.length <= maxLength) return title;
+  return `${title.slice(0, maxLength)}...`;
+};
+
 export const EventCardContent = ({ event, minimized = false }: EventCardContentProps) => {
   const timeDisplay = getTimeDisplay(event.startDate, event.endDate);
+  const truncatedTitle = truncateTitle(event.title || 'Untitled Event');
 
   if (minimized) {
     return (
@@ -12,7 +18,7 @@ export const EventCardContent = ({ event, minimized = false }: EventCardContentP
           <Cake className="h-3 w-3 flex-shrink-0" />
         ) : null}
         <p className="flex-1 break-words text-start font-medium text-xs truncate">
-          {event.title || 'Untitled Event'}
+          {truncatedTitle}
         </p>
       </div>
     );
@@ -26,7 +32,7 @@ export const EventCardContent = ({ event, minimized = false }: EventCardContentP
             <Cake className="h-3 w-3" />
           ) : null}
           <p className="flex-1 break-words text-start font-medium text-xs leading-tight">
-            {event.title || 'Untitled Event'}
+            {truncatedTitle}
           </p>
         </div>
         <p className="mt-0.5 break-words text-[11px] leading-tight opacity-80">
