@@ -59,8 +59,8 @@ export function HeroSection() {
                         </motion.div>
                     </motion.div>
 
-                    <div className='bg-neutral-950 p-1 rounded-xl w-full h-full border-2 border-white/20'>
-                        <Image src="/hero.png" alt="Caly Hero" width={1203} height={753} className='w-full h-full object-cover rounded-xl' />
+                    <div className='bg-neutral-950 p-1 rounded-xl h-full border-2 border-white/20'>
+                        <Image src="/hero.png" alt="Caly Hero" width={1003} height={553} className='rounded-xl' />
                     </div>
                 </div>
             </div>
