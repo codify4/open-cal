@@ -40,6 +40,7 @@ export default function WeeklyView() {
     visibleCalendarIds,
     optimisticUpdateCounter,
     setGoogleEvents,
+    weekStartsOn,
   } = useCalendarStore((state) => state);
   const { user: clerkUser, isSignedIn } = useUser();
   const { refreshEvents } = useGoogleCalendarRefresh();
@@ -74,16 +75,19 @@ export default function WeeklyView() {
 
   useEffect(() => {
     if (isMobile && scrollContainerRef.current) {
-      const currentDayIndex = new Date().getDay();
+      const today = new Date();
+      const currentDayOfWeek = today.getDay();
+      const startDay = weekStartsOn === 'monday' ? 1 : 0;
+      const adjustedDayIndex = (currentDayOfWeek - startDay + 7) % 7;
       const dayWidth = scrollContainerRef.current.scrollWidth / 7;
-      const scrollPosition = dayWidth * currentDayIndex - (scrollContainerRef.current.clientWidth / 2) + (dayWidth / 2);
+      const scrollPosition = dayWidth * adjustedDayIndex - (scrollContainerRef.current.clientWidth / 2) + (dayWidth / 2);
       
       scrollContainerRef.current.scrollTo({
         left: Math.max(0, scrollPosition),
         behavior: 'smooth'
       });
     }
-  }, [isMobile]);
+  }, [isMobile, weekStartsOn]);
 
   const allEvents = useMemo(() => {
     const localEvents = events || [];
@@ -103,7 +107,7 @@ export default function WeeklyView() {
     return [...filteredLocalEvents, ...filteredGoogleEvents];
   }, [events, googleEvents, visibleCalendarIds, optimisticUpdateCounter]);
 
-  const daysOfWeek = useMemo(() => getDaysInWeek(date), [date]);
+  const daysOfWeek = useMemo(() => getDaysInWeek(date, weekStartsOn), [date, weekStartsOn]);
 
   const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     if (!hoursColumnRef.current) return;

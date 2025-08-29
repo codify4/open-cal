@@ -61,6 +61,7 @@ const CalendarView = memo(function CalendarView({
     refreshEvents,
     setRefreshFunction,
     openEventSidebarForNewEvent,
+    weekStartsOn,
   } = useCalendarStore((state) => state);
 
   const { refreshEvents: refreshGoogleEvents } = useGoogleCalendarRefresh();
@@ -100,8 +101,7 @@ const CalendarView = memo(function CalendarView({
   }, [clientSide]);
 
   const getDaysInWeek = (week: number, year: number) => {
-    const weekStartsOn = 'sunday';
-    const startDay = weekStartsOn === 'sunday' ? 0 : 1;
+    const startDay = weekStartsOn === 'monday' ? 1 : 0;
     const currentDayOfWeek = currentDate.getDay();
     const daysToSubtract = (currentDayOfWeek - startDay + 7) % 7;
     const weekStart = new Date(currentDate);
@@ -139,9 +139,9 @@ const CalendarView = memo(function CalendarView({
       );
     }
     if (viewType === 'week') {
-      const weekStartsOn = 1;
+      const startDay = weekStartsOn === 'monday' ? 1 : 0;
       const currentDayOfWeek = date.getDay();
-      const daysToSubtract = (currentDayOfWeek - weekStartsOn + 7) % 7;
+      const daysToSubtract = (currentDayOfWeek - startDay + 7) % 7;
       const weekStart = new Date(date);
       weekStart.setDate(date.getDate() - daysToSubtract);
       const weekEnd = new Date(weekStart);

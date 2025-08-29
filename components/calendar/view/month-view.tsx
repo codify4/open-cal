@@ -1,10 +1,9 @@
 'use client';
 
-import { SignedIn, SignedOut, SignInButton, useUser } from '@clerk/nextjs';
+import { SignedIn, useUser } from '@clerk/nextjs';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { MonthDayCell } from '@/components/calendar/month/month-day-cell';
 import { EventCard } from '@/components/event/cards/event-card';
-import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
@@ -26,20 +25,18 @@ export default function MonthView() {
   
   const {
     currentDate,
-    navigationDirection,
     openEventSidebarForNewEvent,
     events,
     toggleChatSidebar,
     googleEvents,
     visibleCalendarIds,
     setGoogleEvents,
+    weekStartsOn,
   } = useCalendarStore((state) => state);
   const { user: clerkUser, isSignedIn } = useUser();
   const { refreshEvents } = useGoogleCalendarRefresh();
   const [selectedEvents, setSelectedEvents] = React.useState<Event[]>([]);
   const [isEventsDialogOpen, setIsEventsDialogOpen] = React.useState(false);
-  const direction = navigationDirection;
-  const weekStartsOn = 'sunday' as 'sunday' | 'monday';
 
   const date = currentDate instanceof Date ? currentDate : new Date(currentDate);
   const daysInMonthArray = getDaysInMonth(date.getMonth(), date.getFullYear());
@@ -70,17 +67,18 @@ export default function MonthView() {
   useEffect(() => {
     if (isMobile && scrollContainerRef.current) {
       const today = new Date();
-      const currentDayIndex = today.getDate() - 1;
+      const currentDayOfWeek = today.getDay();
+      const startDay = weekStartsOn === 'monday' ? 1 : 0;
+      const adjustedDayIndex = (currentDayOfWeek - startDay + 7) % 7;
       const dayWidth = scrollContainerRef.current.scrollWidth / 7;
-      const currentColumn = (currentDayIndex + getStartOffset()) % 7;
-      const scrollPosition = currentColumn * dayWidth - (scrollContainerRef.current.clientWidth / 2) + (dayWidth / 2);
+      const scrollPosition = adjustedDayIndex * dayWidth - (scrollContainerRef.current.clientWidth / 2) + (dayWidth / 2);
       
       scrollContainerRef.current.scrollTo({
         left: Math.max(0, scrollPosition),
         behavior: 'smooth'
       });
     }
-  }, [isMobile]);
+  }, [isMobile, weekStartsOn]);
 
   const allEvents = useMemo(() => {
     const localEvents = events || [];
@@ -140,8 +138,7 @@ export default function MonthView() {
     openEventSidebarForNewEvent(startDate);
   };
 
-  const daysOfWeek =
-    weekStartsOn === 'monday'
+  const daysOfWeek = weekStartsOn === 'monday'
       ? ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
       : ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
@@ -172,7 +169,7 @@ export default function MonthView() {
               <div className="grid grid-cols-7 min-w-[1500px]">
                 {daysOfWeek.map((day, idx) => (
                   <div
-                    className="p-3 text-center font-medium text-sm tracking-tight border-b border-border bg-muted/30"
+                    className="sticky top-0 z-10 p-3 text-center font-medium text-sm tracking-tight border-b border-border bg-muted/30"
                     key={idx}
                   >
                     {day}
@@ -231,7 +228,7 @@ export default function MonthView() {
             >
               {daysOfWeek.map((day, idx) => (
                 <div
-                  className="max-h-[50px] p-2 text-center font-medium text-sm tracking-tight border-b border-border bg-muted/30 last:border-r-0"
+                  className="sticky top-0 z-10 max-h-[50px] p-2 text-center font-medium text-sm tracking-tight border-b border-border bg-muted/30 last:border-r-0"
                   key={idx}
                 >
                   {day}

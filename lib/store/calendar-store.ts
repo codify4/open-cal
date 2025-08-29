@@ -63,6 +63,7 @@ export interface CalendarState {
   selectedDate: Date;
   viewType: ViewType;
   navigationDirection: number;
+  weekStartsOn: 'monday' | 'sunday';
 
   eventColors: string[];
   eventTypes: Array<'event' | 'birthday'>;
@@ -120,6 +121,7 @@ export interface CalendarActions {
   setSelectedDate: (date: Date) => void;
   setViewType: (viewType: ViewType) => void;
   setNavigationDirection: (direction: number) => void;
+  setWeekStartsOn: (weekStartsOn: 'monday' | 'sunday') => void;
 
   goToToday: () => void;
   goToPreviousDay: () => void;
@@ -187,6 +189,7 @@ export const defaultInitState: CalendarState = {
   selectedDate: new Date(0),
   viewType: 'week',
   navigationDirection: 0,
+  weekStartsOn: 'monday',
 
   // Event colors and types
   eventColors: [
@@ -507,6 +510,7 @@ export const createCalendarStore = (
         setViewType: (viewType: ViewType) => set({ viewType }),
         setNavigationDirection: (direction: number) =>
           set({ navigationDirection: direction }),
+        setWeekStartsOn: (weekStartsOn: 'monday' | 'sunday') => set({ weekStartsOn }),
 
         // Navigation helper functions
         goToToday: () => {

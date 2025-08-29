@@ -18,16 +18,15 @@ interface SignedOutCalendarGridProps {
 }
 
 export function SignedOutCalendarGrid({ viewType }: SignedOutCalendarGridProps) {
-  const { currentDate } = useCalendarStore((state) => state);
+  const { currentDate, weekStartsOn } = useCalendarStore((state) => state);
   const [isMobile, setIsMobile] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   
   const date = currentDate instanceof Date ? currentDate : new Date(currentDate);
-  const daysOfWeek = useMemo(() => getDaysInWeek(date), [date]);
+  const daysOfWeek = useMemo(() => getDaysInWeek(date, weekStartsOn), [date, weekStartsOn]);
   const daysInMonthArray = getDaysInMonth(date.getMonth(), date.getFullYear());
   
-  const weekStartsOn = 'sunday' as 'sunday' | 'monday';
-  const startOffset = new Date(date.getFullYear(), date.getMonth(), 1).getDay();
+  const startOffset = (new Date(date.getFullYear(), date.getMonth(), 1).getDay() - (weekStartsOn === 'monday' ? 1 : 0) + 7) % 7;
   const lastDateOfPrevMonth = new Date(date.getFullYear(), date.getMonth(), 0).getDate();
   
   const daysOfWeekLabels = weekStartsOn === 'monday'
@@ -57,17 +56,18 @@ export function SignedOutCalendarGrid({ viewType }: SignedOutCalendarGridProps) 
   useEffect(() => {
     if (isMobile && scrollContainerRef.current) {
       const today = new Date();
-      const currentDayIndex = today.getDate() - 1;
+      const currentDayOfWeek = today.getDay();
+      const startDay = weekStartsOn === 'monday' ? 1 : 0;
+      const adjustedDayIndex = (currentDayOfWeek - startDay + 7) % 7;
       const dayWidth = scrollContainerRef.current.scrollWidth / 7;
-      const currentColumn = (currentDayIndex + startOffset) % 7;
-      const scrollPosition = currentColumn * dayWidth - (scrollContainerRef.current.clientWidth / 2) + (dayWidth / 2);
+      const scrollPosition = adjustedDayIndex * dayWidth - (scrollContainerRef.current.clientWidth / 2) + (dayWidth / 2);
       
       scrollContainerRef.current.scrollTo({
         left: Math.max(0, scrollPosition),
         behavior: 'smooth'
       });
     }
-  }, [isMobile, startOffset]);
+  }, [isMobile, weekStartsOn]);
 
   if (viewType === 'day') {
     return (

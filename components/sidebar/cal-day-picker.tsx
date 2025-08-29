@@ -10,8 +10,7 @@ import { useCalendarStore } from '@/providers/calendar-store-provider';
 import { Calendar } from '../ui/calendar';
 
 export function CalendarPicker() {
-  const { selectedDate, currentDate, setSelectedDate, setCurrentDate } =
-    useCalendarStore((state) => state);
+  const { selectedDate, currentDate, setSelectedDate, setCurrentDate, weekStartsOn } = useCalendarStore((state) => state);
 
   useEffect(() => {
     if (
@@ -37,7 +36,7 @@ export function CalendarPicker() {
           mode="single"
           onSelect={handleDateSelect}
           selected={selectedDate}
-          weekStartsOn={1}
+          weekStartsOn={weekStartsOn === 'monday' ? 1 : 0}
         />
       </SidebarMenu>
     </SidebarGroup>
