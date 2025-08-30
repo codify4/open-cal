@@ -11,7 +11,7 @@ export const metadata: Metadata = {
     canonical: 'https://www.trycaly.cc/roadmap',
   },
   openGraph: {
-    images: '/og-img.png',
+    images: '/og-img.svg',
     title: 'Roadmap - Caly',
     description: 'What\'s coming next for Caly. The full roadmap for the project.',
     url: 'https://www.trycaly.cc/roadmap',
@@ -23,7 +23,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Roadmap - Caly',
     description: 'What\'s coming next for Caly. The full roadmap for the project.',
-    images: '/og-img.png',
+    images: '/og-img.svg',
   },
 }
 

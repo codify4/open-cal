@@ -30,7 +30,7 @@ export async function generateMetadata({ params }: { params: Promise<{ "use-case
         canonical: 'https://www.trycaly.cc/',
       },
       openGraph: {
-        images: '/og-img.png',
+        images: '/og-img.svg',
         title: 'Use Case - Caly',
         description: 'Discover how Caly can help your specific use case.',
         url: 'https://www.trycaly.cc/',
@@ -48,7 +48,7 @@ export async function generateMetadata({ params }: { params: Promise<{ "use-case
       canonical: `https://www.trycaly.cc/${useCase}`,
     },
     openGraph: {
-      images: '/og-img.png',
+      images: '/og-img.svg',
       title: `${useCaseData.title} - Caly`,
       description: useCaseData.description,
       url: `https://www.trycaly.cc/${useCase}`,
@@ -60,7 +60,7 @@ export async function generateMetadata({ params }: { params: Promise<{ "use-case
       card: 'summary_large_image',
       title: `${useCaseData.title} - Caly`,
       description: useCaseData.description,
-      images: '/og-img.png',
+      images: '/og-img.svg',
     },
   };
 }

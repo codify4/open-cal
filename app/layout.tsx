@@ -27,7 +27,7 @@ export const metadata: Metadata = {
     apple: '/caly.svg',
   },
   openGraph: {
-    images: '/og-img.png',
+    images: '/og-img.svg',
     title: 'Caly',
     description:
       'An open-source calendar, offering a fresh alternative to traditional calendar applications. Deeply integrated with AI Agents to help you manage your time and never miss an important event ever again.',
@@ -41,7 +41,7 @@ export const metadata: Metadata = {
     title: 'Caly',
     description:
       'An open-source calendar, offering a fresh alternative to traditional calendar applications. Deeply integrated with AI Agents to help you manage your time and never miss an important event ever again.',
-    images: '/og-img.png',
+    images: '/og-img.svg',
   },
   alternates: {
     canonical: 'https://www.trycaly.cc/',
