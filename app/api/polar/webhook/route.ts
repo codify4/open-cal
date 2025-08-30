@@ -6,8 +6,10 @@ import { api } from '@/convex/_generated/api';
 export const POST = Webhooks({
   webhookSecret: process.env.POLAR_WEBHOOK_SECRET!,
   onPayload: async (payload) => {
+    console.log('onPayload', payload);
   },
   onSubscriptionCreated: async (subscription) => {
+    console.log('onSubscriptionCreated', subscription);
     try {
       const userId = (subscription as any).data?.metadata?.userId;
       const productId = (subscription as any).data?.productId;
@@ -28,6 +30,7 @@ export const POST = Webhooks({
   },
   onSubscriptionCanceled: async (subscription) => {
     try {
+      console.log('onSubscriptionCanceled', subscription);
       const subscriptionId = (subscription as any).data?.id;
 
       if (subscriptionId) {
@@ -41,6 +44,7 @@ export const POST = Webhooks({
   },
   onSubscriptionRevoked: async (subscription) => {
     try {
+      console.log('onSubscriptionRevoked', subscription);
       const subscriptionId = (subscription as any).data?.id;
 
       if (subscriptionId) {
