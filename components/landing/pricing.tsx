@@ -39,10 +39,10 @@ export function PricingSection() {
     >
       <div className="container relative z-10 mx-auto px-6 lg:px-8">
         <div className="mb-10 text-center">
-          <h2 className="mb-4 font-bold text-5xl leading-tight tracking-tight lg:text-6xl">
+          <h2 className="text-4xl sm:text-5xl md:text-6xl font-normal text-white mb-4 sm:mb-6 tracking-tight font-lora px-4">
             Pricing
           </h2>
-          <p className="mx-auto max-w-2xl font-light text-white/70 text-xl leading-relaxed">
+          <p className="text-base sm:text-lg lg:text-xl text-white/40 max-w-2xl mx-auto leading-relaxed px-4">
             Choose the perfect plan for your AI calendar
           </p>
         </div>
