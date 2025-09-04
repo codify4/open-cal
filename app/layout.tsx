@@ -65,7 +65,7 @@ export default function RootLayout({
           crossOrigin="anonymous"
           async
         />
-        <meta name="google-site-verification" content="rtibR9YOFrMtvy8G5hvkbOIr673zpTVKsW9-a6gFRmI" />
+        <meta name="google-site-verification" content="EuHlkXNtmy9rGmYoPay7leZ7PhSugIOinFUtql7t-n4" />
       </head>
       <body
         className={`${geist.variable} ${lora.variable} bg-neutral-950 text-foreground antialiased`}
